@@ -23,7 +23,7 @@ export const CONFIG = {
     // per person (0 = no limit), per connection (0 = no limit), window in hours, and the lower per-person limit for a new account
     actions: {
       signup: { perUser: 0, perIp: 5, hours: 1, newMax: 0, perEmail: 0 },
-      login: { perUser: 0, perIp: 30, hours: 1, newMax: 0, perEmail: 10 }, // perEmail: tries on one mailbox from any address, so a changing address cannot guess a password
+      login: { perUser: 0, perIp: 30, hours: 1, newMax: 0, perEmail: 50 }, // perEmail: tries on one mailbox from any address, so a changing address cannot guess a password
       reset: { perUser: 0, perIp: 5, hours: 1, newMax: 0, perEmail: 3 }, // password reset emails
       order: { perUser: 20, perIp: 30, hours: 1, newMax: 5, perEmail: 0 },
       listing: { perUser: 10, perIp: 15, hours: 24, newMax: 3, perEmail: 0 },

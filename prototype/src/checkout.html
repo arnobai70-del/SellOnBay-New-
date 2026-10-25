@@ -1,0 +1,43 @@
+<!--title=Checkout;layout=site;active=browse-->
+<div class="wrap" data-checkout>
+  <div class="page-head" style="padding-bottom:20px"><h1>Checkout</h1></div>
+  <div class="checkout">
+    <div id="c-main">
+      <form id="c-form">
+        <div class="panel">
+          <h2 style="font-size:1.5rem">Where should it go live?</h2>
+          <div class="seg" style="margin-top:16px" role="group" aria-label="Domain choice">
+            <button type="button" data-mode="own" aria-pressed="true">I have a domain</button>
+            <button type="button" data-mode="new" aria-pressed="false">I need a domain</button>
+          </div>
+          <div id="m-own">
+            <div class="field"><label for="own-domain">Your domain</label><input id="own-domain" placeholder="mybusiness.com" autocomplete="off"><small>After payment we show you two DNS settings to change. It takes about 5 minutes.</small></div>
+          </div>
+          <div id="m-new" hidden>
+            <div class="field"><label for="d-search">Search a name</label><input id="d-search" placeholder="mybusiness" autocomplete="off"></div>
+            <div class="dom-list" id="d-list"></div>
+            <small class="muted" style="display:block;margin-top:10px">Registered in your name. Renews yearly and you can move it any time.</small>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <h2 style="font-size:1.5rem">Extras</h2>
+          <label class="addon"><input type="checkbox" id="a-ai"><div style="flex:1"><b>AI content and SEO <span>$3</span></b><span class="muted">Answer 3 questions and we write your page text and search descriptions.</span></div></label>
+          <label class="addon"><input type="checkbox" id="a-host"><div style="flex:1"><b>Managed hosting <span>$4/mo</span></b><span class="muted">We host and update your site. Includes SSL and daily backups. Cancel any time.</span></div></label>
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <h2 style="font-size:1.5rem">Your details</h2>
+          <div class="row2"><div class="field"><label for="c-name-in">Full name</label><input id="c-name-in" required autocomplete="name"></div><div class="field"><label for="c-mail">Email</label><input id="c-mail" type="email" required autocomplete="email"></div></div>
+          <label style="display:flex;gap:10px;margin-top:20px;align-items:start"><input type="checkbox" required style="accent-color:#2B3DFF;margin-top:5px"><span class="muted">I agree to the terms. Once I accept the site, the order is final.</span></label>
+        </div>
+        <button class="btn btn-blue btn-lg" id="c-pay" style="margin-top:24px;width:100%" type="submit">Pay</button>
+      </form>
+    </div>
+    <aside class="sum" id="c-side">
+      <div style="width:140px" id="c-thumb"></div>
+      <h2 style="font-size:1.5rem;margin-top:16px" id="c-name"></h2>
+      <div style="margin-top:12px" id="c-lines"></div>
+      <div class="tot"><span>Total</span><span id="c-total"></span></div>
+      <div class="note"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span>Your payment is held by Launchbay and only released to the seller after you accept.</span></div>
+    </aside>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sell your site · Launchbay</title><meta name="description" content="Ready-made websites and tools on your own domain in 1 to 3 days.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><header class="nav"><div class="wrap"><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><nav class="nav-links" aria-label="Main"><a href="browse.html">Browse sites</a><a href="sell.html" aria-current="page">Sell on Launchbay</a><a href="index.html#how">How it works</a><a href="index.html#faq">FAQ</a></nav>
+<div class="nav-end"><a class="btn btn-line btn-sm hide-m" href="login.html">Sign in</a><a class="btn btn-gold btn-sm" href="browse.html">Find a site</a></div>
+<button class="nav-toggle" aria-label="Menu" aria-expanded="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header><main id="main"><div class="wrap" data-sell>
+  <div class="page-head"><h1>List a site</h1><p>We review every listing within 24 hours. You keep 85% of each sale.</p></div>
+  <div class="checkout" style="padding-top:16px">
+    <form class="panel" id="s-form">
+      <div class="field" style="margin-top:0"><label for="s-name">Site name</label><input id="s-name" required placeholder="Saffron Table"></div>
+      <div class="row2">
+        <div class="field"><label for="s-cat">Category</label><select id="s-cat"><option>Restaurants</option><option>Health</option><option>Portfolios</option><option>Stores</option><option>Landing pages</option><option>Real estate</option><option>Tools</option></select></div>
+        <div class="field"><label for="s-days">Delivery time</label><select id="s-days"><option>1 day</option><option>1 to 2 days</option><option selected>1 to 3 days</option></select></div>
+      </div>
+      <div class="field"><label for="s-desc">What does it do?</label><textarea id="s-desc" rows="3" required placeholder="Describe the site in two sentences."></textarea></div>
+      <div class="row2">
+        <div class="field"><label for="s-demo">Live demo link</label><input id="s-demo" type="url" required placeholder="https://demo.example.com"></div>
+        <div class="field"><label for="s-code">Code link</label><input id="s-code" type="url" required placeholder="Private GitHub or Drive link"><small>Only shared with buyers after payment.</small></div>
+      </div>
+      <div class="field"><label for="s-price">Price <b id="s-price-v"></b></label><input id="s-price" type="range" min="5" max="200" value="39" style="accent-color:#2B3DFF"></div>
+      <div class="field"><label for="s-lic">License</label><select id="s-lic"><option>I wrote all of it (or generated it with AI)</option><option>Uses MIT or Apache 2.0 parts</option><option>Uses other licensed parts</option></select><small>Sites with GPL parts need a note so buyers know their obligations.</small></div>
+      <label style="display:flex;gap:10px;margin-top:20px;align-items:start"><input type="checkbox" required style="accent-color:#2B3DFF;margin-top:5px"><span class="muted">I own the rights to sell this, and it has no copied or harmful code.</span></label>
+      <button class="btn btn-blue btn-lg" type="submit" style="margin-top:24px">Submit for review</button>
+    </form>
+    <aside class="sum">
+      <h2 style="font-size:1.5rem">What you earn</h2>
+      <div class="line" style="margin-top:12px"><span>Buyer pays</span><b id="s-price-v2">per sale</b></div>
+      <div class="line"><span>Launchbay fee, 15%</span><b id="s-fee"></b></div>
+      <div class="tot"><span>You earn</span><span id="s-you"></span></div>
+      <div class="note warn" style="margin-top:20px"><span>Paid weekly, 7 days after the buyer accepts. Verify your email, phone and payout account before your first listing goes live.</span></div>
+      <ul class="checks" style="grid-template-columns:1fr;margin-top:22px"><li>Checked for malware and copied content</li><li>Sell the same site again and again</li><li>Get extra income from customisation jobs</li></ul>
+    </aside>
+  </div>
+</div>
+</main><footer class="foot"><div class="wrap"><div class="cols">
+<div><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><p class="muted" style="margin-top:14px;max-width:32ch">Ready-made websites and small tools, live on your own domain in 1 to 3 days.</p></div>
+<div><h4>Buy</h4><ul><li><a href="browse.html">Browse sites</a></li><li><a href="browse.html?cat=Restaurants">Restaurants</a></li><li><a href="browse.html?cat=Stores">Online stores</a></li><li><a href="browse.html?cat=Tools">Small tools</a></li></ul></div>
+<div><h4>Sell</h4><ul><li><a href="sell.html">List a site</a></li><li><a href="dashboard-seller.html">Seller dashboard</a></li><li><a href="index.html#faq">Fees and payouts</a></li></ul></div>
+<div><h4>Help</h4><ul><li><a href="index.html#faq">FAQ</a></li><li><a href="messages.html">Messages</a></li><li><a href="#">Terms of service</a></li><li><a href="#">Privacy policy</a></li><li><a href="#">Report abuse</a></li></ul></div>
+</div><div class="base"><span>&copy; 2026 Launchbay</span><span>Payments held in escrow until you accept your site.</span></div></div></footer><script src="assets/app.js" defer></script></body></html>

@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log
+coverage
+backups
+playwright-report
+test-results
+.DS_Store
+Thumbs.db
+.next-legacy/

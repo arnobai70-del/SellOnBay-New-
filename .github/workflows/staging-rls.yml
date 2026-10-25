@@ -1,0 +1,52 @@
+name: Verify isolated staging RLS
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_staging:
+        description: 'Type I_UNDERSTAND_STAGING_WRITES (tests create and delete staging data)'
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  staging-rls:
+    name: Isolated Supabase security tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: staging
+    env:
+      CI_STAGING_STRICT: '1'
+      STAGING_CONFIRM: ${{ inputs.confirm_staging }}
+      STAGING_APP_URL: ${{ vars.STAGING_APP_URL }}
+      PRODUCTION_APP_URL: ${{ vars.PRODUCTION_APP_URL }}
+      STAGING_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
+      PRODUCTION_SUPABASE_URL: ${{ vars.PRODUCTION_SUPABASE_URL }}
+      STAGING_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Block production targets, missing secrets, and absent confirmation
+        run: node scripts/verify-staging-target.mjs
+      - run: npm ci --no-audit --no-fund
+      - name: Create staging-only local environment (not logged or committed)
+        shell: bash
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const lines = [
+              ["NEXT_PUBLIC_SUPABASE_URL", process.env.STAGING_SUPABASE_URL],
+              ["NEXT_PUBLIC_SUPABASE_ANON_KEY", process.env.STAGING_SUPABASE_ANON_KEY],
+              ["SUPABASE_SERVICE_ROLE_KEY", process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY],
+            ].map(([k, v]) => k + "=" + v).join("\n") + "\n";
+            fs.writeFileSync(".env.local", lines, { mode: 0o600, flag: "wx" });
+          '
+      - name: RLS negative tests against staging ONLY
+        run: npx playwright test tests/e2e/rls.spec.ts --workers=1
+      - name: Remove staging credentials from runner workspace
+        if: always()
+        shell: bash
+        run: rm -f .env.local

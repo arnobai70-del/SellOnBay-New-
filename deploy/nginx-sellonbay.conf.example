@@ -1,0 +1,23 @@
+# nginx in front of the two copies. Visitors reach whichever copy deploy/blue-green.sh last wrote into sellonbay-upstream.conf.
+# Example only: the certificate paths and server name are set on the server. See docs/DEPLOYMENT.md, section 5.
+upstream sellonbay {
+  include /etc/nginx/sellonbay-upstream.conf;   # one line: server 127.0.0.1:3101;  (blue) or 3102 (green)
+  keepalive 16;
+}
+
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name sellonbay.com www.sellonbay.com;
+  # ssl_certificate and ssl_certificate_key go here
+  client_max_body_size 100m;  # above the largest listing upload (site zip, pictures and trial copy sent together)
+
+  location / {
+    proxy_pass http://sellonbay;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}

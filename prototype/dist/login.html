@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in · Launchbay</title><meta name="description" content="Ready-made websites and tools on your own domain in 1 to 3 days.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><header class="nav"><div class="wrap"><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><nav class="nav-links" aria-label="Main"><a href="browse.html">Browse sites</a><a href="sell.html">Sell on Launchbay</a><a href="index.html#how">How it works</a><a href="index.html#faq">FAQ</a></nav>
+<div class="nav-end"><a class="btn btn-line btn-sm hide-m" href="login.html">Sign in</a><a class="btn btn-gold btn-sm" href="browse.html">Find a site</a></div>
+<button class="nav-toggle" aria-label="Menu" aria-expanded="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header><div class="auth" data-auth>
+  <div class="art">
+    <h2>Your site is one domain away.</h2>
+    <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>https://mariasbakery.com</span></div><div class="screen" id="auth-demo"></div></div>
+    <div class="sun" style="width:420px;height:420px;right:-160px;bottom:-200px;top:auto"></div>
+  </div>
+  <div class="form">
+    <h1 style="font-size:2.4rem">Sign in</h1>
+    <p class="muted" style="margin-top:8px">New here? You can create an account in the same step.</p>
+    <div class="seg" style="margin-top:24px" role="group" aria-label="I am a">
+      <button type="button" data-role="buyer" aria-pressed="true">I'm buying</button>
+      <button type="button" data-role="seller" aria-pressed="false">I'm selling</button>
+    </div>
+    <form id="auth-form" data-to="dashboard-buyer.html">
+      <div class="field"><label for="a-mail">Email</label><input id="a-mail" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="a-pass">Password</label><input id="a-pass" type="password" required autocomplete="current-password"></div>
+      <button class="btn btn-blue btn-lg" id="auth-go" type="submit" style="width:100%;margin-top:24px">Continue as buyer</button>
+    </form>
+    <p class="muted" style="margin-top:16px;font-size:14.5px">Sellers and admins sign in with a code from an authenticator app.</p>
+  </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded',()=>{});window.addEventListener('load',()=>{const e=document.getElementById('auth-demo');if(e&&window.mini)e.innerHTML=window.mini('restaurant',{brand:'Marias Bakery'})})</script>
+<script src="assets/app.js" defer></script></body></html>

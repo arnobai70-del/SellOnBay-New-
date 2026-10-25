@@ -1,0 +1,23 @@
+<!--title=Sign in;layout=bare-->
+<div class="auth" data-auth>
+  <div class="art">
+    <h2>Your site is one domain away.</h2>
+    <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>https://mariasbakery.com</span></div><div class="screen" id="auth-demo"></div></div>
+    <div class="sun" style="width:420px;height:420px;right:-160px;bottom:-200px;top:auto"></div>
+  </div>
+  <div class="form">
+    <h1 style="font-size:2.4rem">Sign in</h1>
+    <p class="muted" style="margin-top:8px">New here? You can create an account in the same step.</p>
+    <div class="seg" style="margin-top:24px" role="group" aria-label="I am a">
+      <button type="button" data-role="buyer" aria-pressed="true">I'm buying</button>
+      <button type="button" data-role="seller" aria-pressed="false">I'm selling</button>
+    </div>
+    <form id="auth-form" data-to="dashboard-buyer.html">
+      <div class="field"><label for="a-mail">Email</label><input id="a-mail" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="a-pass">Password</label><input id="a-pass" type="password" required autocomplete="current-password"></div>
+      <button class="btn btn-blue btn-lg" id="auth-go" type="submit" style="width:100%;margin-top:24px">Continue as buyer</button>
+    </form>
+    <p class="muted" style="margin-top:16px;font-size:14.5px">Sellers and admins sign in with a code from an authenticator app.</p>
+  </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded',()=>{});window.addEventListener('load',()=>{const e=document.getElementById('auth-demo');if(e&&window.mini)e.innerHTML=window.mini('restaurant',{brand:'Marias Bakery'})})</script>

@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seller dashboard · Launchbay</title><meta name="description" content="Ready-made websites and tools on your own domain in 1 to 3 days.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><div class="dash"><aside class="side" aria-label="Dashboard"><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><a class="it" href="dashboard-seller.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span>Overview</span></a><a class="it" href="messages.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Messages</span></a><div class="grp">Go to</div><a class="it" href="sell.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>List a new site</span></a><a class="it" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/></svg><span>Back to site</span></a><div class="grp">Switch view</div><a class="it" href="dashboard-buyer.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Buyer view</span></a><a class="it" href="dashboard-admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Admin view</span></a>
+<div class="who"><span class="av">M</span><div><b>Mira Chen</b><small>Seller</small></div></div></aside>
+<div class="main"><div class="top"><button class="menu-btn" aria-label="Open menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><h1>Seller dashboard</h1>
+<label class="search"><span class="sr">Search</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E6485" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input placeholder="Search orders, sites, people"></label></div>
+<div class="content"><div class="strip">
+  <div><small>Available to withdraw</small><b>$642</b><span class="d">Next payout Sun, Oct 11</span></div>
+  <div><small>Pending (7-day hold)</small><b>$318</b><span class="muted" style="font-size:13.5px">6 accepted orders</span></div>
+  <div><small>In escrow</small><b>$197</b><span class="muted" style="font-size:13.5px">3 orders in progress</span></div>
+  <div><small>Lifetime earned</small><b>$8,420</b><span class="d">+27% this month</span></div>
+</div>
+
+<div class="cols2">
+  <div class="dp">
+    <div class="hd"><div><h2>Earnings per week</h2><p class="sub">Accepted orders, after the 15% fee</p></div><span class="chip mint"><i></i>Payout on Sundays</span></div>
+    <div class="bars" id="earn-bars" aria-label="Weekly earnings"></div>
+  </div>
+  <div class="dp">
+    <div class="hd"><div><h2>Account health</h2><p class="sub">Keep these green to stay a Verified seller</p></div></div>
+    <ul class="lst">
+      <li><div class="grow"><b>On-time delivery</b><div class="meter"><i style="width:96%"></i></div></div><b>96%</b></li>
+      <li><div class="grow"><b>Average rating</b><div class="meter"><i style="width:94%"></i></div></div><b>4.8</b></li>
+      <li><div class="grow"><b>Dispute rate</b><div class="meter"><i style="width:8%;background:var(--gold)"></i></div></div><b>1.2%</b></li>
+      <li><div class="grow"><b>Identity and payout account</b><small>Email, phone, ID and Payoneer verified</small></div><span class="chip mint"><i></i>Verified</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="dp">
+  <div class="hd"><div><h2>Orders to deliver</h2><p class="sub">Funds are in escrow. Start now and deliver before the timer ends.</p></div></div>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th>Order</th><th>Buyer's domain</th><th>Type</th><th>Time left</th><th class="num">You earn</th><th></th></tr></thead>
+    <tbody>
+      <tr><td><div class="who"><span data-thumb="restaurant"></span><b>Saffron Table</b></div></td><td>harborgrill.com</td><td><span class="chip">Ready-made</span></td><td class="timer" data-due="30180">08:23:00</td><td class="num">$33.15</td><td><a class="btn btn-dark btn-sm" href="messages.html">Open chat</a></td></tr>
+      <tr><td><div class="who"><span data-thumb="restaurant"></span><b>Catering page</b></div></td><td>mariasbakery.com</td><td><span class="chip blue">Customisation</span></td><td class="timer" data-due="150400">41:46:40</td><td class="num">$59.50</td><td><a class="btn btn-dark btn-sm" href="messages.html">Open chat</a></td></tr>
+      <tr><td><div class="who"><span data-thumb="pet"></span><b>Pawprint</b></div></td><td>happytailsvet.com</td><td><span class="chip">Ready-made</span></td><td class="timer" data-due="71000">19:43:20</td><td class="num">$21.25</td><td><a class="btn btn-dark btn-sm" href="messages.html">Open chat</a></td></tr>
+    </tbody></table></div>
+</div>
+
+<div class="dp">
+  <div class="hd"><div><h2>Extra work you sent</h2><p class="sub">Scope changes your buyers asked for. Start only after it shows Funded.</p></div><a class="btn btn-blue btn-sm" href="messages.html">Request extra work</a></div>
+  <ul class="lst">
+    <li><span data-thumb="restaurant"></span><div class="grow"><b>Online ordering form · mariasbakery.com</b><small>$45 · +1 day · sent 2 hours ago</small></div><span class="chip amber"><i></i>Waiting for buyer</span></li>
+    <li><span data-thumb="pet"></span><div class="grow"><b>Extra gallery page · happytailsvet.com</b><small>$30 · +1 day</small></div><span class="chip mint"><i></i>Funded</span></li>
+    <li><span data-thumb="restaurant"></span><div class="grow"><b>Spanish translation · harborgrill.com</b><small>$60 · +2 days</small></div><span class="chip rose"><i></i>Declined</span></li>
+  </ul>
+</div>
+
+<div class="cols2">
+  <div class="dp">
+    <div class="hd"><div><h2>Your listings</h2></div><a class="btn btn-blue btn-sm" href="sell.html">List a new site</a></div>
+    <ul class="lst">
+      <li><span data-thumb="restaurant"></span><div class="grow"><b>Saffron Table</b><small>214 sold · $39</small></div><span class="chip mint"><i></i>Live</span></li>
+      <li><span data-thumb="pet"></span><div class="grow"><b>Pawprint</b><small>88 sold · $25</small></div><span class="chip mint"><i></i>Live</span></li>
+      <li><span data-thumb="bio"></span><div class="grow"><b>Bakery Starter</b><small>Submitted yesterday</small></div><span class="chip amber"><i></i>In review</span></li>
+    </ul>
+  </div>
+  <div class="dp">
+    <div class="hd"><div><h2>Payouts</h2></div></div>
+    <ul class="lst">
+      <li><div class="grow"><b>Sun, Oct 4</b><small>Payoneer</small></div><b>$385.00</b><span class="chip mint"><i></i>Paid</span></li>
+      <li><div class="grow"><b>Sun, Sep 27</b><small>Payoneer</small></div><b>$410.00</b><span class="chip mint"><i></i>Paid</span></li>
+      <li><div class="grow"><b>Sun, Oct 11</b><small>Payoneer</small></div><b>$642.00</b><span class="chip blue"><i></i>Scheduled</span></li>
+    </ul>
+  </div>
+</div>
+</div></div></div><script src="assets/app.js" defer></script></body></html>

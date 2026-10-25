@@ -1,0 +1,12 @@
+<!--title=Browse sites;layout=site;active=browse-->
+<div class="wrap" data-browse>
+  <div class="page-head"><h1>Browse ready-made sites</h1><p>Open any demo, then add your domain at checkout.</p></div>
+  <div class="note" id="dom-note" hidden style="margin:0 0 20px"><span>Pick a site for <b></b>. You'll add the domain at checkout.</span></div>
+  <div class="filters">
+    <label class="search"><span class="sr">Search sites</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E6485" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Search restaurant, booking, store" autocomplete="off"></label>
+    <div class="pills" id="cats" role="group" aria-label="Category"></div>
+    <label><span class="sr">Sort</span><select class="select" id="sort"><option value="rating">Top rated</option><option value="sold">Most sold</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
+  </div>
+  <p class="muted" style="margin:-16px 0 24px" id="count" aria-live="polite"></p>
+  <div class="grid" id="results" style="padding-bottom:88px"></div>
+</div>

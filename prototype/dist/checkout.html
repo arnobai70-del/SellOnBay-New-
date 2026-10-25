@@ -1,0 +1,52 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checkout · Launchbay</title><meta name="description" content="Ready-made websites and tools on your own domain in 1 to 3 days.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><header class="nav"><div class="wrap"><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><nav class="nav-links" aria-label="Main"><a href="browse.html" aria-current="page">Browse sites</a><a href="sell.html">Sell on Launchbay</a><a href="index.html#how">How it works</a><a href="index.html#faq">FAQ</a></nav>
+<div class="nav-end"><a class="btn btn-line btn-sm hide-m" href="login.html">Sign in</a><a class="btn btn-gold btn-sm" href="browse.html">Find a site</a></div>
+<button class="nav-toggle" aria-label="Menu" aria-expanded="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></header><main id="main"><div class="wrap" data-checkout>
+  <div class="page-head" style="padding-bottom:20px"><h1>Checkout</h1></div>
+  <div class="checkout">
+    <div id="c-main">
+      <form id="c-form">
+        <div class="panel">
+          <h2 style="font-size:1.5rem">Where should it go live?</h2>
+          <div class="seg" style="margin-top:16px" role="group" aria-label="Domain choice">
+            <button type="button" data-mode="own" aria-pressed="true">I have a domain</button>
+            <button type="button" data-mode="new" aria-pressed="false">I need a domain</button>
+          </div>
+          <div id="m-own">
+            <div class="field"><label for="own-domain">Your domain</label><input id="own-domain" placeholder="mybusiness.com" autocomplete="off"><small>After payment we show you two DNS settings to change. It takes about 5 minutes.</small></div>
+          </div>
+          <div id="m-new" hidden>
+            <div class="field"><label for="d-search">Search a name</label><input id="d-search" placeholder="mybusiness" autocomplete="off"></div>
+            <div class="dom-list" id="d-list"></div>
+            <small class="muted" style="display:block;margin-top:10px">Registered in your name. Renews yearly and you can move it any time.</small>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <h2 style="font-size:1.5rem">Extras</h2>
+          <label class="addon"><input type="checkbox" id="a-ai"><div style="flex:1"><b>AI content and SEO <span>$3</span></b><span class="muted">Answer 3 questions and we write your page text and search descriptions.</span></div></label>
+          <label class="addon"><input type="checkbox" id="a-host"><div style="flex:1"><b>Managed hosting <span>$4/mo</span></b><span class="muted">We host and update your site. Includes SSL and daily backups. Cancel any time.</span></div></label>
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <h2 style="font-size:1.5rem">Your details</h2>
+          <div class="row2"><div class="field"><label for="c-name-in">Full name</label><input id="c-name-in" required autocomplete="name"></div><div class="field"><label for="c-mail">Email</label><input id="c-mail" type="email" required autocomplete="email"></div></div>
+          <label style="display:flex;gap:10px;margin-top:20px;align-items:start"><input type="checkbox" required style="accent-color:#2B3DFF;margin-top:5px"><span class="muted">I agree to the terms. Once I accept the site, the order is final.</span></label>
+        </div>
+        <button class="btn btn-blue btn-lg" id="c-pay" style="margin-top:24px;width:100%" type="submit">Pay</button>
+      </form>
+    </div>
+    <aside class="sum" id="c-side">
+      <div style="width:140px" id="c-thumb"></div>
+      <h2 style="font-size:1.5rem;margin-top:16px" id="c-name"></h2>
+      <div style="margin-top:12px" id="c-lines"></div>
+      <div class="tot"><span>Total</span><span id="c-total"></span></div>
+      <div class="note"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span>Your payment is held by Launchbay and only released to the seller after you accept.</span></div>
+    </aside>
+  </div>
+</div>
+</main><footer class="foot"><div class="wrap"><div class="cols">
+<div><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><p class="muted" style="margin-top:14px;max-width:32ch">Ready-made websites and small tools, live on your own domain in 1 to 3 days.</p></div>
+<div><h4>Buy</h4><ul><li><a href="browse.html">Browse sites</a></li><li><a href="browse.html?cat=Restaurants">Restaurants</a></li><li><a href="browse.html?cat=Stores">Online stores</a></li><li><a href="browse.html?cat=Tools">Small tools</a></li></ul></div>
+<div><h4>Sell</h4><ul><li><a href="sell.html">List a site</a></li><li><a href="dashboard-seller.html">Seller dashboard</a></li><li><a href="index.html#faq">Fees and payouts</a></li></ul></div>
+<div><h4>Help</h4><ul><li><a href="index.html#faq">FAQ</a></li><li><a href="messages.html">Messages</a></li><li><a href="#">Terms of service</a></li><li><a href="#">Privacy policy</a></li><li><a href="#">Report abuse</a></li></ul></div>
+</div><div class="base"><span>&copy; 2026 Launchbay</span><span>Payments held in escrow until you accept your site.</span></div></div></footer><script src="assets/app.js" defer></script></body></html>

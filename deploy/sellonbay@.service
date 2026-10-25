@@ -1,0 +1,25 @@
+# systemd unit for one copy of the site: sellonbay@blue (port 3101) or sellonbay@green (port 3102). See docs/DEPLOYMENT.md, section 5.
+# Install: copy to /etc/systemd/system/, then systemctl daemon-reload && systemctl enable sellonbay@blue sellonbay@green
+[Unit]
+Description=SellOnBay (%i)
+After=network.target
+
+[Service]
+Type=simple
+User=sellonbay
+WorkingDirectory=/srv/sellonbay/%i
+EnvironmentFile=/etc/sellonbay/env
+EnvironmentFile=/etc/sellonbay/port-%i
+# Error reports say which copy failed (lib/monitor.ts).
+Environment=SOB_COPY=%i
+ExecStart=/usr/bin/env npx next start -p ${PORT}
+Restart=on-failure
+RestartSec=3
+# Finish requests already running before stopping (the old copy is not stopped by a switch anyway).
+KillSignal=SIGTERM
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

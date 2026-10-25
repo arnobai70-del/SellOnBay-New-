@@ -1,0 +1,42 @@
+<!--title=My orders;layout=dash;role=buyer;active=buyer;heading=Welcome back, Maria-->
+<div class="strip">
+  <div><small>Live sites</small><b>2</b><span class="d">Both online</span></div>
+  <div><small>Orders in progress</small><b>2</b><span class="d" style="color:var(--amber)">1 needs your review</span></div>
+  <div><small>Visitors this week</small><b>811</b><span class="d">+18% vs last week</span></div>
+  <div><small>Total spent</small><b>$284</b><span class="muted" style="font-size:13.5px">Across 4 orders</span></div>
+</div>
+
+<div class="cols2">
+  <div class="dp">
+    <div class="hd"><div><h2>Orders</h2><p class="sub">Accept within 48 hours or the order is accepted for you.</p></div><a class="btn btn-blue btn-sm" href="browse.html">Find another site</a></div>
+    <div class="scroll"><table class="tbl">
+      <thead><tr><th>Site</th><th>Status</th><th>Due</th><th class="num">Price</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><div class="who"><span data-thumb="restaurant"></span><div><b>Saffron Table</b><div class="muted" style="font-size:14px">mariasbakery.com</div></div></div></td><td><span class="chip amber" data-status><i></i>Ready to review</span></td><td class="timer" data-due="141780">39:23:00</td><td class="num">$69</td><td><button class="btn btn-gold btn-sm" data-accept>Accept site</button> <a class="btn btn-line btn-sm" href="dashboard-buyer.html#dispute" onclick="return false">Report problem</a></td></tr>
+        <tr><td><div class="who"><span data-thumb="portfolio"></span><div><b>Folio Studio</b><div class="muted" style="font-size:14px">mariaalvarez.design</div></div></div></td><td><span class="chip blue" data-status><i></i>Seller building</span></td><td class="timer" data-due="49200">13:40:00</td><td class="num">$49</td><td><span class="muted">Waiting for seller</span></td></tr>
+        <tr><td><div class="who"><span data-thumb="clinic"></span><div><b>Clinic Desk</b><div class="muted" style="font-size:14px">alvarezdental.com</div></div></div></td><td><span class="chip mint"><i></i>Accepted</span></td><td class="muted">Sep 21</td><td class="num">$89</td><td><span class="muted">7-day bug guarantee ends Sep 28</span></td></tr>
+        <tr><td><div class="who"><span data-thumb="bio"></span><div><b>Bioboard</b><div class="muted" style="font-size:14px">links.maria.co</div></div></div></td><td><span class="chip mint"><i></i>Accepted</span></td><td class="muted">Aug 30</td><td class="num">$9</td><td></td></tr>
+      </tbody></table></div>
+  </div>
+
+  <div class="dp">
+    <div class="hd"><div><h2>Your sites</h2><p class="sub">Visitors over the last 7 days</p></div></div>
+    <div class="bars" id="vis-bars" aria-label="Visitors per day"></div>
+    <ul class="lst" style="margin-top:12px">
+      <li><span data-thumb="clinic"></span><div class="grow"><b>alvarezdental.com</b><small>Online, SSL active</small></div><span data-spark="12,18,15,24,30,27,38"></span></li>
+      <li><span data-thumb="bio"></span><div class="grow"><b>links.maria.co</b><small>Domain renews Mar 14</small></div><span data-spark="40,35,44,38,50,47,58" data-color="#0E9F76"></span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="dp" id="extra">
+  <div class="hd"><div><h2>Extra work waiting for you</h2><p class="sub">Sellers send these when you ask for more. Nothing starts until you approve and fund it.</p></div></div>
+  <div class="q-item"><span data-thumb="restaurant"></span><div><b>Add an online ordering form to the menu page</b><div class="muted" style="font-size:14.5px">Mira Chen · mariasbakery.com · +1 day on the deadline</div></div><div class="acts"><b style="align-self:center;margin-right:6px">$45</b><button class="btn btn-gold btn-sm" data-action="Approved. $45 added to escrow and the deadline moved by 1 day.">Approve and pay</button><button class="btn btn-line btn-sm" data-action="Declined. Nothing was charged.">Decline</button></div></div>
+</div>
+
+<div class="dp" id="dispute">
+  <div class="hd"><div><h2>Need something changed?</h2><p class="sub">Ask the seller of your site. The money goes into escrow first.</p></div></div>
+  <ul class="lst">
+    <li><span data-thumb="restaurant"></span><div class="grow"><b>Add a catering page to mariasbakery.com</b><small>Mira Chen · quoted $70 · funded in escrow</small></div><span class="chip blue"><i></i>In progress</span><a class="btn btn-line btn-sm" href="messages.html">Open chat</a></li>
+  </ul>
+</div>

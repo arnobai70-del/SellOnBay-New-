@@ -1,0 +1,52 @@
+{
+  "folio-studio": {
+    "src": "/sites/folio-studio.webp",
+    "width": 900,
+    "height": 1416
+  },
+  "pawprint": {
+    "src": "/sites/pawprint.webp",
+    "width": 900,
+    "height": 1464
+  },
+  "quotebot": {
+    "src": "/sites/quotebot.webp",
+    "width": 900,
+    "height": 1469
+  },
+  "shopline": {
+    "src": "/sites/shopline.webp",
+    "width": 900,
+    "height": 1474
+  },
+  "ironclad": {
+    "src": "/sites/ironclad.webp",
+    "width": 900,
+    "height": 1449
+  },
+  "tutorly": {
+    "src": "/sites/tutorly.webp",
+    "width": 900,
+    "height": 1506
+  },
+  "clinic-desk": {
+    "src": "/sites/clinic-desk.webp",
+    "width": 900,
+    "height": 1457
+  },
+  "invoicer": {
+    "src": "/sites/invoicer.webp",
+    "width": 900,
+    "height": 1491
+  },
+  "saffron-table": {
+    "src": "/sites/saffron-table.webp",
+    "width": 900,
+    "height": 1511
+  },
+  "leadform": {
+    "src": "/sites/leadform.webp",
+    "width": 900,
+    "height": 1517
+  }
+}

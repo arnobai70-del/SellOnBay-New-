@@ -1,0 +1,32 @@
+<!--title=Messages;layout=dash;role=buyer;active=messages;heading=Messages-->
+<div class="msgs" data-chat>
+  <div class="threads">
+    <div class="th" aria-current="true"><span class="av">M</span><div><b>Mira Chen</b><small>Catering page for mariasbakery.com</small></div></div>
+    <div class="th"><span class="av" style="background:var(--sky)">A</span><div><b>Arif Hossain</b><small>Clinic Desk setup</small></div></div>
+    <div class="th"><span class="av" style="background:var(--mint-bg)">N</span><div><b>Noor Rahman</b><small>Your site is live</small></div></div>
+  </div>
+  <div class="chat">
+    <div class="chat-top"><span class="av">M</span><div id="chat-who"><b>Mira Chen</b><div class="muted" style="font-size:14px">Seller of Saffron Table</div></div>
+      <div class="seg mini-seg" style="margin-left:auto" role="group" aria-label="Preview as"><button type="button" data-chat-role="buyer" aria-pressed="true">View as buyer</button><button type="button" data-chat-role="seller" aria-pressed="false">View as seller</button></div></div>
+    <div class="safe">Keep chat and payment on Launchbay. Emails, phone numbers and outside payments are blocked and can end in a ban.</div>
+    <div class="flow" id="flow">
+      <div class="sys">Order funded. Mira can start work.</div>
+      <div class="bub">Hi Maria! I can add the catering page with a request form. Do you want it in the main menu?<time>10:12</time></div>
+      <div class="bub me">Yes please, and use the same orange as the buttons.<time>10:15</time></div>
+      <div class="bub">Done. I'll send it for your review by tomorrow.<time>10:16</time></div>
+    </div>
+    <form class="xform" id="xform" hidden>
+      <b>Request extra work</b>
+      <div class="field" style="margin-top:8px"><label for="x-title">What is the extra work?</label><input id="x-title" required maxlength="80" placeholder="Add a gallery page with 12 photos"></div>
+      <div class="row2"><div class="field"><label for="x-price">Extra price (USD)</label><input id="x-price" type="number" min="5" step="1" required value="30"></div><div class="field"><label for="x-days">Adds to deadline</label><select id="x-days"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option></select></div></div>
+      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-blue btn-sm" type="submit">Send request</button><small class="muted" style="align-self:center">The buyer must approve and fund it before you start.</small></div>
+    </form>
+    <div class="xbar"><button class="btn btn-line btn-sm" id="xbtn" type="button" hidden>Request extra work</button></div>
+    <form class="compose" id="send"><label class="sr" for="msg">Message</label><input id="msg" placeholder="Write a message. Try pasting an email or phone number." autocomplete="off"><button class="btn btn-blue" type="submit">Send</button></form>
+  </div>
+</div>
+
+<div class="dp" id="xtrack" hidden>
+  <div class="hd"><div><h2>Extra work on this order</h2><p class="sub" id="xsum"></p></div></div>
+  <ul class="lst" id="xlist"></ul>
+</div>

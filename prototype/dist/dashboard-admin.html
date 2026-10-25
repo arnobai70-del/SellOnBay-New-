@@ -1,0 +1,57 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin · Launchbay</title><meta name="description" content="Ready-made websites and tools on your own domain in 1 to 3 days.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><div class="dash"><aside class="side" aria-label="Dashboard"><a class="logo" href="index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#2B3DFF"/><path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E"/></svg><span>Launchbay</span></a><a class="it" href="dashboard-admin.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><span>Overview</span></a><a class="it" href="messages.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Messages</span></a><div class="grp">Go to</div><a class="it" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9H4z"/></svg><span>Back to site</span></a><div class="grp">Switch view</div><a class="it" href="dashboard-buyer.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Buyer view</span></a><a class="it" href="dashboard-seller.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Seller view</span></a>
+<div class="who"><span class="av">S</span><div><b>Sam Ortiz</b><small>Admin</small></div></div></aside>
+<div class="main"><div class="top"><button class="menu-btn" aria-label="Open menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><h1>Admin overview</h1>
+<label class="search"><span class="sr">Search</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E6485" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input placeholder="Search orders, sites, people"></label></div>
+<div class="content"><div class="strip">
+  <div><small>Sales this month</small><b>$41,260</b><span class="d">+12%</span></div>
+  <div><small>Launchbay revenue</small><b>$7,184</b><span class="d">Fees, domains, hosting</span></div>
+  <div><small>Dispute rate</small><b>1.8%</b><span class="d">Target below 3%</span></div>
+  <div><small>Chargeback rate</small><b>0.4%</b><span class="d">Target below 1%</span></div>
+</div>
+
+<div class="dp" data-tabs-wrap>
+  <div class="hd"><div><h2>Needs your decision</h2><p class="sub">Review queue, disputes and abuse reports</p></div></div>
+  <div data-tabs>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="listings">New listings (3)</button>
+      <button role="tab" aria-selected="false" data-tab="disputes">Disputes (2)</button>
+      <button role="tab" aria-selected="false" data-tab="abuse">Hosted site reports (2)</button>
+    </div>
+  </div>
+  <div data-pane="listings">
+    <div class="q-item"><span data-thumb="bio"></span><div><b>Bakery Starter</b> <span class="muted">by Mira Chen · $19</span><div class="scan"><span class="chip mint"><i></i>No malware</span><span class="chip mint"><i></i>Original: 97%</span><span class="chip mint"><i></i>Demo works</span></div></div><div class="acts"><button class="btn btn-gold btn-sm" data-action="Listing approved and published.">Approve</button><button class="btn btn-line btn-sm" data-action="Sent back to the seller with notes.">Request changes</button></div></div>
+    <div class="q-item"><span data-thumb="saas"></span><div><b>AI Lead Capture Pro</b> <span class="muted">by Dev Patel · $49</span><div class="scan"><span class="chip rose"><i></i>Copied content: 82% match</span><span class="chip mint"><i></i>No malware</span><span class="chip amber"><i></i>Missing license</span></div></div><div class="acts"><button class="btn btn-dark btn-sm" data-action="Listing rejected. The seller has been told why.">Reject</button><button class="btn btn-line btn-sm" data-action="Sent back to the seller with notes.">Request changes</button></div></div>
+    <div class="q-item"><span data-thumb="store"></span><div><b>Mini Shop Kit</b> <span class="muted">by Leo Park · $59</span><div class="scan"><span class="chip amber"><i></i>1 flagged script</span><span class="chip mint"><i></i>Original: 91%</span><span class="chip mint"><i></i>Demo works</span></div></div><div class="acts"><button class="btn btn-gold btn-sm" data-action="Listing approved and published.">Approve</button><button class="btn btn-line btn-sm" data-action="Sent back to the seller with notes.">Request changes</button></div></div>
+  </div>
+  <div data-pane="disputes" hidden>
+    <div class="q-item"><span data-thumb="estate"></span><div><b>Brickwork on riverhomes.com</b> <span class="muted">Buyer: Jon Ames · Seller: Samir Khan · $69</span><p class="muted" style="font-size:14.5px;margin-top:4px">Buyer says the search filter is broken. Delivery log shows the site went live 2 days ago. Payout is on hold.</p></div><div class="acts"><button class="btn btn-gold btn-sm" data-action="Full refund issued to the buyer.">Refund buyer</button><button class="btn btn-line btn-sm" data-action="Seller asked to fix within 48 hours.">Ask seller to fix</button><button class="btn btn-dark btn-sm" data-action="Dispute closed. Payout released.">Release payout</button></div></div>
+    <div class="q-item"><span data-thumb="gym"></span><div><b>Ironclad Gym on forgefit.com</b> <span class="muted">Buyer: Lia Moore · Seller: Leo Park · $45</span><p class="muted" style="font-size:14.5px;margin-top:4px">Buyer accepted, then asked for a refund. Works as listed. Order is final.</p></div><div class="acts"><button class="btn btn-dark btn-sm" data-action="Dispute closed. Order stays final.">Close dispute</button></div></div>
+  </div>
+  <div data-pane="abuse" hidden>
+    <div class="q-item"><span class="av" style="background:var(--rose-bg);color:var(--rose)">!</span><div><b>secure-bank-login.net</b> <span class="muted">Hosted for buyer Ray T.</span><p class="muted" style="font-size:14.5px;margin-top:4px">Reported 6 times as a fake login page. Looks like a bank clone.</p></div><div class="acts"><button class="btn btn-dark btn-sm" data-action="Site suspended and the buyer notified.">Suspend site</button><button class="btn btn-line btn-sm" data-action="Marked as reviewed. No action needed.">Dismiss</button></div></div>
+    <div class="q-item"><span class="av" style="background:var(--amber-bg);color:var(--amber)">!</span><div><b>cheapwatches-outlet.shop</b> <span class="muted">Hosted for buyer Ola K.</span><p class="muted" style="font-size:14.5px;margin-top:4px">1 report about counterfeit goods. Under review.</p></div><div class="acts"><button class="btn btn-dark btn-sm" data-action="Site suspended and the buyer notified.">Suspend site</button><button class="btn btn-line btn-sm" data-action="Marked as reviewed. No action needed.">Dismiss</button></div></div>
+  </div>
+</div>
+
+<div class="cols2">
+  <div class="dp">
+    <div class="hd"><div><h2>Blocked messages today</h2><p class="sub">Attempts to share contact details or pay outside</p></div></div>
+    <ul class="lst">
+      <li><span class="av">J</span><div class="grow"><b>Jon A. to Samir K.</b><small>Contained a phone number</small></div><span class="chip rose"><i></i>Blocked</span></li>
+      <li><span class="av">D</span><div class="grow"><b>Dev P. to Lia M.</b><small>Asked to pay by bank transfer</small></div><span class="chip rose"><i></i>Blocked</span></li>
+      <li><span class="av">R</span><div class="grow"><b>Ray T. to Mira C.</b><small>Third attempt. Account warned.</small></div><span class="chip amber"><i></i>Warned</span></li>
+    </ul>
+  </div>
+  <div class="dp">
+    <div class="hd"><div><h2>Platform health</h2></div></div>
+    <ul class="lst">
+      <li><div class="grow"><b>Listings approved in 24 hours</b><div class="meter"><i style="width:92%"></i></div></div><b>92%</b></li>
+      <li><div class="grow"><b>Orders delivered on time</b><div class="meter"><i style="width:94%"></i></div></div><b>94%</b></li>
+      <li><div class="grow"><b>Hosted sites with SSL</b><div class="meter"><i style="width:100%"></i></div></div><b>100%</b></li>
+      <li><div class="grow"><b>Cloudflare attacks blocked</b><small>Last 24 hours</small></div><b>18,402</b></li>
+    </ul>
+  </div>
+</div>
+</div></div></div><script src="assets/app.js" defer></script></body></html>

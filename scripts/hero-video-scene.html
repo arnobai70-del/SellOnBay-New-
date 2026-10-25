@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:J;src:url("../public/fonts/PlusJakartaSans%5Bwght%5D.ttf")}
+html,body{margin:0;width:1280px;height:720px;overflow:hidden;background:#0F1330;font-family:J,system-ui,sans-serif}
+#bg{position:absolute;inset:0;background:radial-gradient(50% 60% at var(--gx) 20%,rgba(43,61,255,.55),transparent 70%),radial-gradient(40% 50% at 90% 100%,rgba(255,181,46,.25),transparent 70%),#0F1330}
+#wall{position:absolute;left:50%;top:50%;width:1900px;height:1600px;margin:-800px 0 0 -950px;transform:perspective(1600px) rotateX(24deg) rotateZ(-10deg) scale(.82);display:flex;gap:28px;justify-content:center}
+.col{display:flex;flex-direction:column;gap:28px;width:330px}
+.win{flex:none;height:372px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 30px 50px -20px rgba(0,0,0,.7)}
+.bar{display:flex;align-items:center;gap:5px;height:34px;padding:0 10px;background:#EEF1FB}
+.bar i{width:8px;height:8px;border-radius:50%;background:#C9CFE8}.bar i:first-child{background:#E23C61}.bar i:nth-child(2){background:#FFB52E}
+.bar span{flex:1;margin-left:6px;height:20px;line-height:20px;border-radius:99px;background:#fff;font-size:11px;color:#0F1330;padding:0 10px;font-weight:600}
+.bar b{font-size:10px;color:#fff;background:#0E9F76;border-radius:99px;padding:2px 8px}
+.view{height:338px;overflow:hidden;position:relative}
+.view img{width:100%;display:block;position:absolute;left:0;top:0}
+#shade{position:absolute;inset:0;background:radial-gradient(80% 80% at 50% 50%,transparent 40%,rgba(15,19,48,.6))}
+</style></head><body><div id="bg"></div><div id="wall"></div><div id="shade"></div>
+<script>
+const sites=[['clinic-desk','clinicdesk.com'],['saffron-table','saffrontable.com'],['tutorly','tutorly.com'],['ironclad','ironcladgym.com'],['invoicer','invoicer.app'],['pawprint','pawprint.com'],['leadform','leadform.io'],['shopline','shopline.store'],['folio-studio','foliostudio.com'],['quotebot','quotebot.com']];
+const COLS=5, PER=4, STEP=372+28, wall=document.getElementById('wall'), cols=[], imgs=[];
+for(let c=0;c<COLS;c++){const col=document.createElement('div');col.className='col';
+  for(let r=0;r<PER*2;r++){const [id,dom]=sites[(c*2+(r%PER)*3)%sites.length];
+    col.insertAdjacentHTML('beforeend',`<div class="win"><div class="bar"><i></i><i></i><i></i><span>${dom}</span><b>Live</b></div><div class="view"><img src="../public/sites/${id}.webp"></div></div>`);}
+  wall.appendChild(col);cols.push(col);}
+document.querySelectorAll('.view img').forEach((im,k)=>imgs.push([im,k]));
+// t in [0,1): every motion completes whole cycles so the clip loops cleanly
+window.render=t=>{
+  cols.forEach((col,c)=>{const dir=c%2?1:-1;const off=(dir>0?-PER*STEP:0)+dir*t*PER*STEP;col.style.transform=`translateY(${off}px)`;});
+  imgs.forEach(([im,k])=>{const p=(Math.sin((t*2+k*.37)*Math.PI*2)+1)/2;im.style.transform=`translateY(${-p*40}%)`;});
+  document.getElementById('bg').style.setProperty('--gx',(30+20*Math.sin(t*Math.PI*2))+'%');
+};
+render(0);
+</script></body></html>

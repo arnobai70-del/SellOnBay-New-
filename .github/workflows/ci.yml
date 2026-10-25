@@ -1,0 +1,32 @@
+name: SellOnBay CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run check:migrations
+      - run: npm run check:migration-safety
+      - run: node --test scripts/verify-staging-target.test.mjs scripts/lib/backup-file.test.mjs scripts/lib/storage-copy.test.mjs scripts/lib/migration-safety.test.mjs deploy/blue-green.test.mjs load/target.test.mjs
+      - run: npm run build
+        env:
+          LAUNCHBAY_DEMO: '1'
+          NEXT_PUBLIC_SITE_URL: https://example.com
+      - run: npm run check:bundle
+      - run: npm run smoke:demo

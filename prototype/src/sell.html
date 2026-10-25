@@ -1,0 +1,30 @@
+<!--title=Sell your site;layout=site;active=sell-->
+<div class="wrap" data-sell>
+  <div class="page-head"><h1>List a site</h1><p>We review every listing within 24 hours. You keep 85% of each sale.</p></div>
+  <div class="checkout" style="padding-top:16px">
+    <form class="panel" id="s-form">
+      <div class="field" style="margin-top:0"><label for="s-name">Site name</label><input id="s-name" required placeholder="Saffron Table"></div>
+      <div class="row2">
+        <div class="field"><label for="s-cat">Category</label><select id="s-cat"><option>Restaurants</option><option>Health</option><option>Portfolios</option><option>Stores</option><option>Landing pages</option><option>Real estate</option><option>Tools</option></select></div>
+        <div class="field"><label for="s-days">Delivery time</label><select id="s-days"><option>1 day</option><option>1 to 2 days</option><option selected>1 to 3 days</option></select></div>
+      </div>
+      <div class="field"><label for="s-desc">What does it do?</label><textarea id="s-desc" rows="3" required placeholder="Describe the site in two sentences."></textarea></div>
+      <div class="row2">
+        <div class="field"><label for="s-demo">Live demo link</label><input id="s-demo" type="url" required placeholder="https://demo.example.com"></div>
+        <div class="field"><label for="s-code">Code link</label><input id="s-code" type="url" required placeholder="Private GitHub or Drive link"><small>Only shared with buyers after payment.</small></div>
+      </div>
+      <div class="field"><label for="s-price">Price <b id="s-price-v"></b></label><input id="s-price" type="range" min="5" max="200" value="39" style="accent-color:#2B3DFF"></div>
+      <div class="field"><label for="s-lic">License</label><select id="s-lic"><option>I wrote all of it (or generated it with AI)</option><option>Uses MIT or Apache 2.0 parts</option><option>Uses other licensed parts</option></select><small>Sites with GPL parts need a note so buyers know their obligations.</small></div>
+      <label style="display:flex;gap:10px;margin-top:20px;align-items:start"><input type="checkbox" required style="accent-color:#2B3DFF;margin-top:5px"><span class="muted">I own the rights to sell this, and it has no copied or harmful code.</span></label>
+      <button class="btn btn-blue btn-lg" type="submit" style="margin-top:24px">Submit for review</button>
+    </form>
+    <aside class="sum">
+      <h2 style="font-size:1.5rem">What you earn</h2>
+      <div class="line" style="margin-top:12px"><span>Buyer pays</span><b id="s-price-v2">per sale</b></div>
+      <div class="line"><span>Launchbay fee, 15%</span><b id="s-fee"></b></div>
+      <div class="tot"><span>You earn</span><span id="s-you"></span></div>
+      <div class="note warn" style="margin-top:20px"><span>Paid weekly, 7 days after the buyer accepts. Verify your email, phone and payout account before your first listing goes live.</span></div>
+      <ul class="checks" style="grid-template-columns:1fr;margin-top:22px"><li>Checked for malware and copied content</li><li>Sell the same site again and again</li><li>Get extra income from customisation jobs</li></ul>
+    </aside>
+  </div>
+</div>

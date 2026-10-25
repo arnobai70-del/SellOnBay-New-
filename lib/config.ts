@@ -26,7 +26,7 @@ export const CONFIG = {
       login: { perUser: 0, perIp: 30, hours: 1, newMax: 0, perEmail: 50 }, // perEmail: tries on one mailbox from any address, so a changing address cannot guess a password
       reset: { perUser: 0, perIp: 5, hours: 1, newMax: 0, perEmail: 3 }, // password reset emails
       order: { perUser: 20, perIp: 30, hours: 1, newMax: 5, perEmail: 0 },
-      listing: { perUser: 10, perIp: 15, hours: 24, newMax: 3, perEmail: 0 },
+      listing: { perUser: 10, perIp: 15, hours: 24, newMax: 0, perEmail: 0 },
       hire: { perUser: 10, perIp: 15, hours: 24, newMax: 3, perEmail: 0 },
       developer: { perUser: 5, perIp: 10, hours: 24, newMax: 2, perEmail: 0 },
       dispute: { perUser: 5, perIp: 10, hours: 24, newMax: 2, perEmail: 0 },

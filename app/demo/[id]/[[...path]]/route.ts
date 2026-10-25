@@ -17,13 +17,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const admin = createAdminClient();
   const { data: p } = await admin.from('products').select('id, slug, seller_id, status, demo_path, demo_entry').eq('slug', id).maybeSingle();
-  if (!p || !p.demo_path) return nf();
+  if (!p) return nf();
 
   const live = p.status === 'live';
   if (!live && !(await mayViewUnreleased(p.seller_id))) return nf();
 
   let rel = (path ?? []).join('/');
   if (rel.includes('\0') || rel.split('/').some((s) => s === '..' || s.startsWith('.'))) return nf();
+
+  // shots/ paths are served even when the seller gave a demo_url instead of uploading a zip
+  const isShot = rel.startsWith('shots/');
+  if (!isShot && !p.demo_path) return nf();
   if (!rel) rel = p.demo_entry;
 
   let bytes = await readDemoFile(admin, p.id, rel);

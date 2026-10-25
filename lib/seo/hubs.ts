@@ -5,7 +5,7 @@ import type { CategoryCopy } from './categories';
  * word swapped) that lists real seller listings only. Which listings appear is decided in lib/seo/hubStore.ts: an admin's choice first, then the
  * catalogue categories named in `cats`. The number shown per hub is a setting (default HUB_LIMIT), not a limit in the code.
  */
-export const HUB_LIMIT = 4;
+export const HUB_LIMIT = 8;
 export const HUB_LIMIT_MAX = 12;
 
 export type HubCopy = CategoryCopy & { cats: string[] };

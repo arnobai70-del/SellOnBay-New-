@@ -259,7 +259,22 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const ids = new Set(live.map((p) => p.id));
   // The public home is the E-commerce Templates page: its own products only. (A test server with the old public site keeps the old mix.)
   const all = old ? [...live, ...(await starterProducts()).filter((p) => !ids.has(p.id))] : ecom.products;
-  const sorted = [...all].sort((a, b) => (tab === 'new' ? b.added.localeCompare(a.added) : tab === 'top' ? b.rating * Math.log(b.reviews + 2) - a.rating * Math.log(a.reviews + 2) : b.sold - a.sold));
+  // Popular tab: real sales + a temporary lift for products added in the last 30 days,
+  // so newly uploaded listings appear prominently before they have any sales of their own.
+  const NEW_BOOST_DAYS = 30;
+  const NEW_BOOST_SCORE = 50; // equivalent virtual sales while the product is new
+  const popularScore = (p: (typeof all)[0]) => {
+    const ageMs = Date.now() - new Date(p.added).getTime();
+    const isNew = ageMs < NEW_BOOST_DAYS * 24 * 60 * 60 * 1000;
+    return p.sold + (isNew ? NEW_BOOST_SCORE : 0);
+  };
+  const sorted = [...all].sort((a, b) =>
+    tab === 'new'
+      ? b.added.localeCompare(a.added)
+      : tab === 'top'
+        ? b.rating * Math.log(b.reviews + 2) - a.rating * Math.log(a.reviews + 2)
+        : popularScore(b) - popularScore(a),
+  );
   const featured = sorted.slice(0, 8);
   const sets = old ? collections(all) : views.map((v) => ({ key: v.hub.slug, title: v.hub.name, href: hubLinkHref(v.hub.slug), items: v.products, count: v.products.length }));
   const keep = (bps: number) => pct(10_000 - bps);

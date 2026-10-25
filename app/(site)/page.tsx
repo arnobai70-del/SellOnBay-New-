@@ -257,8 +257,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const ecom = views.find((v) => v.hub.slug === 'ecommerce')!;
   const live = old ? (await Promise.all(SHELF_ORDER.map((pl) => getLiveDbProducts(pl)))).flat() : [];
   const ids = new Set(live.map((p) => p.id));
-  // The public home is the E-commerce Templates page: its own products only. (A test server with the old public site keeps the old mix.)
-  const all = old ? [...live, ...(await starterProducts()).filter((p) => !ids.has(p.id))] : ecom.products;
+  // Featured Products shows every product across all template hubs so sellers see their
+  // listings on the home page regardless of which category they used.
+  // Legacy test servers keep the old all-shelves mix.
+  const allHubProducts = views.flatMap((v) => v.products);
+  const _seenFeat = new Set<string>();
+  const all = old
+    ? [...live, ...(await starterProducts()).filter((p) => !ids.has(p.id))]
+    : allHubProducts.filter((p) => { if (_seenFeat.has(p.id)) return false; _seenFeat.add(p.id); return true; });
+  // Build a map from product id → its hub so each card links to the right category page.
+  const productHub = new Map<string, (typeof views)[number]['hub']>();
+  if (!old) views.forEach((v) => v.products.forEach((p) => { if (!productHub.has(p.id)) productHub.set(p.id, v.hub); }));
   // Popular tab: real sales + a temporary lift for products added in the last 30 days,
   // so newly uploaded listings appear prominently before they have any sales of their own.
   const NEW_BOOST_DAYS = 30;
@@ -365,7 +374,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         </div>
         <div className="ex-grid mk-grid" data-rise>
           {featured.map((p) => (
-            <Card key={p.id} p={p} href={old ? undefined : hubProductPath(ecom.hub, alloc, p.id)} />
+            <Card key={p.id} p={p} href={old ? undefined : hubProductPath(productHub.get(p.id) ?? ecom.hub, alloc, p.id)} />
           ))}
         </div>
       </section>

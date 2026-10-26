@@ -379,6 +379,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         </div>
       </section>
     ),
+    categories: views.some((v) => v.products.length > 0) ? (
+      <div className="wrap mk-cats">
+        {views
+          .filter((v) => v.products.length > 0)
+          .map((v) => (
+            <section key={v.hub.slug} className="mk-sec mk-cat-sec" aria-labelledby={`cat-${v.hub.slug}`}>
+              <div className="mk-head">
+                <h2 id={`cat-${v.hub.slug}`}>{v.hub.name}</h2>
+                <Link className="link-u" href={hubLinkHref(v.hub.slug)}>
+                  See all
+                </Link>
+              </div>
+              <div className="ex-grid mk-grid" data-rise>
+                {v.products.map((p) => (
+                  <Card key={p.id} p={p} href={old ? undefined : hubProductPath(v.hub, alloc, p.id)} />
+                ))}
+              </div>
+            </section>
+          ))}
+      </div>
+    ) : null,
     why: (
       <section className="mk-why" aria-labelledby="mk-why-h">
         <div className="wrap">

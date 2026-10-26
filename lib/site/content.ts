@@ -149,6 +149,7 @@ export const HOME_SECTIONS: [key: string, label: string][] = [
   ['hero', 'Top banner'],
   ['band', 'Shelf tiles (older site only)'],
   ['featured', 'Featured products'],
+  ['categories', 'Browse by category'],
   ['why', 'Why SellOnBay'],
   ['steps', 'How a purchase goes'],
   ['sell', 'Sell on SellOnBay band'],

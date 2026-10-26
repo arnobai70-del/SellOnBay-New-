@@ -179,6 +179,11 @@
 /* featured */
 .mk-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 
+/* browse by category sections */
+.mk-cats{padding-bottom:24px}
+.mk-cat-sec{border-top:1px solid var(--line);padding-top:48px;margin-top:0}
+.mk-cat-sec:first-child{border-top:none}
+
 /* why */
 .mk-why{margin-top:64px;padding:64px 0;background:var(--ink);color:#fff}
 .mk-why h2{text-align:center;margin-bottom:36px}

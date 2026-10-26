@@ -9,6 +9,7 @@ import { TLDS } from '@/lib/domains';
 import { CONFIG, REVIEW_HOURS } from '@/lib/config';
 import { GITHUB_NAME, deliveryTypeOf, expressOf } from '@/lib/handover';
 import { EXPRESS_LABEL } from '@/lib/orders/machine';
+import { expressHelps, hoursText, promiseHours } from '@/lib/deliveryTime';
 import { DIGITAL_REFUND_SHORT } from '@/lib/refundText';
 
 const PKG_LABEL: Record<'web' | 'app', Record<Pkg, string>> = {
@@ -51,7 +52,7 @@ export function CheckoutClient({ p, pkg: asked, domain, newDomainsEnabled = fals
 
   const lines: [string, number][] = [[p.name + PKG_LABEL[app ? 'app' : 'web'][pkg], p.price + pkgCost(p, pkg)]];
   if (dv !== 'store' && !installer && !download && mode === 'new' && picked) lines.push([`Domain ${picked.name} (1 year)`, picked.price]);
-  const expressPrice = expressOf(p);
+  const expressPrice = expressHelps(p) ? expressOf(p) : undefined; // a listing already within the express time has no express
   const instantNow = download && pkg === 'asis' && !repo;
   if (expressPrice && !instantNow && express) lines.push([EXPRESS_LABEL, expressPrice]);
   if (!app && ai) lines.push(['AI content and SEO', 3]);
@@ -60,7 +61,7 @@ export function CheckoutClient({ p, pkg: asked, domain, newDomainsEnabled = fals
   if (installer && listing) lines.push(['Installer and auto-update setup', 15]);
   const total = lines.reduce((s, l) => s + l[1], 0);
 
-  const span = p.days === 1 ? '1 day' : '1 to ' + p.days + ' days';
+  const span = p.hours ? hoursText(p.hours) : p.days === 1 ? '1 day' : '1 to ' + p.days + ' days';
   const testWay = pl === 'ios' ? 'TestFlight' : dv === 'host' ? 'a private test link' : installer ? 'the installers' : 'a test build or Google Play internal test link';
 
   return (
@@ -88,7 +89,7 @@ export function CheckoutClient({ p, pkg: asked, domain, newDomainsEnabled = fals
                 </li>
                 <li className="now">
                   <b>{app ? (dv === 'host' ? 'Seller is rebranding and deploying your app' : 'Seller is rebranding and building your app') : 'Seller is setting up your site'}</b>
-                  <small>Due within {p.days === 1 ? '24 hours' : p.days * 24 + ' hours'}</small>
+                  <small>Due within {hoursText(express && expressPrice ? CONFIG.delivery.expressHours : promiseHours(p))}</small>
                 </li>
                 <li>
                   <b>{app ? `You try it via ${testWay}` : 'You review and accept'}</b>
@@ -247,7 +248,11 @@ export function CheckoutClient({ p, pkg: asked, domain, newDomainsEnabled = fals
                       I need a domain
                     </button>
                   </div>
-                  {!newDomainsEnabled && <p className="muted" role="status" style={{ marginTop: 10 }}>New domain purchases are not available yet. Please use a domain you already own.</p>}
+                  {!newDomainsEnabled && (
+                    <p className="muted" role="status" style={{ marginTop: 10 }}>
+                      New domain purchases are not available yet. Please use a domain you already own.
+                    </p>
+                  )}
                   {mode === 'own' ? (
                     <div>
                       <div className="field">

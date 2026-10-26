@@ -49,6 +49,7 @@ export type NewOrder = {
   title: string;
   lines: Line[];
   days: number;
+  hours?: number;
   buyerId: string | null;
   sellerId?: string | null;
   productKey?: string;
@@ -237,6 +238,7 @@ async function insertOrder(i: NewOrder, now: number): Promise<Order> {
     refundedCents: 0,
     currency: 'USD',
     days: i.days,
+    hours: i.hours,
     express: !!i.express,
     instant: !!i.instant,
     demo: i.demo ?? true,

@@ -3,6 +3,7 @@ import { type ThemeKey } from './data';
 import { isLicenceType } from './licences';
 import { isWebCat } from './webCategories';
 import { CONFIG } from './config';
+import { MAX_HOURS, daysFor, expressHelps, validHours } from './deliveryTime';
 
 /*
  * What an admin may change on a seller's listing (/dashboard/admin/seo/product): the words, category, price, delivery time, links and the prices of
@@ -16,6 +17,7 @@ export type ProductEditInput = {
   includes: string; // one per line
   price: number; // dollars
   days: number;
+  hours?: number | null; // delivery in hours, any 1 to 168 (an admin is not held to the sellers' choices); null = in days; not sent = unchanged
   demo: string;
   sample: string;
   docsUrl: string;
@@ -38,6 +40,7 @@ export type ProductEditRow = {
   theme: ThemeKey;
   price_cents: number;
   delivery_days: number;
+  delivery_hours?: number | null;
   demo_url: string;
   sample_url: string | null;
   docs_url: string | null;
@@ -92,6 +95,9 @@ export function checkProductEdit(i: ProductEditInput, ctx: { platform: string; p
     return { ok: false, error: `The price must be a whole number of dollars from $${ctx.priceMinCents / 100} to $${ctx.priceMaxCents / 100}.` };
   if (!Number.isInteger(i.days) || i.days < CONFIG.delivery.minDays || i.days > CONFIG.delivery.maxDays)
     return { ok: false, error: `Delivery takes ${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays} days.` };
+  if (i.hours !== undefined && i.hours !== null && !validHours(i.hours))
+    return { ok: false, error: `Delivery in hours is a whole number from ${CONFIG.deliveryHours.minHours} to ${MAX_HOURS}, or empty for days.` };
+  const hours = i.hours ?? null;
   const demo = i.demo.trim();
   if (demo && !isHttps(demo)) return { ok: false, error: 'The demo link must start with https.' };
   if (!isApp && !demo && !ctx.hasHostedDemo) return { ok: false, error: 'A website needs a demo link, or the hosted demo the seller uploaded.' };
@@ -108,6 +114,7 @@ export function checkProductEdit(i: ProductEditInput, ctx: { platform: string; p
       return { ok: false, error: `Express delivery costs $${CONFIG.delivery.expressMinCents / 100} to $${CONFIG.delivery.expressMaxCents / 100}, or leave it empty.` };
     express = d * 100;
   }
+  if (!expressHelps({ days: i.days, hours })) express = null; // already within the express time
   if (!CONFIG.packages.setupCents.includes(i.setupPrice * 100)) return { ok: false, error: 'Pick one of the allowed prices for setup help.' };
   if (!CONFIG.packages.customCents.includes(i.customPrice * 100)) return { ok: false, error: 'Pick one of the allowed prices for customisation.' };
   if (i.price * 100 + i.setupPrice * 100 > ctx.priceMaxCents || i.price * 100 + i.customPrice * 100 > ctx.priceMaxCents)
@@ -127,7 +134,8 @@ export function checkProductEdit(i: ProductEditInput, ctx: { platform: string; p
       includes,
       theme: isApp ? 'bio' : (THEME[i.category] ?? 'bio'),
       price_cents: i.price * 100,
-      delivery_days: i.days,
+      delivery_days: hours ? daysFor(hours) : i.days,
+      ...(i.hours !== undefined ? { delivery_hours: hours } : {}),
       demo_url: demo || 'about:blank',
       sample_url: dig && sample ? sample : null,
       docs_url: dig && docs ? docs : null,

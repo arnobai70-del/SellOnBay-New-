@@ -70,6 +70,7 @@ export type Order = {
   refundedCents: number; // part of the price given back to the buyer after a dispute
   currency: string;
   days: number;
+  hours?: number; // delivery promised in hours (migration 0054); wins over days
   express: boolean;
   instant: boolean; // as-is downloads are delivered the moment they are funded
   demo: boolean; // paid through the fake provider
@@ -121,7 +122,7 @@ export function transition(o: Order, to: OrderState, ctx: Ctx): { order: Order; 
   const at = ctx.now;
   if (to === 'funded') {
     n.fundedAt = at;
-    n.dueAt = at + (o.express ? CONFIG.delivery.expressHours * HOUR_MS : o.days * DAY_MS);
+    n.dueAt = at + (o.express ? CONFIG.delivery.expressHours : (o.hours ?? o.days * 24)) * HOUR_MS;
   }
   if (to === 'delivered') {
     n.deliveredAt = at;

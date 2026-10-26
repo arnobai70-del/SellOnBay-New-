@@ -11,6 +11,7 @@ import type { Line } from './types';
 import { CONFIG } from '../config';
 import { GITHUB_NAME, deliveryTypeOf, expressOf } from '../handover';
 import { EXPRESS_LABEL } from '../orders/machine';
+import { expressHelps } from '../deliveryTime';
 
 export type SiteInput = {
   productId?: unknown;
@@ -38,6 +39,7 @@ export type Quote =
       lines: Line[];
       totalCents: number;
       days: number;
+      hours?: number;
       domain?: { name: string; source: 'own' | 'new' };
       appName?: string;
       oses?: string[];
@@ -108,6 +110,7 @@ export async function quoteSite(i: SiteInput): Promise<Quote> {
   if (i.express === true) {
     if (!x) return { error: 'This seller does not offer express delivery.' };
     if (instantNow) return { error: 'This product is delivered at once, so express is not needed.' };
+    if (!expressHelps(p)) return { error: `This product is already delivered within ${CONFIG.delivery.expressHours} hours, so express is not needed.` };
     lines.push([EXPRESS_LABEL, x * 100]);
   }
 
@@ -139,6 +142,7 @@ export async function quoteSite(i: SiteInput): Promise<Quote> {
     lines,
     totalCents: lines.reduce((s, l) => s + l[1], 0),
     days: p.days,
+    hours: p.hours,
     domain,
     appName,
     oses,

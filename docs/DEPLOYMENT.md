@@ -86,6 +86,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0051_email_outbox.sql | Email queue with retries (needs 0020) |
 | 0052_visitor_analytics.sql | Visitor counts, clicks and daily reports for the admin |
 | 0053_paypal_payout_method.sql | Sellers can choose PayPal as their payout method |
+| 0054_delivery_hours.sql | Delivery promised in hours on listings and orders |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

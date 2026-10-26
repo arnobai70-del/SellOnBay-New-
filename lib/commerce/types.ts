@@ -58,6 +58,7 @@ export const publicView = (
   lines: o.lines,
   totalCents: o.priceCents,
   days: o.days,
+  hours: o.hours,
   domain: o.domain,
   appName: o.appName,
   oses: o.oses,

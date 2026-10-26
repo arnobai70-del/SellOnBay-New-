@@ -17,6 +17,8 @@ afterEach(async () => {
       earlyAccessOn: false,
       earlyAccessText: '',
       showExamples: true,
+      deliveryHoursOn: DEFAULTS.deliveryHoursOn,
+      deliveryHourChoices: DEFAULTS.deliveryHourChoices,
     },
     'Reset after a test.',
   );
@@ -26,7 +28,16 @@ afterEach(async () => {
 describe('the standard values', () => {
   it('start at $5 to $70, a $50 safety check, and the bar off', async () => {
     forgetSettings();
-    expect(await getSettings()).toEqual({ priceMinCents: 500, priceMaxCents: 7000, holdNewBuyerMinCents: 5000, earlyAccessOn: false, earlyAccessText: '', showExamples: true });
+    expect(await getSettings()).toEqual({
+      priceMinCents: 500,
+      priceMaxCents: 7000,
+      holdNewBuyerMinCents: 5000,
+      earlyAccessOn: false,
+      earlyAccessText: '',
+      showExamples: true,
+      deliveryHoursOn: true,
+      deliveryHourChoices: '6, 12, 18, 36',
+    });
     expect(CONFIG.sale).toEqual({ priceMinCents: 500, priceMaxCents: 7000 });
   });
 });

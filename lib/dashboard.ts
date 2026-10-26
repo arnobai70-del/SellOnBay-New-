@@ -13,6 +13,8 @@ import { createAdminClient } from './supabase/server';
 import { pendingForSeller, type Checklist } from './repoAccess';
 import { versionsOf } from './versions';
 import { payoutLabel } from './payoutDetails';
+import { hasDeliveryHours } from './catalog';
+import { deliveryText } from './deliveryTime';
 
 /*
  * What the buyer and seller dashboards show: the person's own orders, money and listings, read from the real stores. Nothing here is made up:
@@ -74,6 +76,7 @@ export type SellerListing = {
   name: string;
   status: string;
   priceCents: number;
+  delivery: string; // "12 hours" or "3 days"
   ratingAvg: number | null;
   ratingCount: number;
   digital: boolean;
@@ -126,18 +129,31 @@ export async function sellerDashboard(userId: string, now = Date.now()): Promise
   let payout: string | null = null;
   if (await pg()) {
     const db = createAdminClient();
-    const { data } = await db
+    const { data: rows } = await db
       .from('products')
-      .select('id, slug, name, status, price_cents, rating_avg, rating_count, platform, review_note')
+      .select(`id, slug, name, status, price_cents, delivery_days${(await hasDeliveryHours()) ? ', delivery_hours' : ''}, rating_avg, rating_count, platform, review_note`)
       .eq('seller_id', userId)
       .neq('status', 'draft')
       .order('created_at', { ascending: false })
       .limit(50);
-    listings = (data ?? []).map((r) => ({
+    type ListingRow = {
+      slug: string;
+      name: string;
+      status: string;
+      price_cents: number;
+      delivery_days: number;
+      delivery_hours?: number | null;
+      rating_avg: number | string | null;
+      rating_count: number | null;
+      platform: string | null;
+      review_note: string | null;
+    };
+    listings = ((rows ?? []) as unknown as ListingRow[]).map((r) => ({
       slug: r.slug,
       name: r.name,
       status: r.status,
       priceCents: r.price_cents,
+      delivery: deliveryText({ days: r.delivery_days, hours: r.delivery_hours }),
       ratingAvg: r.rating_avg === null ? null : Number(r.rating_avg),
       ratingCount: r.rating_count ?? 0,
       digital: r.platform === 'digital',

@@ -17,10 +17,12 @@ const schema = z.object({
   earlyAccessOn: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
   earlyAccessText: z.string().max(200).optional(),
   showExamples: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
+  deliveryHoursOn: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
+  deliveryHourChoices: z.string().max(100).optional(),
   reason: z.string().max(500).default(''),
 });
 
-/* Changes the shop's settings (price range, safety-check size, early access bar, example listings). A reason is required and goes in the audit log. */
+/* Changes the shop's settings (price range, safety-check size, early access bar, example listings, delivery hours). A reason is required and goes in the audit log. */
 export async function POST(req: Request) {
   const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
   if (closed) return closed;

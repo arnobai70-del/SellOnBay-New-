@@ -107,6 +107,7 @@ export async function POST(req: Request) {
     demo: !q.sellerId, // a seller's own listing is a real order (the payment provider is still the fake one until decision D1)
     lines: q.lines,
     days: q.days,
+    hours: q.hours,
     buyerId,
     domain: q.domain,
     appName: q.appName,

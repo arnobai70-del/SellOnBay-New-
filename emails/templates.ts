@@ -103,7 +103,7 @@ export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: stri
   }),
   order_funded: (p) => ({
     subject: `Payment received for ${t(p.title)}`,
-    text: `The payment is held safely in escrow. The seller can start now, and delivery is due in ${t(p.days, `${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays}`)} days.`,
+    text: `The payment is held safely in escrow. The seller can start now, and delivery is due in ${Number(p.hours) > 0 ? `${t(p.hours)} hours` : `${t(p.days, `${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays}`)} days`}.`,
   }),
   order_due_soon: (p) => ({ subject: `Delivery of ${t(p.title)} is due soon`, text: `This order is due within ${t(p.hours, '6')} hours. Deliver it on time to keep the buyer's trust.` }),
   order_delivered: (p) => ({

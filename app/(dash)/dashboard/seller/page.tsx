@@ -348,7 +348,7 @@ export default async function SellerDashboard() {
                   <div className="grow">
                     <b>{l.name}</b>
                     <small>
-                      {money(l.priceCents)}
+                      {money(l.priceCents)} · Delivery {l.delivery}
                       {l.ratingCount ? ` · ${l.ratingAvg} stars (${l.ratingCount})` : ''}
                     </small>
                     {l.reviewNote && <small>Admin note: {l.reviewNote}</small>}

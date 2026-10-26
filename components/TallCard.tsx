@@ -71,7 +71,7 @@ export function TallCard({ p, compare, href }: { p: Product; compare?: Compare; 
             ) : (
               <span>No reviews yet</span>
             )}
-            <span className="chip">{daysLabel(p.days)}</span>
+            <span className="chip">{daysLabel(p.days, p.hours)}</span>
           </div>
         </Link>
         <SaveButton id={p.id} name={p.name} />

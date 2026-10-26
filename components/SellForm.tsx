@@ -9,6 +9,7 @@ import { BRAND_NAME } from '@/lib/brand';
 import { FEE_SALE_TEXT, feeCents, sellerNetCents } from '@/lib/config';
 import { LICENCES, LICENCE_TYPES, THIRD_PARTY_LICENCES, isLicenceType } from '@/lib/licences';
 import { CONFIG } from '@/lib/config';
+import { deliveryChoices, expressHelps, readDelivery } from '@/lib/deliveryTime';
 
 const MAX_ZIP = 25 * 1024 * 1024;
 const MAX_SHOT = 4 * 1024 * 1024;
@@ -42,13 +43,23 @@ export function SellForm({
   sampleEnabled = true,
   minPrice = 5,
   maxPrice = 70,
+  hourChoices = [],
 }: {
   live: boolean;
   trialEnabled?: boolean;
   sampleEnabled?: boolean;
   minPrice?: number;
   maxPrice?: number;
+  /* The delivery hours an admin allows (Admin → Settings); empty = whole days only. */
+  hourChoices?: number[];
 }) {
+  // Delivery: the admin's hour choices, then 1 to 7 days. A listing being edited keeps hours it already promises, even if no longer offered.
+  const [keptHours, setKeptHours] = useState<number | null>(null);
+  const [deliveryV, setDeliveryV] = useState('3');
+  const choices = deliveryChoices(hourChoices, keptHours);
+  const deliveryLabel = (v: string) => (v.endsWith('h') ? (choices.find(([c]) => c === v)?.[1] ?? v) : Number(v) === 1 ? '1 day' : `Up to ${v} days`);
+  const chosen = readDelivery(deliveryV, hourChoices, keptHours);
+  const fastAlready = chosen.ok && !expressHelps(chosen);
   const [price, setPrice] = useState(Math.min(maxPrice, Math.max(minPrice, 39)));
   // Setup help and customisation are added to the price, and the total stays under the highest price. The choices that no longer fit go away.
   const [setupP, setSetupP] = useState(String(CONFIG.packages.defaultSetupCents / 100));
@@ -164,6 +175,8 @@ export function SellForm({
       .then((d) => {
         if (!d) return setError(isEdit ? 'That listing could not be opened.' : '');
         prefill.current = d;
+        const h = /^(\d+)h$/.exec(String(d.days ?? ''));
+        if (h) setKeptHours(Number(h[1]));
         if (isEdit) {
           setEditSlug(slug);
           setKept({ zip: !!d.keptZip, shots: Number(d.keptShots) || 0 });
@@ -209,6 +222,7 @@ export function SellForm({
       set('updateDays', d.updateDays);
       set('license', d.license);
       set('days', d.days);
+      if (d.days) setDeliveryV(String(d.days));
       if (d.demo) setDemoN(String(d.demo));
       if (d.category) setCat(String(d.category));
       if (d.setupPrice !== undefined && d.setupPrice !== '') setSetupP(String(d.setupPrice));
@@ -421,8 +435,8 @@ export function SellForm({
                   <div>
                     <dt>Delivery</dt>
                     <dd>
-                      {Number(check.days) === 1 ? '1 day' : `Up to ${check.days} days`}
-                      {check.express ? `, or in ${CONFIG.delivery.expressHours} hours for ${money(check.express)} more` : ''}
+                      {deliveryLabel(check.days)}
+                      {check.express && !fastAlready ? `, or in ${CONFIG.delivery.expressHours} hours for ${money(check.express)} more` : ''}
                     </dd>
                   </div>
                   <div>
@@ -565,14 +579,17 @@ export function SellForm({
                 </div>
                 <div className="field">
                   <label htmlFor="s-days">Delivery time</label>
-                  <select id="s-days" name="days" defaultValue="3">
-                    {Array.from({ length: CONFIG.delivery.maxDays - CONFIG.delivery.minDays + 1 }, (_, k) => CONFIG.delivery.minDays + k).map((d) => (
-                      <option key={d} value={d}>
-                        {d === 1 ? '1 day' : `Up to ${d} days`}
+                  <select id="s-days" name="days" defaultValue="3" onChange={(e) => setDeliveryV(e.target.value)}>
+                    {choices.map(([v, label]) => (
+                      <option key={v} value={v}>
+                        {v.endsWith('h') ? `Within ${label}` : deliveryLabel(v)}
                       </option>
                     ))}
                   </select>
-                  <small>Promise only what you can keep. For a faster job, offer 24-hour express below, or agree it with the buyer in the order chat.</small>
+                  <small>
+                    Promise only what you can keep. The time starts when the buyer pays.{' '}
+                    {hourChoices.length ? 'Pick hours for a quick job, days for a bigger one.' : 'For a faster job, offer 24-hour express below, or agree it with the buyer in the order chat.'}
+                  </small>
                 </div>
               </div>
               {app && (
@@ -825,7 +842,11 @@ export function SellForm({
                     </option>
                   ))}
                 </select>
-                <small>Buyers can pay this extra to get it within {CONFIG.delivery.expressHours} hours. You keep it, minus the usual fee. Only choose it if you can really deliver that fast.</small>
+                <small>
+                  {fastAlready
+                    ? `Your delivery time is already within ${CONFIG.delivery.expressHours} hours, so buyers are not offered express.`
+                    : `Buyers can pay this extra to get it within ${CONFIG.delivery.expressHours} hours. You keep it, minus the usual fee. Only choose it if you can really deliver that fast.`}
+                </small>
               </div>
               <div className="field">
                 <label htmlFor="s-third">Third-party code inside (optional)</label>

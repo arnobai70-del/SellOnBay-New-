@@ -217,7 +217,7 @@ function Card({ p, href }: { p: Product; href?: string }) {
           </span>
           <span className="ex-foot">
             {SHOW_LIST_PRICES && <span className="ex-price">{money(p.price)}</span>}
-            <span className="chip">{daysLabel(p.days)}</span>
+            <span className="chip">{daysLabel(p.days, p.hours)}</span>
           </span>
         </Link>
         <SaveButton id={p.id} name={p.name} />
@@ -264,10 +264,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const _seenFeat = new Set<string>();
   const all = old
     ? [...live, ...(await starterProducts()).filter((p) => !ids.has(p.id))]
-    : allHubProducts.filter((p) => { if (_seenFeat.has(p.id)) return false; _seenFeat.add(p.id); return true; });
+    : allHubProducts.filter((p) => {
+        if (_seenFeat.has(p.id)) return false;
+        _seenFeat.add(p.id);
+        return true;
+      });
   // Build a map from product id → its hub so each card links to the right category page.
   const productHub = new Map<string, (typeof views)[number]['hub']>();
-  if (!old) views.forEach((v) => v.products.forEach((p) => { if (!productHub.has(p.id)) productHub.set(p.id, v.hub); }));
+  if (!old)
+    views.forEach((v) =>
+      v.products.forEach((p) => {
+        if (!productHub.has(p.id)) productHub.set(p.id, v.hub);
+      }),
+    );
   // Popular tab: real sales + a temporary lift for products added in the last 30 days,
   // so newly uploaded listings appear prominently before they have any sales of their own.
   const NEW_BOOST_DAYS = 30;
@@ -278,11 +287,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
     return p.sold + (isNew ? NEW_BOOST_SCORE : 0);
   };
   const sorted = [...all].sort((a, b) =>
-    tab === 'new'
-      ? b.added.localeCompare(a.added)
-      : tab === 'top'
-        ? b.rating * Math.log(b.reviews + 2) - a.rating * Math.log(a.reviews + 2)
-        : popularScore(b) - popularScore(a),
+    tab === 'new' ? b.added.localeCompare(a.added) : tab === 'top' ? b.rating * Math.log(b.reviews + 2) - a.rating * Math.log(a.reviews + 2) : popularScore(b) - popularScore(a),
   );
   const featured = sorted.slice(0, 8);
   const sets = old ? collections(all) : views.map((v) => ({ key: v.hub.slug, title: v.hub.name, href: hubLinkHref(v.hub.slug), items: v.products, count: v.products.length }));

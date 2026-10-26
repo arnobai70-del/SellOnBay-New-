@@ -178,7 +178,7 @@ export function SolutionFinder({ extra = [], examples = [] }: { extra?: Product[
                         </span>
                         <small>
                           {SHOW_LIST_PRICES && <>{money(p.price)} · </>}
-                          {daysLabel(p.days)}
+                          {daysLabel(p.days, p.hours)}
                         </small>
                       </span>
                       <span className="ff-go" aria-hidden="true">

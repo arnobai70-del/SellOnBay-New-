@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { money, pkgCost, pkgOffered, type Pkg, type Product } from '@/lib/data';
 import { deliveryOf, platformOf, storeOf } from '@/lib/apps';
 import { REVIEW_HOURS } from '@/lib/config';
+import { hoursText } from '@/lib/deliveryTime';
 
 type Opt = { key: Pkg; title: string; note: string };
 const WEB: Opt[] = [
@@ -75,7 +76,7 @@ export function BuyBox({ p, locked = '' }: { p: Product; locked?: string }) {
         ))}
         <dl className="kv">
           <dt>{dv === 'store' ? 'Test build in' : dv === 'installer' ? 'Installers in' : dv === 'download' ? 'Files' : 'Delivery'}</dt>
-          <dd>{dv === 'download' ? 'Right after payment' : p.days === 1 ? '1 day' : '1 to ' + p.days + ' days'}</dd>
+          <dd>{dv === 'download' ? 'Right after payment' : p.hours ? 'Within ' + hoursText(p.hours) : p.days === 1 ? '1 day' : '1 to ' + p.days + ' days'}</dd>
           {dv === 'store' && (
             <>
               <dt>{storeOf(p)} review</dt>

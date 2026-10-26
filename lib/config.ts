@@ -4,6 +4,8 @@
  */
 export const CONFIG = {
   delivery: { minDays: 1, maxDays: 7, expressHours: 24, expressMinCents: 1000, expressMaxCents: 2000 },
+  // delivery in hours (owner, 2026-10-27): the choices sellers get until an admin changes them (Admin → Settings), each 1 to maxDays × 24
+  deliveryHours: { choices: [6, 12, 18, 36], minHours: 1, maxChoices: 8 },
   review: { hours: 48 }, // after delivery; no action means auto-accepted
   payout: { holdDays: 7, weekday: 0 }, // weekly on Sunday, only earnings accepted at least holdDays ago
   bugFixDays: 7, // after acceptance: the seller fixes bugs, it is not a refund

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { OrderChat } from './OrderChat';
 import { useCallback, useEffect, useState } from 'react';
 import { DEMO, type OrderView as View } from '@/lib/commerce/types';
+import { hoursText, promiseHours } from '@/lib/deliveryTime';
 import { ACCEPT_TEXT } from '@/lib/consentText';
 
 type Kind = 'web' | 'host' | 'store' | 'installer' | 'hire' | 'download' | 'repo';
@@ -162,7 +163,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           : dl
             ? `${first} ${rank >= 3 ? 'finished setting it up' : 'is setting it up'}`
             : `${first} ${rank >= 3 ? 'finished building' : rank === 2 ? 'is building' : 'is starting'}`,
-      d: rank >= 3 ? 'Delivered' : rank === 2 ? `${build}% done` : `Starting in a few seconds. Real orders are due in ${o.days === 1 ? '24 hours' : o.days * 24 + ' hours'}.`,
+      d: rank >= 3 ? 'Delivered' : rank === 2 ? `${build}% done` : `Starting in a few seconds. Real orders are due in ${hoursText(promiseHours(o))}.`,
       state: rank >= 3 ? 'done' : 'now',
       extra:
         rank === 2 || rank === 1 ? (

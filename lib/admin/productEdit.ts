@@ -2,7 +2,7 @@ import 'server-only';
 import { revalidatePath } from 'next/cache';
 import { CONFIG } from '../config';
 import { BUCKET } from '../demoStore';
-import { forgetLiveProducts } from '../catalog';
+import { forgetLiveProducts, hasDeliveryHours } from '../catalog';
 import { checkProductEdit, type ProductEditInput } from '../productEditRules';
 import { getSettings } from '../settings';
 import { supabaseConfigured } from '../supabase/env';
@@ -32,6 +32,7 @@ export type ProductForEdit = {
   includes: string[];
   price_cents: number;
   delivery_days: number;
+  delivery_hours?: number | null; // missing before migration 0054
   demo_url: string;
   sample_url: string | null;
   docs_url: string | null;
@@ -47,8 +48,9 @@ export type ProductForEdit = {
 
 export async function productForEdit(slug: string): Promise<ProductForEdit | null> {
   if (!supabaseConfigured) return null;
-  const { data } = await createAdminClient().from('products').select(COLS).eq('slug', slug).maybeSingle();
-  return (data as ProductForEdit | null) ?? null;
+  const cols = (await hasDeliveryHours()) ? COLS.replace('delivery_days,', 'delivery_days, delivery_hours,') : COLS;
+  const { data } = await createAdminClient().from('products').select(cols).eq('slug', slug).maybeSingle();
+  return (data as unknown as ProductForEdit | null) ?? null;
 }
 
 const done = (slug: string) => {
@@ -65,6 +67,9 @@ export async function adminEditProduct(adminId: string | null, slug: string, inp
   const before = await productForEdit(slug);
   if (!before) return { ok: false, status: supabaseConfigured ? 404 : 503, error: supabaseConfigured ? 'No such listing.' : 'Editing listings needs the database.' };
   const lim = await getSettings();
+  // Before migration 0054 the listing has no hours column: hours cannot be set yet.
+  if (input.hours && before.delivery_hours === undefined) return { ok: false, status: 409, error: 'Delivery in hours needs migration 0054 first.' };
+  if (before.delivery_hours === undefined) input = { ...input, hours: undefined };
   const c = checkProductEdit(input, { platform: before.platform, priceMinCents: lim.priceMinCents, priceMaxCents: lim.priceMaxCents, hasHostedDemo: !!before.demo_path });
   if (!c.ok) return { ok: false, status: 400, error: c.error };
   const same = (Object.keys(c.row) as (keyof typeof c.row)[]).every((k) => JSON.stringify(c.row[k]) === JSON.stringify((before as Record<string, unknown>)[k] ?? null));

@@ -14,11 +14,12 @@ import { listingFieldsSchema } from '@/lib/schemas';
 import { idParam, parseWith } from '@/lib/validate';
 import { cannotAct } from '@/lib/accounts';
 import { guard } from '@/lib/guard';
-import { getSettings } from '@/lib/settings';
+import { allowedHours, getSettings } from '@/lib/settings';
+import { deliveryValue, expressHelps, readDelivery } from '@/lib/deliveryTime';
 import { audit } from '@/lib/admin/audit';
 import { FUNDED_STATES } from '@/lib/orders/machine';
 import { maintenanceFor } from '@/lib/maintenance/service';
-import { forgetLiveProducts } from '@/lib/catalog';
+import { forgetLiveProducts, hasDeliveryHours } from '@/lib/catalog';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -157,10 +158,13 @@ export async function POST(req: Request) {
   const trialInput = form.get('trialFile');
   const trialFile = trialAllowed && trialInput instanceof File && trialInput.size > 0 ? trialInput : null;
   const trialExt = trialFile ? (trialFile.name.split('.').pop() ?? '').toLowerCase() : '';
-  // Delivery days: a number from the form (1 to 7); older forms sent words such as "1 to 2 days".
-  const dRaw = text('days');
-  const dNum = dRaw.startsWith('1 to ') ? Number(dRaw.slice(5, 6)) : parseInt(dRaw, 10);
-  const days = Number.isInteger(dNum) ? Math.min(CONFIG.delivery.maxDays, Math.max(CONFIG.delivery.minDays, dNum)) : 3;
+  // Delivery: 1 to 7 days, or one of the hour choices an admin allows ("12h"; lib/deliveryTime.ts). Checked again below with the listing's own hours.
+  const hoursReady = await hasDeliveryHours();
+  const hourChoices = hoursReady ? allowedHours(lim) : [];
+  const asked = readDelivery(text('days'), hourChoices);
+  const days = asked.ok ? asked.days : 3;
+  // Before migration 0054 the column is not written at all.
+  const hoursField = (h: number | null) => (hoursReady ? { delivery_hours: h } : {});
   const includes = text('inc')
     .split('\n')
     .map((l) => l.trim())
@@ -191,6 +195,7 @@ export async function POST(req: Request) {
       app_stack: isApp && toolsFor(platform).includes(stack) ? stack : null,
       price_cents: Math.min((await getSettings()).priceMaxCents, Math.max((await getSettings()).priceMinCents, (price || 39) * 100)),
       delivery_days: days,
+      ...hoursField(asked.ok ? asked.hours : null),
       demo_url: isHttps(demoUrl) ? demoUrl : 'about:blank',
       code_url: isHttps(codeUrl) ? codeUrl : 'about:blank',
       sample_url: isHttps(sampleRaw) ? sampleRaw : null,
@@ -222,29 +227,18 @@ export async function POST(req: Request) {
 
   // Editing a listing that was already sent: the seller's own, not a draft. Its saved files count unless new ones are sent.
   const editSlug = text('edit');
-  let editing: {
-    id: string;
-    status: string;
-    demo_path: string | null;
-    app_shots: string[] | null;
-    demo_url: string;
-    code_url: string;
-    sample_url: string | null;
-    docs_url: string | null;
-    delivery_type: string | null;
-  } | null = null;
+  let editing: Editing | null = null;
   if (editSlug) {
-    const { data: ex } = await createAdminClient()
-      .from('products')
-      .select('id, status, platform, demo_path, app_shots, demo_url, code_url, sample_url, docs_url, delivery_type')
-      .eq('slug', editSlug)
-      .eq('seller_id', user.id)
-      .in('status', EDITABLE)
-      .maybeSingle();
+    const editCols: string = `id, status, platform, demo_path, app_shots, demo_url, code_url, sample_url, docs_url, delivery_type${hoursReady ? ', delivery_hours' : ''}`;
+    const { data: found } = await createAdminClient().from('products').select(editCols).eq('slug', editSlug).eq('seller_id', user.id).in('status', EDITABLE).maybeSingle();
+    const ex = found as unknown as (Editing & { platform: string }) | null;
     if (!ex) return fail('That listing was not found.', 404);
     if (ex.platform !== platform) return fail('The kind of product cannot be changed. List it again as a new product instead.');
     editing = ex;
   }
+  // A listing keeps the hours it already promises even when an admin no longer offers them to new listings.
+  const delivery = readDelivery(text('days'), hourChoices, editing?.delivery_hours);
+  if (!delivery.ok) return fail(delivery.error);
   const keptShots = editing?.app_shots?.length ?? 0;
   const keptZip = !!editing?.demo_path && !isApp;
 
@@ -332,14 +326,15 @@ export async function POST(req: Request) {
     platform,
     app_stack: isApp ? stack : null,
     price_cents: price * 100,
-    delivery_days: days,
+    delivery_days: delivery.days,
+    ...hoursField(delivery.hours),
     demo_url: isApp ? (platform === 'digital' && demoUrl ? demoUrl : 'about:blank') : demoUrl || 'about:blank',
     code_url: codeUrl,
     sample_url: sampleRaw || null,
     licence_type: licenceType,
     third_party: thirdParty,
     delivery_type: deliveryType,
-    express_price_cents: expressCents,
+    express_price_cents: expressHelps(delivery) ? expressCents : null, // 24-hour express means nothing on a listing already that fast
     docs_url: docsUrl || null,
     requirements: requirements || null,
     support_days: supportDays,
@@ -463,6 +458,48 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true, slug, hosted: !!opened || keptZip, files: opened?.count ?? 0, edited: !!editing, status: editing ? editStatus : 'in_review' });
 }
 
+type Editing = {
+  id: string;
+  status: string;
+  demo_path: string | null;
+  app_shots: string[] | null;
+  demo_url: string;
+  code_url: string;
+  sample_url: string | null;
+  docs_url: string | null;
+  delivery_type: string | null;
+  delivery_hours?: number | null;
+};
+
+type EditRow = {
+  name: string;
+  category: string;
+  description: string;
+  includes: string[] | null;
+  platform: string;
+  app_stack: string | null;
+  price_cents: number;
+  delivery_days: number;
+  delivery_hours?: number | null;
+  demo_url: string;
+  code_url: string;
+  license: string;
+  sample_url: string | null;
+  licence_type: string | null;
+  third_party: unknown;
+  delivery_type: string | null;
+  express_price_cents: number | null;
+  docs_url: string | null;
+  requirements: string | null;
+  support_days: number | null;
+  update_days: number | null;
+  setup_price_cents: number | null;
+  custom_price_cents: number | null;
+  status: string;
+  demo_path: string | null;
+  app_shots: string[] | null;
+};
+
 /* The seller opens one of their own drafts, or (with ?edit=) a listing they already sent, to change it. */
 export async function GET(req: Request) {
   const closed = await maintenanceFor('upload'); // module maintenance (lib/maintenance)
@@ -479,15 +516,16 @@ export async function GET(req: Request) {
   // The answer holds the private files link: the same authenticator code as saving a listing.
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== 'aal2') return fail('Enter your authenticator code first.', 403);
-  const { data: p } = await createAdminClient()
+  const withHours = await hasDeliveryHours();
+  const cols: string = `name, category, description, includes, platform, app_stack, price_cents, delivery_days${withHours ? ', delivery_hours' : ''}, demo_url, code_url, license, sample_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents, status, demo_path, app_shots`;
+  const { data: found } = await createAdminClient()
     .from('products')
-    .select(
-      'name, category, description, includes, platform, app_stack, price_cents, delivery_days, demo_url, code_url, license, sample_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents, status, demo_path, app_shots',
-    )
+    .select(cols)
     .eq('slug', slug)
     .eq('seller_id', user.id)
     .in('status', isEdit ? EDITABLE : ['draft'])
     .maybeSingle();
+  const p = found as unknown as EditRow | null;
   if (!p) return fail(isEdit ? 'Listing not found.' : 'Draft not found.', 404);
   const clear = (v: string) => (v === 'about:blank' ? '' : v);
   return NextResponse.json({
@@ -498,7 +536,7 @@ export async function GET(req: Request) {
     includes: (p.includes ?? []).join('\n'),
     stack: p.app_stack ?? '',
     price: p.price_cents / 100,
-    days: p.delivery_days,
+    days: deliveryValue({ days: p.delivery_days, hours: p.delivery_hours }),
     demo: clear(p.demo_url),
     code: clear(p.code_url),
     sample: p.sample_url ?? '',

@@ -2,15 +2,25 @@ import 'server-only';
 import { audit } from './admin/audit';
 import { examplesAllowed } from './exampleMode';
 import { CONFIG } from './config';
+import { hourChoicesText, parseHourChoices } from './deliveryTime';
 import { orderStore } from './orders/store';
 import { createAdminClient } from './supabase/server';
 
 /*
  * Settings an admin can change without a deploy: the price range of what is sold, the size from which a new buyer's order waits for a safety check,
- * and the "early access" bar. Every change needs a reason and goes in the audit log. The defaults are in lib/config.ts; a saved value replaces its default.
+ * the "early access" bar and the hour choices sellers get for delivery. Every change needs a reason and goes in the audit log. The defaults are in lib/config.ts; a saved value replaces its default.
  * This is how the shop starts small (for example $5 to $70) and opens up later by changing one number.
  */
-export type Settings = { priceMinCents: number; priceMaxCents: number; holdNewBuyerMinCents: number; earlyAccessOn: boolean; earlyAccessText: string; showExamples: boolean };
+export type Settings = {
+  priceMinCents: number;
+  priceMaxCents: number;
+  holdNewBuyerMinCents: number;
+  earlyAccessOn: boolean;
+  earlyAccessText: string;
+  showExamples: boolean;
+  deliveryHoursOn: boolean;
+  deliveryHourChoices: string;
+};
 export type Key = keyof Settings;
 export type Result = { ok: true } | { ok: false; status: number; error: string };
 
@@ -21,6 +31,8 @@ export const DEFAULTS: Settings = {
   earlyAccessOn: false,
   earlyAccessText: '',
   showExamples: true,
+  deliveryHoursOn: true,
+  deliveryHourChoices: hourChoicesText(CONFIG.deliveryHours.choices),
 };
 export const LABEL: Record<Key, string> = {
   priceMinCents: 'Lowest price a product may have',
@@ -29,6 +41,8 @@ export const LABEL: Record<Key, string> = {
   earlyAccessOn: 'Show the early access bar on top of every page',
   earlyAccessText: 'Words in the bar (empty = the standard words with the price range)',
   showExamples: 'Show the example listings (made-up products that show how the shop works; they cannot be bought)',
+  deliveryHoursOn: 'Sellers may promise delivery in hours',
+  deliveryHourChoices: 'The hour choices sellers get, like 6, 12, 18',
 };
 const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinCents', [number, number]> = {
   priceMinCents: [100, 100_000],
@@ -46,8 +60,18 @@ export function problemWith(s: Settings): string | null {
   if (typeof s.earlyAccessText !== 'string' || s.earlyAccessText.length > 200) return 'The words in the bar can be up to 200 characters.';
   if (typeof s.earlyAccessOn !== 'boolean') return 'The early access bar is on or off.';
   if (typeof s.showExamples !== 'boolean') return 'The example listings are shown or hidden.';
+  if (typeof s.deliveryHoursOn !== 'boolean') return 'Delivery in hours is on or off.';
+  const h = typeof s.deliveryHourChoices === 'string' ? parseHourChoices(s.deliveryHourChoices) : { ok: false as const, error: 'The hour choices are a list of numbers.' };
+  if (!h.ok) return h.error;
+  if (s.deliveryHoursOn && !h.hours.length) return 'Give at least one hour choice, or turn delivery in hours off.';
   return null;
 }
+
+/* The hours a seller may promise now (none when the admin turned hours off). A listing keeps hours it already promised (lib/deliveryTime.ts). */
+export const allowedHours = (s: Settings): number[] => {
+  const h = s.deliveryHoursOn ? parseHourChoices(s.deliveryHourChoices) : null;
+  return h?.ok ? h.hours : [];
+};
 
 /* The standard words of the bar, with the price range worked out from the settings. */
 export const barText = (s: Settings) =>
@@ -99,6 +123,8 @@ export async function setSettings(adminId: string | null, patch: Partial<Setting
   forgetSettings();
   const before = await getSettings();
   const next = { ...before, ...Object.fromEntries(keys.map((k) => [k, patch[k]])) } as Settings;
+  const hours = typeof next.deliveryHourChoices === 'string' ? parseHourChoices(next.deliveryHourChoices) : null;
+  if (hours?.ok) next.deliveryHourChoices = hourChoicesText(hours.hours); // "36,6" is saved as "6, 36"
   const bad = problemWith(next);
   if (bad) return { ok: false, status: 400, error: bad };
   const changed = keys.filter((k) => before[k] !== next[k]);

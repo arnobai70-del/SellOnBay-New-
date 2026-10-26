@@ -159,6 +159,7 @@ const toRow = (o: Order): Row => ({
   refunded_cents: o.refundedCents,
   currency: o.currency,
   days: o.days,
+  delivery_hours: o.hours ?? null,
   express: o.express,
   instant: o.instant,
   demo: o.demo,
@@ -205,6 +206,7 @@ const fromRow = (r: Row): Order => ({
   refundedCents: (r.refunded_cents as number) ?? 0,
   currency: (r.currency as string) ?? 'USD',
   days: r.days as number,
+  hours: num(r.delivery_hours),
   express: !!r.express,
   instant: !!r.instant,
   demo: !!r.demo,
@@ -236,10 +238,15 @@ export const postgresStore: OrderStore = {
     const db = createAdminClient();
     const row = toRow(o);
     let { error } = await db.from('orders').insert(row);
+    // Before migration 0054 there is no delivery_hours column: an order promised in days is saved without it (a listing can only promise hours once the column exists).
+    if (error && /delivery_hours/.test(error.message) && row.delivery_hours === null) {
+      const { delivery_hours: _h, ...older } = row;
+      ({ error } = await db.from('orders').insert(older));
+    }
     // Before migration 0046 the two promise columns do not exist yet: save the order without them rather than refuse it.
     if (error && /support_days|update_days/.test(error.message)) {
       console.warn('orders: apply migration 0046 to keep what a listing promised on each order');
-      const { support_days: _s, update_days: _u, ...older } = row;
+      const { support_days: _s, update_days: _u, delivery_hours: _h, ...older } = row;
       ({ error } = await db.from('orders').insert(older));
     }
     if (error) throw new Error('Could not save the order: ' + error.message);
@@ -346,8 +353,7 @@ export async function orderStore(): Promise<OrderStore> {
   if (!supabaseConfigured) {
     // Explicit demo mode can use transient example orders; a production
     // marketplace with missing Supabase credentials must never do so.
-    if (process.env.NODE_ENV === 'production' && process.env.LAUNCHBAY_DEMO !== '1')
-      throw new Error('The order database is not configured. Ordering is unavailable.');
+    if (process.env.NODE_ENV === 'production' && process.env.LAUNCHBAY_DEMO !== '1') throw new Error('The order database is not configured. Ordering is unavailable.');
     return memoryStore;
   }
   // With Supabase configured, never silently create transient orders when required

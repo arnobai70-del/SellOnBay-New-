@@ -3,7 +3,9 @@ import { AdminForm } from '@/components/AdminForm';
 import { examplesAllowed } from '@/lib/exampleMode';
 import { DashShell } from '@/components/DashShell';
 import { auditList } from '@/lib/admin/audit';
-import { barText, getSettings } from '@/lib/settings';
+import { allowedHours, barText, getSettings } from '@/lib/settings';
+import { CONFIG } from '@/lib/config';
+import { MAX_HOURS, hoursText } from '@/lib/deliveryTime';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Settings', robots: { index: false } };
@@ -81,6 +83,44 @@ export default async function Settings() {
             ]}
             submit="Save"
             openLabel="Change the bar"
+            tone="line"
+          />
+        </div>
+        <div className="adm-card" data-delivery-hours>
+          <b>
+            Delivery in hours:{' '}
+            <span className={s.deliveryHoursOn ? 'chip mint' : 'chip'}>
+              <i />
+              {s.deliveryHoursOn ? 'On' : 'Off'}
+            </span>
+          </b>
+          <p className="muted">
+            {s.deliveryHoursOn ? `Sellers can promise ${allowedHours(s).map(hoursText).join(', ')}` : 'Sellers promise whole days only'}, or {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays}{' '}
+            days. The timer starts when the buyer pays. A listing that already promises hours keeps them when a choice is removed here; an admin can set any time on one listing from its edit page.
+          </p>
+          <AdminForm
+            endpoint="/api/admin/settings"
+            fields={[
+              {
+                name: 'deliveryHoursOn',
+                label: 'Delivery in hours',
+                kind: 'select',
+                options: [
+                  ['on', 'Sellers may promise hours'],
+                  ['off', 'Whole days only'],
+                ],
+              },
+              {
+                name: 'deliveryHourChoices',
+                label: `Hour choices, separated by commas (${CONFIG.deliveryHours.minHours} to ${MAX_HOURS}, at most ${CONFIG.deliveryHours.maxChoices})`,
+                kind: 'text',
+                value: s.deliveryHourChoices,
+                showWhen: { field: 'deliveryHoursOn', equals: 'on' },
+              },
+              why,
+            ]}
+            submit="Save"
+            openLabel="Change the hours"
             tone="line"
           />
         </div>

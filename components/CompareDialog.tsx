@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
+import { promiseHours } from '@/lib/deliveryTime';
 import { daysLabel, doesFeature, imageFor, money, type Product } from '@/lib/data';
 import { APP_FEATURES, FEATURES, isApp } from '@/lib/apps';
 import { SHOW_LIST_PRICES } from '@/lib/config';
@@ -25,7 +26,7 @@ export function CompareDialog({ items, open, onClose }: { items: Product[]; open
     'min',
   );
   const fastest = best(
-    items.map((p) => p.days),
+    items.map((p) => promiseHours(p)),
     'min',
   );
   const rated = best(
@@ -102,7 +103,7 @@ export function CompareDialog({ items, open, onClose }: { items: Product[]; open
               )}
             {row(
               'Ready in',
-              items.map((p) => daysLabel(p.days)),
+              items.map((p) => daysLabel(p.days, p.hours)),
               fastest,
             )}
             {row(

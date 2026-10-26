@@ -11,6 +11,7 @@ export type ProductEditValues = {
   includes: string;
   price: number;
   days: number;
+  hours?: string; // '' = in days; missing = the database has no hours yet (migration 0054)
   demo: string;
   sample: string;
   docsUrl: string;
@@ -34,6 +35,7 @@ export function ProductEditForm({
   licences,
   shots,
   maxShots,
+  maxHours,
 }: {
   v: ProductEditValues;
   categories: string[];
@@ -43,6 +45,7 @@ export function ProductEditForm({
   licences: [value: string, label: string][];
   shots: string[];
   maxShots: number;
+  maxHours: number;
 }) {
   const router = useRouter();
   const [f, setF] = useState(v);
@@ -108,7 +111,14 @@ export function ProductEditForm({
         )}
         {field('pe-includes', 'What comes with it', <textarea id="pe-includes" rows={5} value={f.includes} onChange={(e) => set('includes', e.target.value)} />, 'One per line, up to 8.')}
         {dollars('price', 'Price in dollars', 'A whole number within the shop price range (Settings).')}
-        {dollars('days', 'Delivery in days', '1 to 7.')}
+        {dollars('days', 'Delivery in days', f.hours ? 'Not used while hours are set.' : '1 to 7.')}
+        {f.hours !== undefined &&
+          field(
+            'pe-hours',
+            'Delivery in hours',
+            <input id="pe-hours" type="number" min={1} max={maxHours} step={1} value={f.hours} placeholder="In days" onChange={(e) => set('hours', e.target.value)} />,
+            `Empty = the days above. 1 to ${maxHours}; any number, not only the choices sellers get.`,
+          )}
         {text('express', 'Express delivery price in dollars', 'Empty = not offered. 10 to 20.', 4)}
         {field(
           'pe-setup',

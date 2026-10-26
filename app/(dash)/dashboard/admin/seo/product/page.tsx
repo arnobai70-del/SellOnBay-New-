@@ -6,6 +6,7 @@ import { ProductEditForm } from '@/components/ProductEditForm';
 import { productForEdit } from '@/lib/admin/productEdit';
 import { catsFor, type Platform } from '@/lib/apps';
 import { CONFIG } from '@/lib/config';
+import { MAX_HOURS } from '@/lib/deliveryTime';
 import { LICENCE_TYPES, LICENCES } from '@/lib/licences';
 import { WEB_CATS, webCatLabel } from '@/lib/webCategories';
 import { requireViewer } from '@/lib/supabase/viewer';
@@ -50,6 +51,7 @@ export default async function EditProduct({ searchParams }: { searchParams: Prom
             includes: (p.includes ?? []).join('\n'),
             price: p.price_cents / 100,
             days: p.delivery_days,
+            hours: p.delivery_hours === undefined ? undefined : p.delivery_hours ? String(p.delivery_hours) : '',
             demo: p.demo_url === 'about:blank' ? '' : p.demo_url,
             sample: p.sample_url ?? '',
             docsUrl: p.docs_url ?? '',
@@ -68,6 +70,7 @@ export default async function EditProduct({ searchParams }: { searchParams: Prom
           periods={[...CONFIG.listing.periodDays]}
           licences={LICENCE_TYPES.map((t) => [t, LICENCES[t].label] as [string, string])}
           shots={p.app_shots ?? []}
+          maxHours={MAX_HOURS}
           maxShots={CONFIG.listing.maxShots}
         />
       </div>

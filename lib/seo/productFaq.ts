@@ -3,6 +3,7 @@ import { BUGFIX_DAYS, REVIEW_HOURS } from '../config';
 import type { Product } from '../data';
 import { LICENCES } from '../licences';
 import { periodText } from '../productInfo';
+import { deliveryText, expressHelps } from '../deliveryTime';
 
 /*
  * The questions a buyer asks about one listing, answered from that listing's own saved facts and the shop's rules (lib/config.ts), never invented:
@@ -13,7 +14,6 @@ import { periodText } from '../productInfo';
  */
 export type FaqItem = { q: string; a: string };
 
-const day = (n: number) => (n === 1 ? '1 day' : `${n} days`);
 const list = (items: string[]) => items.map((x) => x.replace(/[.\s]+$/, '')).join(', ');
 
 export function productFaqs(p: Product): FaqItem[] {
@@ -27,7 +27,7 @@ export function productFaqs(p: Product): FaqItem[] {
   } else {
     out.push({
       q: 'How long does delivery take?',
-      a: `The seller delivers within ${day(p.days)} of your payment.${p.express ? ` The seller also offers 24-hour express delivery for $${p.express}.` : ''}`,
+      a: `The seller delivers within ${deliveryText(p)} of your payment.${p.express && expressHelps(p) ? ` The seller also offers 24-hour express delivery for $${p.express}.` : ''}`,
     });
   }
 

@@ -24,6 +24,7 @@ type Row = {
   theme: string;
   price_cents: number;
   delivery_days: number;
+  delivery_hours?: number | null; // migration 0054
   demo_url: string | null;
   demo_path: string | null;
   status: string;
@@ -45,7 +46,7 @@ type Row = {
   custom_price_cents: number | null;
 };
 const COLS =
-  'id, slug, seller_id, name, category, tagline, description, includes, theme, price_cents, delivery_days, demo_url, demo_path, status, created_at, platform, app_stack, app_shots, sample_url, trial_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents';
+  'id, slug, seller_id, name, category, tagline, description, includes, theme, price_cents, delivery_days, delivery_hours, demo_url, demo_path, status, created_at, platform, app_stack, app_shots, sample_url, trial_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents';
 
 /* Colours for a seller's app when it has no drawn mock-up of its own: one calm accent per category. */
 const ACCENT: Record<string, [string, string, string]> = {
@@ -131,6 +132,7 @@ function toProduct(r: Row, seller: string): Product {
     reviews: 0,
     sold: 0,
     days: r.delivery_days,
+    hours: r.delivery_hours ?? undefined,
     tag: r.tagline || r.category,
     desc: r.description,
     inc: r.includes?.length ? r.includes : [r.tagline || (platform === 'web' ? 'A ready-made site' : 'A ready-made app')],
@@ -139,6 +141,29 @@ function toProduct(r: Row, seller: string): Product {
   };
 }
 
+/*
+ * Before migration 0054 there is no delivery_hours column: listings are then read and written without it (every listing promises days) instead of
+ * failing. Asked once per copy of the server; a "no" is asked again after 30 seconds so the column is used soon after the migration.
+ */
+const OLD_COLS = COLS.replace(' delivery_hours,', '');
+const hc = globalThis as { __hoursCol?: { ok: boolean; at: number } };
+export async function hasDeliveryHours(): Promise<boolean> {
+  if (!supabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return true; // no database: nothing to wait for
+  const k = hc.__hoursCol;
+  if (k && (k.ok || Date.now() - k.at < 30_000)) return k.ok;
+  let error: { message: string } | null;
+  try {
+    ({ error } = await createAdminClient().from('products').select('delivery_hours').limit(1));
+  } catch {
+    return false; // the database is not answering: do not remember
+  }
+  if (error && !/delivery_hours/.test(error.message)) return false; // the database is not answering: do not remember
+  if (error) console.warn('products: apply migration 0054 for delivery in hours');
+  hc.__hoursCol = { ok: !error, at: Date.now() };
+  return !error;
+}
+const cols = async (): Promise<string> => ((await hasDeliveryHours()) ? COLS : OLD_COLS);
+
 async function names(admin: ReturnType<typeof createAdminClient>, ids: string[]) {
   const { data } = ids.length ? await admin.from('profiles').select('id, full_name').in('id', ids) : { data: [] as { id: string; full_name: string }[] };
   return new Map((data ?? []).map((p) => [p.id, p.full_name || 'Seller']));
@@ -146,9 +171,14 @@ async function names(admin: ReturnType<typeof createAdminClient>, ids: string[])
 
 async function readLive(platform: Platform): Promise<Product[]> {
   const admin = createAdminClient();
-  const { data, error } = await admin.from('products').select(COLS).eq('status', 'live').eq('platform', platform).order('created_at', { ascending: false });
+  const { data, error } = await admin
+    .from('products')
+    .select(await cols())
+    .eq('status', 'live')
+    .eq('platform', platform)
+    .order('created_at', { ascending: false });
   if (error) throw new Error('Could not read the live listings.');
-  const rows = (data ?? []) as Row[];
+  const rows = (data ?? []) as unknown as Row[];
   const who = await names(admin, [...new Set(rows.map((r) => r.seller_id))]);
   return rows.map((r) => toProduct(r, who.get(r.seller_id) ?? 'Seller'));
 }
@@ -219,8 +249,12 @@ export async function productRecord(key: string | null | undefined): Promise<{ p
   if (!supabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   try {
     const admin = createAdminClient();
-    const { data } = await admin.from('products').select(COLS).eq('slug', key).maybeSingle();
-    const r = data as Row | null;
+    const { data } = await admin
+      .from('products')
+      .select(await cols())
+      .eq('slug', key)
+      .maybeSingle();
+    const r = data as unknown as Row | null;
     if (!r) return null;
     const who = await names(admin, [r.seller_id]);
     return { product: toProduct(r, who.get(r.seller_id) ?? 'Seller'), status: r.status };
@@ -238,8 +272,12 @@ export async function visibleProduct(slug: string): Promise<{ product: Product; 
   if (!supabaseConfigured || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   try {
     const admin = createAdminClient();
-    const { data } = await admin.from('products').select(COLS).eq('slug', slug).maybeSingle();
-    const r = data as Row | null;
+    const { data } = await admin
+      .from('products')
+      .select(await cols())
+      .eq('slug', slug)
+      .maybeSingle();
+    const r = data as unknown as Row | null;
     if (!r) return null;
     if (r.status !== 'live' && !(await mayViewUnreleased(r.seller_id as string))) return null;
     // A listing whose page an admin unpublished is gone for visitors (page, preview and checkout); past orders read it by order instead.

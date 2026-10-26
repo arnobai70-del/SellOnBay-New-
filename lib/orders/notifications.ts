@@ -10,8 +10,10 @@ export async function notifyOrderEvent(o: Order, e: OrderEvent): Promise<void> {
   const base = { title: o.title, orderId: o.id };
   switch (e.event) {
     case 'funded':
-      await notify(o.buyerId, 'order_funded', { ...base, days: o.days });
-      await notify(o.sellerId, (await heldReason(o.id)) ? 'order_held' : 'order_funded', { ...base, days: o.days });
+      // Express and delivery in hours are said in hours; everything else in days.
+      const when = { days: o.days, hours: o.express ? CONFIG.delivery.expressHours : o.hours };
+      await notify(o.buyerId, 'order_funded', { ...base, ...when });
+      await notify(o.sellerId, (await heldReason(o.id)) ? 'order_held' : 'order_funded', { ...base, ...when });
       break;
     case 'delivered':
     case 'auto_delivered':

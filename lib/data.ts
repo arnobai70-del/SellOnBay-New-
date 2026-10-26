@@ -160,6 +160,7 @@ export type Product = {
   reviews: number;
   sold: number;
   days: number;
+  hours?: number; // delivery promised in hours instead of days (lib/deliveryTime.ts); days is then the hours rounded up
   tag: string;
   desc: string;
   inc: string[];
@@ -447,7 +448,7 @@ export const doesFeature = (p: Product, key: string) => (p.does ?? CAT_DOES[p.ca
 export const CATS = ['All', 'Restaurants', 'Health', 'Portfolios', 'Stores', 'Landing pages', 'Real estate', 'Tools'];
 
 export const money = (n: number) => '$' + n.toLocaleString('en-US');
-export const daysLabel = (d: number) => (d === 1 ? '1 day' : '1-' + d + ' days');
+export const daysLabel = (d: number, hours?: number) => (hours ? (hours === 1 ? '1 hour' : hours + ' hours') : d === 1 ? '1 day' : '1-' + d + ' days');
 export const findProduct = (id?: string | null) => PRODUCTS.find((p) => p.id === id) ?? PRODUCTS[0];
 
 /* Pricing add-ons shown on the product and checkout pages */

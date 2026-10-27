@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { cannotAct, mayBuy } from '../accounts';
 import { supabaseConfigured } from '../supabase/env';
 import { createClient } from '../supabase/server';
+import { readAdminProfile } from '../admin/guard';
+import { effectiveScopes, type AdminScope } from '../admin/scopes';
 
 /*
  * Server-side checks for the SellOnBay 2.0 buyer and seller API routes (the admin ones use lib/admin/guard.ts).
@@ -40,4 +42,19 @@ export async function sellerOnly(): Promise<Who> {
   if (s.role !== 'seller') return no('Only a seller account can do this.', 403);
   if (!s.aal2) return no('Enter your authenticator code first.', 403);
   return { ok: true, id: s.id, name: s.name, email: s.email };
+}
+
+/*
+ * Anyone taking part in a SellOnBay 2.0 conversation or ticket: a buyer, a seller (with the authenticator code) or an admin (with the code and
+ * their permissions). What they may read or write is decided per subject in lib/messaging/rules.ts.
+ */
+export type ParticipantCheck = { ok: true; viewer: { id: string; role: 'buyer' | 'seller' | 'admin'; scopes?: AdminScope[] } } | { ok: false; res: NextResponse };
+export async function participant(): Promise<ParticipantCheck> {
+  const s = await signedIn();
+  if (!s.ok) return s;
+  const role = s.role === 'admin' || s.role === 'seller' ? s.role : 'buyer';
+  if (role !== 'buyer' && !s.aal2) return { ok: false, res: NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 }) };
+  if (role !== 'admin') return { ok: true, viewer: { id: s.id, role } };
+  const sb = await createClient();
+  return { ok: true, viewer: { id: s.id, role, scopes: effectiveScopes((await readAdminProfile(sb, s.id))?.admin_scopes) } };
 }

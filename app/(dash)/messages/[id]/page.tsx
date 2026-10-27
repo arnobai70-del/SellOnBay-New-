@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { DashShell } from '@/components/DashShell';
 import { shellRole } from '@/lib/admin/mode';
 import { OrderChat } from '@/components/OrderChat';
+import { ConversationPanel } from '@/components/ConversationPanel';
 import { chatOpen, roleIn } from '@/lib/chat';
 import { getOrder } from '@/lib/orders/service';
 import { supabaseConfigured } from '@/lib/supabase/env';
@@ -35,8 +36,10 @@ export default async function OrderChatPage({ params, searchParams }: { params: 
             </p>
           </div>
         </div>
-        <OrderChat endpoint={signedIn ? `/api/orders/${o.id}/messages` : `/api/demo/orders/${o.id}/messages`} orderId={o.id} me={role} open={chatOpen(o)} live={signedIn} />
+        <p className="muted">Earlier messages between buyer and seller (read only). New messages go through SellOnBay below.</p>
+        <OrderChat endpoint={signedIn ? `/api/orders/${o.id}/messages` : `/api/demo/orders/${o.id}/messages`} orderId={o.id} me={role} open={false} live={signedIn} />
       </div>
+      {signedIn && <ConversationPanel type="order" id={o.id} me={role} />}
     </DashShell>
   );
 }

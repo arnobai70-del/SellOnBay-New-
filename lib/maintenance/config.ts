@@ -52,7 +52,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/(demo\/)?orders(\/|$)/, 'orders'],
   [/^\/download(\/|$)/, 'orders'],
   [/^\/(hire|products\/[^/]+\/trial)$/, 'checkout'],
-  [/^\/(notifications|presale)(\/|$)/, 'messaging'],
+  [/^\/(notifications|presale|conversations|tickets)(\/|$)/, 'messaging'],
   [/^\/listings(\/|$)/, 'upload'],
   [/^\/seller\/files(\/|$)/, 'upload'], // source-file uploads (lib/files)
   [/^\/seller\/orders\/[^/]+\/delivery$/, 'orders'], // a work order's delivery sent for release (lib/release)

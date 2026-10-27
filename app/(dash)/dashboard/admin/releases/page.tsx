@@ -40,7 +40,7 @@ export default async function Releases() {
             <li key={o.id} data-release={o.id}>
               <div className="grow">
                 <b>
-                  <Link href={`/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {readyMade(o) ? 'ready-made files' : 'work order'}
+                  <Link href={`/dashboard/admin/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {readyMade(o) ? 'ready-made files' : 'work order'}
                 </b>
                 {o.releaseDueAt ? <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} /> : null}
                 <div className="act-row">
@@ -83,7 +83,7 @@ export default async function Releases() {
             <li key={o.id}>
               <div className="grow">
                 <b>
-                  <Link href={`/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {o.pkg}
+                  <Link href={`/dashboard/admin/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {o.pkg}
                 </b>
                 <AdminForm endpoint={`/api/admin/releases/${o.id}`} fixed={{ action: 'authorise' }} fields={[]} openLabel="Authorise work" submit="Let the seller start" tone="blue" />
               </div>
@@ -105,7 +105,7 @@ export default async function Releases() {
             <li key={o.id}>
               <div className="grow">
                 <b>
-                  <Link href={`/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {o.state.replace('_', ' ')}
+                  <Link href={`/dashboard/admin/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {o.state.replace('_', ' ')}
                 </b>
                 <AdminForm
                   endpoint={`/api/admin/releases/${o.id}`}

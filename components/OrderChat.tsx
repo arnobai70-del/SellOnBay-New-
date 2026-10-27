@@ -91,7 +91,7 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
           </button>
         </form>
       ) : (
-        <p className="muted">This chat is closed.</p>
+        <p className="muted">This chat is read only. Write to SellOnBay in Messages with SellOnBay instead.</p>
       )}
       {err && (
         <p className="form-err" role="alert">

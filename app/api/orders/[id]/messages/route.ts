@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { cannotAct } from '@/lib/accounts';
-import { listMessages, roleIn, sendMessage } from '@/lib/chat';
-import { clientIp } from '@/lib/delivery/service';
+import { listMessages, roleIn } from '@/lib/chat';
 import { getOrder } from '@/lib/orders/service';
 import { createClient } from '@/lib/supabase/server';
-import { idOf, readJson } from '@/lib/validate';
+import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
 
 export const runtime = 'nodejs';
-const schema = z.object({ body: z.string().max(4000) });
 
 /* Who is asking: a signed-in buyer or seller of this order. Sellers need the authenticator code (aal2). Anybody else gets "not found". */
 async function party(id: string) {
@@ -40,13 +37,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json({ messages: await listMessages(a.o.id, since), now: Date.now(), role: a.role }, { headers: { 'cache-control': 'no-store' } });
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+/*
+ * SellOnBay 2.0 (owner decision D-B): buyers and sellers no longer write to each other. This old chat stays readable to its two participants;
+ * new messages go to SellOnBay through /api/conversations/order/<id>. The old sending code is in git history before SellOnBay 2.0.
+ */
+export async function POST() {
   const closed = await maintenanceFor('messaging'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await party(await idOf(params));
-  if (a.error) return refuse(a.error);
-  const body = await readJson(req, schema);
-  if (!body.ok) return body.res;
-  const r = await sendMessage(a.o, a.role, a.userId, clientIp(req), body.data.body);
-  return r.ok ? NextResponse.json({ ok: true, message: r.message }) : NextResponse.json({ error: r.error, blocked: r.blocked ?? false }, { status: r.status });
+  return NextResponse.json({ error: 'Messages now go through SellOnBay. Use "Messages with SellOnBay" on the order.' }, { status: 410 });
 }

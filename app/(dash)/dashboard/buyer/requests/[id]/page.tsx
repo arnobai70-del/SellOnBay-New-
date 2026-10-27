@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ActionButton } from '@/components/ActionButton';
+import { ConversationPanel } from '@/components/ConversationPanel';
 import { DashShell } from '@/components/DashShell';
 import { TIER_TEXT } from '@/lib/licenceTiers';
 import { getRequest, quotesOf, requestEvents } from '@/lib/requests/store';
@@ -149,6 +150,8 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
           )}
         </div>
       )}
+
+      <ConversationPanel type="request" id={r.id} me="buyer" />
 
       <div className="dp">
         <div className="hd">

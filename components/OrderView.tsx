@@ -552,7 +552,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
 
           {o.paidAt && o.state !== 'cancelled' && o.state !== 'refunded' && (
-            <OrderChat endpoint={`/api/demo/orders/${o.id}/messages`} orderId={o.id} me="buyer" open={o.state !== 'paid_out'} live={realtime} />
+            <OrderChat endpoint={`/api/demo/orders/${o.id}/messages`} orderId={o.id} me="buyer" open={false} live={realtime} /> /* read only since SellOnBay 2.0 (D-B) */
           )}
 
           {o.events.length > 0 && (

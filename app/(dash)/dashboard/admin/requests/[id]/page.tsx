@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { AdminForm } from '@/components/AdminForm';
 import { DashShell } from '@/components/DashShell';
 import { QuoteEditor } from '@/components/QuoteEditor';
+import { ConversationPanel } from '@/components/ConversationPanel';
 import { TIER_TEXT } from '@/lib/licenceTiers';
 import { requestableProduct } from '@/lib/requests/products';
 import { listedLines, listedSellerCents } from '@/lib/requests/rules';
@@ -193,7 +194,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                   />
                 )}
                 {q.orderId && (
-                  <Link className="btn btn-line btn-sm" href={`/orders/${q.orderId}`}>
+                  <Link className="btn btn-line btn-sm" href={`/dashboard/admin/orders/${q.orderId}`}>
                     Open the order
                   </Link>
                 )}
@@ -202,6 +203,8 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
           ))}
         </div>
       )}
+
+      <ConversationPanel type="request" id={r.id} me="admin" heading="Messages" />
 
       <div className="dp">
         <div className="hd">

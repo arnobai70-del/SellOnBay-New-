@@ -1,6 +1,7 @@
 'use client';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { installGtag } from '@/lib/ga4';
 
 /*
  * Google Analytics 4 on the public pages, ONLY after the visitor chose "Accept analytics" in the cookie notice (stored in this browser as lb-cookies = "all"),
@@ -45,12 +46,9 @@ export function GoogleAnalytics() {
   useEffect(() => {
     if (!on || document.getElementById('ga-script')) return;
     const w = window as GaWindow;
-    w.dataLayer = w.dataLayer || [];
-    w.gtag = function gtag(...args: unknown[]) {
-      w.dataLayer!.push(args);
-    };
-    w.gtag('js', new Date());
-    w.gtag('config', ID, { send_page_view: false, anonymize_ip: true }); // page views are sent below, once per page, so a move between pages counts
+    installGtag(w); // pushes `arguments`, as gtag.js requires (lib/ga4.ts)
+    w.gtag!('js', new Date());
+    w.gtag!('config', ID, { send_page_view: false, anonymize_ip: true }); // page views are sent below, once per page, so a move between pages counts
     const s = document.createElement('script');
     s.id = 'ga-script';
     s.async = true;

@@ -11,6 +11,7 @@ import { dailyReport } from '@/lib/analytics';
 import { fileJobs } from '@/lib/files/service';
 import { expireDue } from '@/lib/requests/service';
 import { releaseJobs } from '@/lib/release/service';
+import { purgeReports } from '@/lib/reports/service';
 
 export const runtime = 'nodejs';
 
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
     files: await fileJobs(), // source-file checks waiting, and deleting expired rejected uploads (lib/files)
     requests: await expireDue(), // quotations after 7 days, requests after the expiry an admin set (lib/requests)
     releases: await releaseJobs(), // reminders and 12-hour target alerts; never releases anything (lib/release)
+    reports: await purgeReports(), // generated sales PDFs and receipts deleted after 24 hours; their log entries stay (lib/reports)
   };
   await beat('orders');
   return NextResponse.json(done);

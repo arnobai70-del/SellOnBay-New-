@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { hitForBuy, hitsForPage, isBot } from '@/lib/analyticsCore';
 import { record, visitorOf } from '@/lib/analytics';
+import { recordCountry } from '@/lib/countryAnalytics';
 import { clientAddress } from '@/lib/clientIp';
 import { maintenanceFor } from '@/lib/maintenance/service';
 
@@ -24,6 +25,10 @@ export async function POST(req: Request) {
     return none();
   }
   const hits = 'buy' in body ? [hitForBuy(body.buy)].filter((h) => h !== null) : hitsForPage(body.p, body.q);
-  if (hits.length) await record(visitorOf(clientAddress(req.headers), ua.slice(0, 300)), hits);
+  if (hits.length) {
+    const visitor = visitorOf(clientAddress(req.headers), ua.slice(0, 300));
+    await record(visitor, hits);
+    await recordCountry(visitor, req.headers); // first-party country: off until legal approval (lib/countryAnalytics.ts)
+  }
   return none();
 }

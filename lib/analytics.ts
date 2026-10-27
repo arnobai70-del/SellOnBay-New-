@@ -1,5 +1,6 @@
 import { derivedSecret } from './secrets';
 import 'server-only';
+import { purgeCountries } from './countryAnalytics';
 import { createHash } from 'node:crypto';
 import { CONFIG, DAY_MS } from './config';
 import {
@@ -184,6 +185,7 @@ export async function dailyReport(now = Date.now()): Promise<string | null> {
       const before = dayOf(now - CONFIG.analytics.keepDays * DAY_MS);
       for (const [k, row] of mem.rows) if (row.day < before) mem.rows.delete(k);
     }
+    await purgeCountries(now); // first-party country rows follow the same keepDays
     const best = r.products[0];
     await notifyAdmins(
       'daily_report',

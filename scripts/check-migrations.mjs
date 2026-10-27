@@ -685,4 +685,48 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0065 (SellOnBay 2.0): export log entries kept and fixed (only the file deletion is recorded once), at most 1,000 rows, private reports
+  // bucket; first-party country stores a two-letter code only, one per visitor and day.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    const b = (await db.query(`select public, file_size_limit from storage.buckets where id = 'reports'`)).rows[0];
+    if (!b || b.public) throw new Error('reports bucket missing or public');
+    const sha = 'c'.repeat(64);
+    const e = (
+      await db.query(
+        `insert into report_exports (batch_id, scope, part, parts, row_count, file_sha256, file_path, expires_at) values (gen_random_uuid(), 'admin', 1, 1, 10, '${sha}', 'admin/x/1.pdf', now() + interval '24 hours') returning id`,
+      )
+    ).rows[0].id;
+    if (
+      !(await refused(
+        `insert into report_exports (batch_id, scope, part, parts, row_count, file_sha256, file_path, expires_at) values (gen_random_uuid(), 'admin', 1, 1, 1001, '${sha}', 'admin/y/1.pdf', now())`,
+      ))
+    )
+      throw new Error('a file with more than 1,000 rows');
+    if (!(await refused(`update report_exports set row_count = 11 where id = '${e}'`))) throw new Error('an export log entry changed');
+    await db.exec(`update report_exports set file_deleted_at = now() where id = '${e}'`);
+    if (!(await refused(`update report_exports set file_deleted_at = now() + interval '1 day' where id = '${e}'`))) throw new Error('the deletion time changed');
+    if (!(await refused(`delete from report_exports where id = '${e}'`))) throw new Error('an export log entry was deleted');
+    await db.exec(`insert into analytics_country (day, visitor, country) values ('2026-10-27', 'visitor-abc123', 'BD')`);
+    if (!(await refused(`insert into analytics_country (day, visitor, country) values ('2026-10-27', 'visitor-abc123', 'IN')`))) throw new Error('two countries for one visitor and day');
+    if (!(await refused(`insert into analytics_country (day, visitor, country) values ('2026-10-27', 'visitor-def456', '192.168.0.1')`))) throw new Error('something other than a country code stored');
+    const n = (await db.query(`select visitors from analytics_countries('2026-10-01', '2026-10-31') where country = 'BD'`)).rows[0];
+    if (!n || Number(n.visitors) !== 1) throw new Error('analytics_countries did not count');
+    for (const t of ['report_exports', 'analytics_country'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    console.log('ok   reports and country: export log kept and fixed, 1,000 rows at most, private bucket, country code only, one per visitor and day, no client access');
+  } catch (err) {
+    failed = true;
+    console.log('FAIL reports and country:', err.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

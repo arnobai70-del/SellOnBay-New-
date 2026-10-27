@@ -38,6 +38,13 @@ export default async function Order({ params, searchParams }: { params: Promise<
       {/* SellOnBay 2.0 (D-B): the buyer talks to SellOnBay about the order, never directly to the seller. */}
       {me && me === o.buyerId && (
         <div className="wrap" style={{ paddingBottom: 48 }}>
+          {o.fundedAt && (
+            <p>
+              <a className="btn btn-line btn-sm" href={`/api/orders/${o.id}/receipt`}>
+                Download receipt (PDF)
+              </a>
+            </p>
+          )}
           <RevisionPanel orderId={o.id} />
           <ConversationPanel type="order" id={o.id} me="buyer" />
         </div>

@@ -11,6 +11,18 @@ export const CONFIG = {
   bugFixDays: 7, // after acceptance: the seller fixes bugs, it is not a refund
   // ready-made sales: 30% when the seller's price is under $20, else 22%; custom, extra and trial work 20%
   fees: { saleBps: 2200, saleLowBps: 3000, saleLowBelowCents: 2000, customBps: 2000 },
+  // SellOnBay 2.0 seller plans (owner, 2026-10-27; lib/plans). Commission on the seller's product, work, extra and paid-revision lines; pass-through domain and
+  // hosting lines excluded (O-1, O-2). Yearly = 12 x monthly less yearlyDiscountBps. The old `fees` above stay only for orders made before plans (legacy baseline).
+  plans: {
+    free: { monthlyCents: 0, yearlyCents: 0, commissionBps: 1500, listingLimit: 5, featured: false },
+    pro: { monthlyCents: 1900, yearlyCents: 19380, commissionBps: 1000, listingLimit: 25, featured: true },
+    business: { monthlyCents: 4900, yearlyCents: 49980, commissionBps: 500, listingLimit: 100, featured: true },
+  },
+  yearlyDiscountBps: 1500,
+  quotation: { validDays: 7 }, // an issued quotation can be accepted for this long (O-13)
+  release: { slaHours: 12 }, // internal target for admin release approval, 24/7/365, from the later of verified payment and file readiness (owner)
+  files: { maxArchiveMb: 500, rejectedKeepDays: 7 }, // source archives (F-8); rejected files kept, subject to legal holds (F-9)
+  reports: { maxRowsPerPdf: 1000, pdfKeepHours: 24 }, // sales PDFs (O-9); the records themselves are never deleted by this
   dispute: { sellerReplyHours: 48, adminDecisionDays: 5, flagAfterRejected: 3 },
   extraWork: { titleMax: 80, minCents: 500, maxCents: 50000, minDays: 1, maxDays: 3, maxPending: 3 }, // max $500 (owner, 2026-10-12)
   trial: { minDays: 3, maxDays: 5, maxPriceCents: 15000, creditWindowDays: 30 }, // starter trial package

@@ -13,6 +13,10 @@ import { PAYOUT_METHODS } from '@/lib/payoutDetails';
 import { questionsForSeller } from '@/lib/presale/service';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
+import { SellerPlanPanel } from '@/components/SellerPlanPanel';
+import { PLANS_V1, PLAN_CODES } from '@/lib/plans/rules';
+import { sellerPlan } from '@/lib/plans/service';
+import { planById, publishedOrWaiting } from '@/lib/plans/store';
 
 export const metadata: Metadata = { title: 'Seller dashboard', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -27,6 +31,9 @@ export default async function SellerDashboard() {
   const questions = sellerId ? await questionsForSeller(sellerId) : [];
   const drafts = sellerId ? await draftsFor(sellerId) : [];
   const v = sellerId ? await sellerDashboard(sellerId) : null;
+  const plan = sellerId ? await sellerPlan(sellerId) : null;
+  const used = sellerId ? await publishedOrWaiting(sellerId) : 0;
+  const pendingPlan = plan?.subscription && plan.subscription.status !== 'ended' ? await planById(plan.subscription.planId) : null;
   const now = Date.now();
   const h = v?.health;
   return (
@@ -328,6 +335,24 @@ export default async function SellerDashboard() {
           ))}
         </ul>
       </div>
+
+      {plan && (
+        <SellerPlanPanel
+          current={plan.plan}
+          used={used}
+          plans={PLAN_CODES.map((c) => PLANS_V1[c])}
+          pending={
+            plan.subscription && pendingPlan
+              ? {
+                  plan: pendingPlan.name,
+                  billing: plan.subscription.billing,
+                  status: plan.subscription.status.replace('_', ' '),
+                  periodEnd: plan.subscription.periodEnd ? new Date(plan.subscription.periodEnd).toISOString().slice(0, 10) : undefined,
+                }
+              : null
+          }
+        />
+      )}
 
       <div className="cols2">
         <div className="dp" id="listings">

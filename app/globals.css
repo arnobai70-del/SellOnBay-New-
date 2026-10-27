@@ -2717,3 +2717,16 @@ html{scroll-padding-top:92px}
 .side .it.going::after{content:'';margin-left:auto;width:14px;height:14px;border-radius:50%;border:2px solid #ffffff55;border-top-color:#fff;animation:itspin .7s linear infinite}
 @keyframes itspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.side .it.going::after{animation:none}}
+
+/* ---------- SellOnBay 2.0 dashboard pieces (plans, requests, quotations, releases) ---------- */
+.seg{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;margin:12px 0}
+.seg label{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-size:14px;cursor:pointer}
+.seg label:has(input:checked){background:var(--sky);color:var(--cobalt-d);font-weight:600}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:focus-within{outline:2px solid var(--cobalt);outline-offset:2px}
+.plan-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.plan-card{border:1px solid var(--line);border-radius:var(--r-m,12px);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.plan-card.on{border-color:var(--cobalt);box-shadow:0 0 0 1px var(--cobalt) inset}
+.plan-card ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink-2)}
+.plan-card .btn{align-self:flex-start;margin-top:auto}
+.plan-price{font-size:1.1rem;font-weight:600}

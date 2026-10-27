@@ -175,8 +175,7 @@ if (!failed) {
       const x = await db.query(sql, ['site-ideas', cookie, ip, '2026-10-10', limit, budget, reserve]);
       return x.rows[0].value;
     };
-    const settle = async (id, tokens) =>
-      (await db.query('select ai_settle_run($1::uuid, $2::bigint) as ok', [id, tokens])).rows[0].ok;
+    const settle = async (id, tokens) => (await db.query('select ai_settle_run($1::uuid, $2::bigint) as ok', [id, tokens])).rows[0].ok;
     const first = await claim('cookie:user-a', 'ip:same-hash');
     const second = await claim('cookie:user-a', 'ip:same-hash');
     if (!first.allowed || !second.allowed || first.left !== 1 || second.left !== 0) throw new Error('Did not reserve two daily claims');
@@ -191,7 +190,11 @@ if (!failed) {
     const availableAfterSettlement = await claim('cookie:user-b', 'ip:different');
     if (!availableAfterSettlement.allowed) throw new Error('Unused budget not returned after a successful settlement');
     let rejectedTooMuch = false;
-    try { await settle(second.id, 901); } catch { rejectedTooMuch = true; }
+    try {
+      await settle(second.id, 901);
+    } catch {
+      rejectedTooMuch = true;
+    }
     if (!rejectedTooMuch) throw new Error('Over-reservation charge silently accepted');
     if (!(await settle(second.id, 900))) throw new Error('Could not settle previous pending reservation');
     const pending = (await db.query("select count(*) as total from ai_run_reservations where state='pending'")).rows[0].total;
@@ -320,6 +323,52 @@ if (!failed) {
   } catch (e) {
     failed = true;
     console.log('FAIL visitor analytics:', e.message);
+  }
+}
+
+if (!failed) {
+  // 0055-0057 (SellOnBay 2.0): admin scopes are checked, plan rows are fixed, the subscription log is append-only, clients cannot write plans.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    if (!(await refused(`update profiles set admin_scopes = array['root'] where false or true`))) throw new Error('unknown admin scope accepted');
+    const plans = (await db.query(`select code, monthly_cents, yearly_cents, commission_bps, listing_limit from seller_plans where offered order by monthly_cents`)).rows;
+    if (
+      JSON.stringify(plans) !==
+      JSON.stringify([
+        { code: 'free', monthly_cents: 0, yearly_cents: 0, commission_bps: 1500, listing_limit: 5 },
+        { code: 'pro', monthly_cents: 1900, yearly_cents: 19380, commission_bps: 1000, listing_limit: 25 },
+        { code: 'business', monthly_cents: 4900, yearly_cents: 49980, commission_bps: 500, listing_limit: 100 },
+      ])
+    )
+      throw new Error('plan seed rows differ: ' + JSON.stringify(plans));
+    if (!(await refused(`update seller_plans set commission_bps = 100 where code = 'pro'`))) throw new Error('a plan rate could be edited');
+    if (!(await refused(`delete from seller_plans where code = 'free'`))) throw new Error('a plan could be deleted');
+    await db.exec(`update seller_plans set offered = offered where code = 'pro'`); // harmless updates still work
+    for (const r of ['anon', 'authenticated']) {
+      if ((await db.query(`select has_table_privilege('${r}', 'seller_plans', 'insert') as p`)).rows[0].p) throw new Error(`${r} can add plans`);
+      if ((await db.query(`select has_table_privilege('${r}', 'seller_subscriptions', 'update') as p`)).rows[0].p) throw new Error(`${r} can change subscriptions`);
+    }
+    const seller = (await db.query(`insert into auth.users (email) values ('plan-seller@example.com') returning id`)).rows[0].id;
+    await db.exec(`insert into profiles (id, full_name) values ('${seller}', 'Plan Seller') on conflict (id) do nothing`);
+    const pro = (await db.query(`select id from seller_plans where code = 'pro'`)).rows[0].id;
+    const sub = (await db.query(`insert into seller_subscriptions (seller_id, plan_id, billing, status, price_cents) values ('${seller}', '${pro}', 'monthly', 'requested', 1900) returning id`))
+      .rows[0].id;
+    if (!(await refused(`insert into seller_subscriptions (seller_id, plan_id, billing, status, price_cents) values ('${seller}', '${pro}', 'yearly', 'requested', 19380)`)))
+      throw new Error('two open subscriptions for one seller');
+    await db.exec(`insert into subscription_events (subscription_id, event, to_status, reason) values ('${sub}', 'requested', 'requested', 'test')`);
+    if (!(await refused(`update subscription_events set reason = 'changed'`))) throw new Error('subscription_events could be edited');
+    if (!(await refused(`delete from subscription_events`))) throw new Error('subscription_events could be deleted');
+    console.log('ok   seller plans: scopes checked, plan rows fixed, one open subscription, append-only log, server-only writes');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL seller plans:', e.message);
   }
 }
 

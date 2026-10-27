@@ -40,7 +40,27 @@ export type NotificationKind =
   | 'order_held'
   | 'abuse_alert'
   | 'admin_payout'
-  | 'daily_report';
+  | 'daily_report'
+  | 'plan_changed'
+  | 'plan_requested'
+  | 'request_received'
+  | 'request_update'
+  | 'quote_issued'
+  | 'quote_needs_super'
+  | 'quote_accepted'
+  | 'payment_submitted'
+  | 'payment_reconciled'
+  | 'payment_rejected'
+  | 'release_waiting'
+  | 'release_overdue'
+  | 'files_released'
+  | 'file_checked'
+  | 'file_review_needed'
+  | 'message_new'
+  | 'revision_update'
+  | 'refund_issued'
+  | 'work_authorised'
+  | 'delivery_returned';
 
 export type Payload = Record<string, string | number | boolean | null | undefined>;
 const t = (v: unknown, fallback = 'your order') => (typeof v === 'string' && v ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : fallback);
@@ -157,6 +177,87 @@ export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: stri
 All details are in the admin dashboard under Payouts.`,
   }),
   abuse_alert: (p) => ({ subject: `Admin alert: ${t(p.what, 'something needs a look')}`, text: t(p.detail, 'Open the admin dashboard.') }),
+  // ---- SellOnBay 2.0 (requests, quotations, payments, release, files, plans, messages) ----
+  plan_changed: (p) => ({
+    subject: `Your seller plan: ${t(p.plan, 'your plan')} is ${t(p.status, 'updated')}`,
+    text: `SellOnBay updated your seller plan (${t(p.plan, 'your plan')}): it is now ${t(p.status, 'updated')}. Open your seller dashboard for the details.`,
+  }),
+  plan_requested: (p) => ({
+    subject: `Plan request from a seller: ${t(p.plan, 'a plan')}`,
+    text: `A seller asked for the ${t(p.plan, '')} plan (${t(p.billing, '')}). Send payment instructions and activate it under Sellers once Finance has reconciled the payment.`,
+  }),
+  request_received: (p) => ({
+    subject: `We received your request for ${t(p.title)}`,
+    text: 'SellOnBay will review your request and reply with a quotation or a question. Nothing is charged until you accept a quotation.',
+  }),
+  request_update: (p) => ({
+    subject: `Update on your request for ${t(p.title)}`,
+    text: `${t(p.note, 'There is an update on your request.')} Open your requests to see it.`,
+  }),
+  quote_issued: (p) => ({
+    subject: `Your quotation for ${t(p.title)} is ready`,
+    text: `SellOnBay sent you a quotation of ${t(p.total, 'the agreed amount')}. It is valid until ${t(p.until, 'the date shown')}. Review the terms and accept it to continue.`,
+  }),
+  quote_needs_super: (p) => ({
+    subject: `Price change waiting for Super Admin: ${t(p.title)}`,
+    text: `A quotation differs from the listed price (${t(p.listed, '?')} listed, ${t(p.quoted, '?')} quoted). A Super Admin must approve it before it is sent.`,
+  }),
+  quote_accepted: (p) => ({
+    subject: `Quotation accepted: ${t(p.title)}`,
+    text: 'The buyer accepted the quotation and an order was created. It waits for payment.',
+  }),
+  payment_submitted: (p) => ({
+    subject: `Payment to reconcile: ${t(p.title)}`,
+    text: `A buyer reported a payment of ${t(p.amount, '?')} by ${t(p.method, 'a manual method')}. Check it against the funds actually received before marking it reconciled.`,
+  }),
+  payment_reconciled: (p) => ({
+    subject: `Payment received for ${t(p.title)}`,
+    text: 'SellOnBay has confirmed your payment. Your order now waits for its files to be approved and released by our team.',
+  }),
+  payment_rejected: (p) => ({
+    subject: `We could not confirm your payment for ${t(p.title)}`,
+    text: `${t(p.reason, 'The payment could not be matched to funds received.')} Open your order to see what to do next.`,
+  }),
+  release_waiting: (p) => ({
+    subject: `Release waiting: ${t(p.title)}`,
+    text: `Payment is verified and the files are ready. Approve or refuse the release by ${t(p.due, 'the deadline shown')}.`,
+  }),
+  release_overdue: (p) => ({
+    subject: `Release overdue: ${t(p.title)}`,
+    text: 'This order has waited longer than the 12-hour release target. Nothing is released automatically; please decide now.',
+  }),
+  files_released: (p) => ({
+    subject: `Your files for ${t(p.title)} are ready`,
+    text: 'SellOnBay approved the release. Your files, licence and documents are in your order. Download links expire after 24 hours; you can ask for a new one.',
+  }),
+  file_checked: (p) => ({
+    subject: `File check for ${t(p.title)}: ${t(p.result, 'done')}`,
+    text: `${t(p.note, 'Your upload was checked.')} Open your listing to see the details.`,
+  }),
+  file_review_needed: (p) => ({
+    subject: `File passed the automatic checks: ${t(p.title)}`,
+    text: 'An uploaded file passed archive, secret and malware checks and waits for human review in Catalog.',
+  }),
+  message_new: (p) => ({
+    subject: `New message about ${t(p.title)}`,
+    text: 'You have a new message from SellOnBay. Open your messages to read it.',
+  }),
+  revision_update: (p) => ({
+    subject: `Revision update: ${t(p.title)}`,
+    text: `${t(p.note, 'There is an update on a revision.')} Open the order to see it.`,
+  }),
+  refund_issued: (p) => ({
+    subject: `Refund for ${t(p.title)}`,
+    text: `SellOnBay refunded ${t(p.amount, 'your payment')}. ${t(p.note, '')}`.trim(),
+  }),
+  work_authorised: (p) => ({
+    subject: `You can start: ${t(p.title)}`,
+    text: 'Payment is verified and SellOnBay authorised the work. Send your delivery through your seller dashboard; it is checked and released by our team.',
+  }),
+  delivery_returned: (p) => ({
+    subject: `Delivery returned: ${t(p.title)}`,
+    text: `${t(p.reason, 'SellOnBay returned the delivery.')} Please fix it and send it again.`,
+  }),
   daily_report: (p) => ({
     subject: `Daily report for ${t(p.day, 'yesterday')}: ${t(p.visitors, '0')} visitors`,
     text: `${t(p.visitors, '0')} visitors (${t(p.repeat, '0')} came back), ${t(p.pages, '0')} pages opened, ${t(p.orders, '0')} orders. Most opened product: ${t(p.top, 'none yet')}. The full report is under Visitors in the admin dashboard.`,

@@ -20,6 +20,7 @@ import { audit } from '@/lib/admin/audit';
 import { FUNDED_STATES } from '@/lib/orders/machine';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { forgetLiveProducts, hasDeliveryHours } from '@/lib/catalog';
+import { checkListingLimit } from '@/lib/plans/service';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -301,6 +302,12 @@ export async function POST(req: Request) {
   } else {
     const g = await guard('listing', user.id);
     if (!g.ok) return fail(g.error, g.status);
+  }
+  // Seller plan limit (O-3): a new listing, or a rejected one sent back for review, needs room on the seller's plan. Listings already live or
+  // waiting are never unpublished by a plan change; only publishing another is refused while over the limit.
+  if (!editing || editing.status === 'rejected') {
+    const room = await checkListingLimit(user.id);
+    if (!room.ok) return fail(room.error, 409);
   }
 
   // Open and check the zip BEFORE anything is created, so a bad upload leaves nothing behind.

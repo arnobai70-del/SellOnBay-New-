@@ -25,6 +25,8 @@ export const CONFIG = {
   // entries, total unpacked size, how much one entry may expand (zip bombs), and how much text is read for the secret check
   files: { maxArchiveMb: 500, rejectedKeepDays: 7, maxEntries: 50_000, maxUnpackedMb: 4096, maxRatio: 200, scanFileMb: 5, scanTotalMb: 400 },
   reports: { maxRowsPerPdf: 1000, pdfKeepHours: 24, maxRangeDays: 366, exportsPerHour: 20 }, // sales PDFs (O-9); the records themselves are never deleted by this
+  // seller promotions on the seller's own Meta or Google Ads account (O-10): SellOnBay's own limits on what it would submit, not platform rules
+  ads: { minDailyCents: 500, maxDailyCents: 50_000, maxDays: 30, maxTotalCents: 500_000, headlineMax: 40, textMax: 125 },
   dispute: { sellerReplyHours: 48, adminDecisionDays: 5, flagAfterRejected: 3 },
   extraWork: { titleMax: 80, minCents: 500, maxCents: 50000, minDays: 1, maxDays: 3, maxPending: 3 }, // max $500 (owner, 2026-10-12)
   trial: { minDays: 3, maxDays: 5, maxPriceCents: 15000, creditWindowDays: 30 }, // starter trial package

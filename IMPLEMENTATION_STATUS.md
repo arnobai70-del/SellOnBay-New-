@@ -33,6 +33,19 @@ staging yet: there is no staging project.
 | 12  | Storefront, dashboards, CMS      | PARTIAL: admin work queues, social links, plan fees on public pages DONE; premium redesign and page-by-page CMS NOT STARTED | Phase 12 commit                      | –                                     | Redesign (needs the owner's design approval: brand and visuals are fixed by CLAUDE.md), draft/preview/publish with approvals, email templates, FAQ / How it works into the CMS | Owner design sign-off |
 | 13  | Hardening                        | NOT STARTED                                                                                                                 | –                                    | –                                     | Full regression, security, RLS on staging, reconciliation, rollback drill                                                                                                      | B-11, B-12, staging   |
 
+## Dependency security (2026-10-28)
+
+| Package              | Before  | After   | Why                                                                                                                                                                     |
+| -------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| next                 | 16.3.8  | 16.4.2  | GHSA-2464-fhr4-w9xw (RCE, image optimisation with SVG), GHSA-673q-mjm6-r5xr (RCE, `use cache` typed arrays), GHSA-p3m5-59mp-jv5r (DoS, Server Actions); fixed in 16.4.1 |
+| eslint-config-next   | 16.4.0  | 16.4.2  | kept in step with next                                                                                                                                                  |
+| zod                  | 4.6.5   | 4.6.7   | GHSA-mrhx-c7xc-m3w5 (memory exhaustion); fixed in 4.6.6                                                                                                                 |
+| puppeteer-core (dev) | 25.12.0 | 25.14.0 | pulled a vulnerable zod 3 through chromium-bidi; test tool only                                                                                                         |
+
+`npm audit`: 0 vulnerabilities after the update. No `--force`, no major upgrades. React 19.3.0, TypeScript 6.0.3 (pinned), supabase-js 2.117.2
+unchanged. Build, typecheck, lint, 949 unit tests and migration checks pass. The live site still runs the old versions until a deployment
+is approved.
+
 ## Social sign-in tests (Addendum 3.4)
 
 Local unit tests (tests/unit/social-login.test.ts): S5/S6 intent rules, S8 admin cannot link, S9 admin session refused (pages, admin APIs,
@@ -50,6 +63,8 @@ S13 redirect allow-list in Supabase, S14 tokens in URLs or logs.
 - Anything that needs accounts in a browser (conversations, tickets, requests, payments) needs a staging Supabase: BLOCKED.
 
 ## Log
+
+- 2026-10-28: local environment restored (stopped this project's own obsolete demo server, PIDs 6080 and 17464 on port 3002; `npm ci`). Security updates above.
 
 - 2026-10-27: Phase 12 (part): admin overview work queues with oldest age and past-target counts, scoped per permission; social media links in the CMS (history and rollback); public pages, Terms and Seller agreement now state the plan commission (15/10/5%) instead of the old flat fees, which stay for older orders; listing form preview uses the seller's plan.
 - 2026-10-27: Phase 11: seller Promote page and Catalog review queue, budget and text guardrails (lib/config.ts ads), AES-256-GCM sealed tokens, adapter interface with no implementation, P22 table kept as a proposal outside the migration chain (Addendum 2.3). Both ad flags locked; no ad API is called anywhere (tested).

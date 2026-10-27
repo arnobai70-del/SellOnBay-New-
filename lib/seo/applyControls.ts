@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { robotsFor, type PageControls } from './controls';
+import { isStaging } from '../stage';
 
 /*
  * Lays an admin's saved search settings (lib/seo/controls.ts) over a page's own metadata: canonical address, robots, and the share card
@@ -7,7 +8,7 @@ import { robotsFor, type PageControls } from './controls';
  * A page with nothing saved comes back unchanged.
  */
 export function applyControls(path: string, m: Metadata, c: PageControls): Metadata {
-  const robots = robotsFor(path, c);
+  const robots = isStaging() ? { index: false, follow: false } : robotsFor(path, c); // staging is never indexed (lib/stage.ts)
   const card = !!(c.ogTitle || c.ogDescription || c.ogImage);
   const image = c.ogImage ? [c.ogImageAlt ? { url: c.ogImage, alt: c.ogImageAlt } : c.ogImage] : undefined;
   const og = m.openGraph as Record<string, unknown> | null | undefined;

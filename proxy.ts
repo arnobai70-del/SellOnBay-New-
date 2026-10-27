@@ -10,12 +10,28 @@ import { isRetired, isRetiredApi, legacyPublic } from './lib/legacy';
 import { savedRedirects } from './lib/seo/redirectRead';
 import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
 import { SITE_URL } from './lib/site';
+import { basicAuthOk, isStaging, openOnStaging, STAGING_ROBOTS, stagingProblem } from './lib/stage';
 
 const SIGNED_IN = ['/dashboard', '/messages', '/checkout', '/sell/new'];
 const STAFF = ['/dashboard/seller', '/dashboard/admin', '/sell/new']; // sellers and admins need 2FA
 
 /* Every visitor gets a random device id once. It is only used to spot many accounts on one device (lib/guard.ts) and is stored as a hash. */
 export async function proxy(req: NextRequest) {
+  // Staging (lib/stage.ts): password and noindex on everything; a wrong configuration answers 503 instead of running. Production: unchanged.
+  if (isStaging()) {
+    const problem = stagingProblem();
+    const robots = { 'x-robots-tag': STAGING_ROBOTS, 'cache-control': 'no-store' };
+    if (problem) return new NextResponse(`Staging is not configured safely: ${problem}`, { status: 503, headers: robots });
+    if (!openOnStaging(req.nextUrl.pathname) && !basicAuthOk(req.headers.get('authorization'), process.env.STAGING_BASIC_AUTH ?? ''))
+      return new NextResponse('Sign in to the SellOnBay staging site.', { status: 401, headers: { ...robots, 'www-authenticate': 'Basic realm="SellOnBay staging", charset="UTF-8"' } });
+    const res = await proxyInner(req);
+    res.headers.set('x-robots-tag', STAGING_ROBOTS);
+    return res;
+  }
+  return proxyInner(req);
+}
+
+async function proxyInner(req: NextRequest) {
   const h = req.headers;
   // One address for the site: the www and the non-www host both lead to the one in NEXT_PUBLIC_SITE_URL (permanent, path and query kept), so search engines see one site.
   if ((req.method === 'GET' || req.method === 'HEAD') && process.env.NODE_ENV === 'production') {

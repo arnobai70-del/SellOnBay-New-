@@ -101,7 +101,18 @@ S13 redirect allow-list in Supabase, S14 tokens in URLs or logs.
   there. Do not reopen instant checkout. The purchase chain is tested in process (`tests/unit/sob2-chain.test.ts`, `tests/unit/release.test.ts`).
 - Anything that needs accounts in a browser (conversations, tickets, requests, payments) needs a staging Supabase: BLOCKED.
 
+## Staging (2026-10-28)
+
+Staging project `occketfmjwciilzuddkv` ("SellOnBay New") is empty and not used by the live site (production is `knvxtgzrylvkhyrcezlq`).
+Preflight, sequence, risks and verification: docs/STAGING_PREFLIGHT_2_0.md. NO migration applied, no user or record created, no Auth or Storage
+setting changed. Staging protection (lib/stage.ts, SITE_STAGE=staging) proven on a local staging-mode build. The tracked CLI link to
+production (`supabase/.temp`) was removed from the repository and is git-ignored; it remains in git history (rewriting history needs a
+force push, not approved).
+
 ## Log
+
+- 2026-10-28: staging preparation: lib/stage.ts (password, X-Robots-Tag, robots and sitemap, noindex, fail closed), staging guard pinned to
+  occketfmjwciilzuddkv, deploy/staging.env.example, scripts/staging-fixtures.mjs (dry run only), docs/STAGING_PREFLIGHT_2_0.md.
 
 - 2026-10-28: Phase 13 local testing (results above); @axe-core/playwright 4.13.0 (dev) and tests/e2e/a11y.spec.ts; O-11 offer markup removed; contrast fixes; retired-test list.
 

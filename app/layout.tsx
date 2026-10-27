@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import './market.css';
 import { CookieNotice } from '@/components/CookieNotice';
+import { isStaging } from '@/lib/stage';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 
 // Bundled OFL fonts keep production builds independent of Google Fonts availability.
@@ -31,6 +32,8 @@ export const metadata: Metadata = {
   description,
   openGraph: { type: 'website', siteName: SITE_NAME, title: `${SITE_NAME}: ready-made websites on your domain`, description },
   twitter: { card: 'summary_large_image', title: SITE_NAME, description },
+  // Staging (SITE_STAGE=staging, lib/stage.ts) is never indexed; production keeps each page's own robots setting.
+  ...(isStaging() ? { robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } } } : {}),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

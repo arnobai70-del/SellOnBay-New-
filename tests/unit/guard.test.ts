@@ -39,14 +39,24 @@ describe('limits', () => {
     const u = uid();
     const now = Date.now();
     seenFirst(u, now);
-    const max = CONFIG.limits.actions.listing.newMax;
-    for (let i = 0; i < max; i++) expect((await run('listing', { userId: u, ip: ip() }, now)).ok).toBe(true);
-    const refused = await run('listing', { userId: u, ip: ip() }, now);
+    const max = CONFIG.limits.actions.order.newMax;
+    expect(max).toBeLessThan(CONFIG.limits.actions.order.perUser);
+    for (let i = 0; i < max; i++) expect((await run('order', { userId: u, ip: ip() }, now)).ok).toBe(true);
+    const refused = await run('order', { userId: u, ip: ip() }, now);
     expect(refused).toMatchObject({ ok: false, status: 429 });
     expect(!refused.ok && refused.error).toMatch(/New accounts/);
     const old = uid();
     seenFirst(old, now - (CONFIG.limits.newAccountDays + 1) * DAY_MS);
-    for (let i = 0; i < max + 1; i++) expect((await run('listing', { userId: old, ip: ip() }, now)).ok).toBe(true);
+    for (let i = 0; i < max + 1; i++) expect((await run('order', { userId: old, ip: ip() }, now)).ok).toBe(true);
+  });
+  it('a new account still has a listing limit (the same as everyone else, never none)', async () => {
+    const u = uid();
+    const now = Date.now();
+    seenFirst(u, now);
+    const { newMax, perUser } = CONFIG.limits.actions.listing;
+    expect(newMax).toBe(perUser);
+    for (let i = 0; i < newMax; i++) expect((await run('listing', { userId: u, ip: ip() }, now)).ok).toBe(true);
+    expect(await run('listing', { userId: u, ip: ip() }, now)).toMatchObject({ ok: false, status: 429 });
   });
   it('one connection is limited across accounts', async () => {
     const shared = ip();

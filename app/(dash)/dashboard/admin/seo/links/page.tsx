@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /* Opens every sitemap address and top-bar link once and shows which ones do not answer 200. */
 export default async function Links() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/links', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/links', roles: ['admin'], scope: 'content' });
   const r = await lastLinkReport();
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="Link check">

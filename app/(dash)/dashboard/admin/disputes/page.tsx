@@ -14,7 +14,7 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 const when = (t: number) => new Date(t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default async function Disputes() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/disputes', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/disputes', roles: ['admin'], scope: ['support', 'finance'] });
   const list = await openDisputes();
   const now = Date.now();
   const cards = await Promise.all(

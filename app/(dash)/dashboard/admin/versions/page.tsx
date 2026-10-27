@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'New versions', robots: { index: fals
 export const dynamic = 'force-dynamic';
 
 export default async function Versions() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/versions', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/versions', roles: ['admin'], scope: 'catalog' });
   const list = await reviewQueue();
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-versions" title="New versions">

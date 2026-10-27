@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 /* Which categories the top bar shows and in what order. Hiding one removes it from the bar only; its pages and links keep working. */
 export default async function Navigation() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/navigation', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/navigation', roles: ['admin'], scope: 'content' });
   const cfg = await navConfig(0);
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="Top bar categories">

@@ -34,7 +34,7 @@ const remove = z.object({ slug: z.string().max(80), removeShot: z.string().max(8
 export async function POST(req: Request) {
   const closed = await maintenanceFor('seo'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('catalog');
   if (!a.ok) return a.res;
   const ct = req.headers.get('content-type') ?? '';
   // A picture is sent as a form: slug and file.

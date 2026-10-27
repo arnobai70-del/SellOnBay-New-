@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
 const day = (t?: number) => (t ? new Date(t).toISOString().slice(0, 10) : '');
 
 export default async function SeoAdmin() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo', roles: ['admin'], scope: 'content' });
   const [posts, seo, controls, saved, plan] = await Promise.all([allPosts(), getSeo(0), allControls(0), allPageSeo(0), sitemapPlan()]);
   const [hubViews, listings, linkReport] = await Promise.all([Promise.all(HUBS.map(hubView)), realListings(), lastLinkReport()]);
   const pagePaths = ['/', ...SEO_PAGES.map((p) => p.path)];

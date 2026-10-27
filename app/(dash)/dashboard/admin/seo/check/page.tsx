@@ -12,7 +12,7 @@ const KIND = { page: 'Page', topic: 'Topic', listing: 'Listing' } as const;
 
 /* The automatic check: every page, topic and live listing, with what Google is given and what to fix. Worst first. */
 export default async function SeoCheck() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/check', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/check', roles: ['admin'], scope: 'content' });
   const rows = await seoRows();
   const found = seoFindings(rows);
   const score = (path: string) => (found.get(path) ?? []).reduce((n, f) => n + (f.level === 'fix' ? 10 : 1), 0);

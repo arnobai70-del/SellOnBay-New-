@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /* Every live listing with the title and description Google gets: automatic from the listing, or the admin's own words. */
 export default async function SeoListings() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/listings', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/listings', roles: ['admin'], scope: 'content' });
   const rows = (await seoRows()).filter((r) => r.kind === 'listing');
   const changed = rows.filter((r) => r.changed).length;
   return (

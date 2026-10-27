@@ -18,7 +18,7 @@ const METHOD_NAME = Object.fromEntries(PAYOUT_METHODS) as Record<string, string>
 const STATUSES = ['scheduled', 'exported', 'paid', 'failed'] as const;
 
 export default async function Payouts({ searchParams }: { searchParams: Promise<{ method?: string; status?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/admin/payouts', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/payouts', roles: ['admin'], scope: 'finance' });
   const q = await searchParams;
   const method = q.method && q.method in METHOD_NAME ? q.method : '';
   const status = (STATUSES as readonly string[]).includes(q.status ?? '') ? (q.status as string) : '';

@@ -27,6 +27,21 @@ export async function audit(adminId: string | null, action: string, targetType: 
   mem.push({ id: mem.length + 1, adminId, action, targetType, targetRef, detail, at: Date.now() });
 }
 
+/*
+ * For sensitive actions (money, release, files, permissions, flags): the entry MUST be written, or the action stops. Call it before the change
+ * is made, so a change that cannot be recorded never happens. Throws AuditError.
+ */
+export class AuditError extends Error {}
+export async function auditStrict(adminId: string | null, action: string, targetType: string, targetRef: string, detail: Record<string, unknown> = {}): Promise<void> {
+  const uuid = /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null;
+  if (await pg()) {
+    const { error } = await createAdminClient().from('audit_log').insert({ admin_id: uuid, action, target_type: targetType, target_ref: targetRef, detail });
+    if (error) throw new AuditError('Could not write the audit log, so nothing was changed.');
+    return;
+  }
+  mem.push({ id: mem.length + 1, adminId, action, targetType, targetRef, detail, at: Date.now() });
+}
+
 export async function auditList(limit = 100, filter?: { targetType?: string; targetRef?: string }): Promise<AuditEntry[]> {
   if (await pg()) {
     let q = createAdminClient().from('audit_log').select('id, admin_id, action, target_type, target_ref, detail, created_at').order('id', { ascending: false }).limit(limit);

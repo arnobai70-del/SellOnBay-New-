@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Abuse reports', robots: { index: fal
 export const dynamic = 'force-dynamic';
 
 export default async function Abuse() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/abuse', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/abuse', roles: ['admin'], scope: 'support' });
   const reports = await listReports(true);
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-abuse" title="Abuse reports">

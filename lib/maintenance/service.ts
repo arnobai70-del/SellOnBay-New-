@@ -15,7 +15,7 @@ import { closedRow, forgetRows, fromDb, isActive, memoryRows, readRows, type Mod
 /* A signed-in admin who passed the authenticator code may still use a closed module to test it, except the admin dashboard itself. */
 async function adminMayPass(key: ModuleKey): Promise<boolean> {
   if (key === 'admin') return false;
-  const a = await adminOnly();
+  const a = await adminOnly('super'); // testing a closed module is a Super Admin power
   return a.ok && a.id !== null; // demo mode has no real admin, so nobody passes there
 }
 

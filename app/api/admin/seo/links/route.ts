@@ -10,7 +10,7 @@ export const maxDuration = 120;
 export async function POST(req: Request) {
   const closed = await maintenanceFor('seo'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('content');
   if (!a.ok) return a.res;
   const r = await runLinkCheck(a.id, new URL(req.url).origin);
   return r.ok ? NextResponse.json({ ok: true, broken: r.report.broken.length, checked: r.report.checked }) : NextResponse.json({ error: r.error }, { status: r.status });

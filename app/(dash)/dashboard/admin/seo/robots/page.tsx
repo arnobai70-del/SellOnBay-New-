@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 /* The robots.txt file: the private parts are always kept out; an admin can add more paths. */
 export default async function Robots() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/robots', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/robots', roles: ['admin'], scope: 'content' });
   const extra = await robotsExtra();
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="robots.txt">

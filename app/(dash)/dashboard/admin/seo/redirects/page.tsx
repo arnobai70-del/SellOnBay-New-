@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /* Address changes: an old address sends visitors and search engines to a new one. Account, checkout, payment, admin and download addresses cannot be redirected. */
 export default async function Redirects() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/redirects', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/redirects', roles: ['admin'], scope: 'content' });
   const list = await listRedirects();
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="Redirects">

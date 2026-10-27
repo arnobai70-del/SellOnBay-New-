@@ -16,7 +16,7 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 const why = { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
 
 export default async function Risk() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/risk', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/risk', roles: ['admin'], scope: 'finance' });
   const [days, holds, switches, rules] = await Promise.all([series(14), listHolds(), switchStates(), listSellerRules()]);
   const odd = findAnomalies(days.slice(-CONFIG.risk.anomaly.baselineDays - 1));
   const today = days[days.length - 1];

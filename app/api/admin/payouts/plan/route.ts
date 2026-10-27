@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 export async function POST() {
   const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('finance');
   if (!a.ok) return a.res;
   const r = await planPayouts(Date.now(), a.id);
   return NextResponse.json({ weekStart: r.weekStart, created: r.created.length, skipped: r.skipped });

@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
 export async function POST(req: Request) {
   const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('finance');
   if (!a.ok) return a.res;
   const week = new URL(req.url).searchParams.get('week') ?? weekStartOf(Date.now());
   if (!/^\d{4}-\d{2}-\d{2}$/.test(week)) return NextResponse.json({ error: 'Use a date like 2026-10-04.' }, { status: 400 });

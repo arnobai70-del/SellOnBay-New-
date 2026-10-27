@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
 /* One page at a time: what Google shows (meta title and description) and what visitors read (heading, intro, policy text). */
 export default async function EditPage({ searchParams }: { searchParams: Promise<{ path?: string }> }) {
   const { path = '' } = await searchParams;
-  const viewer = await requireViewer({ path: `/dashboard/admin/seo/pages/edit?path=${encodeURIComponent(path)}`, roles: ['admin'] });
+  const viewer = await requireViewer({ path: `/dashboard/admin/seo/pages/edit?path=${encodeURIComponent(path)}`, roles: ['admin'], scope: 'content' });
   const home = path === '/';
   const page = home ? { path: '/', name: 'Home page', title: SITE_NAME, description: '', words: undefined } : (seoPage(path) ?? (await listingPage(path)));
   if (!page) notFound();

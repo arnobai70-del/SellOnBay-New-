@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 const LAYOUT_DESCRIPTION = 'The site-wide description';
 
 export default async function SeoPages() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/pages', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/pages', roles: ['admin'], scope: 'content' });
   const [saved, seo, words, controls] = await Promise.all([allPageSeo(0), getSeo(0), allPageWords(0), allControls(0)]);
   const wordsChanged = (path: string) => !!(words[path]?.heading || words[path]?.intro || words[path]?.body);
   const changed = SEO_PAGES.filter((p) => saved[p.path]?.title || saved[p.path]?.description || wordsChanged(p.path)).length;

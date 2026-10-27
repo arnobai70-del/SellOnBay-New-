@@ -7,6 +7,8 @@ import { cannotAct, mayBuy } from '@/lib/accounts';
 import { moduleOfPage } from '@/lib/maintenance/config';
 import { maintenancePage } from '@/lib/maintenance/guard';
 import { closedRow } from '@/lib/maintenance/state';
+import { readAdminProfile } from '@/lib/admin/guard';
+import { effectiveScopes, hasScope, type AdminScope } from '@/lib/admin/scopes';
 
 export type ViewerRole = 'buyer' | 'seller' | 'admin';
 
@@ -26,8 +28,10 @@ export async function getViewer() {
  * Demo mode (no Supabase keys) lets everything through, except seller and admin pages on a production server not marked as a demo
  * (missing keys there must never open the admin pages to everybody).
  * roles: who may open this page. Sellers and admins must also have passed the authenticator code (aal2).
+ * scope: the admin permission an admin page needs (lib/admin/scopes.ts); an admin without it is sent to the admin overview. A test checks every
+ * admin page names one, except the overview itself.
  */
-export async function requireViewer(opts: { path: string; roles?: ViewerRole[] }) {
+export async function requireViewer(opts: { path: string; roles?: ViewerRole[]; scope?: AdminScope | readonly AdminScope[] }) {
   // Module maintenance, checked here too because a Server Action redirect skips proxy.ts. Only an admin with the code passes (not for the admin module).
   const mod = moduleOfPage(opts.path);
   const closed = mod ? await closedRow(mod) : null;
@@ -51,7 +55,12 @@ export async function requireViewer(opts: { path: string; roles?: ViewerRole[] }
     if (aal?.currentLevel !== 'aal2') redirect('/login/mfa?next=' + encodeURIComponent(opts.path));
   }
   if (mod && closed && role !== 'admin') redirect(maintenancePage(mod));
-  return { name: p.full_name || user.email || 'You', role };
+  let scopes: AdminScope[] = [];
+  if (role === 'admin') {
+    scopes = effectiveScopes((await readAdminProfile(sb, user.id))?.admin_scopes);
+    if (opts.scope && !hasScope(scopes, opts.scope)) redirect('/dashboard/admin?denied=1');
+  }
+  return { id: user.id, name: p.full_name || user.email || 'You', role, scopes };
 }
 
 /* Can this signed-in account buy? Only buyer accounts can; signed out (or demo mode) is left to each route. */

@@ -29,7 +29,7 @@ const schema = z.discriminatedUnion('action', [
 export async function POST(req: Request) {
   const closed = await maintenanceFor('seo'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('content');
   if (!a.ok) return a.res;
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;

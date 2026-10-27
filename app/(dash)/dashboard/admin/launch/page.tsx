@@ -10,7 +10,7 @@ const CHIP = { ok: ['Done', 'chip mint'], todo: ['To do', 'chip rose'], warn: ['
 
 /* What the live server still needs, read from its own settings. Keys are never shown, only whether they are set. */
 export default async function LaunchCheck() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/launch', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/launch', roles: ['admin'], scope: 'super' });
   const checks = await launchChecks();
   const todo = checks.filter((c) => c.state === 'todo').length;
   return (

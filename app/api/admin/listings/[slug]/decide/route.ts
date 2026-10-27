@@ -13,7 +13,7 @@ const schema = z.object({ decision: z.enum(['approve', 'changes', 'reject']), no
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('catalog');
   if (!a.ok) return a.res;
   const slug = await idOf(params.then((p) => ({ id: p.slug })));
   const body = await readJson(req, schema);

@@ -21,7 +21,7 @@ const schema = z.object({
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const closed = await maintenanceFor('disputes'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('finance');
   if (!a.ok) return a.res;
   const id = await idOf(params);
   const body = await readJson(req, schema);

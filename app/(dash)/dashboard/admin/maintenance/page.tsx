@@ -13,7 +13,7 @@ const when = (ms: number | null) => (ms ? new Date(ms).toUTCString().replace(/:\
 
 /* Admin → System → Maintenance Manager: close one part of the site while the rest keeps working. Never closed itself. */
 export default async function MaintenanceManager() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/maintenance', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/maintenance', roles: ['admin'], scope: 'super' });
   const now = Date.now();
   const [{ modules, source }, history] = await Promise.all([moduleStates(now), maintenanceHistory(30)]);
   const closed = modules.filter((m) => m.active);

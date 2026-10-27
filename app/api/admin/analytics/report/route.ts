@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export async function GET(req: Request) {
   const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly(['content', 'finance']);
   if (!a.ok) return a.res;
   const day = new URL(req.url).searchParams.get('day') ?? '';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day))) return NextResponse.json({ error: 'Use a date like 2026-10-21.' }, { status: 400 });

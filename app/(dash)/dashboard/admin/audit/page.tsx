@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Audit log', robots: { index: false }
 export const dynamic = 'force-dynamic';
 
 export default async function Audit() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/audit', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/audit', roles: ['admin'], scope: 'super' });
   const log = await auditList(200);
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-audit" title="Audit log">

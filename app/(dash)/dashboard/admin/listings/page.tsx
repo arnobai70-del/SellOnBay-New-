@@ -21,7 +21,7 @@ const FILTERS: [string, string][] = [
 
 /* Where an admin approves new sites and fixes prices: the review queue first, then every listing with its status, price and an Edit link. */
 export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/admin/listings', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/listings', roles: ['admin'], scope: 'catalog' });
   const { status = '' } = await searchParams;
   const [queue, rows, views] = await Promise.all([listingQueue(), allListings(status), allHubViews().catch(() => [])]);
   // Where a live listing shows on the site: the category page it was placed in, or why it is not shown.

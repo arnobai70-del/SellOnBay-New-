@@ -20,7 +20,7 @@ const ms = (s: string | null | undefined) => (s ? Date.parse(s) : null);
 
 /* Which modules are in maintenance, and the last changes. Admins only. Never closed itself (lib/maintenance/config.ts ALWAYS_ON_API). */
 export async function GET() {
-  const a = await adminOnly();
+  const a = await adminOnly('super');
   if (!a.ok) return a.res;
   const [{ modules, source }, history] = await Promise.all([moduleStates(), maintenanceHistory(50)]);
   return NextResponse.json({ modules, history, source }, { headers: { 'cache-control': 'no-store' } });
@@ -28,7 +28,7 @@ export async function GET() {
 
 /* Put one module into maintenance, plan it, or end it. Admins only; audited, and the database keeps its own history. */
 export async function POST(req: Request) {
-  const a = await adminOnly();
+  const a = await adminOnly('super');
   if (!a.ok) return a.res;
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;

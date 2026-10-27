@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const when = (t: number) => new Date(t).toISOString().slice(0, 16).replace('T', ' ');
 
 export default async function RepoAccess() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/repo', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/repo', roles: ['admin'], scope: 'delivery' });
   const list = await checklist();
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-repo" title="Repository access">

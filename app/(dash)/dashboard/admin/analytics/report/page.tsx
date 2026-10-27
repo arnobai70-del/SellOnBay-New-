@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Daily report', robots: { index: fals
 export const dynamic = 'force-dynamic';
 
 export default async function DailyReport({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/admin/analytics/report', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/analytics/report', roles: ['admin'], scope: ['content', 'finance'] });
   const day = (await searchParams).day ?? dayOf(Date.now());
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day))) notFound();
   const saved = await savedReport(day);

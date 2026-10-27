@@ -41,8 +41,9 @@ const decisionFields = (digital: boolean): Field[] => [
   ...(digital ? [{ name: 'filesChecked', label: 'I opened the files in a sandbox and they are clean (needed to approve a digital product)', kind: 'checkbox' as const }] : []),
 ];
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const viewer = await requireViewer({ path: '/dashboard/admin', roles: ['admin'] });
+  const { denied } = await searchParams;
   const [listings, devs, disputes, payouts, reports, blocked] = await Promise.all([
     listingQueue(),
     devQueue(),
@@ -60,6 +61,11 @@ export default async function AdminDashboard() {
   ];
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin" title="Admin overview">
+      {denied && (
+        <p className="note warn" role="alert" data-denied>
+          <span>Your admin account does not have permission for that page. A Super Admin can change your permissions.</span>
+        </p>
+      )}
       <div className="kpis">
         {counts.map((c) => (
           <Link key={c.label} href={c.href} className={'kpi' + (c.n > 0 ? ' kpi-on' : '')}>

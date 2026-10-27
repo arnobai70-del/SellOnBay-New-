@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 /* An admin edits a seller's listing: words, category, price, delivery, links, extras and screenshots. Its page settings (search, picture, questions) are on its Edit page. */
 export default async function EditProduct({ searchParams }: { searchParams: Promise<{ slug?: string }> }) {
   const { slug = '' } = await searchParams;
-  const viewer = await requireViewer({ path: `/dashboard/admin/seo/product?slug=${encodeURIComponent(slug)}`, roles: ['admin'] });
+  const viewer = await requireViewer({ path: `/dashboard/admin/seo/product?slug=${encodeURIComponent(slug)}`, roles: ['admin'], scope: 'catalog' });
   const p = await productForEdit(slug);
   if (!p) notFound();
   const categories = p.platform === 'web' ? WEB_CATS : catsFor(p.platform as Platform);

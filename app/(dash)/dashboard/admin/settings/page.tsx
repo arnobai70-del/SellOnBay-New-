@@ -15,7 +15,7 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
 
 export default async function Settings() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/settings', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/settings', roles: ['admin'], scope: 'super' });
   const s = await getSettings();
   const history = (await auditList(300)).filter((e) => e.action === 'settings_changed').slice(0, 15);
   return (

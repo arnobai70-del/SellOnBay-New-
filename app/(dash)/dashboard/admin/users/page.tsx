@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { AdminForm } from '@/components/AdminForm';
 import { DashShell } from '@/components/DashShell';
 import { listUsers } from '@/lib/admin/queue';
+import { adminScopeList } from '@/lib/admin/scopeStore';
+import { SCOPES, SCOPE_LABEL } from '@/lib/admin/scopes';
+import { supabaseConfigured } from '@/lib/supabase/env';
 import { pendingDeletions } from '@/lib/privacy';
 import { requireViewer } from '@/lib/supabase/viewer';
 
@@ -9,11 +12,12 @@ export const metadata: Metadata = { title: 'Accounts', robots: { index: false } 
 export const dynamic = 'force-dynamic';
 
 export default async function Users({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/admin/users', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/users', roles: ['admin'], scope: 'super' });
   const { q } = await searchParams;
   // ?q=a&q=b arrives as a list; search for nothing rather than crash.
   const users = await listUsers(typeof q === 'string' ? q : '');
   const deletions = await pendingDeletions();
+  const scopes = supabaseConfigured ? await adminScopeList() : null;
   const now = Date.now();
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-users" title="Accounts">
@@ -71,7 +75,20 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                       <br />
                       <small className="muted">{u.id.slice(0, 8)}</small>
                     </td>
-                    <td data-label="Role">{u.role}</td>
+                    <td data-label="Role">
+                      {u.role}
+                      {u.role === 'admin' && scopes?.get(u.id) && (
+                        <>
+                          <br />
+                          <small className="muted" data-scopes>
+                            {scopes
+                              .get(u.id)!
+                              .map((s) => SCOPE_LABEL[s])
+                              .join(', ')}
+                          </small>
+                        </>
+                      )}
+                    </td>
                     <td data-label="State">
                       {u.banned ? 'banned' : u.suspendedUntil && u.suspendedUntil > now ? `suspended until ${new Date(u.suspendedUntil).toISOString().slice(0, 10)}` : 'active'}
                       {u.flagged ? ', flagged' : ''}
@@ -98,6 +115,24 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                           { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
                         ]}
                       />
+                      {u.role === 'admin' && scopes && u.id !== viewer?.id && (
+                        <AdminForm
+                          endpoint={`/api/admin/users/${u.id}/scopes`}
+                          openLabel="Permissions"
+                          submit="Save permissions"
+                          tone="line"
+                          fields={[
+                            {
+                              name: 'scopes',
+                              label: `Permissions, separated by commas (${SCOPES.join(', ')})`,
+                              kind: 'text',
+                              value: (scopes.get(u.id) ?? []).join(', '),
+                              required: true,
+                            },
+                            { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                          ]}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}

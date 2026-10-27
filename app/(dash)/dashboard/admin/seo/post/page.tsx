@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PostPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const { id } = await searchParams;
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/post' + (id ? `?id=${encodeURIComponent(id)}` : ''), roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/post' + (id ? `?id=${encodeURIComponent(id)}` : ''), roles: ['admin'], scope: 'content' });
   const post = id ? await postById(id) : null;
   if (id && !post) notFound();
   return (

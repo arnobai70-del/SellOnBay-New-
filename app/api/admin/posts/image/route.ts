@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export async function POST(req: Request) {
   const closed = await maintenanceFor('seo'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('content');
   if (!a.ok) return a.res;
   if (!mediaReady()) return NextResponse.json({ error: 'Uploads need the database. Paste a picture address instead.' }, { status: 503 });
   if (Number(req.headers.get('content-length') ?? 0) > MAX_BYTES + 64 * 1024) return NextResponse.json({ error: 'The picture is larger than 5 MB.' }, { status: 413 });

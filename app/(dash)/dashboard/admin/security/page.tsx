@@ -12,7 +12,7 @@ const when = (t: number) => new Date(t).toISOString().slice(0, 16).replace('T', 
 const reasonField = [{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true }];
 
 export default async function Security() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/security', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/security', roles: ['admin'], scope: 'super' });
   const [groups, hits, blocks] = await Promise.all([clusters(), recentLimitHits(), activeBlocks()]);
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-security" title="Security">

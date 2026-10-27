@@ -24,7 +24,7 @@ const TABS: [string, string][] = [
 
 /* Edit the pieces of the site from one place: the top menu, the footer columns, and blocks (headings, text, pictures, buttons, listings, questions) on any page. */
 export default async function SiteBuilderPage({ searchParams }: { searchParams: Promise<{ tab?: string; path?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/admin/site', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/site', roles: ['admin'], scope: 'content' });
   const q = await searchParams;
   const tab = TABS.some(([k]) => k === q.tab) ? q.tab! : 'menu';
   const pages: [string, string][] = [['/', 'Home page'], ...SEO_PAGES.filter((p) => p.path !== '/').map((p) => [p.path, p.name] as [string, string])];

@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 
 /* The five template categories and which real listings each shows. Examples never appear. Everything here is a setting, not code. */
 export default async function Categories() {
-  const viewer = await requireViewer({ path: '/dashboard/admin/seo/categories', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/seo/categories', roles: ['admin'], scope: 'content' });
   const [views, a, listings, ctl] = await Promise.all([Promise.all(HUBS.map(hubView)), allocation(0), realListings(), allControls(0)]);
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="Template categories">

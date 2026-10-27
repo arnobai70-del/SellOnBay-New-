@@ -18,7 +18,7 @@ const RANGES = [
 const { strongPct, fairPct, minViewers } = CONFIG.analytics.attraction;
 
 export default async function Visitors({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/admin/analytics', roles: ['admin'] });
+  const viewer = await requireViewer({ path: '/dashboard/admin/analytics', roles: ['admin'], scope: ['content', 'finance'] });
   const asked = Number((await searchParams).range);
   const range = RANGES.find((r) => r[0] === asked)?.[0] ?? 7;
   const now = Date.now();

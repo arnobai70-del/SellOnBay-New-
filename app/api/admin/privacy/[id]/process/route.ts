@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  const a = await adminOnly();
+  const a = await adminOnly('super');
   if (!a.ok) return a.res;
   const r = await processDeletion(a.id, await idOf(params));
   return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });

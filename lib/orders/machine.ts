@@ -11,7 +11,9 @@ import { CONFIG, DAY_MS, HOUR_MS, feeCents } from '../config';
 export const STATES = [
   'draft',
   'awaiting_payment',
+  'payment_review', // SellOnBay 2.0: a manual payment waits for Finance to reconcile it
   'funded',
+  'release_pending', // SellOnBay 2.0: payment verified, waiting for explicit admin release approval
   'in_delivery',
   'delivered',
   'accepted',
@@ -31,8 +33,11 @@ export type Line = [label: string, cents: number];
 
 export const TRANSITIONS: Record<OrderState, readonly OrderState[]> = {
   draft: ['awaiting_payment', 'cancelled'],
-  awaiting_payment: ['funded', 'cancelled'],
-  funded: ['in_delivery', 'delivered', 'overdue', 'cancelled'],
+  awaiting_payment: ['funded', 'payment_review', 'cancelled'],
+  payment_review: ['funded', 'awaiting_payment', 'cancelled'],
+  funded: ['in_delivery', 'delivered', 'overdue', 'cancelled', 'release_pending'],
+  // Phase 6 (release gate) fills in where release_pending may go; until then it can only be cancelled.
+  release_pending: ['cancelled'],
   in_delivery: ['delivered', 'overdue', 'cancelled'],
   overdue: ['delivered', 'cancelled'],
   delivered: ['accepted', 'disputed'],
@@ -47,7 +52,7 @@ export const TRANSITIONS: Record<OrderState, readonly OrderState[]> = {
 export const canTransition = (from: OrderState, to: OrderState) => TRANSITIONS[from].includes(to);
 
 /* The buyer's money is in escrow (or paid out of it). Files are released from here on, never before. */
-export const FUNDED_STATES: readonly OrderState[] = ['funded', 'in_delivery', 'delivered', 'accepted', 'payout_pending', 'paid_out', 'disputed', 'fix_requested', 'overdue'];
+export const FUNDED_STATES: readonly OrderState[] = ['funded', 'release_pending', 'in_delivery', 'delivered', 'accepted', 'payout_pending', 'paid_out', 'disputed', 'fix_requested', 'overdue'];
 export const isFundedState = (s: OrderState) => FUNDED_STATES.includes(s);
 export const isOpenState = (s: OrderState) => !['paid_out', 'refunded', 'cancelled'].includes(s);
 

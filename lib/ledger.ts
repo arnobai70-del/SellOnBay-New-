@@ -27,6 +27,9 @@ export const acct = {
   reserve: (sellerId: string) => `seller_reserve:${sellerId}`,
   debt: (sellerId: string) => `seller_debt:${sellerId}`,
   payoutOut: (sellerId: string) => `payout_out:${sellerId}`,
+  // SellOnBay 2.0 manual payments: reconciled money waiting to fund its order, and money owed back to a buyer until Finance returns it
+  held: (orderId: string) => `buyer_payment_held:${orderId}`,
+  refundDue: (orderId: string) => `buyer_refund_due:${orderId}`,
 };
 /* Sellers of made-up starter listings have no account; their money sits under one shared name. */
 export const sellerKey = (sellerId: string | null) => sellerId ?? 'demo-seller';
@@ -211,6 +214,49 @@ export const refund = (o: { id: string }, amountCents: number, tag = 'full'): En
   orderId: o.id,
   memo: 'Refund out of escrow',
   lines: [debit(acct.escrow(o.id), amountCents), credit(acct.cash, amountCents)],
+});
+
+/*
+ * SellOnBay 2.0 manual payments (bank transfer, local wallet). Each payment Finance reconciles is money in SellOnBay's account that is not yet
+ * the order's escrow: it is held for the order (debit cash, credit buyer_payment_held). When the held money covers the amount due, the order is
+ * funded and that amount moves into escrow under the same key a gateway payment uses ("pay:<order>"), so an order can never be funded twice.
+ * Anything held above the amount due, and an order refunded before acceptance, becomes buyer_refund_due; Finance's recorded payment clears it.
+ *   reconciled        debit platform_cash          credit buyer_payment_held
+ *   funded            debit buyer_payment_held     credit order_escrow
+ *   overpaid          debit buyer_payment_held     credit buyer_refund_due
+ *   refund decided    debit order_escrow           credit buyer_refund_due      (manual orders cancelled before acceptance)
+ *   refund paid       debit buyer_refund_due       credit platform_cash
+ */
+export const MANUAL_REF = 'manual:';
+export const manualReceived = (orderId: string, attemptId: string, amountCents: number): EntrySet => ({
+  key: `manual-in:${attemptId}`,
+  orderId,
+  memo: 'Manual payment reconciled by Finance',
+  lines: [debit(acct.cash, amountCents), credit(acct.held(orderId), amountCents)],
+});
+export const heldToEscrow = (orderId: string, amountCents: number): EntrySet => ({
+  key: `pay:${orderId}`,
+  orderId,
+  memo: 'Reconciled manual payments fund the order into escrow',
+  lines: [debit(acct.held(orderId), amountCents), credit(acct.escrow(orderId), amountCents)],
+});
+export const heldToRefundDue = (orderId: string, amountCents: number, tag: string): EntrySet => ({
+  key: `held-to-refund:${orderId}:${tag}`,
+  orderId,
+  memo: 'Money held for the order is owed back to the buyer',
+  lines: [debit(acct.held(orderId), amountCents), credit(acct.refundDue(orderId), amountCents)],
+});
+export const escrowToRefundDue = (orderId: string, amountCents: number): EntrySet => ({
+  key: `refund:${orderId}:full`,
+  orderId,
+  memo: 'Order refunded before acceptance; owed back to the buyer until Finance pays it',
+  lines: [debit(acct.escrow(orderId), amountCents), credit(acct.refundDue(orderId), amountCents)],
+});
+export const refundPaid = (orderId: string, refundId: string, amountCents: number): EntrySet => ({
+  key: `refund-paid:${refundId}`,
+  orderId,
+  memo: 'Refund paid to the buyer by Finance',
+  lines: [debit(acct.refundDue(orderId), amountCents), credit(acct.cash, amountCents)],
 });
 
 export const payoutBatch = (sellerId: string, amountCents: number, batchKey: string): EntrySet => ({

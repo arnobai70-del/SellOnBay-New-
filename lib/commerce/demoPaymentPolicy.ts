@@ -9,7 +9,10 @@ import type { Order } from '../orders/machine';
  * pre-launch testing before a real payment provider is connected. Remove or
  * unset this before opening the market to the public.
  */
-export function canUseDemoPayment(order: Pick<Order, 'demo' | 'kind' | 'sellerId' | 'productId' | 'devKey'>): boolean {
+export function canUseDemoPayment(order: Pick<Order, 'demo' | 'kind' | 'sellerId' | 'productId' | 'devKey'> & { quotationId?: string }): boolean {
+  // SellOnBay 2.0: an order made from a quotation is a real purchase. It is paid by a verified method and reconciled; never by test cards,
+  // whatever ENABLE_TEST_CHECKOUT says.
+  if (order.quotationId) return false;
   if (process.env.ENABLE_TEST_CHECKOUT === '1') return true;
   return order.demo === true && order.kind === 'product' && !order.sellerId && !order.productId && !order.devKey;
 }

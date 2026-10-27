@@ -498,4 +498,51 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0060 (SellOnBay 2.0): manual payments. A reference is used once, decided payments and finished refunds are fixed, clients see nothing.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    for (const t of ['payment_methods', 'payment_attempts', 'payment_events', 'refunds'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    const b = (await db.query(`select public, file_size_limit from storage.buckets where id = 'payment-proofs'`)).rows[0];
+    if (!b || b.public || Number(b.file_size_limit) !== 5242880) throw new Error('payment-proofs bucket is not private 5 MB');
+    if (!(await refused(`update orders set status = 'paid_somehow' where false or true`))) throw new Error('unknown order status accepted');
+    const oid = '22222222-2222-4222-8222-222222222222';
+    await db.exec(`update orders set status = 'payment_review' where id = '${oid}'`);
+    const m = (await db.query(`insert into payment_methods (kind, label, instructions, active) values ('bank_transfer', 'Test bank', 'Pay to the account shown.', true) returning id`)).rows[0].id;
+    const ins = (ref) =>
+      `insert into payment_attempts (order_id, method_id, reference, reference_key, amount_claimed_cents) values ('${oid}', '${m}', '${ref}', '${ref.toUpperCase().replace(/[^A-Z0-9]/g, '')}', 4900) returning id`;
+    const a1 = (await db.query(ins('trx-1'))).rows[0].id;
+    if (!(await refused(ins('TRX 1')))) throw new Error('the same reference was accepted twice');
+    if (!(await refused(`update payment_attempts set status = 'reconciled' where id = '${a1}'`))) throw new Error('reconciled without amount, statement and reviewer');
+    const fin = (await db.query(`select id from profiles limit 1`)).rows[0].id;
+    await db.exec(`update payment_attempts set status = 'reconciled', amount_received_cents = 4900, statement_ref = 'ST-1', received_at = now(), reviewed_by = '${fin}' where id = '${a1}'`);
+    if (!(await refused(`update payment_attempts set amount_received_cents = 1 where id = '${a1}'`))) throw new Error('a reconciled amount changed');
+    if (!(await refused(`delete from payment_attempts where id = '${a1}'`))) throw new Error('a payment attempt was deleted');
+    const a2 = (await db.query(ins('trx-2'))).rows[0].id;
+    await db.exec(`update payment_attempts set status = 'rejected' where id = '${a2}'`);
+    await db.query(ins('trx-2')); // a rejected reference may be used again
+    const rf = (await db.query(`insert into refunds (order_id, kind, amount_cents, reason) values ('${oid}', 'overpayment', 100, 'Paid too much') returning id`)).rows[0].id;
+    if (!(await refused(`update refunds set status = 'approved' where id = '${rf}'`))) throw new Error('approved without approver');
+    await db.exec(`update refunds set status = 'approved', approved_by = '${fin}' where id = '${rf}'`);
+    if (!(await refused(`update refunds set amount_cents = 5 where id = '${rf}'`))) throw new Error('an approved refund amount changed');
+    if (!(await refused(`update refunds set status = 'paid' where id = '${rf}'`))) throw new Error('paid without reference');
+    await db.exec(`update refunds set status = 'paid', paid_ref = 'RF-1', paid_at = now() where id = '${rf}'`);
+    if (!(await refused(`update refunds set status = 'cancelled' where id = '${rf}'`))) throw new Error('a paid refund was changed');
+    await db.exec(`insert into payment_events (order_id, event) values ('${oid}', 'x')`);
+    if (!(await refused(`delete from payment_events`))) throw new Error('payment_events deleted');
+    console.log('ok   payments: private proofs, references used once, decided payments and finished refunds fixed, append-only log, no client access');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL payments:', e.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

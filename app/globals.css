@@ -2757,3 +2757,4 @@ html{scroll-padding-top:92px}
 .q-edit .q-lines input,.q-edit .q-lines select{width:100%;min-width:0}
 .q-edit .q-lines td:last-child{display:flex;gap:6px;align-items:center;justify-content:flex-end}
 @media (max-width:640px){.q-edit .q-lines thead{display:none}.q-edit .q-lines tr{display:grid;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.q-edit .q-lines td{border:0;padding:0}}
+.pay-instr{background:var(--fog);border-radius:12px;padding:12px 14px;display:grid;gap:6px}

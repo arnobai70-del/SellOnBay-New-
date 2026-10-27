@@ -47,6 +47,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/demo\/orders\/[^/]+\/pay$/, 'checkout'],
   [/^\/demo\/orders$/, 'checkout'],
   [/^\/(requests|quotations)(\/|$)/, 'checkout'], // purchase requests and quotations (lib/requests)
+  [/^\/orders\/[^/]+\/payments$/, 'checkout'], // manual payment reports (lib/payments)
   [/^\/paypal\/start$/, 'checkout'],
   [/^\/(demo\/)?orders(\/|$)/, 'orders'],
   [/^\/download(\/|$)/, 'orders'],

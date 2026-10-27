@@ -61,7 +61,9 @@ async function apply(provider: string, ev: VerifiedEvent): Promise<Outcome> {
   }
 
   if (ev.type === 'payment.succeeded') {
-    if (order.state !== 'awaiting_payment') {
+    // A gateway payment can also arrive while a manual payment is being checked (payment_review); a manual payment that is reconciled later
+    // for an already funded order is owed back (lib/payments).
+    if (order.state !== 'awaiting_payment' && order.state !== 'payment_review') {
       // Money arrived for an order that was cancelled or already paid: it must go back, or the buyer is charged with nothing in escrow.
       if (ev.ref !== order.payment?.ref) await moneyNeedsAdmin(order, ev, `a payment arrived but the order is ${order.state}. Refund it at the provider.`);
       return { status: 'ignored', reason: `order is ${order.state}` };

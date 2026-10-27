@@ -14,8 +14,11 @@ import {
   type OrderState,
 } from './machine';
 import {
+  MANUAL_REF,
   acct,
   buyerPays,
+  escrowToRefundDue,
+  heldToEscrow,
   debtSettled,
   extraAccepted,
   extraWorkFunded,
@@ -92,7 +95,16 @@ export async function ensureLedger(o: Order): Promise<void> {
   const L = await ledgerStore();
   const money = { id: o.id, sellerId: o.sellerId, lines: o.lines, feeCents: o.feeCents, sellerGrossCents: o.sellerGrossCents };
   try {
-    await L.post(buyerPays(money));
+    // A manual payment (SellOnBay 2.0) was already received and held for the order; it moves into escrow under the same key a gateway payment uses.
+    const manual = o.payment?.ref?.startsWith(MANUAL_REF) === true;
+    await L.post(
+      manual
+        ? heldToEscrow(
+            o.id,
+            o.lines.reduce((s, l) => s + l[1], 0),
+          )
+        : buyerPays(money),
+    );
     const { listExtras } = await import('./extra');
     const extras = (await listExtras(o.id)).filter((c) => c.state === 'funded');
     for (const c of extras) await L.post(extraWorkFunded(o, c.id, c.priceCents));
@@ -131,7 +143,8 @@ export async function ensureLedger(o: Order): Promise<void> {
     }
     if ((o.state === 'refunded' || o.state === 'cancelled') && !o.acceptedAt) {
       const inEscrow = await L.balance(acct.escrow(o.id)); // the order and any extra work that was funded
-      if (inEscrow > 0) await L.post(refund({ id: o.id }, inEscrow));
+      // Manual payments are returned by Finance by hand: the money is owed back until they record it (lib/payments).
+      if (inEscrow > 0) await L.post(manual ? escrowToRefundDue(o.id, inEscrow) : refund({ id: o.id }, inEscrow));
     }
   } catch (e) {
     console.error('ledger: could not post for order', o.id, e);

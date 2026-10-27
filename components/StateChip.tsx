@@ -1,6 +1,8 @@
 const LABEL: Record<string, [string, string]> = {
   draft: ['Draft', 'chip'],
   awaiting_payment: ['Waiting for payment', 'chip amber'],
+  payment_review: ['Payment being checked', 'chip amber'],
+  release_pending: ['Paid, waiting for release', 'chip blue'],
   funded: ['Paid, starting', 'chip blue'],
   in_delivery: ['Seller working', 'chip blue'],
   delivered: ['Ready to review', 'chip amber'],

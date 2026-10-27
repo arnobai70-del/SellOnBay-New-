@@ -1,0 +1,44 @@
+# SellOnBay 2.0 implementation status
+
+Read this first when resuming. Plan: `SellOnBay-2.0-Technical-Blueprint-v1.3.md` section 13 (phases), `SellOnBay-2.0-Owner-Decision-Closure-Addendum.md`
+(decisions O-1 to O-13, migration placeholders P01 to P23, blockers B-1 to B-15, acceptance criteria section 6), the owner's Full Implementation
+Master Instructions, and the owner's 24/7/365 decision (release target 12 consecutive hours, UTC, never an automatic release). The Addendum wins
+over the Blueprint; the owner's latest words win over both.
+
+Branch `feat/sellonbay-2.0`. Local commits per phase are allowed. NOT allowed without the owner's separate written approval: push, applying any
+migration to any database, production access, deployment, provider credentials, real payments.
+
+Migrations 0055 onwards are provisional numbers (the Addendum's placeholders, in its order). None is applied anywhere. `npm run check:migrations`
+runs them all in an in-process Postgres.
+
+## Status by phase
+
+Labels: DONE (built, unit tests pass, local only), PARTIAL, MISSING, BLOCKED (needs a provider, legal or owner action). Nothing is VERIFIED on
+staging yet: there is no staging project.
+
+| #   | Phase                            | State                         | Commits                   | Migrations          | Remaining                                                                                         | Blockers                            |
+| --- | -------------------------------- | ----------------------------- | ------------------------- | ------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 0   | Baseline                         | PARTIAL                       | 9825ae2 (lock file)       | –                   | Production inspection (Appendix A), backup and restore, SEO crawl, Search Console export, staging | B-13, B-14                          |
+| 1   | Foundation                       | PARTIAL                       | a093148, dd0d2cf          | 0055                | CMS history (P04), versioned legal documents (P05), module map for the 2.0 modules                | GA4 DebugView needs a test property |
+| 2   | Seller plans                     | DONE                          | fa3a183                   | 0056, 0057          | Check featured placement on the storefront (Phase 12)                                             | B-1 for paid plans                  |
+| 3   | Secure files                     | DONE, scanner BLOCKED         | 1e1c4ac                   | 0058                | Real scanner adapter                                                                              | B-3                                 |
+| 4   | Requests and quotations          | DONE                          | 2715e58                   | 0059                | –                                                                                                 | –                                   |
+| 5   | Payments                         | DONE, real methods BLOCKED    | 5d2d6a4                   | 0060                | –                                                                                                 | B-1                                 |
+| 6   | Release                          | DONE                          | 920d08d                   | 0061                | –                                                                                                 | –                                   |
+| 7   | Messaging and support            | DONE                          | a5d1682 + Phase 7 closure | 0062                | –                                                                                                 | –                                   |
+| 8   | Revisions and custom development | MISSING (terms snapshot only) | –                         | P15, P16            | Everything in Blueprint 5.6 and 5.7                                                               | –                                   |
+| 9   | Reports and country analytics    | MISSING                       | –                         | P18, P21            | Sales PDF, export log, GA4 reader interface, first-party country (off)                            | B-5, B-12                           |
+| 10  | Social login                     | MISSING (flags only)          | –                         | P19                 | Link intents, callback guard, admin refusal, Apple path; providers stay off                       | B-6, B-7                            |
+| 11  | Advertising                      | MISSING (flags only)          | –                         | P22 (proposed only) | Screens, review queue, token interface; no ad API calls                                           | B-9, B-10                           |
+| 12  | Storefront, dashboards, CMS      | MISSING                       | –                         | –                   | CMS draft/preview/publish/rollback page by page, dashboard maps (Blueprint 10.1)                  | Brand changes need the owner        |
+| 13  | Hardening                        | NOT STARTED                   | –                         | –                   | Full regression, security, RLS on staging, reconciliation, rollback drill                         | B-11, B-12, staging                 |
+
+## Known test gaps
+
+- Demo mode cannot create a paid order any more (instant checkout is closed since 2715e58), so older browser specs that buy in demo mode fail
+  there. Do not reopen instant checkout. The purchase chain is tested in process (`tests/unit/sob2-chain.test.ts`, `tests/unit/release.test.ts`).
+- Anything that needs accounts in a browser (conversations, tickets, requests, payments) needs a staging Supabase: BLOCKED.
+
+## Log
+
+- 2026-10-27: Phase 7 closed: ticket subjects follow the message rules; chain test covering release and messaging boundaries.

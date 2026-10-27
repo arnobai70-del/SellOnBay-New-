@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { channelsFor, checkBody, recipients, type Viewer } from '@/lib/messaging/rules';
+import { channelsFor, checkBody, checkSubject, recipients, type Viewer } from '@/lib/messaging/rules';
 import { closeTicket, openTicket, postMessage, readConversation, ticketsOf } from '@/lib/messaging/service';
 import { createOrder } from '@/lib/orders/service';
 
@@ -25,6 +25,14 @@ describe('who may use which channel (D-B)', () => {
     expect(checkBody('seller', 'pay me on PayPal directly please')).toMatchObject({ ok: false });
     expect(checkBody('admin', 'Please send the logo to SellOnBay support.').ok).toBe(true);
     expect(checkBody('buyer', '  ')).toMatchObject({ ok: false });
+  });
+  it('a ticket subject is one line and follows the same contact rules as a message', () => {
+    expect(checkSubject('  Download\n\tlink  ')).toEqual({ ok: true, subject: 'Download link' });
+    expect(checkSubject('ab')).toMatchObject({ ok: false });
+    expect(checkSubject('x'.repeat(121))).toMatchObject({ ok: false });
+    expect(checkSubject('Call me on 555 123 4567')).toMatchObject({ ok: false, blocked: true });
+    expect(checkSubject('mail jo@gmail.com')).toMatchObject({ ok: false, blocked: true });
+    expect(checkSubject('Pay outside the platform?')).toMatchObject({ ok: false, blocked: true });
   });
   it('a message reaches the other side of its channel only; internal notes reach nobody outside', () => {
     expect(recipients(buyer, facts, 'buyer_admin')).toEqual({ user: null, admins: true });
@@ -69,5 +77,6 @@ describe('support tickets', () => {
     expect(await postMessage(buyer, 'ticket', t.value.id, 'buyer_admin', 'One more thing')).toMatchObject({ ok: false, status: 409 });
     expect((await postMessage(support, 'ticket', t.value.id, 'buyer_admin', 'Closing note.')).ok).toBe(true);
     expect(await openTicket(buyer, { subject: 'x', body: 'hi' })).toMatchObject({ ok: false });
+    expect(await openTicket(buyer, { subject: 'WhatsApp me please', body: 'Where are my files?' })).toMatchObject({ ok: false, status: 422, blocked: true });
   });
 });

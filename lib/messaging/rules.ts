@@ -38,6 +38,16 @@ export function checkBody(role: Viewer['role'], raw: string): { ok: true; body: 
   return { ok: true, body };
 }
 
+/* A ticket subject: one line, 3 to 120 characters, and the same contact and outside-payment rules as a message (admins read it in lists). */
+export const SUBJECT_MIN = 3;
+export const SUBJECT_MAX = 120;
+export function checkSubject(raw: string): { ok: true; subject: string } | { ok: false; error: string; blocked?: boolean } {
+  const subject = raw.replace(/[\u0000-\u001f\u007f\s]+/g, ' ').trim();
+  if (subject.length < SUBJECT_MIN || subject.length > SUBJECT_MAX) return { ok: false, error: `Give the ticket a short subject (${SUBJECT_MIN} to ${SUBJECT_MAX} characters).` };
+  if (!checkMessage(subject).ok) return { ok: false, error: BLOCKED_MESSAGE, blocked: true };
+  return { ok: true, subject };
+}
+
 /* Who hears about a new message: the other side of the channel. Internal notes notify nobody outside the admins. */
 export function recipients(sender: Viewer, s: SubjectFacts, c: Channel): { user: string | null; admins: boolean } {
   if (c === 'internal') return { user: null, admins: false };

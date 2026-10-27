@@ -4,7 +4,7 @@ import { notify, notifyAdmins } from '../notify';
 import { getOrder } from '../orders/service';
 import { requestableProduct } from '../requests/products';
 import { getRequest } from '../requests/store';
-import { adminMayMessage, channelsFor, checkBody, mayUse, recipients, type Channel, type SubjectFacts, type SubjectType, type Viewer } from './rules';
+import { adminMayMessage, channelsFor, checkBody, checkSubject, mayUse, recipients, type Channel, type SubjectFacts, type SubjectType, type Viewer } from './rules';
 import { getTicket, insertMessage, insertTicket, listTickets, messagesOf, setTicketStatus, touchTicket, type Message, type Ticket, type TicketState } from './store';
 
 /* Admin-mediated messages and support tickets (owner decision D-B). Every rule is in lib/messaging/rules.ts; this file looks up the facts. */
@@ -61,8 +61,9 @@ export async function postMessage(v: Viewer, type: SubjectType, id: string, chan
 /* A buyer or seller opens a support ticket (optionally about one of their orders). The first message goes into their channel with SellOnBay. */
 export async function openTicket(v: Viewer, input: { subject: string; body: string; orderId?: string }): Promise<Result<Ticket>> {
   if (v.role === 'admin') return fail(400, 'Admins answer tickets; they do not open them.');
-  const subject = input.subject.trim();
-  if (subject.length < 3 || subject.length > 120) return fail(400, 'Give the ticket a short subject (3 to 120 characters).');
+  const sj = checkSubject(input.subject);
+  if (!sj.ok) return fail(sj.blocked ? 422 : 400, sj.error, sj.blocked);
+  const subject = sj.subject;
   const c = checkBody(v.role, input.body);
   if (!c.ok) return fail(c.blocked ? 422 : 400, c.error, c.blocked);
   if (input.orderId) {

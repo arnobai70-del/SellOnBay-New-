@@ -20,6 +20,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const order = await getOrder(id);
   if (!order || order.sellerId !== user.id) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   if (await heldReason(id)) return NextResponse.json({ error: HELD_TEXT }, { status: 409 });
+  // SellOnBay 2.0: a quotation order is sent for release (POST /api/seller/orders/<id>/delivery) and released by an admin, never marked
+  // delivered by the seller. A legacy order paid but not delivered needs SellOnBay's individual review first (F-13).
+  if (order.quotationId) return NextResponse.json({ error: 'Send this delivery for release from your seller dashboard. SellOnBay approves the release.' }, { status: 409 });
+  if (['funded', 'in_delivery', 'overdue'].includes(order.state) && !order.releaseApprovedAt)
+    return NextResponse.json({ error: 'SellOnBay is reviewing this order before anything is released. You will be told when you can deliver.' }, { status: 409 });
   // A repository order is delivered when the buyer confirms the invite works, never by the seller's word alone.
   if (order.deliveryType === 'repo_access' && order.state !== 'fix_requested')
     return NextResponse.json({ error: 'This order is delivered through a repository. Send the invite; the review starts when the buyer confirms access.' }, { status: 409 });

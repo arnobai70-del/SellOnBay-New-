@@ -36,15 +36,15 @@ export const TRANSITIONS: Record<OrderState, readonly OrderState[]> = {
   awaiting_payment: ['funded', 'payment_review', 'cancelled'],
   payment_review: ['funded', 'awaiting_payment', 'cancelled'],
   funded: ['in_delivery', 'delivered', 'overdue', 'cancelled', 'release_pending'],
-  // Phase 6 (release gate) fills in where release_pending may go; until then it can only be cancelled.
-  release_pending: ['cancelled'],
-  in_delivery: ['delivered', 'overdue', 'cancelled'],
-  overdue: ['delivered', 'cancelled'],
+  // SellOnBay 2.0: only an admin's release approval leads on to delivered (see the guard in transition()).
+  release_pending: ['delivered', 'in_delivery', 'cancelled'],
+  in_delivery: ['delivered', 'overdue', 'cancelled', 'release_pending'],
+  overdue: ['delivered', 'cancelled', 'release_pending'],
   delivered: ['accepted', 'disputed'],
   accepted: ['payout_pending', 'disputed'],
   payout_pending: ['paid_out', 'disputed'],
   disputed: ['refunded', 'accepted', 'fix_requested'],
-  fix_requested: ['delivered'],
+  fix_requested: ['delivered', 'release_pending'],
   paid_out: [],
   refunded: [],
   cancelled: [],
@@ -92,6 +92,11 @@ export type Order = {
   sellerGrossCents?: number; // the seller lines the plan commission was worked out on (lib/ledger.ts split)
   feePlanId?: string; // the seller plan version the fee came from
   fileVersionId?: string; // the exact approved file version the buyer is entitled to
+  workAuthorisedAt?: number; // a Delivery admin let the seller start (work orders); the delivery time starts here
+  filesReadyAt?: number; // the approved files (product version or the seller's checked delivery) are ready
+  releaseDueAt?: number; // the 12-hour release target: later of payment verified and files ready, plus CONFIG.release.slaHours
+  releaseApprovedAt?: number; // explicit admin release approval; nothing reaches the buyer before it
+  releaseApprovedBy?: string;
   trialCreditFor?: string; // the finished trial whose fee was taken off this order's price
   attempts: number;
   createdAt: number;
@@ -128,11 +133,30 @@ type Ctx = { now: number; actorId?: string | null; event?: string; meta?: Record
 /* Moves an order to a new state. Returns a new order and the event to log. Throws if the move is not allowed. */
 export function transition(o: Order, to: OrderState, ctx: Ctx): { order: Order; event: OrderEvent } {
   if (!canTransition(o.state, to)) throw new IllegalTransition(o.state, to);
+  // SellOnBay 2.0 release gate (owner decision D-A): an order made from a quotation reaches "delivered" only from release_pending and only
+  // with a recorded admin release approval (set by lib/release/service.ts). The database refuses it too (migration 0061).
+  if (o.quotationId && to === 'delivered' && (o.state !== 'release_pending' || !o.releaseApprovedAt)) throw new IllegalTransition(o.state, to);
   const n: Order = { ...o, state: to };
   const at = ctx.now;
+  const promise = (o.express ? CONFIG.delivery.expressHours : (o.hours ?? o.days * 24)) * HOUR_MS;
   if (to === 'funded') {
     n.fundedAt = at;
-    n.dueAt = at + (o.express ? CONFIG.delivery.expressHours : (o.hours ?? o.days * 24)) * HOUR_MS;
+    // A quotation order's delivery time starts when the work is authorised (work orders) or does not apply (ready-made files).
+    n.dueAt = o.quotationId ? undefined : at + promise;
+  }
+  if (o.quotationId && to === 'in_delivery' && o.state === 'funded') {
+    n.workAuthorisedAt = at;
+    n.dueAt = at + promise;
+  }
+  if (to === 'release_pending') {
+    // The 12-hour target, 24/7/365, from the later of verified payment and files ready (owner decision; UTC milliseconds).
+    n.filesReadyAt = o.filesReadyAt ?? at;
+    n.releaseDueAt = Math.max(o.fundedAt ?? at, n.filesReadyAt) + CONFIG.release.slaHours * HOUR_MS;
+  }
+  if (o.quotationId && to === 'in_delivery' && o.state === 'release_pending') {
+    // Returned to the seller: the files must be checked and readied again.
+    n.filesReadyAt = undefined;
+    n.releaseDueAt = undefined;
   }
   if (to === 'delivered') {
     n.deliveredAt = at;
@@ -147,6 +171,10 @@ export function transition(o: Order, to: OrderState, ctx: Ctx): { order: Order; 
   const event: OrderEvent = { orderId: o.id, actorId: ctx.actorId ?? null, event: ctx.event ?? `to_${to}`, from: o.state, to, meta: ctx.meta ?? {}, at };
   return { order: n, event };
 }
+
+/* A quotation order that is only the approved files (no seller work): ready for release review as soon as it is paid. */
+export const readyMade = (o: Pick<Order, 'quotationId' | 'kind' | 'pkg' | 'deliveryType' | 'fileVersionId'>) =>
+  !!o.quotationId && o.kind === 'product' && o.pkg === 'asis' && o.deliveryType === 'download' && !!o.fileVersionId;
 
 /* Demo sellers: starter listings have no real seller, so a pretend one "builds" the order. Real orders wait for the real seller. */
 export const DEMO = { startMs: 8_000, buildMs: 67_000 };
@@ -167,7 +195,9 @@ export function dueSteps(o: Order, now: number): { order: Order; event: OrderEve
   for (let guard = 0; guard < 8; guard++) {
     const before = cur.state;
     // A real seller's as-is download is delivered the moment it is paid: the files are ready, and the buyer's review time starts.
-    if (cur.sellerId !== null && cur.instant && cur.state === 'funded' && cur.fundedAt !== undefined) step('delivered', cur.fundedAt, 'auto_delivered', { by: 'system' });
+    if (cur.sellerId !== null && cur.instant && !cur.quotationId && cur.state === 'funded' && cur.fundedAt !== undefined) step('delivered', cur.fundedAt, 'auto_delivered', { by: 'system' });
+    // SellOnBay 2.0: a paid ready-made order (files only, approved version pinned) is ready for release at once; it still waits for an admin.
+    if (readyMade(cur) && cur.state === 'funded' && cur.fundedAt !== undefined) step('release_pending', cur.fundedAt, 'files_ready', { by: 'system' });
     if (cur.demo && cur.sellerId === null && cur.fundedAt !== undefined) {
       if (cur.deliveryType === 'repo_access') {
         // The demo seller sends the invite; the buyer must confirm access before the review starts.

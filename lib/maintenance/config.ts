@@ -55,6 +55,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/(notifications|presale)(\/|$)/, 'messaging'],
   [/^\/listings(\/|$)/, 'upload'],
   [/^\/seller\/files(\/|$)/, 'upload'], // source-file uploads (lib/files)
+  [/^\/seller\/orders\/[^/]+\/delivery$/, 'orders'], // a work order's delivery sent for release (lib/release)
   [/^\/(seller|developers)(\/|$)/, 'seller'],
   [/^\/(domains|search)(\/|$)/, 'catalog'],
   [/^\/tools(\/|$)/, 'ai'],

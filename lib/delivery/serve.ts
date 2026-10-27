@@ -90,6 +90,23 @@ export function sendUpstream(upstream: Response, name: string, ev: Omit<Download
   return new NextResponse(body, { headers: headers(name) });
 }
 
+/*
+ * SellOnBay 2.0: stream an approved file from private storage. The bytes must hash to the SHA-256 recorded when it was approved: otherwise the
+ * download fails at the last byte and is logged as partial (a changed file never completes). Up to the 500 MB archive limit.
+ */
+export function sendApproved(upstream: Response, name: string, ev: Omit<DownloadEvent, 'file_hash' | 'bytes'>, sha256: string) {
+  const max = CONFIG.files.maxArchiveMb * 1024 * 1024;
+  const declared = Number(upstream.headers.get('content-length') ?? 0);
+  if (declared > max) return NextResponse.json({ error: 'That file is too large to deliver here.' }, { status: 413 });
+  const body = hashedStream(
+    upstream.body as ReadableStream<Uint8Array>,
+    max,
+    (hash, bytes, complete) => void logDownload({ ...ev, file_hash: complete ? hash : PARTIAL + hash, bytes }),
+    (hash) => hash === sha256,
+  );
+  return new NextResponse(body, { headers: headers(name) });
+}
+
 export const filenameFromUrl = (raw: string, fallback: string) => {
   try {
     return decodeURIComponent(new URL(raw).pathname.split('/').filter(Boolean).pop() ?? '') || fallback;

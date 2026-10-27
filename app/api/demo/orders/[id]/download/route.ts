@@ -11,6 +11,8 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { gateFor } from '@/lib/release/gate';
+import { GATE_TEXT } from '@/lib/release/rules';
 
 export const runtime = 'nodejs';
 
@@ -22,6 +24,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const o = await orderFor(id);
   if (!o) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   if (!isFundedState(o.state)) return NextResponse.json({ error: 'Your files are available once your payment is held in escrow.' }, { status: 403 });
+  // The release gate (SellOnBay 2.0, D-A): nothing, not even the licence key, before an admin's release approval (or a legacy review).
+  const g = await gateFor({ id: o.id, status: o.state, quotationId: o.quotationId, releaseApprovedAt: o.releaseApprovedAt });
+  if (!g.allowed) return NextResponse.json({ error: GATE_TEXT[g.reason] }, { status: 403 });
   // A seller's real files: the same checks as /api/orders/[id]/source before the licence key or a link goes out (safety hold, release delay).
   const real = !!o.productId && !!o.buyerId;
   if (real) {

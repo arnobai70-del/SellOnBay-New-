@@ -6,6 +6,7 @@ import { thirdPartySchema } from '@/lib/schemas';
 import { DEMO } from '@/lib/orders/machine';
 import { handlePaymentEvent } from '@/lib/orders/payments';
 import { accept, confirmAccess, createOrder, deliver, getOrder, handoverSent, orderEvents } from '@/lib/orders/service';
+import { approveLegacyRelease } from '@/lib/release/service';
 
 describe('licence types and third-party code', () => {
   it('three licence types, each with plain terms', () => {
@@ -71,6 +72,8 @@ describe('repo_access: invite, confirm, then review', () => {
   it('the review window does not start until the buyer confirms access', async () => {
     const o = await repoOrder();
     await fundIt(o);
+    expect((await handoverSent(o.id, 'seller-r')).ok).toBe(false); // SellOnBay 2.0: no access before the legacy review (F-13)
+    expect((await approveLegacyRelease('delivery-1', o.id, 'Reviewed in a test.')).ok).toBe(true);
     expect((await confirmAccess(o.id, null)).ok).toBe(false); // nothing was sent yet
     expect((await getOrder(o.id))!.state).toBe('funded');
     expect((await handoverSent(o.id, 'seller-r')).ok).toBe(true);

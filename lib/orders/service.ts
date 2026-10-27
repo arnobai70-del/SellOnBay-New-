@@ -344,6 +344,14 @@ export async function handoverSent(id: string, sellerId: string | null): Promise
   const cur = await getOrder(id);
   if (!cur) return fail(404, 'Order not found.');
   if (cur.deliveryType !== 'repo_access') return fail(409, 'This order is not delivered through a repository.');
+  // SellOnBay 2.0 release gate: repository access is a release. A quotation order is invited only after SellOnBay approved the release; a
+  // legacy order paid but not delivered only after its individual review (F-13).
+  if (cur.quotationId) {
+    if (cur.state !== 'delivered' || !cur.releaseApprovedAt) return fail(409, 'Send the invite after SellOnBay approves the release.');
+    await noteInvite(id);
+    return { ok: true, order: cur };
+  }
+  if (!cur.releaseApprovedAt && cur.sellerId) return fail(409, 'SellOnBay is reviewing this order before access is given.');
   if (cur.state !== 'funded') return fail(409, cur.state === 'in_delivery' ? 'The invite was already sent.' : `This order cannot do that now (it is ${cur.state.replace('_', ' ')}).`);
   const r = await move(id, 'in_delivery', { actorId: sellerId, event: 'repo_invited', meta: { github: cur.githubUsername ?? null } });
   if (r.ok) await noteInvite(id);

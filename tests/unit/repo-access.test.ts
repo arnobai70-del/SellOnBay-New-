@@ -4,6 +4,7 @@ import { CONFIG, DAY_MS, HOUR_MS } from '@/lib/config';
 import { notificationsFor } from '@/lib/notify';
 import { handlePaymentEvent } from '@/lib/orders/payments';
 import { cancel, confirmAccess, createOrder, getOrder, handoverSent } from '@/lib/orders/service';
+import { approveLegacyRelease } from '@/lib/release/service';
 import { checklist, confirmRevoked, inviteReminders, inviteState, pendingForSeller, remindSeller, requestRevocation, resendInvite, sellerRemoved, taskOf } from '@/lib/repoAccess';
 import { decide, openDispute } from '@/lib/disputes';
 
@@ -26,6 +27,8 @@ const order = async (invite = true) => {
     demo: false,
   });
   await handlePaymentEvent('verified-test-psp', { id: 'evt_' + o.id, type: 'payment.succeeded', orderId: o.id, amountCents: o.priceCents, ref: 'p', at: Date.now() });
+  // SellOnBay 2.0: a paid order from before 2.0 is reviewed by Delivery before any access is given (F-13).
+  expect((await approveLegacyRelease('delivery-1', o.id, 'Reviewed in a test.')).ok).toBe(true);
   if (invite) expect((await handoverSent(o.id, `repo-s${k}`)).ok).toBe(true);
   return { id: o.id, buyer: `repo-b${k}`, seller: `repo-s${k}` };
 };

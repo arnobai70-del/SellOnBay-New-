@@ -9,6 +9,8 @@ import { CONFIG, HOUR_MS } from '@/lib/config';
 import { idOf } from '@/lib/validate';
 import { HELD_TEXT, heldReason } from '@/lib/holds';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { gateFor } from '@/lib/release/gate';
+import { GATE_TEXT } from '@/lib/release/rules';
 
 export const runtime = 'nodejs';
 
@@ -28,9 +30,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.redirect(new URL('/login?next=' + encodeURIComponent(`/api/orders/${id}/source`), originOf(req)));
 
-  const { data: order } = await supabase.from('orders').select('id, product_id, buyer_id, status, price_cents, created_at, funded_at').eq('id', id).single();
+  const { data: order } = await supabase.from('orders').select('*').eq('id', id).single();
   if (!order || order.buyer_id !== user.id) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   if (await heldReason(id)) return NextResponse.json({ error: HELD_TEXT }, { status: 403 });
+  // The release gate (SellOnBay 2.0, D-A): no link and no licence key before an admin's release approval (or a legacy review, F-13).
+  const g = await gateFor({ id, status: order.status, quotationId: order.quotation_id ?? null, releaseApprovedAt: order.release_approved_at ? Date.parse(order.release_approved_at) : null });
+  if (!g.allowed) return NextResponse.json({ error: GATE_TEXT[g.reason] }, { status: 403 });
 
   const admin = createAdminClient();
   const { data: profile } = await admin.from('profiles').select('created_at, flagged').eq('id', user.id).single();
@@ -52,8 +57,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (!(await limit(`source:${user.id}:${id}`, CONFIG.download.linksPerHourPerOrder, HOUR_MS)))
     return NextResponse.json({ error: 'Too many download links requested. Try again in an hour.' }, { status: 429 });
 
-  const { data: product } = await admin.from('products').select('code_url').eq('id', order.product_id).single();
-  if (!product?.code_url) return NextResponse.json({ error: 'No files on this listing.' }, { status: 404 });
+  // Quotation orders are served from SellOnBay's private storage (checked in the download route); older orders from the listing's link.
+  if (!order.quotation_id) {
+    const { data: product } = await admin.from('products').select('code_url').eq('id', order.product_id).single();
+    if (!product?.code_url) return NextResponse.json({ error: 'No files on this listing.' }, { status: 404 });
+  }
 
   const licenseKey = await ensureLicense(id);
   const ttl = ttlSeconds();

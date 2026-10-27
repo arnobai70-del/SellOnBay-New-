@@ -3,6 +3,7 @@ import { CONFIG, DAY_MS } from '@/lib/config';
 import { createExtra } from '@/lib/orders/extra';
 import { handlePaymentEvent } from '@/lib/orders/payments';
 import { createOrder, deliver, getOrder, handoverSent, orderEvents, refundAtProvider, runDueJobs } from '@/lib/orders/service';
+import { approveLegacyRelease } from '@/lib/release/service';
 import { fakePayments } from '@/lib/providers/payment';
 
 /* Order paths found wrong in a review: repository orders, extra work during the review, and payment events that do not fit the order. */
@@ -23,6 +24,8 @@ const paid = async (deliveryType: 'live_site' | 'repo_access' = 'live_site') => 
     githubUsername: deliveryType === 'repo_access' ? 'octocat' : undefined,
   });
   await handlePaymentEvent('verified-test-psp', { id: 'evt_' + o.id, type: 'payment.succeeded', orderId: o.id, amountCents: o.priceCents, ref: 'pay_' + o.id, at: Date.now() });
+  // SellOnBay 2.0: a paid order from before 2.0 is reviewed by Delivery before anything is released (F-13).
+  if (sellerId) await approveLegacyRelease('delivery-1', o.id, 'Reviewed in a test.');
   return (await getOrder(o.id))!;
 };
 

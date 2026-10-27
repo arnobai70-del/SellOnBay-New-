@@ -15,6 +15,7 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
 import { SellerPlanPanel } from '@/components/SellerPlanPanel';
 import { SourceUpload } from '@/components/SourceUpload';
+import { DeliveryForm } from '@/components/DeliveryForm';
 import { listFiles } from '@/lib/files/store';
 import { PLANS_V1, PLAN_CODES } from '@/lib/plans/rules';
 import { sellerPlan } from '@/lib/plans/service';
@@ -35,7 +36,9 @@ export default async function SellerDashboard() {
   const v = sellerId ? await sellerDashboard(sellerId) : null;
   const plan = sellerId ? await sellerPlan(sellerId) : null;
   const used = sellerId ? await publishedOrWaiting(sellerId) : 0;
-  const myFiles = sellerId ? (await listFiles({ uploadedBy: sellerId })).slice(0, 12) : [];
+  const allMyFiles = sellerId ? await listFiles({ uploadedBy: sellerId }) : [];
+  const myFiles = allMyFiles.filter((f) => f.purpose !== 'delivery').slice(0, 12);
+  const deliveryFiles = (orderId: string) => allMyFiles.filter((f) => f.purpose === 'delivery' && f.orderId === orderId);
   const pendingPlan = plan?.subscription && plan.subscription.status !== 'ended' ? await planById(plan.subscription.planId) : null;
   const now = Date.now();
   const h = v?.health;
@@ -264,11 +267,24 @@ export default async function SellerDashboard() {
                       <Link className="btn btn-dark btn-sm" href={`/messages/${o.id}`}>
                         Open chat
                       </Link>
-                      {/* After a dispute the fix is delivered the same way for every kind of order, repository and instant downloads included. */}
-                      {(o.state === 'fix_requested' || (o.deliveryType !== 'repo_access' && !o.instant && (o.state === 'funded' || o.state === 'in_delivery' || o.state === 'overdue'))) && (
-                        <AdminForm endpoint={`/api/orders/${o.id}/deliver`} fields={[]} submit="Yes, it is live and ready" openLabel="I delivered it" tone="dark" />
+                      {/* SellOnBay 2.0: a quotation order's delivery is sent for release and released by SellOnBay; the seller never marks it delivered. */}
+                      {o.quotationId && o.state === 'funded' && <small className="muted">Waiting for SellOnBay to authorise the work.</small>}
+                      {o.quotationId && o.state === 'release_pending' && <small className="muted">Sent. Waiting for SellOnBay to release it.</small>}
+                      {o.quotationId && ['in_delivery', 'overdue', 'fix_requested'].includes(o.state) && (
+                        <DeliveryForm
+                          orderId={o.id}
+                          approvedFiles={deliveryFiles(o.id)
+                            .filter((f) => f.state === 'approved')
+                            .map((f) => ({ id: f.id, name: f.originalName }))}
+                          pending={deliveryFiles(o.id).filter((f) => ['awaiting_upload', 'checking', 'awaiting_review'].includes(f.state)).length}
+                        />
                       )}
-                      {o.deliveryType === 'repo_access' && (o.state === 'funded' || o.state === 'in_delivery') && (
+                      {/* After a dispute the fix is delivered the same way for every kind of order, repository and instant downloads included. */}
+                      {!o.quotationId &&
+                        (o.state === 'fix_requested' || (o.deliveryType !== 'repo_access' && !o.instant && (o.state === 'funded' || o.state === 'in_delivery' || o.state === 'overdue'))) && (
+                          <AdminForm endpoint={`/api/orders/${o.id}/deliver`} fields={[]} submit="Yes, it is live and ready" openLabel="I delivered it" tone="dark" />
+                        )}
+                      {o.deliveryType === 'repo_access' && (o.quotationId ? o.state === 'delivered' && !!o.releaseApprovedAt : o.state === 'funded' || o.state === 'in_delivery') && (
                         <AdminForm
                           endpoint={o.state === 'funded' ? `/api/orders/${o.id}/handover` : `/api/orders/${o.id}/resend-invite`}
                           fields={[]}

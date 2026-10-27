@@ -545,4 +545,44 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0061 (SellOnBay 2.0): no quotation order is delivered without a release approval; entitlements keep their release facts; revoked stays revoked.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    const oid = '22222222-2222-4222-8222-222222222222';
+    await db.exec(`update orders set status = 'release_pending' where id = '${oid}'`);
+    if (!(await refused(`update orders set status = 'delivered' where id = '${oid}'`))) throw new Error('a quotation order was delivered without a release approval');
+    if (
+      !(await refused(`select order_apply('${oid}', 'release_pending', '{"status":"delivered"}'::jsonb, '{"event":"x","from":"release_pending","to":"delivered","at":"2026-10-27T00:00:00Z"}'::jsonb)`))
+    )
+      throw new Error('order_apply delivered a quotation order without a release approval');
+    const admin = (await db.query(`select id from profiles limit 1`)).rows[0].id;
+    const ok = (
+      await db.query(
+        `select order_apply('${oid}', 'release_pending', '{"status":"delivered","release_approved_at":"2026-10-27T00:00:00Z","release_approved_by":"${admin}"}'::jsonb, '{"event":"release_approved","from":"release_pending","to":"delivered","at":"2026-10-27T00:00:00Z"}'::jsonb) as ok`,
+      )
+    ).rows[0].ok;
+    if (!ok) throw new Error('a release approval was not applied');
+    const e = (await db.query(`insert into entitlements (order_id, licence_tier, licence_text_version, release_approved_at) values ('${oid}', 'single_project', 'v1', now()) returning id`)).rows[0].id;
+    if (!(await refused(`insert into entitlements (order_id, licence_tier, licence_text_version, release_approved_at) values ('${oid}', 'single_project', 'v1', now())`)))
+      throw new Error('two entitlements for one order');
+    if (!(await refused(`update entitlements set licence_tier = 'extended_commercial' where id = '${e}'`))) throw new Error('an entitlement licence changed');
+    await db.exec(`update entitlements set status = 'revoked', status_reason = 'test' where id = '${e}'`);
+    if (!(await refused(`update entitlements set status = 'active' where id = '${e}'`))) throw new Error('a revoked entitlement came back');
+    if (!(await refused(`delete from entitlements where id = '${e}'`))) throw new Error('an entitlement was deleted');
+    for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', 'entitlements', 'select') as p`)).rows[0].p) throw new Error(`${r} can read entitlements`);
+    console.log('ok   release: no delivery without release approval (table and order_apply), one entitlement per order, release facts fixed, revoked stays revoked');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL release:', e.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

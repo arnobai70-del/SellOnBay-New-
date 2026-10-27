@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isFundedState } from '@/lib/orders/machine';
 import { getOrder } from '@/lib/orders/service';
 import { decideRelease, releaseConfigFromEnv } from '@/lib/delivery/policy';
-import { baseEvent, filenameFromUrl, sendBuffer, sendUpstream } from '@/lib/delivery/serve';
+import { baseEvent, filenameFromUrl, sendApproved, sendBuffer, sendUpstream } from '@/lib/delivery/serve';
 import { clientIp, deliverySecret, dummyFile, ensureLicense } from '@/lib/delivery/service';
 import { limit } from '@/lib/rateLimit';
 import { safeFetch } from '@/lib/delivery/ssrf';
@@ -15,6 +15,8 @@ import { tokenParam } from '@/lib/validate';
 import { HELD_TEXT, heldReason } from '@/lib/holds';
 import { fileForOrder } from '@/lib/versions';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { approvedFileFor, gateFor } from '@/lib/release/gate';
+import { GATE_TEXT } from '@/lib/release/rules';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -61,6 +63,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
   const { data: order } = await admin.from('orders').select('*').eq('id', orderId).single();
   if (!order || order.buyer_id !== userId) return no('Order not found.', 404);
   if (await heldReason(orderId)) return no(HELD_TEXT, 403);
+  // The release gate is checked again on every single download, not only when the link was made (SellOnBay 2.0, D-A).
+  const g = await gateFor({ id: orderId, status: order.status, quotationId: order.quotation_id ?? null, releaseApprovedAt: order.release_approved_at ? Date.parse(order.release_approved_at) : null });
+  if (!g.allowed) return no(GATE_TEXT[g.reason], 403);
+  if (order.quotation_id) {
+    // Only SellOnBay's own approved copy, from private storage, and only if its bytes still hash to the approved SHA-256.
+    const f = await approvedFileFor(orderId);
+    if (!f) return no('Your files are being prepared. Try again soon.', 404);
+    let stored: Response;
+    try {
+      stored = await fetch(f.url, { signal: AbortSignal.timeout(20_000) });
+    } catch {
+      return no('The file could not be reached. Try again soon.', 502);
+    }
+    if (!stored.ok || !stored.body) return no('The file could not be reached. Try again soon.', 502);
+    return sendApproved(stored, f.name, baseEvent(req, orderId, 'real', userId), f.sha256);
+  }
   const { data: profile } = await admin.from('profiles').select('created_at, flagged').eq('id', userId).single();
   const d = decideRelease(
     {

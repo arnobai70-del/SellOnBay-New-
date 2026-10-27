@@ -118,6 +118,11 @@ const COLS: Col[] = [
   { key: 'githubUsername', col: 'github_username' },
   { key: 'lines', col: 'lines' },
   { key: 'licence', col: 'licence' },
+  { key: 'workAuthorisedAt', col: 'work_authorised_at', time: true },
+  { key: 'filesReadyAt', col: 'files_ready_at', time: true },
+  { key: 'releaseDueAt', col: 'release_due_at', time: true },
+  { key: 'releaseApprovedAt', col: 'release_approved_at', time: true },
+  { key: 'releaseApprovedBy', col: 'release_approved_by' },
 ];
 const iso = (ms: number | undefined) => (ms === undefined ? null : new Date(ms).toISOString());
 const ms = (v: string | null | undefined) => (v ? Date.parse(v) : undefined);
@@ -229,6 +234,11 @@ const fromRow = (r: Row): Order => ({
   sellerGrossCents: num(r.seller_gross_cents),
   feePlanId: str(r.fee_plan_id),
   fileVersionId: str(r.file_version_id),
+  workAuthorisedAt: ms(str(r.work_authorised_at)),
+  filesReadyAt: ms(str(r.files_ready_at)),
+  releaseDueAt: ms(str(r.release_due_at)),
+  releaseApprovedAt: ms(str(r.release_approved_at)),
+  releaseApprovedBy: str(r.release_approved_by),
   createdAt: Date.parse(r.created_at as string),
   fundedAt: ms(str(r.funded_at)),
   dueAt: ms(str(r.due_at)),

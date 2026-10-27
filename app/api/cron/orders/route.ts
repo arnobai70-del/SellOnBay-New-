@@ -10,6 +10,7 @@ import { sendQueued } from '@/lib/emailQueue';
 import { dailyReport } from '@/lib/analytics';
 import { fileJobs } from '@/lib/files/service';
 import { expireDue } from '@/lib/requests/service';
+import { releaseJobs } from '@/lib/release/service';
 
 export const runtime = 'nodejs';
 
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
     emails: await sendQueued(),
     files: await fileJobs(), // source-file checks waiting, and deleting expired rejected uploads (lib/files)
     requests: await expireDue(), // quotations after 7 days, requests after the expiry an admin set (lib/requests)
+    releases: await releaseJobs(), // reminders and 12-hour target alerts; never releases anything (lib/release)
   };
   await beat('orders');
   return NextResponse.json(done);

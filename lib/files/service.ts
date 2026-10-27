@@ -44,11 +44,15 @@ const safeName = (n: string) =>
 /* 1. An upload slot for one archive, for the seller's own product. Returns a one-time link into quarantine. */
 export async function startUpload(
   sellerId: string,
-  input: { productId: string; purpose: Extract<FilePurpose, 'listing' | 'version' | 'delivery' | 'revision'>; name: string; size: number; orderId?: string },
+  input: { productId: string | null; purpose: Extract<FilePurpose, 'listing' | 'version' | 'delivery' | 'revision'>; name: string; size: number; orderId?: string },
   store: ObjectStore = objectStore(),
 ): Promise<Result<{ file: FileObject; uploadUrl: string; token: string }>> {
-  const p = await productInfo(input.productId);
-  if (!p || p.sellerId !== sellerId) return fail(404, 'Product not found.');
+  // A listing file or version belongs to the seller's own product; a delivery or revision belongs to an order the seller works on (custom
+  // development has no product). The caller (lib/release or the API route) has already checked that the order is the seller's and open.
+  const orderFile = input.purpose === 'delivery' || input.purpose === 'revision';
+  if (orderFile && !input.orderId) return fail(400, 'A delivery belongs to an order.');
+  const p = input.productId ? await productInfo(input.productId) : null;
+  if (!orderFile && (!p || p.sellerId !== sellerId)) return fail(404, 'Product not found.');
   if (!/\.zip$/i.test(input.name)) return fail(400, 'Upload one .zip archive.');
   if (!Number.isInteger(input.size) || input.size < 1) return fail(400, 'The file is empty.');
   if (input.size > CONFIG.files.maxArchiveMb * MB) return fail(413, `The archive is larger than ${CONFIG.files.maxArchiveMb} MB.`);
@@ -60,7 +64,7 @@ export async function startUpload(
     {
       id,
       purpose: input.purpose,
-      productId: p.id,
+      productId: p?.id ?? null,
       orderId: input.orderId ?? null,
       uploadedBy: sellerId,
       originalName: input.name.slice(0, 200),
@@ -247,14 +251,16 @@ export async function reviewFile(
     return { ok: true, value: { file: next } };
   }
   if (f.state !== 'awaiting_review') return fail(409, 'Only a file that passed the automatic checks can be approved.');
-  if (!f.productId || !f.sha256 || !f.sizeBytes) return fail(409, 'This file has no product or hash recorded.');
+  if ((!f.productId && !f.orderId) || !f.sha256 || !f.sizeBytes) return fail(409, 'This file has no product, order or hash recorded.');
   const approvedScanner = (f.checks as { approvedScanner?: boolean }).approvedScanner === true;
   if (!scanAllowsApproval({ verdict: f.scanVerdict ?? 'error', approvedScanner }, { allowTestScanner: opts.allowTestScanner }))
     return fail(409, 'This file has no clean result from an approved malware scanner, so it cannot be approved (fail closed).');
   const missing = (Object.keys(REVIEW_CHECKLIST) as ChecklistKey[]).filter((k) => input.checklist?.[k] !== true);
   if (missing.length) return fail(400, `Tick every review item first: ${missing.map((k) => REVIEW_CHECKLIST[k]).join('; ')}.`);
+  // A work order's delivery or a revision belongs to one order: it is approved without becoming a product version.
+  const orderFile = f.purpose === 'delivery' || f.purpose === 'revision';
   const label = (input.label ?? '').trim();
-  if (!/^[0-9A-Za-z][0-9A-Za-z._ -]{0,29}$/.test(label)) return fail(400, 'Give the version a short label, like 1.0.');
+  if (!orderFile && !/^[0-9A-Za-z][0-9A-Za-z._ -]{0,29}$/.test(label)) return fail(400, 'Give the version a short label, like 1.0.');
   const changelog = (input.changelog ?? '').trim().slice(0, 2000) || null;
   // The quarantine copy must still be the bytes that were checked (no swap between checking and review).
   const nowSha = await store.sha256(QUARANTINE, f.quarantinePath);
@@ -268,7 +274,7 @@ export async function reviewFile(
     return fail(409, 'The file changed after it was checked. It was rejected; the seller must upload it again.');
   }
   await auditStrict(adminId, 'file_approved', 'file', f.id, { product: f.productId, sha256: f.sha256, label, checklist: Object.keys(REVIEW_CHECKLIST), note });
-  const approvedPath = `${f.productId}/${f.id}/${f.sha256}.zip`;
+  const approvedPath = f.productId ? `${f.productId}/${f.id}/${f.sha256}.zip` : `orders/${f.orderId}/${f.id}/${f.sha256}.zip`;
   try {
     await store.promote(f.quarantinePath, approvedPath);
   } catch (e) {
@@ -280,6 +286,11 @@ export async function reviewFile(
     { state: 'approved', approvedPath, reviewedBy: adminId, reviewedAt: now, reviewNote: note || null, reviewChecklist: Object.fromEntries(Object.keys(REVIEW_CHECKLIST).map((k) => [k, true])) },
     { actorId: adminId, event: 'approved', detail: { label, sha256: f.sha256 } },
   );
+  if (orderFile) {
+    if (f.uploadedBy) await notify(f.uploadedBy, 'file_checked', { title: f.originalName, result: 'approved', note: 'Approved. Send the delivery for release from your order.' });
+    return { ok: true, value: { file: approved } };
+  }
+  if (!f.productId) return fail(409, 'A product version needs a product.');
   const version = await insertVersion({ productId: f.productId, label, fileId: f.id, changelog, approvedBy: adminId });
   if (f.uploadedBy) await notify(f.uploadedBy, 'file_checked', { title: f.originalName, result: 'approved', note: `Approved as version ${label}.` });
   return { ok: true, value: { file: approved, version } };

@@ -14,6 +14,8 @@ import { questionsForSeller } from '@/lib/presale/service';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
 import { SellerPlanPanel } from '@/components/SellerPlanPanel';
+import { SourceUpload } from '@/components/SourceUpload';
+import { listFiles } from '@/lib/files/store';
 import { PLANS_V1, PLAN_CODES } from '@/lib/plans/rules';
 import { sellerPlan } from '@/lib/plans/service';
 import { planById, publishedOrWaiting } from '@/lib/plans/store';
@@ -33,6 +35,7 @@ export default async function SellerDashboard() {
   const v = sellerId ? await sellerDashboard(sellerId) : null;
   const plan = sellerId ? await sellerPlan(sellerId) : null;
   const used = sellerId ? await publishedOrWaiting(sellerId) : 0;
+  const myFiles = sellerId ? (await listFiles({ uploadedBy: sellerId })).slice(0, 12) : [];
   const pendingPlan = plan?.subscription && plan.subscription.status !== 'ended' ? await planById(plan.subscription.planId) : null;
   const now = Date.now();
   const h = v?.health;
@@ -352,6 +355,49 @@ export default async function SellerDashboard() {
               : null
           }
         />
+      )}
+
+      {sellerId && (
+        <div className="dp" id="files">
+          <div className="hd">
+            <div>
+              <h2>Source files</h2>
+              <p className="sub">Buyers get exactly the file SellOnBay approved, from private storage. A change is a new upload and a new version; an approved file never changes.</p>
+            </div>
+          </div>
+          <SourceUpload listings={(v?.listings ?? []).filter((l) => l.status !== 'rejected').map((l) => ({ slug: l.slug, name: l.name }))} />
+          {myFiles.length > 0 && (
+            <ul className="lst" data-my-files>
+              {myFiles.map((f) => {
+                const problems = ((f.checks as { problems?: string[] }).problems ?? []).slice(0, 2);
+                return (
+                  <li key={f.id}>
+                    <div className="grow">
+                      <b>{f.originalName}</b>
+                      <small>
+                        {
+                          {
+                            awaiting_upload: 'Not uploaded yet',
+                            checking: 'Being checked',
+                            failed_checks: 'Not accepted',
+                            awaiting_review: 'Waiting for a reviewer',
+                            approved: 'Approved',
+                            rejected: 'Rejected',
+                            purged: 'Removed',
+                          }[f.state]
+                        }
+                        {f.reviewNote ? ` · ${f.reviewNote}` : ''}
+                      </small>
+                      {problems.map((p, i) => (
+                        <small key={i}>{p}</small>
+                      ))}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       )}
 
       <div className="cols2">

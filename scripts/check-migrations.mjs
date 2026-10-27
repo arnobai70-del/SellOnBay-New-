@@ -372,4 +372,57 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0058 (SellOnBay 2.0): source files. Approved files are immutable, records are never deleted, logs and versions never change, clients see nothing.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    for (const t of ['file_objects', 'file_events', 'file_versions'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    const buckets = (await db.query(`select id, public, file_size_limit from storage.buckets where id in ('quarantine', 'product-files') order by id`)).rows;
+    if (buckets.length !== 2 || buckets.some((b) => b.public || Number(b.file_size_limit) !== 524288000)) throw new Error('buckets not private 500 MB: ' + JSON.stringify(buckets));
+    const owner = (await db.query(`insert into auth.users (email) values ('file-seller@example.com') returning id`)).rows[0].id;
+    await db.exec(`insert into profiles (id, full_name) values ('${owner}', 'File Seller') on conflict (id) do nothing`);
+    const product = (
+      await db.query(
+        `insert into products (seller_id, slug, name, category, tagline, description, price_cents, delivery_days, demo_url, code_url, license) values ('${owner}', 'file-test', 'File test', 'Business', 'x', 'A product used to test the file tables.', 1000, 3, 'about:blank', 'about:blank', 'mine') returning id`,
+      )
+    ).rows[0].id;
+    const sha = 'a'.repeat(64);
+    const f = (
+      await db.query(
+        `insert into file_objects (purpose, product_id, uploaded_by, original_name, declared_size, quarantine_path) values ('listing', '${product}', '${owner}', 'a.zip', 100, 'q/a.zip') returning id`,
+      )
+    ).rows[0].id;
+    if (!(await refused(`update file_objects set state = 'approved' where id = '${f}'`))) throw new Error('approved without hash, scan and reviewer');
+    await db.exec(`update file_objects set sha256 = '${sha}', size_bytes = 100, scan_verdict = 'clean', reviewed_by = '${owner}', approved_path = 'p/a.zip', state = 'approved' where id = '${f}'`);
+    if (!(await refused(`update file_objects set approved_path = 'p/other.zip' where id = '${f}'`))) throw new Error('approved path changed');
+    if (!(await refused(`update file_objects set state = 'rejected' where id = '${f}'`))) throw new Error('approved file un-approved');
+    if (!(await refused(`delete from file_objects where id = '${f}'`))) throw new Error('file record deleted');
+    const g = (
+      await db.query(
+        `insert into file_objects (purpose, product_id, original_name, declared_size, quarantine_path, sha256) values ('listing', '${product}', 'b.zip', 100, 'q/b.zip', '${'b'.repeat(64)}') returning id`,
+      )
+    ).rows[0].id;
+    if (!(await refused(`update file_objects set sha256 = '${'c'.repeat(64)}' where id = '${g}'`))) throw new Error('a recorded hash changed');
+    if (!(await refused(`insert into file_objects (purpose, original_name, declared_size, quarantine_path) values ('listing', 'big.zip', 524288001, 'q/big.zip')`)))
+      throw new Error('over 500 MB accepted');
+    await db.exec(`insert into file_events (file_id, event) values ('${f}', 'approved')`);
+    if (!(await refused(`update file_events set event = 'x'`))) throw new Error('file_events edited');
+    await db.exec(`insert into file_versions (product_id, label, file_id) values ('${product}', '1.0', '${f}')`);
+    if (!(await refused(`update file_versions set label = '2.0'`))) throw new Error('file_versions edited');
+    if (!(await refused(`delete from file_versions`))) throw new Error('file_versions deleted');
+    console.log('ok   source files: private 500 MB buckets, approved files immutable, records kept, logs and versions fixed, no client access');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL source files:', e.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

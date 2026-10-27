@@ -52,6 +52,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/(hire|products\/[^/]+\/trial)$/, 'checkout'],
   [/^\/(notifications|presale)(\/|$)/, 'messaging'],
   [/^\/listings(\/|$)/, 'upload'],
+  [/^\/seller\/files(\/|$)/, 'upload'], // source-file uploads (lib/files)
   [/^\/(seller|developers)(\/|$)/, 'seller'],
   [/^\/(domains|search)(\/|$)/, 'catalog'],
   [/^\/tools(\/|$)/, 'ai'],

@@ -23,3 +23,6 @@ export function createAdminClient() {
   if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
   return createJsClient(supabaseUrl, key, { auth: { persistSession: false } });
 }
+
+/* Whether the server can use the admin client, without exposing the key to the caller. */
+export const adminClientAvailable = () => Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);

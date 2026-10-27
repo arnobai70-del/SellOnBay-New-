@@ -21,7 +21,9 @@ export const CONFIG = {
   yearlyDiscountBps: 1500,
   quotation: { validDays: 7 }, // an issued quotation can be accepted for this long (O-13)
   release: { slaHours: 12 }, // internal target for admin release approval, 24/7/365, from the later of verified payment and file readiness (owner)
-  files: { maxArchiveMb: 500, rejectedKeepDays: 7 }, // source archives (F-8); rejected files kept, subject to legal holds (F-9)
+  // source archives (F-8): size cap, rejected files kept 7 days subject to legal holds (F-9), and the archive rules (lib/files/archive.ts):
+  // entries, total unpacked size, how much one entry may expand (zip bombs), and how much text is read for the secret check
+  files: { maxArchiveMb: 500, rejectedKeepDays: 7, maxEntries: 50_000, maxUnpackedMb: 4096, maxRatio: 200, scanFileMb: 5, scanTotalMb: 400 },
   reports: { maxRowsPerPdf: 1000, pdfKeepHours: 24 }, // sales PDFs (O-9); the records themselves are never deleted by this
   dispute: { sellerReplyHours: 48, adminDecisionDays: 5, flagAfterRejected: 3 },
   extraWork: { titleMax: 80, minCents: 500, maxCents: 50000, minDays: 1, maxDays: 3, maxPending: 3 }, // max $500 (owner, 2026-10-12)

@@ -8,6 +8,7 @@ import { releaseDueReserves } from '@/lib/reserve';
 import { beat } from '@/lib/heartbeat';
 import { sendQueued } from '@/lib/emailQueue';
 import { dailyReport } from '@/lib/analytics';
+import { fileJobs } from '@/lib/files/service';
 
 export const runtime = 'nodejs';
 
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
     reservesReleased: await releaseDueReserves(),
     dailyReport: await dailyReport(),
     emails: await sendQueued(),
+    files: await fileJobs(), // source-file checks waiting, and deleting expired rejected uploads (lib/files)
   };
   await beat('orders');
   return NextResponse.json(done);

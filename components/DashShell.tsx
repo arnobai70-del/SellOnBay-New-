@@ -44,6 +44,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     items: [
       { label: 'Overview', href: '/dashboard/admin', icon: 'grid', key: 'admin' },
       { label: 'Listings', href: '/dashboard/admin/listings', icon: 'bag', key: 'admin-listings' },
+      { label: 'Source files', href: '/dashboard/admin/files', icon: 'layers', key: 'admin-files' },
       { label: 'Visitors', href: '/dashboard/admin/analytics', icon: 'chart', key: 'admin-analytics' },
       { label: 'Disputes', href: '/dashboard/admin/disputes', icon: 'scale', key: 'admin-disputes', group: 'Orders and money' },
       { label: 'Payouts', href: '/dashboard/admin/payouts', icon: 'wallet', key: 'admin-payouts', group: 'Orders and money' },

@@ -585,4 +585,42 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0063 (SellOnBay 2.0): CMS history is append-only; a published legal document never changes, is never deleted, one per document; publish is atomic.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    await db.exec(`insert into content_revisions (key, version, value, action) values ('site:menu', 1, null, 'save'), ('site:menu', 2, '[]'::jsonb, 'save')`);
+    if (!(await refused(`insert into content_revisions (key, version, value, action) values ('site:menu', 2, null, 'save')`))) throw new Error('two revisions with one number');
+    if (!(await refused(`insert into content_revisions (key, version, value, action) values ('site:menu', 3, null, 'rollback')`))) throw new Error('a rollback without its source');
+    if (!(await refused(`update content_revisions set value = null where version = 2`))) throw new Error('a revision changed');
+    if (!(await refused(`delete from content_revisions`))) throw new Error('revisions deleted');
+    const d1 = (await db.query(`insert into legal_documents (doc_key, version, title, body) values ('terms', 1, 'Terms', repeat('a', 30)) returning id`)).rows[0].id;
+    await db.exec(`update legal_documents set body = repeat('b', 30) where id = '${d1}'`); // drafts can change
+    await db.query(`select legal_publish('${d1}', null)`);
+    if (!(await refused(`update legal_documents set body = repeat('c', 30) where id = '${d1}'`))) throw new Error('a published text changed');
+    if (!(await refused(`delete from legal_documents where id = '${d1}'`))) throw new Error('a published text was deleted');
+    if (!(await refused(`insert into legal_documents (doc_key, version, title, body, status, published_at) values ('terms', 9, 'Terms', repeat('a', 30), 'published', now())`)))
+      throw new Error('two published versions of one document');
+    const d2 = (await db.query(`insert into legal_documents (doc_key, version, title, body) values ('terms', 2, 'Terms', repeat('d', 30)) returning id`)).rows[0].id;
+    await db.query(`select legal_publish('${d2}', null)`);
+    const st = (await db.query(`select version, status from legal_documents where doc_key = 'terms' order by version`)).rows.map((r) => `${r.version}:${r.status}`).join(',');
+    if (st !== '1:retired,2:published') throw new Error('publish did not retire the earlier version: ' + st);
+    if (!(await refused(`update legal_documents set status = 'published' where id = '${d1}'`))) throw new Error('a retired version came back');
+    if (!(await refused(`select legal_publish('${d2}', null)`))) throw new Error('a published version was published again');
+    for (const t of ['content_revisions', 'legal_documents'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    console.log('ok   CMS history and legal documents: append-only revisions, published texts fixed and kept, one published per document, atomic publish, no client access');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL CMS history and legal documents:', e.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

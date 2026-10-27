@@ -1,4 +1,5 @@
 import 'server-only';
+import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { createAdminClient } from '../supabase/server';
@@ -38,6 +39,7 @@ export async function setRobotsExtra(adminId: string | null, paths: string[]): P
     if (error) return { ok: false, status: 500, error: 'Could not save.' };
   } else mem.saved = next;
   await audit(adminId, 'seo_robots_changed', 'settings', KEY, { from: before, to: next });
+  await recordRevision(adminId, KEY, next, before); // CMS history (lib/cms)
   try {
     revalidatePath('/robots.txt');
   } catch {

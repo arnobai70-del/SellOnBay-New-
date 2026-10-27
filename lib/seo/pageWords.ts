@@ -1,4 +1,5 @@
 import 'server-only';
+import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { parseMarkdown, type Block } from '../markdown';
@@ -72,6 +73,7 @@ export async function setPageWords(adminId: string | null, path: string, v: Page
   g.__pageWordsCache = undefined;
   // Both versions go in the audit log in full, so an earlier text can always be copied back.
   await audit(adminId, 'page_words_changed', 'settings', path, { from: before, to: next });
+  await recordRevision(adminId, KEY(path), next, before); // CMS history (lib/cms)
   try {
     revalidatePath(path);
   } catch {

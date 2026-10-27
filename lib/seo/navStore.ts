@@ -1,4 +1,5 @@
 import 'server-only';
+import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { MARKET_MENU, type MenuEntry } from '../marketMenu';
@@ -51,6 +52,7 @@ export async function setNavConfig(adminId: string | null, v: NavConfig): Promis
   } else mem.saved = next;
   g.__navCache = undefined;
   await audit(adminId, 'seo_nav_changed', 'settings', KEY, { from: before, to: next });
+  await recordRevision(adminId, KEY, next, before); // CMS history (lib/cms)
   try {
     revalidatePath('/', 'layout'); // every page shows the top bar
   } catch {

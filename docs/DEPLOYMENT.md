@@ -95,6 +95,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0060_payments.sql | Manual payments: methods, attempts (one use per reference, fixed once decided), refunds, payment log, private payment-proofs bucket; order states payment_review and release_pending; provisional number |
 | 0061_release_entitlements.sql | Release approval fields on orders (a quotation order cannot be delivered without one), order_apply widened, entitlements and their versions; provisional number |
 | 0062_conversations.sql | Admin-mediated messages (buyer and SellOnBay, SellOnBay and seller, internal notes) and support tickets; provisional number |
+| 0063_content_legal.sql | CMS history (append-only revisions of site-builder and SEO settings) and versioned legal documents (published versions fixed, atomic publish); provisional number |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

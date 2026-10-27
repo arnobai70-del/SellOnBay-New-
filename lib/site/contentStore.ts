@@ -1,4 +1,5 @@
 import 'server-only';
+import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { createAdminClient } from '../supabase/server';
@@ -49,6 +50,7 @@ async function write(adminId: string | null, key: string, value: unknown | null,
   else mem.set(key, value);
   cache.delete(key);
   await audit(adminId, what, 'settings', key, { from: before, to: value });
+  await recordRevision(adminId, key, value, before); // CMS history (lib/cms)
   try {
     revalidatePath('/', 'layout'); // the menu and footer are on every page
   } catch {

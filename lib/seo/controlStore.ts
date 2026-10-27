@@ -1,4 +1,5 @@
 import 'server-only';
+import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { forgetLiveProducts } from '../catalog';
@@ -53,6 +54,7 @@ export async function setPageControls(adminId: string | null, path: string, v: P
   forgetClosedProducts();
   forgetLiveProducts();
   await audit(adminId, 'seo_controls_changed', 'settings', path, { from: before, to: next });
+  await recordRevision(adminId, KEY(path), next, before); // CMS history (lib/cms)
   try {
     revalidatePath(path.split('?')[0]);
     revalidatePath('/sitemap.xml');

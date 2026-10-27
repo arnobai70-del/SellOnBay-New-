@@ -6,6 +6,7 @@ import type { Order, OrderEvent } from '../orders/machine';
 import { currentPlan } from '../plans/store';
 import { sellerPlan } from '../plans/service';
 import { accountLockedOut } from '../supabase/viewer';
+import { currentLicenceVersion } from '../legal/service';
 import { requestableProblem, requestableProduct, type RequestableProduct } from './products';
 import {
   OPEN_REQUEST_STATES,
@@ -196,6 +197,7 @@ export async function draftQuote(adminId: string | null, requestId: string, inpu
   if (!lc.ok) return fail(400, lc.error);
   const tc = checkTerms(input.terms ?? {}, r.licenceTier);
   if (!tc.ok) return fail(400, tc.error);
+  tc.terms.licenceTextVersion = await currentLicenceVersion(); // the published licence document (lib/legal), else the built-in draft label
   let product: RequestableProduct | null = null;
   let listed = null;
   if (r.kind === 'product') {

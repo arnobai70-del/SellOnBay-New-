@@ -1,4 +1,5 @@
 import 'server-only';
+import { recordRevision } from '../cms/history';
 import type { Metadata } from 'next';
 import { revalidatePath } from 'next/cache';
 import { notFound } from 'next/navigation';
@@ -99,6 +100,7 @@ export async function setPageSeo(adminId: string | null, path: string, v: PageSe
   } else mem.saved[path] = next;
   g.__pageSeoCache = undefined;
   await audit(adminId, 'seo_page_changed', 'settings', path, { from: before, to: next });
+  await recordRevision(adminId, KEY(path), next, before); // CMS history (lib/cms)
   try {
     revalidatePath(path.split('?')[0]); // a topic page (/apps/digital?topic=x) is refreshed through its shelf
   } catch {

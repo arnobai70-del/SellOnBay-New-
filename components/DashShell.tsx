@@ -66,6 +66,8 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
       { label: 'Audit log', href: '/dashboard/admin/audit', icon: 'list', key: 'admin-audit', group: 'Safety' },
       { label: 'Site builder', href: '/dashboard/admin/site', icon: 'layers', key: 'admin-site', group: 'Site' },
       { label: 'SEO and blog', href: '/dashboard/admin/seo', icon: 'search', key: 'admin-seo', group: 'Site' },
+      { label: 'Site history', href: '/dashboard/admin/site/history', icon: 'list', key: 'admin-site-history', group: 'Site' },
+      { label: 'Legal documents', href: '/dashboard/admin/legal', icon: 'list', key: 'admin-legal', group: 'Site' },
       { label: 'Settings', href: '/dashboard/admin/settings', icon: 'gear', key: 'admin-settings', group: 'Site' },
       { label: 'Launch check', href: '/dashboard/admin/launch', icon: 'check', key: 'admin-launch', group: 'Site' },
       { label: 'Maintenance Manager', href: '/dashboard/admin/maintenance', icon: 'tool', key: 'admin-maintenance', group: 'System' },

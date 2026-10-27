@@ -6,7 +6,7 @@ import { saveSite } from '@/lib/site/contentStore';
 import { readJson } from '@/lib/validate';
 
 export const runtime = 'nodejs';
-const schema = z.object({ kind: z.enum(['menu', 'footer', 'blocks', 'sections']), path: z.string().max(200).optional(), value: z.unknown().optional(), reset: z.boolean().optional() });
+const schema = z.object({ kind: z.enum(['menu', 'footer', 'blocks', 'sections', 'social']), path: z.string().max(200).optional(), value: z.unknown().optional(), reset: z.boolean().optional() });
 
 /* Save the top menu, the footer or the blocks of one page. `reset` takes the saved version away, so the built-in one shows again. Admins only; every change is in the audit log. */
 export async function POST(req: Request) {

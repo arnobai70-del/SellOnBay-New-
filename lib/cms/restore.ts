@@ -33,6 +33,8 @@ export async function rollback(adminId: string | null, key: string, version: num
         return saveSite(adminId, 'menu', v ?? []);
       case 'footer':
         return saveSite(adminId, 'footer', v ?? []);
+      case 'social':
+        return saveSite(adminId, 'social', v ?? []);
       case 'sections':
         return saveSite(adminId, 'sections', v ?? { order: [], hidden: [] });
       case 'blocks':

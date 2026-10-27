@@ -3,7 +3,7 @@
  * Every save of a site-builder or SEO setting becomes a numbered revision of its app_settings key; a rollback saves an older revision again,
  * through the same setter (so the same checks run), and is itself a new revision. History is never rewritten or deleted.
  */
-export type TrackedKind = 'menu' | 'footer' | 'sections' | 'blocks' | 'seo_page' | 'seo_controls' | 'page_words' | 'nav' | 'robots';
+export type TrackedKind = 'menu' | 'footer' | 'social' | 'sections' | 'blocks' | 'seo_page' | 'seo_controls' | 'page_words' | 'nav' | 'robots';
 export type Tracked = { kind: TrackedKind; path?: string; label: string };
 
 const PREFIXES: [string, TrackedKind, string][] = [
@@ -16,6 +16,7 @@ const PREFIXES: [string, TrackedKind, string][] = [
 const EXACT: Record<string, [TrackedKind, string]> = {
   'site:menu': ['menu', 'Top menu'],
   'site:footer': ['footer', 'Footer'],
+  'site:social': ['social', 'Social media links'],
   'seo:nav': ['nav', 'Category bar'],
   'seo:robots': ['robots', 'robots.txt'],
 };

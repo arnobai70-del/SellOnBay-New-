@@ -5,6 +5,8 @@ import { DashIcon, type IconName } from '@/components/DashIcon';
 import { DashShell } from '@/components/DashShell';
 import { ListingReviewCard } from '@/components/ListingReviewCard';
 import { devQueue, listReports, listingQueue } from '@/lib/admin/queue';
+import { ageText, opsQueues } from '@/lib/admin/opsQueues';
+import { hasScope } from '@/lib/admin/scopes';
 import { openDisputes } from '@/lib/disputes';
 import { listPayouts } from '@/lib/payouts';
 import { blockedList } from '@/lib/presale/service';
@@ -44,7 +46,8 @@ const decisionFields = (digital: boolean): Field[] => [
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const viewer = await requireViewer({ path: '/dashboard/admin', roles: ['admin'] });
   const { denied } = await searchParams;
-  const [listings, devs, disputes, payouts, reports, blocked] = await Promise.all([
+  const [ops, listings, devs, disputes, payouts, reports, blocked] = await Promise.all([
+    opsQueues(),
     listingQueue(),
     devQueue(),
     openDisputes(),
@@ -66,6 +69,27 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
           <span>Your admin account does not have permission for that page. A Super Admin can change your permissions.</span>
         </p>
       )}
+      <div className="dp" data-ops-queues>
+        <div className="hd">
+          <div>
+            <h2>Work waiting</h2>
+            <p className="sub">
+              Requests, payments, releases and the rest, with how long the oldest has waited. Releases aim for 12 hours, every day of the year; a missed target never releases anything.
+            </p>
+          </div>
+        </div>
+        <div className="kpis">
+          {ops
+            .filter((q) => !viewer || hasScope(viewer.scopes, q.scope))
+            .map((q) => (
+              <Link key={q.key} href={q.href} className={'kpi' + (q.n > 0 ? ' kpi-on' : '')} data-queue={q.key}>
+                <small>{q.label}</small>
+                <b>{q.n}</b>
+                <em>{q.n === 0 ? 'All clear' : q.overdue ? `${q.overdue} past the target` : `oldest ${ageText(q.oldestAt)}`}</em>
+              </Link>
+            ))}
+        </div>
+      </div>
       <div className="kpis">
         {counts.map((c) => (
           <Link key={c.label} href={c.href} className={'kpi' + (c.n > 0 ? ' kpi-on' : '')}>

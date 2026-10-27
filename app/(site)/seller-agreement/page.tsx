@@ -1,5 +1,5 @@
 import { LegalPage } from '@/components/LegalPage';
-import { BUGFIX_DAYS, FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PAYOUT_HOLD_DAYS, REVIEW_HOURS } from '@/lib/config';
+import { BUGFIX_DAYS, FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PAYOUT_HOLD_DAYS, PLAN_FEE_TEXT, REVIEW_HOURS } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 
 export const generateMetadata = () => pageMetadata('/seller-agreement');
@@ -26,7 +26,8 @@ export default function SellerAgreement() {
       <h2>Money</h2>
       <ul>
         <li>
-          We keep {FEE_SALE_TEXT} of ready-made sales and {FEE_CUSTOM_TEXT} of custom, extra and trial work.
+          We keep a commission set by your plan: {PLAN_FEE_TEXT}, on ready-made sales, custom work, extra work and paid revisions. The plan in force when a quotation is issued applies to that order; a
+          later plan change never changes it. Orders made before seller plans keep the fees recorded on them ({FEE_SALE_TEXT} of sales, {FEE_CUSTOM_TEXT} of custom, extra and trial work).
         </li>
         <li>The buyer&apos;s payment is held in escrow. After acceptance, earnings wait {PAYOUT_HOLD_DAYS} days and are paid out weekly.</li>
         <li>Orders in dispute are held. Refunds and fixes follow the outcome of the dispute.</li>

@@ -6,7 +6,6 @@ import { ReplyForm } from '@/components/ReplyForm';
 import { StateChip } from '@/components/StateChip';
 import { Bars } from '@/components/charts';
 import { Timer } from '@/components/dash';
-import { FEE_SALE_TEXT } from '@/lib/config';
 import { sellerDashboard } from '@/lib/dashboard';
 import { draftsFor } from '@/lib/drafts';
 import { PAYOUT_METHODS } from '@/lib/payoutDetails';
@@ -86,7 +85,7 @@ export default async function SellerDashboard() {
           <div className="hd">
             <div>
               <h2>Earnings per week</h2>
-              <p className="sub">Accepted orders, after the {FEE_SALE_TEXT} fee</p>
+              <p className="sub">Accepted orders, after SellOnBay&apos;s commission</p>
             </div>
             <span className="chip mint">
               <i />

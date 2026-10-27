@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FEE_CUSTOM_TEXT, FEE_SALE_TEXT } from '@/lib/config';
+import { FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PLAN_FEE_TEXT } from '@/lib/config';
 import { LegalPage } from '@/components/LegalPage';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { paypalConfigured } from '@/lib/providers/payment';
@@ -64,7 +64,8 @@ export default function Terms() {
       <ul>
         <li>You must own or have the right to sell what you list. Listings are checked for copied content and reviewed by us before they go live.</li>
         <li>
-          We charge a {FEE_SALE_TEXT} fee on sales and {FEE_CUSTOM_TEXT} on custom, extra and trial work.
+          Our commission depends on the seller&apos;s plan: {PLAN_FEE_TEXT}, on ready-made sales, custom work, extra work and paid revisions alike. The plan in force when a quotation is issued applies
+          to that order. Orders made before seller plans keep the fees recorded on them ({FEE_SALE_TEXT} on sales, {FEE_CUSTOM_TEXT} on custom, extra and trial work).
         </li>
         <li>Accepted earnings are paid out weekly, 7 days after the buyer accepts.</li>
       </ul>

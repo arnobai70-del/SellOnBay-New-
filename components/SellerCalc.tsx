@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { money } from '@/lib/data';
-import { sellerNetCents } from '@/lib/config';
+import { planNetCents } from '@/lib/config';
 
 /* The seller keeps the price minus the sale fee from lib/config.ts. */
 export function SellerCalc() {
@@ -21,7 +21,7 @@ export function SellerCalc() {
         you earn
       </p>
       <div className="big">
-        <span>{'$' + ((sellerNetCents(price * 100, 'sale') * sales) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span>{'$' + ((planNetCents(price * 100) * sales) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         <span style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: 0 }}> a month</span>
       </div>
     </div>

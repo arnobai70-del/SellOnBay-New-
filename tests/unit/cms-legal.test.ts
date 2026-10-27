@@ -99,3 +99,21 @@ describe('legal documents (P05)', () => {
     expect(await currentLicenceVersion()).toBe('licences-v1');
   });
 });
+
+describe('social links (CMS)', () => {
+  it('keeps only https links on each network own domains, one per network, and records them in the history', async () => {
+    const { cleanSocial } = await import('@/lib/site/social');
+    expect(
+      cleanSocial('instagram https://instagram.com/sellonbay\nx https://x.com/sellonbay\nfacebook http://facebook.com/a\nyoutube https://evil.example/yt\ninstagram https://instagram.com/other'),
+    ).toEqual([
+      { network: 'instagram', url: 'https://instagram.com/sellonbay' },
+      { network: 'x', url: 'https://x.com/sellonbay' },
+    ]);
+    expect(cleanSocial([{ network: 'github', url: 'https://user:pw@github.com/x' }])).toEqual([]);
+    const { savedSocial } = await import('@/lib/site/contentStore');
+    expect(await saveSite('content-1', 'social', 'nonsense')).toMatchObject({ ok: false, status: 400 });
+    expect((await saveSite('content-1', 'social', 'linkedin https://www.linkedin.com/company/sellonbay')).ok).toBe(true);
+    expect((await savedSocial(0)).map((l) => l.network)).toEqual(['linkedin']);
+    expect((await revisionsOf('site:social'))[0]).toMatchObject({ action: 'save' });
+  });
+});

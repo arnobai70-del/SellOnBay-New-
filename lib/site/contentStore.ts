@@ -5,14 +5,15 @@ import { audit } from '../admin/audit';
 import { createAdminClient } from '../supabase/server';
 import { settingsTableReady } from '../seo/pageMeta';
 import { seoPage } from '../seo/pageList';
+import { cleanSocial, type SocialLink } from './social';
 import { cleanBlocks, cleanFooter, cleanMenu, cleanSections, HOME_SECTIONS, type Block, type FooterColumn, type MenuItem, type SectionsConfig } from './content';
 
 /*
  * What an admin builds in Admin > Site builder, kept in `app_settings` (no migration): the top menu ("site:menu"), the footer ("site:footer") and the
  * blocks of a page ("site:blocks:<path>"). Nothing saved means the site looks exactly as it did. Public pages read it with a short cache; saving refreshes them.
  */
-type Kind = 'menu' | 'footer';
-const KEY = { menu: 'site:menu', footer: 'site:footer' } as const;
+type Kind = 'menu' | 'footer' | 'social';
+const KEY = { menu: 'site:menu', footer: 'site:footer', social: 'site:social' } as const;
 const BLOCKS = 'site:blocks:';
 const SECTIONS = 'site:sections:';
 const g = globalThis as { __siteMem?: Map<string, unknown>; __siteCache?: Map<string, { at: number; value: unknown }> };
@@ -57,6 +58,12 @@ async function write(adminId: string | null, key: string, value: unknown | null,
     // outside a request (tests)
   }
   return { ok: true };
+}
+
+/* The footer's social media links (lib/site/social.ts); empty when none are saved. */
+export async function savedSocial(now?: number): Promise<SocialLink[]> {
+  const v = await read(KEY.social, now);
+  return v === null ? [] : cleanSocial(v);
 }
 
 /* null: nothing saved, the built-in menu or footer is shown. */
@@ -138,6 +145,12 @@ export async function saveSite(adminId: string | null, kind: Kind | 'blocks' | '
       }
     }
     return r;
+  }
+  if (kind === 'social') {
+    const links = cleanSocial(value);
+    if (typeof value === 'string' && value.trim() && !links.length)
+      return { ok: false as const, status: 400, error: 'Write one "network https-address" per line, for example: instagram https://instagram.com/sellonbay' };
+    return write(adminId, KEY.social, links.length ? links : null, 'site_social_changed');
   }
   if (kind === 'menu') {
     const m = cleanMenu(value);

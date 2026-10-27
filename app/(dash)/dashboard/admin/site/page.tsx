@@ -9,7 +9,9 @@ import { navConfig } from '@/lib/seo/navStore';
 import { realListings } from '@/lib/seo/hubStore';
 import { SEO_PAGES } from '@/lib/seo/pageList';
 import { entriesToMenu, HOME_SECTIONS } from '@/lib/site/content';
-import { homeSections, pageBlocks, pagesWithBlocks, savedFooter, savedMenu } from '@/lib/site/contentStore';
+import { homeSections, pageBlocks, pagesWithBlocks, savedFooter, savedMenu, savedSocial } from '@/lib/site/contentStore';
+import { AdminForm } from '@/components/AdminForm';
+import { NETWORKS } from '@/lib/site/social';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Site builder', robots: { index: false } };
@@ -20,6 +22,7 @@ const TABS: [string, string][] = [
   ['footer', 'Footer'],
   ['sections', 'Home sections'],
   ['blocks', 'Page blocks'],
+  ['social', 'Social links'],
 ];
 
 /* Edit the pieces of the site from one place: the top menu, the footer columns, and blocks (headings, text, pictures, buttons, listings, questions) on any page. */
@@ -58,6 +61,21 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
         {tab === 'menu' && <MenuBuilder initial={menu ?? entriesToMenu(applyNav(MARKET_MENU, await navConfig(0)))} custom={!!menu} />}
 
         {tab === 'sections' && <SectionsBuilder keys={HOME_SECTIONS} initial={await homeSections()} />}
+        {tab === 'social' && (
+          <div data-social-builder>
+            <p className="muted">
+              One per line: the network, a space, then the https address on that network ({Object.keys(NETWORKS).join(', ')}). They show as text links at the foot of every page. An empty box removes
+              them. Every save is kept in Site history.
+            </p>
+            <AdminForm
+              endpoint="/api/admin/site"
+              fixed={{ kind: 'social' }}
+              open
+              submit="Save social links"
+              fields={[{ name: 'value', label: 'Social links', kind: 'textarea', max: 3000, value: (await savedSocial(0)).map((l) => `${l.network} ${l.url}`).join('\n') }]}
+            />
+          </div>
+        )}
 
         {tab === 'footer' && <FooterBuilder initial={footer ?? FOOTER_COLUMNS.map((c) => ({ title: c.title, links: c.links.map(([label, href]) => ({ label, href })) }))} custom={!!footer} />}
 

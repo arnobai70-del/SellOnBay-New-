@@ -5,12 +5,14 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { allowedHours, getSettings } from '@/lib/settings';
 import { hasDeliveryHours } from '@/lib/catalog';
 import { requireViewer } from '@/lib/supabase/viewer';
+import { sellerPlan } from '@/lib/plans/service';
 
 export const metadata: Metadata = { title: 'List a site' };
 
 export default async function Sell() {
-  await requireViewer({ path: '/sell/new' });
+  const viewer = await requireViewer({ path: '/sell/new' });
   const lim = await getSettings();
+  const plan = viewer?.role === 'seller' ? (await sellerPlan(viewer.id)).plan : null;
   return (
     <SellForm
       live={supabaseConfigured}
@@ -19,6 +21,8 @@ export default async function Sell() {
       minPrice={lim.priceMinCents / 100}
       maxPrice={lim.priceMaxCents / 100}
       hourChoices={(await hasDeliveryHours()) ? allowedHours(lim) : []}
+      commissionBps={plan?.commissionBps ?? undefined}
+      planName={plan?.name ?? undefined}
     />
   );
 }

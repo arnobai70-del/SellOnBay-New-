@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BRAND_NAME } from '@/lib/brand';
-import { CONFIG, REVIEW_HOURS, pct } from '@/lib/config';
+import { PLAN_KEEP_TEXT, REVIEW_HOURS } from '@/lib/config';
+import { NETWORKS, type SocialLink } from '@/lib/site/social';
 import { legacyPublic } from '@/lib/legacy';
 import { HUB_LINKS, hubLinkHref } from '@/lib/seo/hubLinks';
 import { Logo } from './Logo';
@@ -93,7 +94,7 @@ const LEGAL: [label: string, href: string][] = [
   ['Your data', '/account/privacy'],
 ];
 
-export function Footer({ columns }: { columns?: Column[] | null }) {
+export function Footer({ columns, social = [] }: { columns?: Column[] | null; social?: SocialLink[] }) {
   const shown = columns ?? COLUMNS;
   return (
     <footer className="mk-foot">
@@ -128,9 +129,7 @@ export function Footer({ columns }: { columns?: Column[] | null }) {
         <div className="mk-foot-sell">
           <div>
             <b>Built something people need?</b>
-            <span>
-              Sell it again and again. You keep {pct(10_000 - CONFIG.fees.saleBps)} of every sale from ${CONFIG.fees.saleLowBelowCents / 100}.
-            </span>
+            <span>Sell it again and again. You keep {PLAN_KEEP_TEXT} of every sale, depending on your plan.</span>
           </div>
           <Link className="btn btn-gold" href="/sell">
             Start selling
@@ -138,6 +137,15 @@ export function Footer({ columns }: { columns?: Column[] | null }) {
         </div>
         <div className="mk-foot-base">
           <span>&copy; 2026 {BRAND_NAME}. All rights reserved.</span>
+          {social.length > 0 && (
+            <nav aria-label="Follow us" data-social>
+              {social.map((s) => (
+                <a key={s.network} href={s.url} rel="me noopener noreferrer" target="_blank">
+                  {NETWORKS[s.network].label}
+                </a>
+              ))}
+            </nav>
+          )}
           <nav aria-label="Legal">
             {LEGAL.map(([label, href]) => (
               <Link key={href} href={href}>

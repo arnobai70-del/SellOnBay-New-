@@ -18,7 +18,7 @@ import { Tilt } from '@/components/Tilt';
 import { SHELVES, isApp, platformOf, shelfHref, shelfLabel, type AppPlatform, type Platform } from '@/lib/apps';
 import { getLiveDbProducts } from '@/lib/catalog';
 import { SHOW_LIST_PRICES } from '@/lib/config';
-import { CONFIG, PAYOUT_HOLD_DAYS, REVIEW_HOURS, pct } from '@/lib/config';
+import { CONFIG, PAYOUT_HOLD_DAYS, PLAN_KEEP_TEXT, REVIEW_HOURS, pct } from '@/lib/config';
 import { daysLabel, imageFor, isNew, money, type Product } from '@/lib/data';
 import { AREAS } from '@/lib/developers';
 import { starterProducts } from '@/lib/examples';
@@ -514,8 +514,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
           <div>
             <h2 id="mk-sell-h">Build once, sell it again and again</h2>
             <p>
-              Upload a site, app or digital product once and deliver it to many buyers. You keep {keep(CONFIG.fees.saleBps)} of every sale from ${CONFIG.fees.saleLowBelowCents / 100} and{' '}
-              {keep(CONFIG.fees.saleLowBps)} below it; custom and extra work keep {keep(CONFIG.fees.customBps)}.
+              Upload a site, app or digital product once and deliver it to many buyers. You keep {PLAN_KEEP_TEXT} of every sale, depending on your plan ({keep(CONFIG.plans.free.commissionBps)} on the
+              free plan); the same rate applies to custom and extra work.
             </p>
           </div>
           <div className="mk-sellband-cta">

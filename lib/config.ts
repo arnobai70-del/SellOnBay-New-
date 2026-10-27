@@ -98,7 +98,14 @@ export const sellerNetCents = (priceCents: number, kind: FeeKind) => priceCents 
 export const pct = (bps: number) => `${bps / 100}%`;
 export const FEE_SALE_TEXT = `${pct(CONFIG.fees.saleBps)} (${pct(CONFIG.fees.saleLowBps)} under $${CONFIG.fees.saleLowBelowCents / 100})`;
 export const FEE_CUSTOM_TEXT = pct(CONFIG.fees.customBps);
-/* What the seller keeps of a sale: "78% (70% under $20)". */
+/*
+ * SellOnBay 2.0 (F-1, O-2): commission comes from the seller's plan, on products, custom work, extra work and paid revisions alike. The flat
+ * fees above (CONFIG.fees, FEE_SALE_TEXT, feeCents) stay only for orders made before plans, which keep the fees recorded on them.
+ */
+export const PLAN_FEE_TEXT = `${pct(CONFIG.plans.free.commissionBps)} on Free, ${pct(CONFIG.plans.pro.commissionBps)} on Pro and ${pct(CONFIG.plans.business.commissionBps)} on Business`;
+export const PLAN_KEEP_TEXT = `${pct(10_000 - CONFIG.plans.free.commissionBps)} to ${pct(10_000 - CONFIG.plans.business.commissionBps)}`;
+export const planNetCents = (priceCents: number, commissionBps: number = CONFIG.plans.free.commissionBps) => priceCents - Math.round((priceCents * commissionBps) / 10_000);
+/* What the seller keeps of a sale before plans: "78% (70% under $20)". */
 export const SELLER_KEEP_TEXT = `${pct(10_000 - CONFIG.fees.saleBps)} (${pct(10_000 - CONFIG.fees.saleLowBps)} under $${CONFIG.fees.saleLowBelowCents / 100})`;
 /*
  * Owner, 2026-10-20: lists (home, shelves, cards, compare, finder) show no prices; the price appears on the product page beside

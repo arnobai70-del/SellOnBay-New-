@@ -6,7 +6,7 @@ import { WEB_CATS, webCatLabel } from '@/lib/webCategories';
 import { NEEDS_DEMO, NEEDS_RELEASE, catsFor, toolsFor } from '@/lib/apps';
 import { missingForReview, reviewMessage } from '@/lib/listingRules';
 import { BRAND_NAME } from '@/lib/brand';
-import { FEE_SALE_TEXT, feeCents, sellerNetCents } from '@/lib/config';
+import { pct as percent, planNetCents } from '@/lib/config';
 import { LICENCES, LICENCE_TYPES, THIRD_PARTY_LICENCES, isLicenceType } from '@/lib/licences';
 import { CONFIG } from '@/lib/config';
 import { deliveryChoices, expressHelps, readDelivery } from '@/lib/deliveryTime';
@@ -44,6 +44,8 @@ export function SellForm({
   minPrice = 5,
   maxPrice = 70,
   hourChoices = [],
+  commissionBps = CONFIG.plans.free.commissionBps,
+  planName = 'Free',
 }: {
   live: boolean;
   trialEnabled?: boolean;
@@ -52,6 +54,9 @@ export function SellForm({
   maxPrice?: number;
   /* The delivery hours an admin allows (Admin → Settings); empty = whole days only. */
   hourChoices?: number[];
+  /* The seller's current plan (lib/plans), for the earnings preview. */
+  commissionBps?: number;
+  planName?: string;
 }) {
   // Delivery: the admin's hour choices, then 1 to 7 days. A listing being edited keeps hours it already promises, even if no longer offered.
   const [keptHours, setKeptHours] = useState<number | null>(null);
@@ -104,8 +109,9 @@ export function SellForm({
   const prefill = useRef<Record<string, string | number> | null>(null);
   const [done, setDone] = useState<Done>(null);
   const form = useRef<HTMLFormElement>(null);
-  const fee = feeCents(price * 100, 'sale') / 100;
-  const you = sellerNetCents(price * 100, 'sale') / 100;
+  // SellOnBay 2.0: the seller's plan commission (F-1); the quotation fixes the real figure when a buyer's request is quoted
+  const you = planNetCents(price * 100, commissionBps) / 100;
+  const fee = price - you;
 
   // The picture picker, shared by apps and digital products (needed) and websites (optional).
   const shotsBox = (hint: string, choose: React.ReactNode) => (
@@ -957,7 +963,7 @@ export function SellForm({
           </div>
           <div className="line">
             <span>
-              {BRAND_NAME} fee, {FEE_SALE_TEXT}
+              {BRAND_NAME} commission, {percent(commissionBps)} ({planName} plan)
             </span>
             <b>{money(fee)}</b>
           </div>

@@ -7,7 +7,7 @@ import { Reveal } from '@/components/Reveal';
 import { SellerCalc } from '@/components/SellerCalc';
 import { FAQ_GROUPS } from '@/lib/faq';
 import { BRAND_NAME } from '@/lib/brand';
-import { CONFIG, FEE_SALE_TEXT } from '@/lib/config';
+import { CONFIG, PLAN_FEE_TEXT } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { PageExtras } from '@/components/PageExtras';
@@ -31,9 +31,9 @@ export default async function Sell() {
         <div className="facts">
           <div>
             <b>
-              <CountUp to={(10_000 - CONFIG.fees.saleBps) / 100} suffix="%" />
+              <CountUp to={(10_000 - CONFIG.plans.free.commissionBps) / 100} suffix="%" />
             </b>
-            <span>Yours on every sale from ${CONFIG.fees.saleLowBelowCents / 100}</span>
+            <span>Yours on every sale on the free plan, up to {(10_000 - CONFIG.plans.business.commissionBps) / 100}% on Business</span>
           </div>
           <div>
             <b>
@@ -57,7 +57,7 @@ export default async function Sell() {
           <div>
             <h2>What could you earn?</h2>
             <p className="lead">
-              Pick a price and how many you sell in a month. {BRAND_NAME} keeps {FEE_SALE_TEXT}, buyers pay no extra fee.
+              Pick a price and how many you sell in a month. {BRAND_NAME} keeps {PLAN_FEE_TEXT}; buyers pay no extra fee.
             </p>
           </div>
           <SellerCalc />

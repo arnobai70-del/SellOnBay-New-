@@ -8,7 +8,7 @@ import { navMenu } from '@/lib/seo/navStore';
 import { PageBlocks } from '@/components/PageBlocks';
 import { TopBlocks } from '@/components/TopBlocks';
 import { realListings } from '@/lib/seo/hubStore';
-import { savedFooter, topBlocks } from '@/lib/site/contentStore';
+import { savedFooter, savedSocial, topBlocks } from '@/lib/site/contentStore';
 import { Suspense } from 'react';
 
 /* The category bar follows the admin's choices (lib/seo/navStore.ts). The pages stay static: saving refreshes them. */
@@ -22,6 +22,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     : [];
   const slots = Object.fromEntries(Object.entries(tops).map(([path, blocks]) => [path, <PageBlocks key={path} blocks={blocks} listings={listings} />]));
   const own = await savedFooter(); // columns built in Admin > Site builder, else the built-in ones
+  const social = await savedSocial(); // social media links from Admin > Site builder (lib/site/social.ts)
   return (
     <>
       <EarlyBar />
@@ -30,7 +31,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <TopBlocks slots={slots} />
         {children}
       </main>
-      <Footer columns={own?.map((c) => ({ title: c.title, links: c.links.map((l) => [l.label, l.href] as [string, string]) }))} />
+      <Footer columns={own?.map((c) => ({ title: c.title, links: c.links.map((l) => [l.label, l.href] as [string, string]) }))} social={social} />
       <Suspense fallback={null}>
         <VisitTracker />
       </Suspense>

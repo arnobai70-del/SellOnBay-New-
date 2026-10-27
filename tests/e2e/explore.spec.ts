@@ -21,7 +21,7 @@ test('does not promise what we do not have, and states the fees from the config'
   const text = await page.locator('main').innerText();
   for (const bad of [/24\/7/i, /instant delivery/i, /50% off/i, /minutes/i, /envato/i, /unlimited downloads/i]) expect(text).not.toMatch(bad);
   await expect(page.locator('.mk-hero-points')).toContainText('Payment held in escrow until you accept');
-  await expect(page.locator('.mk-sellband')).toContainText('78% of every sale from $20 and 70% below it');
+  await expect(page.locator('.mk-sellband')).toContainText('85% to 95% of every sale, depending on your plan'); // plan commission (F-1)
 });
 
 test('the hero domain box opens the domain search with the name', async ({ page }) => {

@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
-import { SELLER_KEEP_TEXT } from '@/lib/config';
+import { PLAN_KEEP_TEXT } from '@/lib/config';
 import { DEVS, fromPrice } from '@/lib/developers';
 import { DevAvatar } from './DevParts';
 
@@ -211,7 +211,7 @@ export function StoryScenes({ shots }: { shots: Shot[] }) {
         <div className="sc4-r">
           <div className="sc4-in">
             <h2>Sell what you built</h2>
-            <p className="sc-lead">Upload once, deliver again and again, and keep {SELLER_KEEP_TEXT} of every sale.</p>
+            <p className="sc-lead">Upload once, deliver again and again, and keep {PLAN_KEEP_TEXT} of every sale, depending on your plan.</p>
             <p className="sc4-num">
               <b ref={earn}>$642</b>
               <span>an example of a seller&apos;s balance</span>

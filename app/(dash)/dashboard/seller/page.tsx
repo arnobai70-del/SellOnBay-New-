@@ -37,7 +37,7 @@ export default async function SellerDashboard() {
   const plan = sellerId ? await sellerPlan(sellerId) : null;
   const used = sellerId ? await publishedOrWaiting(sellerId) : 0;
   const allMyFiles = sellerId ? await listFiles({ uploadedBy: sellerId }) : [];
-  const myFiles = allMyFiles.filter((f) => f.purpose !== 'delivery').slice(0, 12);
+  const myFiles = allMyFiles.filter((f) => f.purpose !== 'delivery' && f.purpose !== 'revision').slice(0, 12); // order files are shown with their order or revision
   const deliveryFiles = (orderId: string) => allMyFiles.filter((f) => f.purpose === 'delivery' && f.orderId === orderId);
   const pendingPlan = plan?.subscription && plan.subscription.status !== 'ended' ? await planById(plan.subscription.planId) : null;
   const now = Date.now();

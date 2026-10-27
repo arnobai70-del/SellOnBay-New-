@@ -15,7 +15,7 @@ import { tokenParam } from '@/lib/validate';
 import { HELD_TEXT, heldReason } from '@/lib/holds';
 import { fileForOrder } from '@/lib/versions';
 import { maintenanceFor } from '@/lib/maintenance/service';
-import { approvedFileFor, gateFor } from '@/lib/release/gate';
+import { approvedFileFor, approvedRevisionFileFor, gateFor } from '@/lib/release/gate';
 import { GATE_TEXT } from '@/lib/release/rules';
 
 export const runtime = 'nodejs';
@@ -32,7 +32,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
   if (!(await limit(`dl-ip:${clientIp(req)}`, CONFIG.download.ipPerHour, HOUR_MS))) return no('Too many downloads from this address. Try again later.', 429);
   const v = verifyToken(deliverySecret(), token);
   if (!v.ok) return v.error === 'expired' ? no('This download link has expired. Open your order and get a new one.', 410) : no('This download link is not valid.', 403);
-  const { o: orderId, u: userId, k } = v.claims;
+  const { o: orderId, u: userId, k, r: revisionId } = v.claims;
 
   if (k === 'trial') {
     if (!flags.trialCopy) return no('This download is not available.', 403);
@@ -68,7 +68,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
   if (!g.allowed) return no(GATE_TEXT[g.reason], 403);
   if (order.quotation_id) {
     // Only SellOnBay's own approved copy, from private storage, and only if its bytes still hash to the approved SHA-256.
-    const f = await approvedFileFor(orderId);
+    const f = revisionId ? await approvedRevisionFileFor(orderId, revisionId) : await approvedFileFor(orderId);
     if (!f) return no('Your files are being prepared. Try again soon.', 404);
     let stored: Response;
     try {
@@ -77,7 +77,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
       return no('The file could not be reached. Try again soon.', 502);
     }
     if (!stored.ok || !stored.body) return no('The file could not be reached. Try again soon.', 502);
-    return sendApproved(stored, f.name, baseEvent(req, orderId, 'real', userId), f.sha256);
+    return sendApproved(stored, f.name, baseEvent(req, orderId, 'real', userId), f.sha256); // the logged hash tells a revision file apart
   }
   const { data: profile } = await admin.from('profiles').select('created_at, flagged').eq('id', userId).single();
   const d = decideRelease(

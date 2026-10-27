@@ -64,7 +64,7 @@ export default async function Legal() {
                   submit="Save the draft"
                   fields={[
                     { name: 'title', label: 'Title', kind: 'text', required: true, value: draft.title, max: 160 },
-                    { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: draft.body, hint: 'Saving clears a recorded review.' },
+                    { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: draft.body, max: 200_000, hint: 'Saving clears a recorded review.' },
                     { name: 'summary', label: 'What changed', kind: 'text', value: draft.summary, max: 500 },
                   ]}
                 />
@@ -98,7 +98,7 @@ export default async function Legal() {
                 submit="Save as draft"
                 fields={[
                   { name: 'title', label: 'Title', kind: 'text', required: true, value: pub?.title ?? LEGAL_DOCS[k].title, max: 160 },
-                  { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: pub?.body ?? '' },
+                  { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: pub?.body ?? '', max: 200_000 },
                   { name: 'summary', label: 'What changed', kind: 'text', max: 500 },
                 ]}
               />

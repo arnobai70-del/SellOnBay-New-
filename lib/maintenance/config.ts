@@ -56,6 +56,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/listings(\/|$)/, 'upload'],
   [/^\/seller\/files(\/|$)/, 'upload'], // source-file uploads (lib/files)
   [/^\/seller\/orders\/[^/]+\/delivery$/, 'orders'], // a work order's delivery sent for release (lib/release)
+  [/^\/seller\/revisions(\/|$)/, 'orders'], // revised work sent for release (lib/revisions)
   [/^\/(seller|developers)(\/|$)/, 'seller'],
   [/^\/(domains|search)(\/|$)/, 'catalog'],
   [/^\/tools(\/|$)/, 'ai'],

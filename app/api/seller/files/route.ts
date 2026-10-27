@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revisionsFor } from '@/lib/revisions/store';
 import { z } from 'zod';
 import { sellerOnly } from '@/lib/auth/guards';
 import { limit } from '@/lib/rateLimit';
@@ -12,7 +13,7 @@ export const runtime = 'nodejs';
 const schema = z.object({
   product: z.string().min(1).max(80).optional(),
   order: z.uuid().optional(),
-  purpose: z.enum(['listing', 'version', 'delivery']).default('listing'),
+  purpose: z.enum(['listing', 'version', 'delivery', 'revision']).default('listing'),
   name: z.string().min(1).max(200),
   size: z.coerce.number().int().positive(),
 });
@@ -36,6 +37,15 @@ export async function POST(req: Request) {
     if (!o || o.sellerId !== who.id || !o.quotationId) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
     if (!['in_delivery', 'overdue', 'fix_requested'].includes(o.state)) return NextResponse.json({ error: 'This order is not waiting for your delivery.' }, { status: 409 });
     const r = await startUpload(who.id, { productId: o.productId, orderId: o.id, purpose: 'delivery', name: d.name, size: d.size });
+    if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+    return NextResponse.json({ ok: true, id: r.value.file.id, path: r.value.file.quarantinePath, token: r.value.token, uploadUrl: r.value.uploadUrl });
+  }
+  if (d.purpose === 'revision') {
+    // Revised files for a revision SellOnBay assigned to this seller (lib/revisions); checked and reviewed like every file.
+    const o = d.order ? await getOrder(d.order) : null;
+    const open = o ? (await revisionsFor({ orderId: o.id, sellerId: who.id, statuses: ['assigned'] })).length : 0;
+    if (!o || o.sellerId !== who.id || !open) return NextResponse.json({ error: 'There is no revision waiting for your work on this order.' }, { status: 404 });
+    const r = await startUpload(who.id, { productId: o.productId, orderId: o.id, purpose: 'revision', name: d.name, size: d.size });
     if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
     return NextResponse.json({ ok: true, id: r.value.file.id, path: r.value.file.quarantinePath, token: r.value.token, uploadUrl: r.value.uploadUrl });
   }

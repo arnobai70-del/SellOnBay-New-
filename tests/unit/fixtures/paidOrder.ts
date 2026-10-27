@@ -3,7 +3,7 @@ import { reconcile, saveMethodAsAdmin, submitManualPayment } from '@/lib/payment
 import { acceptQuote, adminRequestAction, draftQuote, issueQuote, submitRequest, superDecision } from '@/lib/requests/service';
 
 /* A paid quotation order. readyMade: files only (download, as is); otherwise a work order (live site). */
-export async function paidOrder(readyMade: boolean) {
+export async function paidOrder(readyMade: boolean, opts: { terms?: Record<string, unknown>; beforeQuote?: (productId: string, sellerId: string) => Promise<void> } = {}) {
   const id = crypto.randomUUID();
   const sellerId = `seller-${id.slice(0, 6)}`;
   memRequestable({
@@ -26,11 +26,12 @@ export async function paidOrder(readyMade: boolean) {
     expressHelps: true,
     latestVersionId: crypto.randomUUID(),
   });
+  if (opts.beforeQuote) await opts.beforeQuote(id, sellerId);
   const buyer = `buyer-${id.slice(0, 6)}`;
   const r = await submitRequest(buyer, { licenceTier: 'multi_project', package: 'asis', intendedUse: 'For my clients.', consent: true, product: `rel-${id.slice(0, 6)}` });
   if (!r.ok) throw new Error(r.error);
   await adminRequestAction('admin-1', r.value.id, 'review', {});
-  const d = await draftQuote('admin-1', r.value.id, { lines: [{ label: 'Item', cents: 4900, kind: 'product' }], terms: { deliveryDays: 3 }, overrideReason: 'Multi-project price.' });
+  const d = await draftQuote('admin-1', r.value.id, { lines: [{ label: 'Item', cents: 4900, kind: 'product' }], terms: { deliveryDays: 3, ...opts.terms }, overrideReason: 'Multi-project price.' });
   if (!d.ok) throw new Error(d.error);
   await issueQuote('admin-1', d.value.id);
   await superDecision('super-1', d.value.id, 'approve', 'Multi-project licence agreed.');

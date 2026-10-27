@@ -10,10 +10,11 @@ export const runtime = 'nodejs';
 const line = z.object({ label: z.string().max(120), cents: z.coerce.number(), kind: z.string().max(20), passThroughVerified: z.boolean().optional() });
 const schema = z.union([
   z.object({
-    action: z.enum(['review', 'ask', 'decline', 'set_expiry', 'propose_requirements']),
+    action: z.enum(['review', 'ask', 'decline', 'set_expiry', 'propose_requirements', 'assign']),
     note: z.string().max(2000).optional(),
     expiresInDays: z.coerce.number().optional(),
     requirements: z.string().max(8000).optional(),
+    sellerId: z.uuid().or(z.literal('')).optional(), // assign: a seller account, or empty for SellOnBay's own developer
   }),
   z.object({ action: z.literal('draft_quote'), lines: z.array(line).max(20), terms: z.record(z.string(), z.unknown()), overrideReason: z.string().max(1000).optional() }),
 ]);
@@ -32,7 +33,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const r =
       d.action === 'draft_quote'
         ? await draftQuote(a.id, id, { lines: d.lines, terms: d.terms, overrideReason: d.overrideReason })
-        : await adminRequestAction(a.id, id, d.action, { note: d.note, expiresInDays: d.expiresInDays, requirements: d.requirements });
+        : await adminRequestAction(a.id, id, d.action, { note: d.note, expiresInDays: d.expiresInDays, requirements: d.requirements, sellerId: d.sellerId || null });
     return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
   } catch (e) {
     if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });

@@ -28,6 +28,11 @@ export type PurchaseRequest = {
   verifiedRequirements: string | null;
   requirementsConfirmedAt: number | null;
   expiresAt: number | null;
+  /* Custom development (migration 0064): the seller account doing the work, or null for SellOnBay itself; fixed once a quotation is issued. */
+  assignedSellerId: string | null;
+  assignedAt: number | null;
+  /* A paid revision of an earlier order is a custom development request linked to that order. */
+  parentOrderId: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -84,7 +89,7 @@ const uuidOrNull = (id: string | null | undefined) => (id && /^[0-9a-f-]{36}$/i.
 type Row = Record<string, unknown>;
 
 const REQ_COLS =
-  'id, kind, buyer_id, product_id, status, licence_tier, package, extras, intended_use, requirements, delivery_details, business, consent_version, consented_at, verified_requirements, requirements_confirmed_at, expires_at, created_at, updated_at';
+  'id, kind, buyer_id, product_id, status, licence_tier, package, extras, intended_use, requirements, delivery_details, business, consent_version, consented_at, verified_requirements, requirements_confirmed_at, expires_at, assigned_seller_id, assigned_at, parent_order_id, created_at, updated_at';
 const reqFromRow = (r: Row): PurchaseRequest => ({
   id: r.id as string,
   kind: r.kind as RequestKind,
@@ -103,6 +108,9 @@ const reqFromRow = (r: Row): PurchaseRequest => ({
   verifiedRequirements: (r.verified_requirements as string) ?? null,
   requirementsConfirmedAt: ms(r.requirements_confirmed_at),
   expiresAt: ms(r.expires_at),
+  assignedSellerId: (r.assigned_seller_id as string) ?? null,
+  assignedAt: ms(r.assigned_at),
+  parentOrderId: (r.parent_order_id as string) ?? null,
   createdAt: ms(r.created_at) ?? 0,
   updatedAt: ms(r.updated_at) ?? 0,
 });
@@ -169,6 +177,10 @@ export async function insertRequest(r: Omit<PurchaseRequest, 'createdAt' | 'upda
       consent_version: r.consentVersion,
       consented_at: iso(r.consentedAt),
       expires_at: iso(r.expiresAt),
+      verified_requirements: r.verifiedRequirements,
+      assigned_seller_id: r.assignedSellerId,
+      assigned_at: iso(r.assignedAt),
+      parent_order_id: r.parentOrderId,
     })
     .select(REQ_COLS)
     .single();
@@ -204,7 +216,7 @@ export async function listRequests(f: { buyerId?: string; statuses?: RequestStat
   return (data ?? []).map(reqFromRow);
 }
 
-export type RequestPatch = Partial<Pick<PurchaseRequest, 'status' | 'expiresAt' | 'verifiedRequirements' | 'requirementsConfirmedAt'>>;
+export type RequestPatch = Partial<Pick<PurchaseRequest, 'status' | 'expiresAt' | 'verifiedRequirements' | 'requirementsConfirmedAt' | 'assignedSellerId' | 'assignedAt'>>;
 /* Changes a request only if it is still in the state the caller saw, and logs it. */
 export async function updateRequest(prev: PurchaseRequest, patch: RequestPatch, ev: LogEvent): Promise<PurchaseRequest> {
   if (!(await requestsPg())) {
@@ -220,6 +232,8 @@ export async function updateRequest(prev: PurchaseRequest, patch: RequestPatch, 
   if (patch.expiresAt !== undefined) row.expires_at = iso(patch.expiresAt);
   if (patch.verifiedRequirements !== undefined) row.verified_requirements = patch.verifiedRequirements;
   if (patch.requirementsConfirmedAt !== undefined) row.requirements_confirmed_at = iso(patch.requirementsConfirmedAt);
+  if (patch.assignedSellerId !== undefined) row.assigned_seller_id = patch.assignedSellerId;
+  if (patch.assignedAt !== undefined) row.assigned_at = iso(patch.assignedAt);
   const { data, error } = await createAdminClient().from('purchase_requests').update(row).eq('id', prev.id).eq('status', prev.status).select(REQ_COLS);
   if (error) throw new Error('Could not save the request.');
   if (!data?.length) throw new Error('The request changed meanwhile. Reload and try again.');

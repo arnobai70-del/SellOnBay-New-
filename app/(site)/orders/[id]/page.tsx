@@ -11,6 +11,7 @@ import { viewExtras } from '@/lib/commerce/viewExtras';
 import { extrasOf } from '@/lib/orders/extra';
 import { orderEvents } from '@/lib/orders/service';
 import { ConversationPanel } from '@/components/ConversationPanel';
+import { RevisionPanel } from '@/components/RevisionPanel';
 
 export const metadata: Metadata = { title: 'Your order', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
       {/* SellOnBay 2.0 (D-B): the buyer talks to SellOnBay about the order, never directly to the seller. */}
       {me && me === o.buyerId && (
         <div className="wrap" style={{ paddingBottom: 48 }}>
+          <RevisionPanel orderId={o.id} />
           <ConversationPanel type="order" id={o.id} me="buyer" />
         </div>
       )}

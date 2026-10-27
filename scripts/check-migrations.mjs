@@ -623,4 +623,66 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0064 (SellOnBay 2.0): decided revision terms are fixed; defects never count; nothing delivered without a release; one open revision per order.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    const u = (await db.query(`insert into auth.users (email) values ('rev-buyer@example.com') returning id`)).rows[0].id;
+    await db.exec(`insert into profiles (id, full_name) values ('${u}', 'Revision Buyer') on conflict (id) do nothing`);
+    const product = (
+      await db.query(
+        `insert into products (seller_id, slug, name, category, tagline, description, price_cents, delivery_days, demo_url, code_url, license) values ('${u}', 'rev-test', 'Revision test', 'Business', 'x', 'A product used to test the revision tables.', 1000, 3, 'about:blank', 'about:blank', 'mine') returning id`,
+      )
+    ).rows[0].id;
+    const p1 = (await db.query(`insert into revision_policies (product_id, version, included, window_days, scope) values ('${product}', 1, 2, 14, 'Small text changes') returning id`)).rows[0].id;
+    await db.exec(`update revision_policies set included = 3 where id = '${p1}'`); // a proposal can change
+    await db.exec(`update revision_policies set status = 'approved', decided_at = now() where id = '${p1}'`);
+    if (!(await refused(`update revision_policies set included = 9 where id = '${p1}'`))) throw new Error('approved revision terms changed');
+    if (!(await refused(`update revision_policies set status = 'proposed', decided_at = null where id = '${p1}'`))) throw new Error('an approved policy went back to proposed');
+    if (!(await refused(`insert into revision_policies (product_id, version, included, window_days, scope, status, decided_at) values ('${product}', 2, 1, 7, 'Other changes', 'approved', now())`)))
+      throw new Error('two approved policies for one product');
+    if (!(await refused(`delete from revision_policies where id = '${p1}'`))) throw new Error('a policy was deleted');
+    const oid = '33333333-3333-4333-8333-333333333333';
+    await db.exec(`insert into orders (id, price_cents, fee_cents, status) values ('${oid}', 5000, 750, 'delivered')`);
+    const ins = (kind, counts, status, extra = '') =>
+      `insert into revisions (order_id, buyer_id, description, buyer_hint, kind, counts_allowance, status${extra ? ', ' + extra.split('=')[0] : ''}) values ('${oid}', '${u}', 'Please change the header colour everywhere.', 'change', ${kind ? `'${kind}'` : 'null'}, ${counts}, '${status}'${extra ? ', ' + extra.split('=')[1] : ''}) returning id`;
+    if (!(await refused(ins('defect', true, 'assigned')))) throw new Error('a defect used the allowance');
+    if (!(await refused(ins('defect', false, 'delivered')))) throw new Error('a revision was delivered without a release');
+    if (!(await refused(ins('paid', false, 'quoted')))) throw new Error('a paid revision was quoted without its request');
+    const r1 = (await db.query(ins('included', true, 'assigned'))).rows[0].id;
+    if (!(await refused(ins('defect', false, 'submitted')))) throw new Error('two open revisions on one order');
+    await db.exec(`update revisions set status = 'delivered', released_at = now() where id = '${r1}'`);
+    if (!(await refused(`update revisions set released_at = now() + interval '1 hour' where id = '${r1}'`))) throw new Error('release facts changed');
+    if (!(await refused(`update revisions set kind = 'defect', counts_allowance = false where id = '${r1}'`))) throw new Error('a decided kind changed');
+    if (!(await refused(`delete from revisions where id = '${r1}'`))) throw new Error('a revision was deleted');
+    if (
+      !(await refused(
+        `insert into revisions (order_id, buyer_id, description, buyer_hint, kind, counts_allowance, status, follows_id) values ('${oid}', '${u}', 'The menu is still the old colour on phones.', 'change', 'included', true, 'closed', '${r1}')`,
+      ))
+    )
+      throw new Error('a follow-up used the allowance again');
+    await db.exec(`insert into revision_events (revision_id, event) values ('${r1}', 'x')`);
+    if (!(await refused(`delete from revision_events`))) throw new Error('revision events deleted');
+    const cols = (
+      await db.query(`select column_name from information_schema.columns where table_name = 'purchase_requests' and column_name in ('assigned_seller_id', 'assigned_at', 'parent_order_id') order by 1`)
+    ).rows
+      .map((r) => r.column_name)
+      .join(',');
+    if (cols !== 'assigned_at,assigned_seller_id,parent_order_id') throw new Error('purchase_requests columns missing: ' + cols);
+    for (const t of ['revision_policies', 'revisions', 'revision_events'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    console.log('ok   revisions: decided terms fixed, one approved per product, defects never counted, no delivery without release, one open per order, release facts fixed, no client access');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL revisions:', e.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

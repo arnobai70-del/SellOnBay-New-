@@ -5,7 +5,8 @@ import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
  * and the signature (HMAC-SHA256) stops anyone from changing it. The server still re-checks the order every time the link is used.
  * Pure functions, so they are easy to test.
  */
-export type DeliveryClaims = { o: string; u: string | null; k: 'real' | 'demo' | 'trial'; exp: number; n: string };
+/* r: a released revision's file instead of the order's own files (lib/revisions). */
+export type DeliveryClaims = { o: string; u: string | null; k: 'real' | 'demo' | 'trial'; r?: string; exp: number; n: string };
 export type TokenError = 'invalid' | 'expired';
 
 export const TTL_SECONDS = 24 * 60 * 60;
@@ -13,7 +14,7 @@ export const TTL_SECONDS = 24 * 60 * 60;
 const b64 = (b: Buffer) => b.toString('base64url');
 const mac = (secret: string, payload: string) => createHmac('sha256', secret).update(payload).digest();
 
-export function signToken(secret: string, claims: { o: string; u: string | null; k: 'real' | 'demo' | 'trial' }, ttlSeconds = TTL_SECONDS, nowMs = Date.now()): string {
+export function signToken(secret: string, claims: { o: string; u: string | null; k: 'real' | 'demo' | 'trial'; r?: string }, ttlSeconds = TTL_SECONDS, nowMs = Date.now()): string {
   const full: DeliveryClaims = { ...claims, exp: Math.floor(nowMs / 1000) + ttlSeconds, n: randomBytes(6).toString('hex') };
   const payload = b64(Buffer.from(JSON.stringify(full)));
   return `${payload}.${b64(mac(secret, payload))}`;

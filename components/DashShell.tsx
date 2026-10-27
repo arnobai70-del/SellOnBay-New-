@@ -32,6 +32,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     items: [
       { label: 'Overview', href: '/dashboard/seller', icon: 'grid', key: 'seller' },
       { label: 'My listings', href: '/dashboard/seller#listings', icon: 'bag', key: 'seller-listings' },
+      { label: 'Revisions', href: '/dashboard/seller/revisions', icon: 'list', key: 'seller-revisions' },
       { label: 'Support', href: '/dashboard/seller/support', icon: 'chat', key: 'seller-support' },
       { label: 'Messages', href: '/messages?view=seller', icon: 'chat', key: 'messages' },
     ],
@@ -48,6 +49,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
       { label: 'Overview', href: '/dashboard/admin', icon: 'grid', key: 'admin' },
       { label: 'Purchase requests', href: '/dashboard/admin/requests', icon: 'list', key: 'admin-requests' },
       { label: 'Support tickets', href: '/dashboard/admin/support', icon: 'chat', key: 'admin-support' },
+      { label: 'Revisions', href: '/dashboard/admin/revisions', icon: 'list', key: 'admin-revisions' },
       { label: 'Listings', href: '/dashboard/admin/listings', icon: 'bag', key: 'admin-listings' },
       { label: 'Source files', href: '/dashboard/admin/files', icon: 'layers', key: 'admin-files' },
       { label: 'Visitors', href: '/dashboard/admin/analytics', icon: 'chart', key: 'admin-analytics' },

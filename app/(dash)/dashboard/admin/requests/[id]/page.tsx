@@ -122,11 +122,28 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
             <AdminForm
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'propose_requirements' }}
-              fields={[{ name: 'requirements', label: 'Written requirement set for the buyer to confirm', kind: 'textarea', required: true, value: r.verifiedRequirements ?? '' }]}
+              fields={[{ name: 'requirements', label: 'Written requirement set for the buyer to confirm', kind: 'textarea', required: true, value: r.verifiedRequirements ?? '', max: 8000 }]}
               openLabel="Write requirements"
               submit="Send to the buyer"
               tone="line"
             />
+          )}
+          {r.kind === 'custom_dev' && ['submitted', 'under_review', 'needs_info', 'requirements_verified'].includes(r.status) && (
+            <>
+              <p className="muted" data-assigned={r.assignedSellerId ?? 'sellonbay'}>
+                Developer: {r.assignedSellerId ? `seller account ${r.assignedSellerId}` : 'SellOnBay (no seller split)'}. Choose before quoting: the quotation records that seller&apos;s plan and
+                commission.
+                {r.parentOrderId ? ' This is a paid change to an earlier order.' : ''}
+              </p>
+              <AdminForm
+                endpoint={`/api/admin/requests/${r.id}`}
+                fixed={{ action: 'assign' }}
+                fields={[{ name: 'sellerId', label: 'Seller account id (leave empty for SellOnBay)', kind: 'text', value: r.assignedSellerId ?? '', max: 36 }]}
+                openLabel="Assign a developer"
+                submit="Assign"
+                tone="line"
+              />
+            </>
           )}
         </div>
       </div>

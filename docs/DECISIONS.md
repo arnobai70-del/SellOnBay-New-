@@ -107,3 +107,24 @@ Short record of rules chosen while building. Newest at the bottom. Change a rule
 - **The whole scan system is gone (owner, 2026-10-25).** `lib/scan`, the admin "Scan again" button and `POST /api/admin/listings/<slug>/scan`, the scan chips on the review card, the scan on submit, edit, approval and new versions, and the delivery check that a file still has the hash an admin approved are all removed. Nothing is read or flagged automatically: an admin opens the demo and the files, and ticks the sandbox box for a digital product. Approval, downloads and versions do not depend on any scan record. The tables `scan_results` and `product_files` stay in the database (unused; old rows are kept, no migration drops them). `similarity()` lives on in `lib/similarity.ts` for the category-text test.
 
 - **Delivery in hours (owner, 2026-10-27; migration 0054, `lib/deliveryTime.ts`).** A seller may promise a number of hours instead of whole days. The choices sellers get are set by an admin at Admin → Settings ("Delivery in hours": on or off, and a list such as 6, 12, 18, 36; each 1 to 168 hours, at most 8; the defaults are `CONFIG.deliveryHours`). The listing form lists the hour choices first, then 1 to 7 days, and the server only accepts an allowed choice; a listing that already promises hours an admin later removed keeps them (like the price range, a saved listing is not forced to change). An admin can set any whole hour, 1 to 168, on one listing from its edit page (Admin → SEO → listing), audited as before. Stored as `products.delivery_hours` (null = days); `delivery_days` is kept as the hours rounded up so filters and older screens still work. The order keeps its own copy (`orders.delivery_hours`), so a later edit never moves an earlier buyer's deadline, and the delivery timer (`dueAt`) runs for those hours from the payment. Express (24 hours) is dropped on a listing that already promises 24 hours or less: the form says so, the server saves no express price and the quote refuses it. Changing the delivery time is a text edit: a live listing stays live. Until 0054 is pushed the code reads and writes listings without the column and sellers see days only.
+
+## SellOnBay 2.0 Phase 8: revisions and custom development (2026-10-27)
+
+Where the code differs from Blueprint v1.3 sections 5.6 and 5.7, and why:
+
+- **The developer of a custom job is assigned before the quotation, not after funding.** O-2 says plan commission applies to custom
+  development, and Blueprint 7.2 says the seller's plan is fixed at quotation time. So Support or Catalog picks the seller (or leaves it
+  empty for SellOnBay's own developer, which is the old behaviour) while the request is open; the quotation records that seller and plan.
+  The step "funded -> assigned" in 5.7 is the existing "authorise the work" step of a work order. To change the developer after a quotation
+  is issued, withdraw it and quote again.
+- **A paid change or new feature is its own order.** Triage writes the requirement set and opens a custom development request linked to
+  the order (`purchase_requests.parent_order_id`, assigned to the order's seller). It then follows request -> buyer confirms -> quotation ->
+  acceptance -> payment reconciled -> release like any purchase, so no money reaches anyone without the same checks. Paid revision lines use
+  the seller's plan commission (O-2).
+- **"Not done" on a delivered revision closes it and opens a follow-up** (same kind, never counted against the allowance again). The
+  released revision keeps its release facts in the record; the follow-up needs its own release approval.
+- **Revised work is released by Delivery, separately from the order.** The order stays delivered; the revision has its own release step,
+  the same 12-hour target and no automatic release. A revised file is served only through the order's release gate (active entitlement)
+  and the revision's own release, from private storage, hash-checked, logged like every download.
+- **Allowance:** only the quotation snapshot of the product's approved policy decides what is included. Orders from before quotations have
+  no included revisions; their defects are still fixed free. Defects never count.

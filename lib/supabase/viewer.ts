@@ -86,6 +86,14 @@ export async function accountLockedOut(id: string | null | undefined): Promise<b
   return cannotAct(p);
 }
 
+/* Is this a seller account that may take work (custom development assignment)? Demo mode has no accounts, so every id passes there. */
+export async function sellerAccount(id: string | null | undefined): Promise<boolean> {
+  if (!id) return false;
+  if (!supabaseConfigured) return true;
+  const { data: p } = await createAdminClient().from('profiles').select('role, banned, suspended_until').eq('id', id).maybeSingle();
+  return p?.role === 'seller' && !cannotAct(p);
+}
+
 /* Sellers and admins need the authenticator code (aal2) for anything about their account; true means this session has not passed it. */
 export async function staffNeedsCode(): Promise<boolean> {
   if (!supabaseConfigured) return false;

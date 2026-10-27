@@ -9,7 +9,18 @@ type Ready = { id: string; name: string };
  * The seller of a work order sends their delivery for release. Files (optional when the product's approved version is what the buyer gets)
  * are uploaded into quarantine and checked first; then the seller sends the delivery with a note. SellOnBay approves the release.
  */
-export function DeliveryForm({ orderId, approvedFiles, pending }: { orderId: string; approvedFiles: Ready[]; pending: number }) {
+export function DeliveryForm({
+  orderId,
+  approvedFiles,
+  pending,
+  revisionId,
+}: {
+  orderId: string;
+  approvedFiles: Ready[];
+  pending: number;
+  /* Set for revised work on a revision (lib/revisions) instead of the order's first delivery. */
+  revisionId?: string;
+}) {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [fileId, setFileId] = useState(approvedFiles[0]?.id ?? '');
@@ -25,7 +36,7 @@ export function DeliveryForm({ orderId, approvedFiles, pending }: { orderId: str
     const r = await fetch('/api/seller/files', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ order: orderId, purpose: 'delivery', name: file.name, size: file.size }),
+      body: JSON.stringify({ order: orderId, purpose: revisionId ? 'revision' : 'delivery', name: file.name, size: file.size }),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
@@ -48,7 +59,11 @@ export function DeliveryForm({ orderId, approvedFiles, pending }: { orderId: str
   async function send() {
     setMsg(null);
     setBusy('Sending...');
-    const r = await fetch(`/api/seller/orders/${orderId}/delivery`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ note, fileId }) });
+    const r = await fetch(revisionId ? `/api/seller/revisions/${revisionId}` : `/api/seller/orders/${orderId}/delivery`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ note, fileId }),
+    });
     const j = await r.json().catch(() => ({}));
     setBusy('');
     if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not send the delivery.' });
@@ -57,10 +72,10 @@ export function DeliveryForm({ orderId, approvedFiles, pending }: { orderId: str
   }
 
   return (
-    <div className="act-step" data-delivery-form>
-      <label htmlFor={`df-file-${orderId}`}>Delivery files (.zip, checked before release)</label>
+    <div className="act-step" data-delivery-form={revisionId ? 'revision' : 'delivery'}>
+      <label htmlFor={`df-file-${revisionId ?? orderId}`}>Delivery files (.zip, checked before release)</label>
       <div className="act-row">
-        <input id={`df-file-${orderId}`} type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        <input id={`df-file-${revisionId ?? orderId}`} type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         <button type="button" className="btn btn-line btn-sm" disabled={!file || !!busy} onClick={upload}>
           Upload for checking
         </button>
@@ -68,8 +83,8 @@ export function DeliveryForm({ orderId, approvedFiles, pending }: { orderId: str
       {pending > 0 && <small className="muted">{pending} upload(s) still being checked.</small>}
       {approvedFiles.length > 0 && (
         <>
-          <label htmlFor={`df-pick-${orderId}`}>Approved file to deliver</label>
-          <select id={`df-pick-${orderId}`} value={fileId} onChange={(e) => setFileId(e.target.value)}>
+          <label htmlFor={`df-pick-${revisionId ?? orderId}`}>Approved file to deliver</label>
+          <select id={`df-pick-${revisionId ?? orderId}`} value={fileId} onChange={(e) => setFileId(e.target.value)}>
             <option value="">None (the product&apos;s approved version is what the buyer gets)</option>
             {approvedFiles.map((f) => (
               <option key={f.id} value={f.id}>
@@ -79,8 +94,8 @@ export function DeliveryForm({ orderId, approvedFiles, pending }: { orderId: str
           </select>
         </>
       )}
-      <label htmlFor={`df-note-${orderId}`}>What you delivered (for SellOnBay; for example the address of the live site)</label>
-      <textarea id={`df-note-${orderId}`} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+      <label htmlFor={`df-note-${revisionId ?? orderId}`}>What you delivered (for SellOnBay; for example the address of the live site)</label>
+      <textarea id={`df-note-${revisionId ?? orderId}`} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
       <button type="button" className="btn btn-blue btn-sm" disabled={!!busy || note.trim().length < 10} onClick={send}>
         {busy || 'Send for release'}
       </button>

@@ -13,6 +13,10 @@ const db = new PGlite();
 
 await db.exec(`
   create role anon; create role authenticated; create role service_role;
+  -- Like Supabase: everything created in public is open to the browser roles unless a migration takes it back (found on staging, 0067).
+  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+  alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
   create schema auth; create table auth.users (id uuid primary key default gen_random_uuid(), email text, raw_user_meta_data jsonb default '{}');
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
@@ -757,6 +761,31 @@ if (!failed) {
   } catch (err) {
     failed = true;
     console.log('FAIL account links:', err.message);
+  }
+}
+
+if (!failed) {
+  // 0067 (SellOnBay 2.0): with Supabase's default privileges, no browser role may change rows through a view, read the ledger balances,
+  // call bump_counter, or move a sequence; and objects created later start closed.
+  try {
+    const priv = async (role, obj, p) => (await db.query(`select has_table_privilege('${role}', '${obj}', '${p}') as v`)).rows[0].v;
+    for (const role of ['anon', 'authenticated']) {
+      for (const p of ['INSERT', 'UPDATE', 'DELETE']) if (await priv(role, 'products_public', p)) throw new Error(`${role} can ${p} products_public`);
+      if (!(await priv(role, 'products_public', 'SELECT'))) throw new Error(`${role} lost SELECT on products_public`);
+      if (await priv(role, 'ledger_balances', 'SELECT')) throw new Error(`${role} can read ledger_balances`);
+      if ((await db.query(`select has_function_privilege('${role}', 'bump_counter(date,text,integer)', 'EXECUTE') as v`)).rows[0].v) throw new Error(`${role} can call bump_counter`);
+      const seq = (await db.query(`select count(*)::int as n from pg_sequences where schemaname = 'public' and has_sequence_privilege('${role}', format('%I.%I', schemaname, sequencename), 'UPDATE')`))
+        .rows[0].n;
+      if (seq) throw new Error(`${role} can move ${seq} sequence(s)`);
+    }
+    if (!(await priv('service_role', 'ledger_balances', 'SELECT'))) throw new Error('the server lost ledger_balances');
+    await db.exec(`create table zz_default_probe (id int)`);
+    if (await priv('anon', 'zz_default_probe', 'SELECT')) throw new Error('a new table is still open to anon by default');
+    await db.exec(`drop table zz_default_probe`);
+    console.log('ok   default grants closed: no browser writes through views, no ledger balances, no bump_counter, no sequence moves, new objects start closed');
+  } catch (err) {
+    failed = true;
+    console.log('FAIL default grants:', err.message);
   }
 }
 

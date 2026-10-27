@@ -100,16 +100,18 @@ if (cmd === 'repair') {
   if (!b.ok) fail('repair (applied) failed');
   console.log(cli(['migration', 'list', '--project-ref', REF], env).out);
 } else if (cmd === 'plan' || cmd === 'apply') {
+  const notYet = []; // plan applies nothing, so a later batch's dry run also lists the earlier pending batches
   for (const batch of batches()) {
     const dir = workdir(batch[batch.length - 1]);
     const dry = cli(['db', 'push', '--workdir', dir, '--project-ref', REF, '--dry-run'], env);
-    const want = batch.map((f) => f.slice(0, 4));
+    const want = [...(cmd === 'plan' ? notYet : []), ...batch.map((f) => f.slice(0, 4))];
+    if (cmd === 'plan') notYet.push(...batch.map((f) => f.slice(0, 4)));
     const got = listed(dry.out);
     console.log(`batch ${want[0]}-${want[want.length - 1]}: dry run lists ${got.join(', ') || 'nothing'}`);
     if (!dry.ok) fail('dry run failed:\n' + dry.out);
     if (got.join() !== want.join()) fail(`dry run lists ${got.join(',')} but the batch is ${want.join(',')}`);
     if (cmd === 'plan') continue;
-    const push = cli(['db', 'push', '--workdir', dir, '--project-ref', REF], env);
+    const push = cli(['db', 'push', '--workdir', dir, '--project-ref', REF, '--yes'], env); // --yes: the CLI's own push prompt; the owner authorised these reviewed files
     console.log(push.out);
     if (!push.ok) fail(`push of batch ${want[0]}-${want[want.length - 1]} failed`);
   }

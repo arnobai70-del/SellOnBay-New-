@@ -99,6 +99,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0064_revisions_custom_dev.sql | Revision policies (seller proposes, Catalog approves), revisions and their log, custom-development assignment and paid-revision link on purchase_requests; provisional number |
 | 0065_reports_country.sql | Sales PDF export log (kept; files deleted after 24 hours from the private `reports` bucket) and first-party country counts (code only; off until legal approval); provisional number |
 | 0066_account_links.sql | Link intents (single use, at most 15 minutes) and the append-only social sign-in link log; providers stay off until B-7; provisional number |
+| 0067_close_default_grants.sql | SECURITY: takes back Supabase's default browser privileges on products_public (updatable security-definer view), ledger_balances, bump_counter() and sequences; new objects start closed; privileges only; provisional number |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

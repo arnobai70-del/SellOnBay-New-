@@ -111,6 +111,8 @@ force push, not approved).
 
 ## Log
 
+- 2026-10-28: staging 0001-0066 applied and verified (CLI after history repair). SECURITY: default Supabase grants open products_public (writes), ledger_balances (reads) and bump_counter to anon; fix 0067 written, tested locally, waiting for approval for staging and for a production check. See docs/STAGING_LOG.md.
+
 - 2026-10-28: staging 0001-0014 applied (MCP); 0015 declined twice by the MCP tool, nothing applied; switched to Supabase CLI 2.121.0; history backed up and verified; runner scripts/staging-migrate.mjs; waiting for staging credentials. See docs/STAGING_LOG.md.
 
 - 2026-10-28: staging preparation: lib/stage.ts (password, X-Robots-Tag, robots and sitemap, noindex, fail closed), staging guard pinned to

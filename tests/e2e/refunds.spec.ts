@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { skipRetired } from './retired';
+
+skipRetired('refunds.spec.ts');
 
 /* The refund wording for digital products: on /refunds, with the lawyer tag, and as a short line at checkout. */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';

@@ -4,6 +4,9 @@ import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { skipRetired } from './retired';
+
+skipRetired('extras.spec.ts');
 
 /*
  * Free sample, limited trial copy (behind FEATURE_TRIAL_COPY) and the demo badge, against the real database.

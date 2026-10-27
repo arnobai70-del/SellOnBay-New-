@@ -97,8 +97,8 @@ export default async function ProductView({ id, canonical, crumbs }: ProductView
     description: p.desc,
     category: p.cat,
     url: self,
-    // An example that cannot be bought is not offered to search engines (a Product claim we could not keep).
-    ...(p.example && !examplesBuyable() ? {} : { offers: { '@type': 'Offer', price: p.price, priceCurrency: 'USD', availability: 'https://schema.org/InStock', url: self } }),
+    // No Offer (owner decision O-11): in SellOnBay 2.0 the final price comes from a quotation, so a fixed offers.price would be misleading
+    // markup. The listed price still shows on the page as a starting price. Add an Offer back only under a reviewed rule.
     ...(real.count > 0
       ? {
           aggregateRating: { '@type': 'AggregateRating', ratingValue: real.avg, reviewCount: real.count, bestRating: 5, worstRating: 1 },

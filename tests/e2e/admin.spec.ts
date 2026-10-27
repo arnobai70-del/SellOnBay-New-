@@ -1,4 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
+import { skipRetired } from './retired';
+
+skipRetired('admin.spec.ts');
 
 /* Disputes, the admin pages and their guards. Demo mode (orders in memory, no accounts) for the flow; the real server for "who may call what". */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';

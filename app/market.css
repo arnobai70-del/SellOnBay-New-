@@ -202,7 +202,7 @@
 .mk-wa-page b{display:block;width:60%;height:10px;border-radius:99px;background:var(--ink)}
 .mk-wa-page s{display:block;width:85%;height:7px;border-radius:99px;background:#E3E7F4}
 .mk-wa-page s+s{width:70%}
-.mk-wa-live{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;background:var(--mint);color:#fff;font-size:11px;font-weight:700}
+.mk-wa-live{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;background:#0B8061;color:#fff;font-size:11px;font-weight:700}
 .mk-wa-live::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
 .mk-wa-cursor{position:absolute;left:58%;top:58%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
 /* hold: pay, held, accept */
@@ -215,7 +215,7 @@
 /* yours: the domain in the buyer's name */
 .mk-wa-domain{display:flex;align-items:center;gap:10px;width:78%;padding:12px 16px;border-radius:99px;background:#fff;color:var(--ink);font-weight:700;box-shadow:0 22px 40px -18px rgba(0,0,0,.7)}
 .mk-wa-domain svg{color:var(--mint)}
-.mk-wa-owner{position:absolute;right:11%;bottom:22px;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:var(--mint);color:#fff;font-size:12px;font-weight:700;box-shadow:0 12px 24px -12px rgba(14,159,118,.8)}
+.mk-wa-owner{position:absolute;right:11%;bottom:22px;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:#0B8061;color:#fff;font-size:12px;font-weight:700;box-shadow:0 12px 24px -12px rgba(14,159,118,.8)}
 
 /* steps */
 .mk-steps-h{margin-bottom:22px}

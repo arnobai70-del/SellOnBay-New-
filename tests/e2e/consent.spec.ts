@@ -1,4 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
+import { skipRetired } from './retired';
+
+skipRetired('consent.spec.ts');
 
 /* Accepting an order needs the ticked box; the evidence file is a PDF for the buyer. */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';

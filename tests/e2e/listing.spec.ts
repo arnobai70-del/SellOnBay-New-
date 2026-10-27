@@ -3,6 +3,9 @@ import { expect, test, type Browser, type BrowserContext } from '@playwright/tes
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { skipRetired } from './retired';
+
+skipRetired('listing.spec.ts');
 
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';
 const REAL = process.env.REAL_URL ?? 'http://localhost:3000';

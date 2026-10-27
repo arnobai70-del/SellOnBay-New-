@@ -46,12 +46,19 @@ test('lists show no prices, and the price appears on the product page beside Buy
   await page.goto(`${DEMO}/browse?min=10&max=20&sort=low`);
   const grid = page.locator('.bl-grid');
   await expect(grid.locator('.tall').first()).toBeVisible();
-  expect(await grid.innerText()).not.toMatch(/\$\d/);
+  // drawn app previews (AppPhone, .ap-ui) show made-up in-app prices such as a menu item; only listing text counts
+  const listText = (sel: string) =>
+    page.locator(sel).evaluate((el) => {
+      const c = el.cloneNode(true) as HTMLElement;
+      c.querySelectorAll('.ap-ui, [aria-hidden="true"]').forEach((n) => n.remove());
+      return c.innerText ?? c.textContent ?? '';
+    });
+  expect(await listText('.bl-grid')).not.toMatch(/\$\d/);
   await expect(page.getByRole('option', { name: /^Price/ })).toHaveCount(0);
   await expect(page.getByText('Lowest price')).toHaveCount(0);
   await expect(page).toHaveURL(/\/browse$/); // price filters from an old link are dropped
   await page.goto(`${DEMO}/`);
-  expect(await page.locator('.ex-grid').innerText()).not.toMatch(/\$\d/);
+  expect(await listText('.ex-grid')).not.toMatch(/\$\d/);
   await page.locator('.ex-grid .ex-card-in').first().click();
   await expect(page.locator('.buybox .price')).toHaveText(/^\$\d/);
 });

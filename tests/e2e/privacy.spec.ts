@@ -11,10 +11,10 @@ test.describe('cookie notice', () => {
     await page.goto(DEMO + '/');
     const notice = page.getByRole('region', { name: 'Cookies' });
     await expect(notice).toBeVisible();
-    await expect(notice).toContainText('No advertising, no tracking');
+    await expect(notice).toContainText('never for advertising'); // GA4 only after "Accept analytics" (components/CookieNotice.tsx)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
     await expect(notice.getByRole('link', { name: 'What we store' })).toHaveAttribute('href', '/privacy#cookies');
-    await notice.getByRole('button', { name: 'Got it' }).click();
+    await notice.getByRole('button', { name: 'Only what is needed' }).click();
     await expect(notice).toHaveCount(0);
     await page.reload();
     await expect(page.getByRole('region', { name: 'Cookies' })).toHaveCount(0);
@@ -23,7 +23,7 @@ test.describe('cookie notice', () => {
   test('the privacy page explains cookies and the data choices', async ({ page }) => {
     await page.goto(DEMO + '/privacy');
     await expect(page.getByRole('heading', { name: 'Cookies' })).toBeVisible();
-    await expect(page.getByText('We do not use advertising or tracking cookies')).toBeVisible();
+    await expect(page.getByText('We do not use advertising cookies', { exact: false })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Your data' }).first()).toHaveAttribute('href', '/account/privacy');
   });
 });

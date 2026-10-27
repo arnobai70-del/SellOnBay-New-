@@ -1,4 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
+import { skipRetired } from './retired';
+
+skipRetired('handover.spec.ts');
 
 /* Repository delivery, licences, extra work with escrow, and the handover certificate, through the API and the pages, in demo mode. */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';

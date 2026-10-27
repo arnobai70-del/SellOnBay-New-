@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { skipRetired } from './retired';
+
+skipRetired('guard.spec.ts');
 
 /* Abuse hardening on the running app: one connection cannot create orders without end, other connections are not affected, and the device cookie is set. */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';

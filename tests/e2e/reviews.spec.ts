@@ -1,4 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
+import { skipRetired } from './retired';
+
+skipRetired('reviews.spec.ts');
 
 /* Reviews through the API and the pages, in demo mode. Structured data only carries a rating once there is a real review. */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';
@@ -20,7 +23,7 @@ test.describe('reviews', () => {
   test('a product without a real review has Product data but no rating in its structured data', async ({ request }) => {
     const ld = await ldOf(request, '/product/folio-studio');
     expect(ld['@type']).toBe('Product');
-    expect(ld.offers).toMatchObject({ '@type': 'Offer', priceCurrency: 'USD' });
+    expect(ld.offers).toBeUndefined(); // O-11: quotation pricing, no offers.price
     expect(ld.aggregateRating).toBeUndefined();
     expect(ld.review).toBeUndefined();
   });

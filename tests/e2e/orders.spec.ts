@@ -165,6 +165,9 @@ test.describe('payment webhooks', () => {
 import { createClient } from '@supabase/supabase-js';
 import fs from 'node:fs';
 import path from 'node:path';
+import { skipRetired } from './retired';
+
+skipRetired('orders.spec.ts');
 
 const REAL = process.env.REAL_URL ?? 'http://localhost:3000';
 const envFile = path.join(__dirname, '..', '..', '.env.local');

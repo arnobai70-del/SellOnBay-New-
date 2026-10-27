@@ -5,6 +5,7 @@ import { supabaseConfigured } from '../supabase/env';
 import { mayUseDemoAdmin } from './mode';
 import { createClient } from '../supabase/server';
 import { effectiveScopes, hasScope, type AdminScope } from './scopes';
+import { hasSocialIdentity, type Identity } from '../auth/social';
 
 /*
  * Every admin route starts here, naming the permission it needs (lib/admin/scopes.ts; a test checks every admin route names one).
@@ -39,6 +40,7 @@ export async function adminOnly(need: AdminScope | readonly AdminScope[]): Promi
   if (!user) return no('Sign in first.', 401);
   const p = await readAdminProfile(sb, user.id);
   if (!p || cannotAct(p) || p.role !== 'admin') return no('Not allowed.', 403);
+  if (hasSocialIdentity(user.identities as Identity[] | undefined)) return no('Admin accounts sign in with password and authenticator code only.', 403); // O-7
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== 'aal2') return no('Enter your authenticator code first.', 403);
   const scopes = effectiveScopes(p.admin_scopes);

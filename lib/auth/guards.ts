@@ -5,6 +5,7 @@ import { supabaseConfigured } from '../supabase/env';
 import { createClient } from '../supabase/server';
 import { readAdminProfile } from '../admin/guard';
 import { effectiveScopes, type AdminScope } from '../admin/scopes';
+import { hasSocialIdentity, type Identity } from './social';
 
 /*
  * Server-side checks for the SellOnBay 2.0 buyer and seller API routes (the admin ones use lib/admin/guard.ts).
@@ -14,7 +15,7 @@ import { effectiveScopes, type AdminScope } from '../admin/scopes';
 export type Who = { ok: true; id: string; name: string; email: string | null } | { ok: false; res: NextResponse };
 const no = (error: string, status: number): Who => ({ ok: false, res: NextResponse.json({ error }, { status }) });
 
-async function signedIn(): Promise<{ ok: true; id: string; email: string | null; role: string; name: string; aal2: boolean } | { ok: false; res: NextResponse }> {
+async function signedIn(): Promise<{ ok: true; id: string; email: string | null; role: string; name: string; aal2: boolean; social: boolean } | { ok: false; res: NextResponse }> {
   if (!supabaseConfigured) return { ok: false, res: NextResponse.json({ error: 'This needs an account. There are none in demo mode.' }, { status: 404 }) };
   const sb = await createClient();
   const {
@@ -26,7 +27,15 @@ async function signedIn(): Promise<{ ok: true; id: string; email: string | null;
     sb.auth.mfa.getAuthenticatorAssuranceLevel(),
   ]);
   if (!p || cannotAct(p)) return { ok: false, res: NextResponse.json({ error: 'This account cannot do that right now.' }, { status: 403 }) };
-  return { ok: true, id: user.id, email: user.email ?? null, role: p.role ?? 'buyer', name: p.full_name || 'You', aal2: aal?.currentLevel === 'aal2' };
+  return {
+    ok: true,
+    id: user.id,
+    email: user.email ?? null,
+    role: p.role ?? 'buyer',
+    name: p.full_name || 'You',
+    aal2: aal?.currentLevel === 'aal2',
+    social: hasSocialIdentity(user.identities as Identity[] | undefined),
+  };
 }
 
 export async function buyerOnly(): Promise<Who> {
@@ -55,6 +64,7 @@ export async function participant(): Promise<ParticipantCheck> {
   const role = s.role === 'admin' || s.role === 'seller' ? s.role : 'buyer';
   if (role !== 'buyer' && !s.aal2) return { ok: false, res: NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 }) };
   if (role !== 'admin') return { ok: true, viewer: { id: s.id, role } };
+  if (s.social) return { ok: false, res: NextResponse.json({ error: 'Admin accounts sign in with password and authenticator code only.' }, { status: 403 }) }; // O-7
   const sb = await createClient();
   return { ok: true, viewer: { id: s.id, role, scopes: effectiveScopes((await readAdminProfile(sb, s.id))?.admin_scopes) } };
 }

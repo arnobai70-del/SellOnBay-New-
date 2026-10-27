@@ -28,10 +28,18 @@ staging yet: there is no staging project.
 | 7   | Messaging and support            | DONE                                                            | a5d1682 + Phase 7 closure            | 0062                | –                                                                                                 | –                            |
 | 8   | Revisions and custom development | DONE                                                            | Phase 8 commit                       | 0064                | Browser checks on staging                                                                         | –                            |
 | 9   | Reports and country analytics    | DONE (sales PDF, receipts); GA4 and first-party country BLOCKED | Phase 9 commit                       | 0065                | GA4 reader never run against Google; first-party switch-on and privacy text                       | B-5, B-12                    |
-| 10  | Social login                     | MISSING (flags only)                                            | –                                    | P19                 | Link intents, callback guard, admin refusal, Apple path; providers stay off                       | B-6, B-7                     |
+| 10  | Social login                     | Extra layers DONE; every provider BLOCKED (off)                 | Phase 10 commit                      | 0066                | S1-S4, S7, S12-S14 on staging; Supabase automatic-linking setting confirmed per provider          | B-6, B-7                     |
 | 11  | Advertising                      | MISSING (flags only)                                            | –                                    | P22 (proposed only) | Screens, review queue, token interface; no ad API calls                                           | B-9, B-10                    |
 | 12  | Storefront, dashboards, CMS      | MISSING                                                         | –                                    | –                   | CMS draft/preview/publish/rollback page by page, dashboard maps (Blueprint 10.1)                  | Brand changes need the owner |
 | 13  | Hardening                        | NOT STARTED                                                     | –                                    | –                   | Full regression, security, RLS on staging, reconciliation, rollback drill                         | B-11, B-12, staging          |
+
+## Social sign-in tests (Addendum 3.4)
+
+Local unit tests (tests/unit/social-login.test.ts): S5/S6 intent rules, S8 admin cannot link, S9 admin session refused (pages, admin APIs,
+participant APIs, callback, scheduled check), S10 role never from the provider (profile trigger reads only full_name; default buyer),
+S11 last method kept, S15 Apple only for existing accounts, providers locked off. NOT run (need a staging Supabase with the planned Auth
+settings, BLOCKED by B-6/B-7): S1-S4 automatic linking at the Auth level, S7 aal1 after social sign-in, S12 provider email change,
+S13 redirect allow-list in Supabase, S14 tokens in URLs or logs.
 
 ## Known test gaps
 
@@ -43,6 +51,7 @@ staging yet: there is no staging project.
 
 ## Log
 
+- 2026-10-27: Phase 10: link intents and link log (0066), callback guard (switched-off providers, new Apple accounts, links without intent, unlinked identities), admin sessions with any social identity refused everywhere plus a scheduled check, sign-in buttons need SellOnBay's flag as well as Supabase, Apple only as a secondary link, Account > Sign-in methods. All providers stay off.
 - 2026-10-27: Phase 9: sales PDFs (Finance/Super all, seller own, buyer receipt), 1,000 rows per file, private 24-hour files, kept export log, purge in cron; GA4 Data API reader (unverified, flag locked, B-5) and first-party country (flag locked, B-12, trusted proxy header only), shown apart and never added. Privacy page text for both waits for B-12.
 - 2026-10-27: Phase 8: revision policies (seller proposes, Catalog approves, default in quotations), revisions (defect / included / paid / feature, own release step, follow-up on "not done"), paid changes as linked custom requests, custom-dev developer assigned before quoting; see docs/DECISIONS.md. Fixed: AdminForm textareas cut long requirement sets and legal texts at 600 characters.
 - 2026-10-27: Phase 1 remainder: CMS history with rollback (P04) and versioned legal documents (P05) in 0063; quotations snapshot the published licence version; 2.0 routes already sit in the maintenance module map (tested).

@@ -18,8 +18,13 @@ const GOOGLE = (
   </>
 );
 
-/* Only the providers switched on in Supabase are passed in (`enabledOAuth`), so no button leads to an error page. */
-export function OAuthButtons({ next, providers }: { next?: string; providers: Provider[] }) {
+const LABEL: Record<Provider, string> = { google: 'Google', azure: 'Microsoft', github: 'GitHub', gitlab: 'GitLab', apple: 'Apple' };
+
+/*
+ * Only the providers switched on in Supabase AND by SellOnBay (lib/auth/socialService.ts signInOptions) are passed in, so no button leads to an
+ * error page. Apple is never a main button: existing Apple accounts get a small "Signed up with Apple?" link instead (Addendum 3.5).
+ */
+export function OAuthButtons({ next, providers, appleExisting = false }: { next?: string; providers: Provider[]; appleExisting?: boolean }) {
   const [error, setError] = useState('');
   const go = async (provider: Provider) => {
     setError('');
@@ -32,16 +37,31 @@ export function OAuthButtons({ next, providers }: { next?: string; providers: Pr
       <p className="muted" style={{ fontSize: 14, marginBottom: 10 }}>
         Or continue with
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${providers.length}, minmax(0, 1fr))`, gap: 12 }}>
-        {providers.map((p) => (
-          <button key={p} type="button" className="btn btn-line" onClick={() => go(p)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              {p === 'google' ? GOOGLE : APPLE}
-            </svg>
-            {p === 'google' ? 'Google' : 'Apple'}
+      {providers.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(providers.length, 2)}, minmax(0, 1fr))`, gap: 12 }}>
+          {providers.map((p) => (
+            <button key={p} type="button" className="btn btn-line" onClick={() => go(p)}>
+              {p === 'google' && (
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  {GOOGLE}
+                </svg>
+              )}
+              {LABEL[p]}
+            </button>
+          ))}
+        </div>
+      )}
+      {appleExisting && (
+        <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>
+          Signed up with Apple?{' '}
+          <button type="button" className="linkish" onClick={() => go('apple')}>
+            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+              {APPLE}
+            </svg>{' '}
+            Continue with Apple
           </button>
-        ))}
-      </div>
+        </p>
+      )}
       {error && (
         <p role="alert" style={{ color: 'var(--rose)', marginTop: 10 }}>
           {error}

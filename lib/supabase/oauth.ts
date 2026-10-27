@@ -1,7 +1,8 @@
 import { supabaseAnonKey, supabaseConfigured, supabaseUrl } from './env';
 
-export type OAuthProvider = 'google' | 'apple';
-const ALL: OAuthProvider[] = ['google', 'apple'];
+/* Supabase's names: azure is Microsoft (personal and work accounts), gitlab is gitlab.com. Whether a button shows is lib/auth/socialService.ts. */
+export type OAuthProvider = 'google' | 'azure' | 'github' | 'gitlab' | 'apple';
+const ALL: OAuthProvider[] = ['google', 'azure', 'github', 'gitlab', 'apple'];
 
 /* The sign-in providers switched on in Supabase (Authentication > Sign In / Providers), read from its public settings so a
    button never leads to "provider is not enabled". Kept for a minute; when Supabase cannot be reached no button shows. */

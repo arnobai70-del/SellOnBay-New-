@@ -9,6 +9,7 @@ import { maintenancePage } from '@/lib/maintenance/guard';
 import { closedRow } from '@/lib/maintenance/state';
 import { readAdminProfile } from '@/lib/admin/guard';
 import { effectiveScopes, hasScope, type AdminScope } from '@/lib/admin/scopes';
+import { hasSocialIdentity, type Identity } from '@/lib/auth/social';
 
 export type ViewerRole = 'buyer' | 'seller' | 'admin';
 
@@ -56,6 +57,8 @@ export async function requireViewer(opts: { path: string; roles?: ViewerRole[]; 
   }
   if (mod && closed && role !== 'admin') redirect(maintenancePage(mod));
   let scopes: AdminScope[] = [];
+  // O-7: an admin account never works through a social sign-in. If one has a social identity by any route, every admin page is refused.
+  if (role === 'admin' && hasSocialIdentity(user.identities as Identity[] | undefined)) redirect('/login?error=' + encodeURIComponent('Admin accounts sign in with password and authenticator code only. Contact another admin.'));
   if (role === 'admin') {
     scopes = effectiveScopes((await readAdminProfile(sb, user.id))?.admin_scopes);
     if (opts.scope && !hasScope(scopes, opts.scope)) redirect('/dashboard/admin?denied=1');

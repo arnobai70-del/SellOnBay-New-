@@ -729,4 +729,35 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0066 (SellOnBay 2.0): link intents are short, single-use and fixed; the link log is append-only; no client access.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    const u = (await db.query(`insert into auth.users (email) values ('link-user@example.com') returning id`)).rows[0].id;
+    await db.exec(`insert into profiles (id, full_name) values ('${u}', 'Link User') on conflict (id) do nothing`);
+    if (!(await refused(`insert into link_intents (user_id, provider, expires_at) values ('${u}', 'google', now() + interval '1 hour')`))) throw new Error('an intent valid for an hour');
+    if (!(await refused(`insert into link_intents (user_id, provider, expires_at) values ('${u}', 'facebook', now() + interval '5 minutes')`))) throw new Error('an unknown provider');
+    const i = (await db.query(`insert into link_intents (user_id, provider, expires_at) values ('${u}', 'google', now() + interval '10 minutes') returning id`)).rows[0].id;
+    if (!(await refused(`update link_intents set provider = 'github' where id = '${i}'`))) throw new Error('an intent changed provider');
+    await db.exec(`update link_intents set used_at = now() where id = '${i}'`);
+    if (!(await refused(`update link_intents set used_at = now() + interval '1 minute' where id = '${i}'`))) throw new Error('an intent was used twice');
+    await db.exec(`insert into account_link_events (user_id, provider, action) values ('${u}', 'google', 'linked')`);
+    if (!(await refused(`update account_link_events set action = 'unlinked'`))) throw new Error('the link log changed');
+    if (!(await refused(`delete from account_link_events`))) throw new Error('the link log was deleted');
+    for (const t of ['link_intents', 'account_link_events'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    console.log('ok   account links: intents at most 15 minutes, single use and fixed, append-only link log, no client access');
+  } catch (err) {
+    failed = true;
+    console.log('FAIL account links:', err.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

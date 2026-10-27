@@ -34,6 +34,7 @@ export function AuthClient({
   sent,
   botKey = '',
   oauth = [],
+  appleExisting = false,
 }: {
   live: boolean;
   error?: string;
@@ -41,6 +42,8 @@ export function AuthClient({
   sent?: boolean;
   botKey?: string;
   oauth?: OAuthProvider[];
+  /* Apple is hidden from new sign-ups; existing Apple accounts keep a secondary link (Addendum 3.5). */
+  appleExisting?: boolean;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
@@ -233,7 +236,7 @@ export function AuthClient({
               )}
             </form>
 
-            {live && oauth.length > 0 && <OAuthButtons next={next} providers={oauth} />}
+            {live && (oauth.length > 0 || appleExisting) && <OAuthButtons next={next} providers={oauth} appleExisting={appleExisting} />}
 
             <p style={{ marginTop: 20 }} className="muted">
               {signup ? 'Already have an account? ' : 'New to SellOnBay? '}

@@ -789,4 +789,26 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0068 (SellOnBay 2.0): narrow column grants hold again: authenticated marks notifications read and nothing else, cannot delete a
+  // seller profile, and anon writes nothing on the tables with client policies.
+  try {
+    const col = async (role, t, c, p) => (await db.query(`select has_column_privilege('${role}', '${t}', '${c}', '${p}') as v`)).rows[0].v;
+    const tab = async (role, t, p) => (await db.query(`select has_table_privilege('${role}', '${t}', '${p}') as v`)).rows[0].v;
+    if (!(await col('authenticated', 'notifications', 'read_at', 'UPDATE'))) throw new Error('authenticated cannot mark notifications read');
+    for (const c of ['kind', 'payload', 'user_id']) if (await col('authenticated', 'notifications', c, 'UPDATE')) throw new Error(`authenticated can change notifications.${c}`);
+    if (await tab('authenticated', 'seller_profiles', 'DELETE')) throw new Error('authenticated can delete seller profiles');
+    // 0045: seller profiles (payout details) are written by the server only, after the authenticator code
+    for (const c of ['display_name', 'payout_ref', 'email_verified', 'id_verified'])
+      if (await col('authenticated', 'seller_profiles', c, 'UPDATE')) throw new Error(`authenticated can change seller_profiles.${c}`);
+    for (const t of ['profiles', 'seller_profiles', 'notifications', 'abuse_reports'])
+      for (const p of ['INSERT', 'UPDATE', 'DELETE']) if (await tab('anon', t, p)) throw new Error(`anon can ${p} ${t}`);
+    if (!(await col('authenticated', 'profiles', 'full_name', 'UPDATE'))) throw new Error('people cannot change their own name');
+    console.log('ok   column grants hold: notifications read_at only, no seller profile delete, no anon writes on client-policy tables');
+  } catch (err) {
+    failed = true;
+    console.log('FAIL column grants:', err.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

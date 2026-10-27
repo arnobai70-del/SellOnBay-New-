@@ -17,6 +17,8 @@ const env: Record<string, string> = fs.existsSync(envFile)
         .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
     )
   : {};
+// The staging run passes the isolated project's keys in the process environment instead of a file in the repository (docs/STAGING_PREFLIGHT_2_0.md).
+for (const k of ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']) if (process.env[k]) env[k] = process.env[k] as string;
 const PASS = 'Qa-test-pass-123';
 const strictStaging = process.env.CI_STAGING_STRICT === '1';
 if (strictStaging && (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY || !env.SUPABASE_SERVICE_ROLE_KEY)) {

@@ -19,7 +19,7 @@ import { PRODUCTION_SUPABASE_REF, STAGING_SUPABASE_REF } from './verify-staging-
 
 const REF = STAGING_SUPABASE_REF;
 const MIG = join(process.cwd(), 'supabase', 'migrations');
-const BATCH_STARTS = ['0015', '0016', '0019', '0023', '0043', '0053', '0060'];
+const BATCH_STARTS = ['0015', '0016', '0019', '0023', '0043', '0053', '0060', '0067', '0068']; // 0067, 0068: security fixes found on staging
 const MCP_VERSIONS = [
   '20261027213445',
   '20261027213530',
@@ -100,8 +100,17 @@ if (cmd === 'repair') {
   if (!b.ok) fail('repair (applied) failed');
   console.log(cli(['migration', 'list', '--project-ref', REF], env).out);
 } else if (cmd === 'plan' || cmd === 'apply') {
+  // Versions already recorded on the staging project: batches made only of those are skipped, never re-run.
+  const list = cli(['migration', 'list', '--project-ref', REF], env);
+  if (!list.ok) fail('could not read the migration history');
+  const remote = new Set([...list.out.matchAll(/"remote":"(\d{4})"/g)].map((m) => m[1]));
   const notYet = []; // plan applies nothing, so a later batch's dry run also lists the earlier pending batches
   for (const batch of batches()) {
+    if (batch.every((f) => remote.has(f.slice(0, 4)))) {
+      console.log(`batch ${batch[0].slice(0, 4)}-${batch[batch.length - 1].slice(0, 4)}: already applied, skipped`);
+      continue;
+    }
+    if (batch.some((f) => remote.has(f.slice(0, 4)))) fail('a batch is partly applied: ' + batch.join(','));
     const dir = workdir(batch[batch.length - 1]);
     const dry = cli(['db', 'push', '--workdir', dir, '--project-ref', REF, '--dry-run'], env);
     const want = [...(cmd === 'plan' ? notYet : []), ...batch.map((f) => f.slice(0, 4))];

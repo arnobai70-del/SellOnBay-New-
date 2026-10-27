@@ -7,7 +7,7 @@
 --   bump_counter()   a security-definer function: anon and authenticated could inflate the risk counters
 -- requires: 0001 (products_public), 0016 (ledger_balances), 0032 (bump_counter)
 
-revoke insert, update, delete, truncate, references, trigger on products_public from anon, authenticated;
+revoke insert, update, delete, truncate, references, trigger, maintain on products_public from anon, authenticated;
 revoke all on ledger_balances from anon, authenticated;
 grant select on ledger_balances to service_role;
 revoke execute on function bump_counter(date, text, integer) from anon, authenticated;

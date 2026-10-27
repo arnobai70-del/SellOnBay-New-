@@ -5,7 +5,8 @@ import { HowItWorks } from '@/components/HowItWorks';
 import { PageHero } from '@/components/PageHero';
 import { Reveal } from '@/components/Reveal';
 import { SellerCalc } from '@/components/SellerCalc';
-import { FAQ_GROUPS } from '@/lib/faq';
+import { faqToShow } from '@/lib/faq';
+import { publishedFaq, publishedHow } from '@/lib/cms/docStore';
 import { BRAND_NAME } from '@/lib/brand';
 import { CONFIG, PLAN_FEE_TEXT } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
@@ -66,7 +67,7 @@ export default async function Sell() {
 
       <Reveal className="section" style={{ paddingTop: 0 }}>
         <div className="wrap">
-          <HowItWorks initial="sell" toggle={false} title="How selling works" />
+          <HowItWorks initial="sell" toggle={false} title="How selling works" steps={(await publishedHow()) ?? undefined} />
         </div>
       </Reveal>
 
@@ -78,7 +79,7 @@ export default async function Sell() {
               All questions
             </Link>
           </div>
-          <FaqList items={FAQ_GROUPS[2].items} />
+          <FaqList items={faqToShow((await publishedFaq())?.groups ?? null).selling} />
         </div>
       </Reveal>
 

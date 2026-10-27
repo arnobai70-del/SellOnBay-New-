@@ -9,6 +9,8 @@ import type { PageSeo, PageWordsInput } from '../seo/pageList';
 import { setPageWords } from '../seo/pageWords';
 import { setRobotsExtra } from '../seo/robotsStore';
 import { revision, revisionsOf, rollbackContext } from './history';
+import { publishValue } from './docStore';
+import type { DocName } from './docs';
 import { nextRevision, trackedKey } from './rules';
 
 type Result = { ok: true } | { ok: false; status: number; error: string };
@@ -47,6 +49,9 @@ export async function rollback(adminId: string | null, key: string, version: num
         return setPageWords(adminId, path, obj<PageWordsInput>(v, { heading: '', intro: '', body: '' }));
       case 'nav':
         return setNavConfig(adminId, obj<NavConfig>(v, { order: [], hidden: [] }));
+      case 'cms_doc':
+        if (v === null) return { ok: false, status: 409, error: 'The built-in text cannot be put back from here. Publish a new version instead.' };
+        return publishValue(adminId, path as DocName, v, null);
       case 'robots':
         return setRobotsExtra(adminId, Array.isArray(v) ? v.map(String) : []);
     }

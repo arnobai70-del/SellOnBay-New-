@@ -1,5 +1,6 @@
 import 'server-only';
 import { TEMPLATES, type NotificationKind, type Payload } from '../emails/templates';
+import { renderNotification } from './cms/emailRender';
 import { emailProvider } from './providers/email';
 import { orderStore } from './orders/store';
 import { createAdminClient } from './supabase/server';
@@ -34,7 +35,7 @@ async function addressOf(userId: string): Promise<string | null> {
 export async function notify(userId: string | null | undefined, kind: NotificationKind, payload: Payload = {}, opts: { dedupe?: string; email?: boolean } = {}): Promise<boolean> {
   if (!userId) return false;
   try {
-    const { subject, text } = TEMPLATES[kind](payload);
+    const { subject, text } = (await renderNotification(kind, payload)) ?? TEMPLATES[kind](payload);
     let notificationId: string;
     const stored = await pg();
     if (stored) {
@@ -78,11 +79,13 @@ export async function notificationsFor(userId: string, limit = 50): Promise<Noti
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
-    return (data ?? []).map((r) => {
-      const k = r.kind as NotificationKind;
-      const tpl = TEMPLATES[k]?.(r.payload ?? {}) ?? { subject: r.kind, text: '' };
-      return { id: r.id, userId: r.user_id, kind: k, payload: r.payload ?? {}, read: !!r.read_at, at: Date.parse(r.created_at), ...tpl };
-    });
+    return Promise.all(
+      (data ?? []).map(async (r) => {
+        const k = r.kind as NotificationKind;
+        const tpl = (await renderNotification(k, r.payload ?? {})) ?? { subject: r.kind, text: '' };
+        return { id: r.id, userId: r.user_id, kind: k, payload: r.payload ?? {}, read: !!r.read_at, at: Date.parse(r.created_at), ...tpl };
+      }),
+    );
   }
   return mem
     .filter((n) => n.userId === userId)
@@ -114,7 +117,7 @@ export const ADMIN_ALERT_EMAIL = (process.env.ADMIN_ALERT_EMAIL ?? 'sellonbayus@
 async function mailOwner(kind: NotificationKind, payload: Payload, dedupe?: string) {
   if (!ADMIN_ALERT_EMAIL) return;
   try {
-    const { subject, text } = TEMPLATES[kind](payload);
+    const { subject, text } = (await renderNotification(kind, payload)) ?? TEMPLATES[kind](payload);
     await emailProvider().send({ to: ADMIN_ALERT_EMAIL, subject, text, idempotencyKey: dedupe ? `owner/${kind}/${dedupe}` : undefined });
   } catch {
     console.error('Owner alert email failed:', kind);

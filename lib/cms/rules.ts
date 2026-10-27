@@ -3,7 +3,7 @@
  * Every save of a site-builder or SEO setting becomes a numbered revision of its app_settings key; a rollback saves an older revision again,
  * through the same setter (so the same checks run), and is itself a new revision. History is never rewritten or deleted.
  */
-export type TrackedKind = 'menu' | 'footer' | 'social' | 'sections' | 'blocks' | 'seo_page' | 'seo_controls' | 'page_words' | 'nav' | 'robots';
+export type TrackedKind = 'menu' | 'footer' | 'social' | 'cms_doc' | 'sections' | 'blocks' | 'seo_page' | 'seo_controls' | 'page_words' | 'nav' | 'robots';
 export type Tracked = { kind: TrackedKind; path?: string; label: string };
 
 const PREFIXES: [string, TrackedKind, string][] = [
@@ -12,6 +12,7 @@ const PREFIXES: [string, TrackedKind, string][] = [
   ['seo:page:', 'seo_page', 'Search words'],
   ['seo:ctl:', 'seo_controls', 'Page controls'],
   ['page:words:', 'page_words', 'Heading and text'],
+  ['cms:doc:', 'cms_doc', 'Published text'],
 ];
 const EXACT: Record<string, [TrackedKind, string]> = {
   'site:menu': ['menu', 'Top menu'],
@@ -29,6 +30,7 @@ export function trackedKey(key: string): Tracked | null {
   for (const [p, kind, label] of PREFIXES) {
     if (!key.startsWith(p)) continue;
     const path = key.slice(p.length);
+    if (kind === 'cms_doc') return /^(faq|how_it_works|email:[a-z_]{3,40})$/.test(path) ? { kind, path, label: `${label} · ${path}` } : null;
     if (!path.startsWith('/') || path.length > 200) return null;
     return { kind, path, label: `${label} · ${path}` };
   }

@@ -5,7 +5,8 @@ import { FaqList } from '@/components/FaqList';
 import { HowItWorks } from '@/components/HowItWorks';
 import { PageHero } from '@/components/PageHero';
 import { Reveal } from '@/components/Reveal';
-import { TOP_FAQ } from '@/lib/faq';
+import { faqToShow } from '@/lib/faq';
+import { publishedFaq, publishedHow } from '@/lib/cms/docStore';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { PageExtras } from '@/components/PageExtras';
@@ -14,6 +15,8 @@ export const generateMetadata = () => pageMetadata('/how-it-works');
 
 export default async function HowPage() {
   const w = await pageWords('/how-it-works');
+  const { top } = faqToShow((await publishedFaq())?.groups ?? null);
+  const steps = (await publishedHow()) ?? undefined; // Admin > CMS, else built-in
   return (
     <>
       <PageHero tone="gold" title={w.heading} lead={w.intro ?? ''}>
@@ -24,7 +27,7 @@ export default async function HowPage() {
 
       <Reveal className="section" id="steps">
         <div className="wrap">
-          <HowItWorks />
+          <HowItWorks steps={steps} />
         </div>
       </Reveal>
 
@@ -85,7 +88,7 @@ export default async function HowPage() {
               All questions
             </Link>
           </div>
-          <FaqList items={TOP_FAQ} />
+          <FaqList items={top} />
         </div>
       </Reveal>
 

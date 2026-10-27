@@ -86,6 +86,12 @@ export async function exportData(userId: string): Promise<Record<string, unknown
   const orderIds = [...(asBuyer.data ?? []), ...(asSeller.data ?? [])].map((o) => o.id);
   const events = orderIds.length ? await db.from('order_events').select('order_id, event, from_state, to_state, created_at').in('order_id', orderIds).order('id') : { data: [] };
   const consents = await db.from('order_consents').select('order_id, kind, text_version, ip, user_agent, created_at').eq('user_id', userId); // empty before migration 0034
+  const v2 = await exportV2(
+    db,
+    userId,
+    (asBuyer.data ?? []).map((o) => o.id),
+    (asSeller.data ?? []).map((o) => o.id),
+  );
   return stripSecrets({
     generatedAt: new Date().toISOString(),
     about: 'Everything SellOnBay holds about your account. Other people appear only as ids. Payments, orders and the ledger are also kept in our accounting records.',
@@ -106,7 +112,76 @@ export async function exportData(userId: string): Promise<Record<string, unknown
     downloads: downloads.data,
     acceptances: consents.data ?? [],
     dataRequests: requests.data,
+    sellOnBay2: v2,
   });
+}
+
+/*
+ * SellOnBay 2.0 records about this person (Blueprint 11.4). Only what they may see: issued quotations (not drafts or internal notes), their
+ * own payment reports (a proof file is shown as uploaded, never its storage path), the message channels they belong to (internal admin
+ * notes never), their tickets, revisions, plan, uploads, sign-in link log and report exports. A table that does not exist yet (its migration
+ * is not applied) is reported as not available rather than failing the export. Retention periods are pending legal approval (O-12, B-12).
+ */
+async function exportV2(db: ReturnType<typeof createAdminClient>, userId: string, buyerOrders: string[], sellerOrders: string[]) {
+  const take = async <T>(q: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[] | 'not available'> => {
+    const r = await q;
+    return r.error ? 'not available' : (r.data ?? []);
+  };
+  const list = <T>(x: T[] | 'not available') => (Array.isArray(x) ? x : []);
+  const requests = await take(
+    db
+      .from('purchase_requests')
+      .select('id, kind, product_id, status, licence_tier, package, intended_use, requirements, verified_requirements, requirements_confirmed_at, created_at, updated_at')
+      .eq('buyer_id', userId),
+  );
+  const requestIds = list(requests).map((r) => (r as { id: string }).id);
+  const tickets = await take(db.from('support_tickets').select('id, opener_role, order_id, subject, status, created_at, updated_at').eq('opened_by', userId));
+  const ticketRows = list(tickets) as { id: string; opener_role: string }[];
+  const buyerSubjects = [...buyerOrders, ...requestIds, ...ticketRows.filter((t) => t.opener_role === 'buyer').map((t) => t.id)];
+  const sellerSubjects = [...sellerOrders, ...ticketRows.filter((t) => t.opener_role === 'seller').map((t) => t.id)];
+  const msgCols = 'subject_type, subject_id, channel, sender_role, body, created_at';
+  const none = Promise.resolve({ data: [], error: null });
+  const [quotes, payments, refunds, entitlements, revisions, buyerMsgs, sellerMsgs, plan, files, links, exports] = await Promise.all([
+    take(
+      requestIds.length
+        ? db
+            .from('quotations')
+            .select('request_id, version, status, lines, currency, total_cents, terms, valid_until, accepted_at, order_id')
+            .in('request_id', requestIds)
+            .not('status', 'in', '(draft,pending_super)')
+        : none,
+    ),
+    take(
+      buyerOrders.length
+        ? db.from('payment_attempts').select('order_id, kind, reference, amount_claimed_cents, currency, paid_on, proof_path, status, amount_received_cents, created_at').in('order_id', buyerOrders)
+        : none,
+    ),
+    take(buyerOrders.length ? db.from('refunds').select('order_id, kind, amount_cents, reason, status, paid_at, created_at').in('order_id', buyerOrders) : none),
+    take(db.from('entitlements').select('order_id, product_id, licence_tier, licence_text_version, release_approved_at, status, created_at').eq('buyer_id', userId)),
+    take(db.from('revisions').select('order_id, description, buyer_hint, kind, status, decision_note, delivery_note, released_at, created_at').or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)),
+    take(buyerSubjects.length ? db.from('conversation_messages').select(msgCols).eq('channel', 'buyer_admin').in('subject_id', buyerSubjects).order('created_at') : none),
+    take(sellerSubjects.length ? db.from('conversation_messages').select(msgCols).eq('channel', 'admin_seller').in('subject_id', sellerSubjects).order('created_at') : none),
+    take(db.from('seller_subscriptions').select('plan_id, billing, status, price_cents, current_period_start, current_period_end, created_at').eq('seller_id', userId)),
+    take(db.from('file_objects').select('purpose, product_id, order_id, original_name, size_bytes, sha256, state, created_at').eq('uploaded_by', userId)),
+    take(db.from('account_link_events').select('provider, action, created_at').eq('user_id', userId)),
+    take(db.from('report_exports').select('scope, filters, part, parts, row_count, created_at, file_deleted_at').eq('requested_by', userId)),
+  ]);
+  const paymentRows = Array.isArray(payments) ? payments.map(({ proof_path, ...p }: Record<string, unknown>) => ({ ...p, proofUploaded: !!proof_path })) : payments;
+  return {
+    retention: 'Retention periods for these records are pending legal approval.',
+    purchaseRequests: requests,
+    quotations: quotes,
+    paymentReports: paymentRows,
+    refunds,
+    entitlements,
+    revisions,
+    messagesWithSellOnBay: { asBuyer: buyerMsgs, asSeller: sellerMsgs },
+    supportTickets: tickets,
+    sellerPlan: plan,
+    uploadedFiles: files,
+    signInLinks: links,
+    reportExports: exports,
+  };
 }
 
 export type Result<T = true> = { ok: true; value: T } | { ok: false; status: number; error: string };

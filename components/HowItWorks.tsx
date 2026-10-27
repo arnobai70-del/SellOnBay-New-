@@ -2,7 +2,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { CONFIG, PLAN_KEEP_TEXT, pct, planNetCents } from '@/lib/config';
+import { CONFIG, pct, planNetCents } from '@/lib/config';
+import { BUILT_IN_STEPS } from '@/lib/howSteps';
 import { imageFor, money } from '@/lib/data';
 
 type Mode = 'buy' | 'sell';
@@ -123,20 +124,17 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   );
 }
 
-const STEPS: Record<Mode, { t: string; d: string }[]> = {
-  buy: [
-    { t: 'Choose a site', d: 'Open the live demo, check it on your phone, and pick the one that fits.' },
-    { t: 'Add your domain', d: 'Already own one? Paste it. If not, buy it here in one click.' },
-    { t: 'Review and accept', d: 'Your seller sets it up within 1 to 7 days. You check it, then accept.' },
-  ],
-  sell: [
-    { t: 'List your site', d: `Upload it once and set your price. You keep ${PLAN_KEEP_TEXT} of every sale, depending on your plan.` },
-    { t: 'We check it', d: 'We check for copied content and look at the files, and reply within 24 hours.' },
-    { t: 'Get paid weekly', d: 'Earnings are paid out 7 days after the buyer accepts.' },
-  ],
-};
-
-export function HowItWorks({ initial = 'buy', toggle = true, title = 'Live in three steps' }: { initial?: Mode; toggle?: boolean; title?: string }) {
+export function HowItWorks({
+  initial = 'buy',
+  toggle = true,
+  title = 'Live in three steps',
+  steps = BUILT_IN_STEPS,
+}: {
+  initial?: Mode;
+  toggle?: boolean;
+  title?: string;
+  steps?: Record<Mode, { t: string; d: string }[]>;
+}) {
   const [mode, setMode] = useState<Mode>(initial);
   return (
     <div className="hiw">
@@ -154,7 +152,7 @@ export function HowItWorks({ initial = 'buy', toggle = true, title = 'Live in th
         )}
       </div>
       <div className="hiw-grid" key={mode}>
-        {STEPS[mode].map((s, n) => (
+        {steps[mode].map((s, n) => (
           <div className="hiw-card" key={s.t} style={{ animationDelay: n * 70 + 'ms' }}>
             <div className="hiw-vis">
               <Visual mode={mode} n={n} />

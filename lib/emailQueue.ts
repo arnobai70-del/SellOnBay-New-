@@ -1,6 +1,7 @@
 import 'server-only';
 import { after } from 'next/server';
-import { TEMPLATES, type NotificationKind } from '../emails/templates';
+import type { NotificationKind } from '../emails/templates';
+import { renderNotification } from './cms/emailRender';
 import { CONFIG } from './config';
 import { emailProvider } from './providers/email';
 import { createAdminClient } from './supabase/server';
@@ -55,14 +56,14 @@ async function sendOne(row: Claimed): Promise<'sent' | 'retry' | 'failed'> {
   };
   try {
     const { data: n } = await db.from('notifications').select('id, user_id, kind, payload').eq('id', row.notification_id).maybeSingle();
-    const tpl = n && TEMPLATES[n.kind as NotificationKind];
+    const tpl = n ? await renderNotification(n.kind as NotificationKind, n.payload ?? {}) : null; // published template, else built-in
     const to = n && tpl ? await addressOf(n.user_id) : null;
     // No notification, no template or no address: nothing to send, and trying again will not change that.
     if (!n || !tpl || !to) {
       await finish('failed');
       return 'failed';
     }
-    const { subject, text } = tpl(n.payload ?? {});
+    const { subject, text } = tpl;
     await emailProvider().send({ to, subject, text, idempotencyKey: `notification/${n.id}` });
     await finish('sent');
     return 'sent';

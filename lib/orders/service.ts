@@ -90,7 +90,7 @@ export async function chargeSellerFee(o: Order, key: string, memo: string, feeCe
 export async function ensureLedger(o: Order): Promise<void> {
   if (!o.fundedAt) return;
   const L = await ledgerStore();
-  const money = { id: o.id, sellerId: o.sellerId, lines: o.lines, feeCents: o.feeCents };
+  const money = { id: o.id, sellerId: o.sellerId, lines: o.lines, feeCents: o.feeCents, sellerGrossCents: o.sellerGrossCents };
   try {
     await L.post(buyerPays(money));
     const { listExtras } = await import('./extra');
@@ -102,7 +102,7 @@ export async function ensureLedger(o: Order): Promise<void> {
       // New earnings first pay off what the seller owes from an earlier claw-back.
       const owed = await L.balance(acct.debt(sellerKey(o.sellerId)));
       if (owed > 0) {
-        const earned = split(o.lines, o.feeCents).sellerNet + extras.reduce((s, c) => s + c.priceCents - c.feeCents, 0);
+        const earned = split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet + extras.reduce((s, c) => s + c.priceCents - c.feeCents, 0);
         const settle = Math.min(owed, earned, await L.balance(acct.pending(sellerKey(o.sellerId))));
         if (settle > 0) await L.post(debtSettled(o, settle));
       }
@@ -118,7 +118,7 @@ export async function ensureLedger(o: Order): Promise<void> {
       // Earnings that already paid off an old debt when the order was accepted never reached pending for this order: they must not be taken
       // from another order's pending (still in its hold and open to a dispute).
       const settled = (await L.lines(`debt-settle:${o.id}`))[0]?.amountCents ?? 0;
-      const planned = split(o.lines, o.feeCents).sellerNet + extraNet - o.refundedCents - settled;
+      const planned = split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet + extraNet - o.refundedCents - settled;
       const pending = await L.balance(acct.pending(key));
       const moving = Math.min(planned, pending);
       const reserveCents = rule.days > 0 ? reserveShare(moving, rule.percent) : 0;

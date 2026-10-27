@@ -2734,3 +2734,26 @@ html{scroll-padding-top:92px}
 .upl{display:grid;gap:10px;max-width:560px}
 .upl-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .upl progress{width:100%;height:8px}
+.req-form{display:grid;gap:20px;max-width:760px;margin-bottom:48px}
+.req-sec{background:#fff;border:1px solid var(--line);border-radius:var(--r-l,16px);padding:20px;display:grid;gap:10px;min-width:0}
+.req-sec h2{font-size:1.1rem}
+.req-sec fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+.req-sec legend{font-weight:600;margin-bottom:6px}
+.req-sec .opt{display:flex;gap:10px;align-items:flex-start}
+.req-sec .opt span{display:grid;gap:2px}
+.req-sec textarea,.req-sec input:not([type=radio]):not([type=checkbox]),.req-sec select{width:100%;min-width:0}
+.req-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px}
+.req-sum .btn{justify-self:start}
+.act-step{display:grid;gap:8px;max-width:520px}
+.act-row{display:flex;gap:8px;flex-wrap:wrap}
+.tl2{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.tl2 li{display:grid;gap:2px;padding-left:14px;border-left:2px solid var(--line)}
+.tl2 small{color:var(--mute)}
+.q-lines{width:100%;border-collapse:collapse;font-size:14.5px}
+.q-lines td,.q-lines th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.q-lines td:last-child,.q-lines th:last-child{text-align:right;white-space:nowrap}
+.q-lines tfoot td{font-weight:700;border-bottom:0}
+.q-edit{display:grid;gap:10px}
+.q-edit .q-lines input,.q-edit .q-lines select{width:100%;min-width:0}
+.q-edit .q-lines td:last-child{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+@media (max-width:640px){.q-edit .q-lines thead{display:none}.q-edit .q-lines tr{display:grid;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.q-edit .q-lines td{border:0;padding:0}}

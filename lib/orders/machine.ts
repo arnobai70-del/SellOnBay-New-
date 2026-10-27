@@ -82,6 +82,11 @@ export type Order = {
   supportDays?: number; // digital products: what the listing promised when ordered (undefined on older orders)
   updateDays?: number;
   payment?: { ref: string; brand: string; last4: string };
+  /* SellOnBay 2.0: orders made from an accepted quotation. Undefined on older orders, which keep their recorded fee and old split. */
+  quotationId?: string;
+  sellerGrossCents?: number; // the seller lines the plan commission was worked out on (lib/ledger.ts split)
+  feePlanId?: string; // the seller plan version the fee came from
+  fileVersionId?: string; // the exact approved file version the buyer is entitled to
   trialCreditFor?: string; // the finished trial whose fee was taken off this order's price
   attempts: number;
   createdAt: number;

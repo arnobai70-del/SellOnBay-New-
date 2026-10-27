@@ -16,6 +16,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     initial: 'U',
     items: [
       { label: 'Overview', href: '/dashboard/buyer', icon: 'grid', key: 'buyer' },
+      { label: 'Requests', href: '/dashboard/buyer/requests', icon: 'list', key: 'buyer-requests' },
       { label: 'Messages', href: '/messages?view=buyer', icon: 'chat', key: 'messages' },
     ],
     extra: [
@@ -43,6 +44,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     initial: 'U',
     items: [
       { label: 'Overview', href: '/dashboard/admin', icon: 'grid', key: 'admin' },
+      { label: 'Purchase requests', href: '/dashboard/admin/requests', icon: 'list', key: 'admin-requests' },
       { label: 'Listings', href: '/dashboard/admin/listings', icon: 'bag', key: 'admin-listings' },
       { label: 'Source files', href: '/dashboard/admin/files', icon: 'layers', key: 'admin-files' },
       { label: 'Visitors', href: '/dashboard/admin/analytics', icon: 'chart', key: 'admin-analytics' },

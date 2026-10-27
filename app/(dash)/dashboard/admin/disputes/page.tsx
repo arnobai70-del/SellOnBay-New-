@@ -34,7 +34,7 @@ export default async function Disputes() {
         </div>
         {cards.length === 0 && <p className="muted">No open disputes.</p>}
         {cards.map(({ d, o, ev, history }) => {
-          const sellerNet = o ? split(o.lines, o.feeCents).sellerNet : 0;
+          const sellerNet = o ? split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet : 0;
           return (
             <div className="adm-card" key={d.id}>
               <h3>

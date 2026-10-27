@@ -260,7 +260,7 @@ export async function decide(
   if (i.decision === 'refund_partial' && o.refundedCents > 0)
     return fail(409, `This order already had a partial refund of $${(o.refundedCents / 100).toFixed(2)}. Refund in full (it gives back the rest) or release.`);
   if (i.decision === 'refund_partial') {
-    const { sellerNet } = split(o.lines, o.feeCents);
+    const { sellerNet } = split(o.lines, o.feeCents, o.sellerGrossCents);
     refund = i.refundCents;
     if (!Number.isInteger(refund) || (refund as number) <= 0 || (refund as number) > sellerNet)
       return fail(400, `A partial refund must be more than zero and no more than the seller earns on this order ($${(sellerNet / 100).toFixed(2)}).`);

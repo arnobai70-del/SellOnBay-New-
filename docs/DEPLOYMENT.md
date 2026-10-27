@@ -91,6 +91,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0056_platform_products.sql | Platform-owned products; shared append-only trigger; provisional number |
 | 0057_seller_plans.sql | Versioned seller plans (Free, Pro, Business), subscriptions and their log; plan and seller gross on new orders; provisional number |
 | 0058_file_objects.sql | Private quarantine and product-files buckets; source file records, events and pinned versions (immutable once approved); provisional number |
+| 0059_requests_quotations.sql | Purchase requests and versioned quotations (immutable once issued), their logs, and accept_quotation (order created in the same transaction); provisional number |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

@@ -46,7 +46,7 @@ export const weekStartOf = (ms: number) => {
 
 /* What the seller earns from one order: their share, plus their share of funded extra work, minus any dispute refund. Matches the ledger. */
 export async function sellerEarnings(o: Order): Promise<number> {
-  const { sellerNet } = split(o.lines, o.feeCents);
+  const { sellerNet } = split(o.lines, o.feeCents, o.sellerGrossCents);
   const extras = (await listExtras(o.id)).filter((c) => c.state === 'funded');
   return sellerNet + extras.reduce((s, c) => s + c.priceCents - c.feeCents, 0) - o.refundedCents;
 }

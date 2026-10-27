@@ -8,28 +8,28 @@ import { hoursText } from '@/lib/deliveryTime';
 
 type Opt = { key: Pkg; title: string; note: string };
 const WEB: Opt[] = [
-  { key: 'asis', title: 'Buy as is', note: 'Site goes live on your domain with demo content.' },
+  { key: 'asis', title: 'As is', note: 'Site goes live on your domain with demo content.' },
   { key: 'setup', title: 'With setup help', note: 'Your logo, colours and text added for you.' },
   { key: 'custom', title: 'With customisation', note: 'Extra pages or a new form. Paid upfront into escrow.' },
 ];
 const STORE: Opt[] = [
-  { key: 'asis', title: 'Buy as is', note: 'Source code and a build guide. You publish it yourself.' },
+  { key: 'asis', title: 'As is', note: 'Source code and a build guide. You publish it yourself.' },
   { key: 'setup', title: 'Rebrand and build', note: 'Your name, icon and colours, built and tested for you.' },
   { key: 'custom', title: 'With customisation', note: 'Extra screens or features. Paid upfront into escrow.' },
 ];
 const HOST: Opt[] = [
-  { key: 'asis', title: 'Buy as is', note: 'Source code and a deploy guide. You host it yourself.' },
+  { key: 'asis', title: 'As is', note: 'Source code and a deploy guide. You host it yourself.' },
   { key: 'setup', title: 'Rebrand and deploy', note: 'Your name and colours, live on your domain.' },
   { key: 'custom', title: 'With customisation', note: 'Extra features or pages. Paid upfront into escrow.' },
 ];
 const INSTALLER: Opt[] = [
-  { key: 'asis', title: 'Buy as is', note: 'Source code and a build guide. You build it yourself.' },
+  { key: 'asis', title: 'As is', note: 'Source code and a build guide. You build it yourself.' },
   { key: 'setup', title: 'Rebrand and build installers', note: 'Your name and icon, with installers ready to share.' },
   { key: 'custom', title: 'With customisation', note: 'Extra features. Paid upfront into escrow.' },
 ];
 
 const DOWNLOAD: Opt[] = [
-  { key: 'asis', title: 'Buy as is', note: 'Your files right after you pay, through a secure expiring link.' },
+  { key: 'asis', title: 'As is', note: 'Your files after your payment is verified and SellOnBay approves the release.' },
   { key: 'setup', title: 'With setup help', note: 'The seller installs and connects it for you.' },
   { key: 'custom', title: 'With customisation', note: 'Changed to fit you. Paid upfront into escrow.' },
 ];
@@ -52,7 +52,7 @@ export function BuyBox({ p, locked = '' }: { p: Product; locked?: string }) {
   const opts = (dv === 'store' ? STORE : dv === 'host' ? HOST : dv === 'installer' ? INSTALLER : dv === 'download' ? DOWNLOAD : WEB).filter((o) => pkgOffered(p, o.key)); // only what the seller offers
   return (
     <>
-      <aside className="buybox" id="buy" ref={box} aria-label={app ? 'Buy this app' : 'Buy this site'}>
+      <aside className="buybox" id="buy" ref={box} aria-label={app ? 'Request this app' : 'Request this site'}>
         <div className="price">{money(p.price + pkgCost(p, pkg))}</div>
         <p className="muted">
           {dv === 'store'
@@ -100,19 +100,19 @@ export function BuyBox({ p, locked = '' }: { p: Product; locked?: string }) {
           aria-hidden={locked ? true : undefined}
           tabIndex={locked ? -1 : undefined}
         >
-          Continue to checkout
+          Request to buy
         </Link>
         <p className="muted" style={{ fontSize: 14, marginTop: 12, textAlign: 'center' }}>
-          Held in escrow until you accept
+          Listed price. SellOnBay confirms the final quotation; nothing is charged until you accept it.
         </p>
       </aside>
       <div className="buybar" data-hide={boxSeen || undefined} aria-hidden={boxSeen || undefined}>
         <div>
           <b>{money(p.price + pkgCost(p, pkg))}</b>
-          <small>Held in escrow until you accept</small>
+          <small>Listed price · no charge until you accept a quotation</small>
         </div>
         <a className="btn btn-blue" href="#buy" tabIndex={boxSeen ? -1 : undefined}>
-          {locked ? 'See details' : 'Buy now'}
+          {locked ? 'See details' : 'Request to buy'}
         </a>
       </div>
     </>

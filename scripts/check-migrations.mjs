@@ -425,4 +425,77 @@ if (!failed) {
   }
 }
 
+if (!failed) {
+  // 0059 (SellOnBay 2.0): requests and quotations. Issued quotations never change; accept_quotation creates the order once, in one transaction.
+  const refused = async (sql) => {
+    try {
+      await db.exec(sql);
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  try {
+    for (const t of ['purchase_requests', 'quotations', 'purchase_request_events', 'quotation_events'])
+      for (const r of ['anon', 'authenticated']) if ((await db.query(`select has_table_privilege('${r}', '${t}', 'select') as p`)).rows[0].p) throw new Error(`${r} can read ${t}`);
+    for (const r of ['anon', 'authenticated'])
+      if ((await db.query(`select has_function_privilege('${r}', 'accept_quotation(uuid, uuid, timestamptz, jsonb, jsonb)', 'execute') as p`)).rows[0].p) throw new Error(`${r} can accept quotations`);
+    const buyer = (await db.query(`insert into auth.users (email) values ('quote-buyer@example.com') returning id`)).rows[0].id;
+    await db.exec(`insert into profiles (id, full_name) values ('${buyer}', 'Quote Buyer') on conflict (id) do nothing`);
+    const product = (await db.query(`select id, seller_id from products where slug = 'file-test'`)).rows[0];
+    const req = (
+      await db.query(
+        `insert into purchase_requests (buyer_id, product_id, intended_use, consent_version, consented_at) values ('${buyer}', '${product.id}', 'A site for my shop.', 'v1', now()) returning id`,
+      )
+    ).rows[0].id;
+    const lines = `'[{"label":"Site","cents":4900,"kind":"product"}]'::jsonb`;
+    const q = (
+      await db.query(
+        `insert into quotations (request_id, version, product_id, seller_id, lines, total_cents, fee_cents, seller_gross_cents, terms) values ('${req}', 1, '${product.id}', '${product.seller_id}', ${lines}, 4900, 735, 4900, '{}') returning id`,
+      )
+    ).rows[0].id;
+    if (!(await refused(`insert into quotations (request_id, version, lines, total_cents, fee_cents, seller_gross_cents, terms) values ('${req}', 2, ${lines}, 4900, 735, 4900, '{}')`)))
+      throw new Error('two open quotations on one request');
+    if (!(await refused(`update quotations set status = 'issued' where id = '${q}'`))) throw new Error('issued without issue time');
+    await db.exec(`update quotations set status = 'issued', issued_at = now(), valid_until = now() + interval '7 days' where id = '${q}'`);
+    if (!(await refused(`update quotations set total_cents = 100 where id = '${q}'`))) throw new Error('an issued quotation changed its price');
+    if (!(await refused(`update quotations set terms = '{"x":1}' where id = '${q}'`))) throw new Error('an issued quotation changed its terms');
+    if (!(await refused(`delete from quotations where id = '${q}'`))) throw new Error('a quotation was deleted');
+    const oid = '22222222-2222-4222-8222-222222222222';
+    const order = (o) =>
+      `'${JSON.stringify({ id: oid, kind: 'product', pkg: 'asis', status: 'awaiting_payment', title: 'Site', buyer_id: buyer, seller_id: product.seller_id, product_id: product.id, lines: [['Site', 4900]], price_cents: 4900, fee_cents: 735, quotation_id: q, seller_gross_cents: 4900, currency: 'USD', days: 3, ...o })}'::jsonb`;
+    const ev = `'{"event":"created_from_quotation","meta":{}}'::jsonb`;
+    if (!(await refused(`select accept_quotation('${q}', '${buyer}', now(), ${order({ price_cents: 100 })}, ${ev})`))) throw new Error('an order with another price was accepted');
+    if (!(await refused(`select accept_quotation('${q}', '${product.seller_id}', now(), ${order({})}, ${ev})`))) throw new Error('someone else accepted the quotation');
+    const first = (await db.query(`select accept_quotation('${q}', '${buyer}', now(), ${order({})}, ${ev}) as id`)).rows[0].id;
+    const again = (await db.query(`select accept_quotation('${q}', '${buyer}', now(), ${order({})}, ${ev}) as id`)).rows[0].id;
+    if (first !== oid || again !== oid) throw new Error('accepting twice gave different orders');
+    const n = (await db.query(`select count(*)::int as n from orders where quotation_id = '${q}'`)).rows[0].n;
+    const st = (await db.query(`select q.status as qs, r.status as rs from quotations q join purchase_requests r on r.id = q.request_id where q.id = '${q}'`)).rows[0];
+    if (n !== 1 || st.qs !== 'accepted' || st.rs !== 'converted') throw new Error(`after accept: orders ${n}, ${JSON.stringify(st)}`);
+    if (!(await refused(`update quotations set order_id = gen_random_uuid() where id = '${q}'`))) throw new Error('the order of a quotation changed');
+    // expired quotations cannot be accepted
+    const req2 = (
+      await db.query(
+        `insert into purchase_requests (buyer_id, product_id, intended_use, consent_version, consented_at) values ('${buyer}', '${product.id}', 'A second site.', 'v1', now()) returning id`,
+      )
+    ).rows[0].id;
+    const q2 = (
+      await db.query(
+        `insert into quotations (request_id, version, product_id, lines, total_cents, fee_cents, seller_gross_cents, terms, status, issued_at, valid_until) values ('${req2}', 1, '${product.id}', ${lines}, 4900, 735, 4900, '{}', 'issued', now() - interval '8 days', now() - interval '1 day') returning id`,
+      )
+    ).rows[0].id;
+    if (
+      !(await refused(
+        `select accept_quotation('${q2}', '${buyer}', now(), '${JSON.stringify({ id: '33333333-3333-4333-8333-333333333333', quotation_id: q2, price_cents: 4900, fee_cents: 735, buyer_id: buyer })}'::jsonb, ${ev})`,
+      ))
+    )
+      throw new Error('an expired quotation was accepted');
+    console.log('ok   requests and quotations: server only, one open quotation, issued ones fixed, accept once in one transaction, expiry enforced');
+  } catch (e) {
+    failed = true;
+    console.log('FAIL requests and quotations:', e.message);
+  }
+}
+
 process.exit(failed ? 1 : 0);

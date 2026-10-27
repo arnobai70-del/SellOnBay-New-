@@ -140,7 +140,7 @@ function diff(prev: Order, next: Order): Record<string, unknown> {
 }
 
 type Row = Record<string, unknown>;
-const toRow = (o: Order): Row => ({
+export const toRow = (o: Order): Row => ({
   id: o.id,
   kind: o.kind,
   pkg: o.pkg,
@@ -175,6 +175,11 @@ const toRow = (o: Order): Row => ({
   payment_last4: o.payment?.last4 ?? null,
   attempts: o.attempts,
   trial_credit_for: o.trialCreditFor ?? null,
+  // SellOnBay 2.0 (migrations 0057, 0059): only written when set, so older code paths and older databases are unaffected
+  ...(o.quotationId ? { quotation_id: o.quotationId } : {}),
+  ...(o.sellerGrossCents !== undefined ? { seller_gross_cents: o.sellerGrossCents } : {}),
+  ...(o.feePlanId ? { fee_plan_id: o.feePlanId } : {}),
+  ...(o.fileVersionId ? { file_version_id: o.fileVersionId } : {}),
   created_at: iso(o.createdAt),
   funded_at: iso(o.fundedAt),
   due_at: iso(o.dueAt),
@@ -220,6 +225,10 @@ const fromRow = (r: Row): Order => ({
   payment: r.payment_ref ? { ref: r.payment_ref as string, brand: (r.payment_brand as string) ?? '', last4: (r.payment_last4 as string) ?? '' } : undefined,
   attempts: (r.attempts as number) ?? 0,
   trialCreditFor: str(r.trial_credit_for),
+  quotationId: str(r.quotation_id),
+  sellerGrossCents: num(r.seller_gross_cents),
+  feePlanId: str(r.fee_plan_id),
+  fileVersionId: str(r.file_version_id),
   createdAt: Date.parse(r.created_at as string),
   fundedAt: ms(str(r.funded_at)),
   dueAt: ms(str(r.due_at)),

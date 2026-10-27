@@ -49,19 +49,24 @@ export function checkEntry(e: EntrySet): void {
   if (d !== c) throw new LedgerError(`Entry ${e.key} does not balance: debits ${d}, credits ${c}.`);
 }
 
-/* The order's money split: what the seller earns, what the platform keeps. The two always add up to the total paid. */
-export function split(lines: Line[], feeCents: number): { total: number; sellerNet: number; platform: number } {
+/*
+ * The order's money split: what the seller earns, what the platform keeps. The two always add up to the total paid.
+ * Orders made from a quotation (SellOnBay 2.0) carry their seller gross: the lines commission was worked out on. Older orders do not, and
+ * keep the old rule (first line plus express), so their history never changes.
+ */
+export function split(lines: Line[], feeCents: number, sellerGrossCents?: number | null): { total: number; sellerNet: number; platform: number } {
   const total = lines.reduce((s, l) => s + l[1], 0);
-  const first = baseCents(lines);
+  const first = typeof sellerGrossCents === 'number' ? sellerGrossCents : baseCents(lines);
+  if (first > total) throw new LedgerError('The seller gross cannot be more than the total.');
   if (feeCents < 0 || feeCents > first) throw new LedgerError('The fee cannot be negative or more than the price.');
   return { total, sellerNet: first - feeCents, platform: total - first + feeCents };
 }
 
-type OrderMoney = { id: string; sellerId: string | null; lines: Line[]; feeCents: number };
+type OrderMoney = { id: string; sellerId: string | null; lines: Line[]; feeCents: number; sellerGrossCents?: number | null };
 const sum = (...lines: LedgerLine[]) => lines.filter((l) => l.amountCents > 0);
 
 export const buyerPays = (o: OrderMoney): EntrySet => {
-  const { total } = split(o.lines, o.feeCents);
+  const { total } = split(o.lines, o.feeCents, o.sellerGrossCents);
   return { key: `pay:${o.id}`, orderId: o.id, memo: 'Buyer paid into escrow', lines: [debit(acct.cash, total), credit(acct.escrow(o.id), total)] };
 };
 
@@ -128,7 +133,7 @@ export const debtSettled = (o: { id: string; sellerId: string | null }, amountCe
 export const reserveShare = (amountCents: number, percent: number) => Math.min(amountCents, Math.max(0, Math.floor((amountCents * Math.min(100, Math.max(0, percent))) / 100)));
 
 export const orderAccepted = (o: OrderMoney): EntrySet => {
-  const { total, sellerNet, platform } = split(o.lines, o.feeCents);
+  const { total, sellerNet, platform } = split(o.lines, o.feeCents, o.sellerGrossCents);
   return {
     key: `accept:${o.id}`,
     orderId: o.id,
@@ -143,7 +148,7 @@ export const orderAccepted = (o: OrderMoney): EntrySet => {
  * everything: the order, any funded extra work, and the platform's fee.
  */
 export const partialRefundAfterAccept = (o: OrderMoney, amountCents: number, have?: SellerHolds): EntrySet => {
-  const { sellerNet } = split(o.lines, o.feeCents);
+  const { sellerNet } = split(o.lines, o.feeCents, o.sellerGrossCents);
   if (!Number.isInteger(amountCents) || amountCents <= 0 || amountCents > sellerNet) throw new LedgerError('A partial refund must be more than zero and no more than the seller earns on the order.');
   return {
     key: `refund:${o.id}:partial`,
@@ -154,7 +159,7 @@ export const partialRefundAfterAccept = (o: OrderMoney, amountCents: number, hav
 };
 /* `refundedCents` is a partial refund already given back on this order: a full refund after it only gives back the rest. */
 export const fullRefundAfterAccept = (o: OrderMoney, extras: { priceCents: number; feeCents: number }[], have?: SellerHolds, refundedCents = 0): EntrySet => {
-  const { total, sellerNet, platform } = split(o.lines, o.feeCents);
+  const { total, sellerNet, platform } = split(o.lines, o.feeCents, o.sellerGrossCents);
   const extraTotal = extras.reduce((s, c) => s + c.priceCents, 0);
   const extraFees = extras.reduce((s, c) => s + c.feeCents, 0);
   if (!Number.isInteger(refundedCents) || refundedCents < 0 || refundedCents > sellerNet) throw new LedgerError('The earlier refund cannot be more than the seller earns on the order.');
@@ -178,7 +183,7 @@ export const fullRefundAfterAccept = (o: OrderMoney, extras: { priceCents: numbe
  * Returns null when nothing is left to move.
  */
 export const holdMoved = (o: OrderMoney, extraNetCents = 0, opts: { pendingCents?: number; reserveCents?: number } = {}): EntrySet | null => {
-  const planned = split(o.lines, o.feeCents).sellerNet + extraNetCents;
+  const planned = split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet + extraNetCents;
   const amount = Math.min(planned, opts.pendingCents ?? planned);
   if (amount <= 0) return null;
   const reserve = Math.min(amount, opts.reserveCents ?? 0);

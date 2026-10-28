@@ -97,11 +97,41 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
     setFocus(false);
     setShelf(shelfOfPage);
   }, [path, shelfOfPage]);
+  // One passive listener and one frame per scroll: the shadow, "at the top" (the bar can lie over the home hero), hiding on the way down and
+  // coming back on the way up (wide screens only, see market.css), and the reading-progress line. Its height is shared as --hdr.
+  const [atTop, setAtTop] = useState(true);
+  const [hidden, setHidden] = useState(false);
+  const busy = useRef(false);
   useEffect(() => {
-    const f = () => setScrolled(scrollY > 4);
+    busy.current = !!open || sheet || focus;
+  }, [open, sheet, focus]);
+  useEffect(() => {
+    let last = scrollY;
+    let frame = 0;
+    const f = () => {
+      frame = 0;
+      const y = scrollY;
+      setScrolled(y > 4);
+      setAtTop(y < 30);
+      if (busy.current || y < 160) setHidden(false);
+      else if (y > last + 4) setHidden(true);
+      else if (y < last - 4) setHidden(false);
+      last = y;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      box.current?.style.setProperty('--read', String(max > 0 ? Math.min(1, y / max) : 0));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(f);
+    };
     f();
-    addEventListener('scroll', f, { passive: true });
-    return () => removeEventListener('scroll', f);
+    addEventListener('scroll', schedule, { passive: true });
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--hdr', (box.current?.offsetHeight ?? 0) + 'px'));
+    if (box.current) ro.observe(box.current);
+    return () => {
+      removeEventListener('scroll', schedule);
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+    };
   }, []);
   // Panels close on Escape and on a click elsewhere; the sheet also locks the page behind it.
   useEffect(() => {
@@ -176,7 +206,8 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
   const accountLabel = dashHref ? 'My dashboard' : 'Sign in';
 
   return (
-    <header ref={box} className={'mk-hdr' + (scrolled ? ' scrolled' : '') + (sheet ? ' open' : '')}>
+    <header ref={box} className={'mk-hdr' + (scrolled ? ' scrolled' : '') + (sheet ? ' open' : '') + (atTop ? ' at-top' : '') + (hidden && !sheet && !open && !focus ? ' hide' : '')}>
+      <span className="mk-progress" aria-hidden="true" />
       <div className="wrap mk-top">
         <button type="button" className="mk-burger" aria-label={sheet ? 'Close menu' : 'Open menu'} aria-expanded={sheet} aria-controls="mk-sheet" onClick={() => setSheet((o) => !o)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">

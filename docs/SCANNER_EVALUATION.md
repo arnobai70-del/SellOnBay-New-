@@ -1,4 +1,6 @@
-# Malware scanner evaluation (blocker B-3)
+# Malware scanner evaluation (blocker B-3) — SUPERSEDED
+
+> **REMOVED BY OWNER — SECURITY RISK ACCEPTED** (owner, 2026-10-29). No scanner will be connected. This evaluation is kept as a record only; nothing in it is planned. The prepared GuardDuty adapter was deleted.
 
 Quotas rechecked 2026-10-29 against AWS's own pages ("Quotas in Malware Protection for S3", "Monitoring S3 object scans", the GuardDuty pricing page). Object up to 100 GB; 100,000 extracted files; 100 nesting levels; 25 protected buckets per account per region (none adjustable). Skip reasons that must count as `error`: `PASSWORD_PROTECTED`, `OBJECT_SIZE_LIMIT_EXCEEDED`, `EXTRACTED_FILE_LIMIT_EXCEEDED`, `EXTRACTED_LEVEL_LIMIT_EXCEEDED`, `EXTRACTED_BYTE_LIMIT_EXCEEDED`, `EXTRACTION_RATIO_LIMIT_EXCEEDED`, `UNSUPPORTED_STORAGE_CLASS`, plus every `ACCESS_DENIED` reason (`SSE_C_ENCRYPTED_OBJECT`: do not use SSE-C on the scan bucket). Price: $0.09 per GB scanned in us-east-1 (from $0.60 on 2025-02-01); free tier of 1,000 requests and 1 GB a month, with no trial period. The pricing page gives $0.215 per 1,000 objects only in a worked example, with no region named: confirm it for the chosen region. Some password-protected formats cannot be detected and are scanned as encrypted bytes, which does not prove them clean, so our own check that refuses encrypted ZIP entries must stay.
 

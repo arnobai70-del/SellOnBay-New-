@@ -12,7 +12,7 @@ import { insertFile, listFiles, updateFile, versionsOf, type FileObject } from '
  * Legacy listings (owner decision F-15): products from before SellOnBay 2.0 point at a file on the seller's own host (products.code_url).
  * Before such a product can be sold again, an admin imports that file ONCE into quarantine. It then passes every automatic check, and the
  * reviewer sees evidence: whether its SHA-256 matches what earlier buyers downloaded (download_events). A mismatch needs evidence review
- * and the security scan before approval. Earlier buyers keep their access until their own order is reviewed; nothing is replaced silently.
+ * and the review before approval (there is no malware scan). Earlier buyers keep their access until their own order is reviewed; nothing is replaced silently.
  */
 export type LegacyCandidate = { productId: string; slug: string; name: string; sellerId: string; host: string; priorHashes: string[]; downloads: number; openImport: string | null };
 

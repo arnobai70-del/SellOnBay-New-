@@ -1,6 +1,8 @@
+> Updated 2026-10-29: the scanner test double, `scannerFromEnv` and `scanAllowsApproval` no longer exist. Mentions of them below are history. The in-process chain now runs without any scan.
+
 # Delivery test: verified payment, approved file, release, entitlement, download
 
-The chain that must work before any ready-made product is sold, and how it is tested. The scanner stays fail-closed everywhere.
+The chain that must work before any ready-made product is sold, and how it is tested. Malware scanning is REMOVED BY OWNER — SECURITY RISK ACCEPTED (2026-10-29): files pass the archive and credential checks, then an admin approves them after a sandbox review. Nothing is approved or released automatically.
 
 ## 1. In process (done, 2026-10-28)
 
@@ -20,7 +22,7 @@ through the explicit `allowTestScanner` flag, which production ignores:
 
 **This is not evidence that a real scanner accepts a file.**
 
-## 2. On staging (BLOCKED until a scanner is approved, B-3)
+## 2. On staging (needs migration 0069 applied to staging, with the owner's approval)
 
 Run once the approved scanner adapter exists (docs/SCANNER_EVALUATION.md). There is no bypass: the staging server keeps
 `scannerFromEnv()`, and `SCAN_PROVIDER=test` is refused by a production build.

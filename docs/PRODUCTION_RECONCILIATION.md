@@ -104,7 +104,7 @@ Done through the Supabase connector with SELECT statements only. Nothing was wri
 | --- | --- |
 | Identity | `knvxtgzrylvkhyrcezlq` "MARKETPLACE PROJECT", ap-northeast-1, Postgres 17.11, healthy |
 | Recorded history | 0001 to 0053 (not 0001 to 0040 as assumed in section 1) |
-| Missing | 0054 to 0068, plus 0069 (not written yet: the scanner-removal plan waits for approval) |
+| Missing | 0054 to 0068, plus 0069 (written 2026-10-29 after this inspection: removes the clean-scan approval rule) |
 | Objects of 0001 to 0053 | all present. Four function bodies differ only by Windows line endings (`certificates_immutable`, `record_dispute_outcome`, `ledger_post`, `is_admin`): after removing `\r` and outer whitespace the hashes equal the repository's. No logical drift |
 | Objects of 0054 to 0066 | none present (consistent with the history) |
 | Not in the repository | `public.rls_auto_enable()` (event trigger function, security definer, owner postgres) and event trigger `ensure_rls` on `ddl_command_end`: enables RLS on new tables (most likely the dashboard setting). Cannot be called through the API; harmless for our migrations, which enable RLS themselves. Record it, do not remove it |

@@ -1,8 +1,7 @@
 import { strToU8, zipSync } from 'fflate';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { auditList } from '@/lib/admin/audit';
 import { APPROVED, memoryObjectStore as store } from '@/lib/files/objectStore';
-import { scanAllowsApproval, scannerFromEnv, testScanner } from '@/lib/files/scanner';
 import { REVIEW_CHECKLIST, completeUpload, memProduct, reviewFile, runChecks, startUpload } from '@/lib/files/service';
 import { memPut } from '@/lib/files/objectStore';
 import { versionsOf } from '@/lib/files/store';
@@ -13,9 +12,8 @@ import { paidOrder } from './fixtures/paidOrder';
 
 /*
  * Verified payment -> approved source file -> admin release -> entitlement -> authorised download, in process (Priority 4, 2026-10-28).
- * The scanner here is the TEST DOUBLE (lib/files/scanner.ts testScanner), allowed only through the explicit `allowTestScanner` flag that
- * production ignores. A pass here is NOT evidence that any real scanner accepts a file: on staging and production the scanner stays fail
- * closed (B-3) until an approved provider is connected, and this chain is then rerun on staging with it (docs/DELIVERY_TEST_PLAN.md).
+ * There is no malware scan (owner decision 2026-10-29, security risk accepted): the file passes the archive and credential checks, then an
+ * admin's sandbox review approves it. A pass here says nothing about whether a file is free of malware.
  */
 const ALL = Object.fromEntries(Object.keys(REVIEW_CHECKLIST).map((k) => [k, true]));
 
@@ -29,18 +27,14 @@ async function approvedVersion() {
   memPut(s.value.file.quarantinePath, bytes);
   const c = await completeUpload(sellerId, s.value.file.id, store);
   if (!c.ok) throw new Error(c.error);
-  const checked = await runChecks(c.value.id, { store, scanner: testScanner });
-  expect(checked.ok && checked.value).toMatchObject({ state: 'awaiting_review', scanVerdict: 'clean' });
-  // without the explicit test flag even a clean test-double result cannot be approved
-  expect(await reviewFile('files-1', c.value.id, 'approve', { note: 'Opened in the sandbox.', checklist: ALL, label: '1.0' }, { store })).toMatchObject({ ok: false, status: 409 });
-  const r = await reviewFile('files-1', c.value.id, 'approve', { note: 'Opened in the sandbox.', checklist: ALL, label: '1.0' }, { store, allowTestScanner: true });
+  const checked = await runChecks(c.value.id, { store });
+  expect(checked.ok && checked.value).toMatchObject({ state: 'awaiting_review', scanVerdict: null });
+  const r = await reviewFile('files-1', c.value.id, 'approve', { note: 'Opened in the sandbox.', checklist: ALL, label: '1.0' }, { store });
   if (!r.ok || !r.value.version) throw new Error(r.ok ? 'no version' : r.error);
   return { productId, sellerId, versionId: r.value.version.id, fileId: c.value.id, sha256: r.value.file.sha256! };
 }
 
-describe('delivery chain with an approved file (scanner test double, synthetic data)', () => {
-  afterEach(() => vi.unstubAllEnvs());
-
+describe('delivery chain with an approved file (no malware scan, synthetic data)', () => {
   it('nothing before release; after release one active entitlement and exactly the approved bytes; revoked means no file', async () => {
     const v = await approvedVersion();
     expect((await versionsOf(v.productId))[0]).toMatchObject({ id: v.versionId, fileId: v.fileId, label: '1.0' });
@@ -66,13 +60,5 @@ describe('delivery chain with an approved file (scanner test double, synthetic d
 
     expect((await entitlementAction('delivery-1', orderId, 'revoke', 'Licence breach confirmed.')).ok).toBe(true);
     expect(await approvedFileFor(orderId)).toBeNull();
-  });
-
-  it('the test double can never approve anything in production', () => {
-    expect(scannerFromEnv({ NODE_ENV: 'production', SCAN_PROVIDER: 'test' }).name).toBe('none');
-    vi.stubEnv('NODE_ENV', 'production');
-    expect(scanAllowsApproval({ verdict: 'clean', approvedScanner: false }, { allowTestScanner: true })).toBe(false);
-    expect(scanAllowsApproval({ verdict: 'clean', approvedScanner: true })).toBe(true);
-    expect(scanAllowsApproval({ verdict: 'error', approvedScanner: true })).toBe(false);
   });
 });

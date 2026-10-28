@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { auditList } from '@/lib/admin/audit';
 import { DAY_MS } from '@/lib/config';
 import { APPROVED, QUARANTINE, memPut, memTamper, memoryObjectStore as store } from '@/lib/files/objectStore';
-import { notConfiguredScanner, scannerFromEnv, testScanner } from '@/lib/files/scanner';
 import { REVIEW_CHECKLIST, completeUpload, memProduct, purgeExpired, reviewFile, runChecks, startUpload } from '@/lib/files/service';
 import { fileEvents, getFile, updateFile, versionsOf } from '@/lib/files/store';
 
@@ -34,56 +33,54 @@ describe('upload slot and completion', () => {
   });
 });
 
-describe('automatic checks (fail closed)', () => {
-  it('a clean archive passes the archive checks and the scan, and waits for human review', async () => {
+describe('automatic checks (no malware scan: owner decision 2026-10-29, security risk accepted)', () => {
+  it('a clean archive passes the archive and credential checks and waits for human review, recorded as not scanned', async () => {
     const { file } = await uploaded(good());
-    const r = await runChecks(file.id, { store, scanner: testScanner });
-    expect(r.ok && r.value).toMatchObject({ state: 'awaiting_review', scanVerdict: 'clean', sha256: expect.stringMatching(/^[0-9a-f]{64}$/) });
+    const r = await runChecks(file.id, { store });
+    expect(r.ok && r.value).toMatchObject({ state: 'awaiting_review', sha256: expect.stringMatching(/^[0-9a-f]{64}$/), scanVerdict: null, scanProvider: null });
+    expect(r.ok && (r.value.checks as { malwareScan?: string }).malwareScan).toBe('not performed');
+    expect((await fileEvents(file.id)).find((e) => e.event === 'checks_passed')?.detail).toMatchObject({ malwareScan: 'not performed' });
   });
-  it('with no approved scanner the file stays in checking, never approvable, and the upload is kept', async () => {
-    const { file } = await uploaded(good());
-    const r = await runChecks(file.id, { store, scanner: notConfiguredScanner });
-    expect(r.ok && r.value).toMatchObject({ state: 'checking', scanVerdict: 'error' });
-    expect(r.ok && r.value.scanDetail).toMatch(/B-3/);
-    expect(scannerFromEnv({ NODE_ENV: 'production', SCAN_PROVIDER: 'test' }).name).toBe('none');
-    expect(scannerFromEnv({}).name).toBe('none');
-  });
-  it('malware, secrets or a bad archive fail the file and schedule it for deletion after 7 days', async () => {
-    const eicar = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
-    const infected = await uploaded(zipSync({ 'readme.txt': strToU8(eicar) }, { level: 0 })); // stored, so the test double can see it
+  it('secrets, a bad archive or an encrypted entry still fail the file and schedule it for deletion after 7 days', async () => {
     const now = Date.UTC(2026, 10, 1);
-    const r1 = await runChecks(infected.file.id, { store, scanner: testScanner, now });
-    expect(r1.ok && r1.value).toMatchObject({ state: 'failed_checks', scanVerdict: 'infected', purgeAfter: now + 7 * DAY_MS });
     const secret = await uploaded(zipSync({ '.env': strToU8('STRIPE=sk_live_' + 'a'.repeat(24)) }));
-    const r2 = await runChecks(secret.file.id, { store, scanner: testScanner });
-    expect(r2.ok && r2.value.state).toBe('failed_checks');
+    const r2 = await runChecks(secret.file.id, { store, now });
+    expect(r2.ok && r2.value).toMatchObject({ state: 'failed_checks', purgeAfter: now + 7 * DAY_MS });
     expect(JSON.stringify(r2.ok && r2.value.checks)).not.toContain('sk_live_');
     const bad = await uploaded(strToU8('not a zip at all, sorry'));
-    const r3 = await runChecks(bad.file.id, { store, scanner: testScanner });
+    const r3 = await runChecks(bad.file.id, { store });
     expect(r3.ok && r3.value.state).toBe('failed_checks');
+  });
+  it('passing the checks never approves anything: the file waits for an admin', async () => {
+    const { file } = await uploaded(good());
+    await runChecks(file.id, { store });
+    expect((await getFile(file.id))!.state).toBe('awaiting_review');
+    expect((await getFile(file.id))!.approvedPath).toBeNull();
   });
 });
 
 describe('human review and immutable storage', () => {
-  it('approval needs a clean result from an approved scanner: the test double is refused unless a test allows it', async () => {
+  it('a file an earlier scanner marked infected is never approved (history kept)', async () => {
     const { file } = await uploaded(good());
-    await runChecks(file.id, { store, scanner: testScanner });
+    const r = await runChecks(file.id, { store });
+    if (!r.ok) throw new Error(r.error);
+    await updateFile(r.value, { scanVerdict: 'infected', scanProvider: 'earlier-scanner' }, { actorId: null, event: 'test', detail: {} });
     expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: ALL, label: '1.0' }, { store })).toMatchObject({ ok: false, status: 409 });
   });
   it('approval needs every checklist item and a version label', async () => {
     const { file } = await uploaded(good());
-    await runChecks(file.id, { store, scanner: testScanner });
-    expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: { opened_in_sandbox: true }, label: '1.0' }, { store, allowTestScanner: true })).toMatchObject({
+    await runChecks(file.id, { store });
+    expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: { opened_in_sandbox: true }, label: '1.0' }, { store })).toMatchObject({
       ok: false,
       status: 400,
     });
-    expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: ALL, label: '' }, { store, allowTestScanner: true })).toMatchObject({ ok: false, status: 400 });
+    expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: ALL, label: '' }, { store })).toMatchObject({ ok: false, status: 400 });
   });
   it('approving copies the checked bytes once into private storage, re-hashed, pinned as a version, audited', async () => {
     const { file, productId } = await uploaded(good());
-    await runChecks(file.id, { store, scanner: testScanner });
+    await runChecks(file.id, { store });
     const checked = (await getFile(file.id))!;
-    const r = await reviewFile('admin-1', file.id, 'approve', { note: 'Looks good.', checklist: ALL, label: '1.0', changelog: 'First release.' }, { store, allowTestScanner: true });
+    const r = await reviewFile('admin-1', file.id, 'approve', { note: 'Looks good.', checklist: ALL, label: '1.0', changelog: 'First release.' }, { store });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.value.file).toMatchObject({ state: 'approved', approvedPath: `${productId}/${file.id}/${checked.sha256}.zip` });
@@ -98,9 +95,9 @@ describe('human review and immutable storage', () => {
   });
   it('a file swapped in quarantine after the checks is caught at review and rejected', async () => {
     const { file } = await uploaded(good());
-    await runChecks(file.id, { store, scanner: testScanner });
+    await runChecks(file.id, { store });
     memTamper(QUARANTINE, file.quarantinePath, good()); // different bytes after checking
-    expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: ALL, label: '1.0' }, { store, allowTestScanner: true })).toMatchObject({ ok: false, status: 409 });
+    expect(await reviewFile('admin-1', file.id, 'approve', { note: '', checklist: ALL, label: '1.0' }, { store })).toMatchObject({ ok: false, status: 409 });
     expect((await getFile(file.id))!.state).toBe('rejected');
   });
   it('a version label is used once per product', async () => {
@@ -116,8 +113,8 @@ describe('human review and immutable storage', () => {
       if (!s.ok) throw new Error(s.error);
       memPut(s.value.file.quarantinePath, bytes);
       await completeUpload(seller, s.value.file.id, store);
-      await runChecks(s.value.file.id, { store, scanner: testScanner });
-      const r = await reviewFile('admin-1', s.value.file.id, 'approve', { note: '', checklist: ALL, label: '2.0' }, { store, allowTestScanner: true }).catch((e: Error) => ({
+      await runChecks(s.value.file.id, { store });
+      const r = await reviewFile('admin-1', s.value.file.id, 'approve', { note: '', checklist: ALL, label: '2.0' }, { store }).catch((e: Error) => ({
         ok: false as const,
         status: 409,
         error: e.message,

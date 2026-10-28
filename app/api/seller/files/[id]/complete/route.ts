@@ -7,7 +7,7 @@ import { maintenanceFor } from '@/lib/maintenance/service';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
-/* The seller says the upload finished. The size is checked now; the hash, archive checks and malware scan run right after the answer. */
+/* The seller says the upload finished. The size is checked now; the hash and archive checks run right after the answer (no malware scan). */
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const closed = await maintenanceFor('upload'); // module maintenance (lib/maintenance)
   if (closed) return closed;

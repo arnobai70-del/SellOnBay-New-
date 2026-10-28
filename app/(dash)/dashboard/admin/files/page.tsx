@@ -18,7 +18,6 @@ type Checks = {
   secrets?: { file: string; kind: string; line?: number }[];
   files?: number;
   twins?: (string | null)[];
-  approvedScanner?: boolean;
 };
 
 function Facts({ f, names }: { f: FileObject; names: Map<string, string> }) {
@@ -28,12 +27,12 @@ function Facts({ f, names }: { f: FileObject; names: Map<string, string> }) {
       {names.get(f.productId ?? '') ?? 'Listing'} · {f.originalName} · {size(f.sizeBytes ?? f.declaredSize)}
       {c.files !== undefined ? ` · ${c.files} files` : ''}
       {f.sha256 ? ` · SHA-256 ${f.sha256.slice(0, 16)}…` : ''}
-      {f.scanVerdict ? ` · scan: ${f.scanVerdict} (${f.scanProvider ?? '?'})` : ''}
+      {f.scanVerdict ? ` · earlier scan: ${f.scanVerdict} (${f.scanProvider ?? '?'})` : ''}
     </small>
   );
 }
 
-/* Catalog reviews uploaded source files. Nothing can be approved without an approved scanner's clean result and every checklist item. */
+/* Catalog reviews uploaded source files. Nothing is approved without every checklist item. The files are NOT malware-scanned (owner decision 2026-10-29). */
 export default async function Files() {
   const viewer = await requireViewer({ path: '/dashboard/admin/files', roles: ['admin'], scope: 'catalog' });
   const files = await listFiles({ states: ['awaiting_review', 'checking', 'failed_checks', 'rejected'] });
@@ -52,7 +51,10 @@ export default async function Files() {
         <div className="hd">
           <div>
             <h2>Waiting for review ({review.length})</h2>
-            <p className="sub">These passed the archive, credential and malware checks. Download them only into an isolated sandbox, run them, then decide.</p>
+            <p className="sub">These passed the archive and credential checks.</p>
+            <p className="warn-text" data-not-scanned>
+              Not scanned for malware (owner decision, security risk accepted). Open them only in an isolated sandbox, run them there, then decide.
+            </p>
           </div>
         </div>
         {review.length === 0 && <p className="muted">Nothing waiting.</p>}
@@ -65,7 +67,6 @@ export default async function Files() {
                 <div className="grow">
                   <b>{f.originalName}</b>
                   <Facts f={f} names={names} />
-                  {!c.approvedScanner && <small className="warn-text">Scanned by a test stand-in, not an approved scanner: it cannot be approved (fail closed).</small>}
                   {c.evidence?.needsEvidenceReview && (
                     <small className="warn-text">
                       Legacy file: its bytes {c.evidence.matchesEarlierDownloads ? 'match only some of' : 'do not match'} the {c.evidence.priorHashes} file version(s) earlier buyers downloaded. Review
@@ -104,7 +105,7 @@ export default async function Files() {
         <div className="hd">
           <div>
             <h2>Waiting for checks ({checking.length})</h2>
-            <p className="sub">The malware scan has not given a clean answer yet. With no approved scanner configured (blocker B-3) files wait here.</p>
+            <p className="sub">The file could not be read for checking yet. It is tried again by the scheduled job, or now with Check again.</p>
           </div>
         </div>
         <ul className="lst">

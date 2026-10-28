@@ -8,7 +8,7 @@ const MAX = 500 * 1024 * 1024;
 
 /*
  * A seller sends the source archive of one of their listings. The file goes from the browser straight into private quarantine through a
- * one-time link; then the server checks it (archive rules, credentials, malware scan) and a SellOnBay reviewer looks at it. Nothing is public.
+ * one-time link; then the server checks it (archive rules, credentials; there is no malware scan) and a SellOnBay reviewer looks at it. Nothing is public.
  */
 export function SourceUpload({ listings }: { listings: Listing[] }) {
   const router = useRouter();

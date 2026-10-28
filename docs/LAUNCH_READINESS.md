@@ -169,7 +169,7 @@ Retention (owner and lawyer set the periods; today's code):
 | Id | Blocker | Status | Owner action |
 | --- | --- | --- | --- |
 | B-1 / D1 | Payment provider for marketplace payouts | OPEN | Choose after written answers (section 5) |
-| B-3 | Malware scanner for 500 MB ZIPs | OPEN; recommended AWS GuardDuty for S3 (docs/SCANNER_EVALUATION.md; quotas rechecked 2026-10-29, no new upload limits needed) | Approve the provider, open the account, choose the region, sign the DPA |
+| B-3 | Malware scanner for 500 MB ZIPs | **REMOVED BY OWNER — SECURITY RISK ACCEPTED** (owner, 2026-10-29). Not completed and not security-verified: seller files are not scanned; migration 0069 removes the clean-scan rule; risks in IMPLEMENTATION_STATUS.md | None (decision recorded). Lawyer: disclose that files are not malware-scanned |
 | B-5 | GA4 never checked against Google | OPEN | Give a GA4 test property |
 | B-6, B-7 | Social sign-in providers | OFF; account-linking tests S1 to S4, S7 and S12 to S14 waiting | Provider keys and approval of the linking setting |
 | B-9, B-10 | Advertising platform access and terms | OFF; P22 migration proposed only | Written platform access, counsel review |
@@ -195,7 +195,7 @@ Sign off each line before the first production deployment of 2.0:
 - [ ] Commit to deploy: _______ (a local commit, pushed to GitHub only with the owner's yes). CI green: typecheck, lint, format, unit
   tests, migration checks, build.
 - [ ] Staging evidence: strict RLS 14/14, staging journey 8/8, browser suite with the staging server, delivery chain on staging
-  (needs B-3), privilege snapshot reviewed.
+  (needs migration 0069 on staging), privilege snapshot reviewed.
 - [ ] Migrations: the reconciled list from section 1, applied BEFORE the code (every file only adds; `check:migration-safety` green).
 - [ ] Backup taken and restore-verified (section 3) within 24 hours before the migration.
 - [ ] Environment on the host (names only; `/dashboard/admin/launch` shows which are set):
@@ -205,7 +205,7 @@ Sign off each line before the first production deployment of 2.0:
   - `NEXT_PUBLIC_GA_ID` as approved
   - `CLIENT_IP_HEADER=cf-connecting-ip` if every request comes through Cloudflare, otherwise `TRUSTED_PROXY_HOPS` = the number of proxies
     (without one of them a visitor can write their own address and slip past the rate limits; `/dashboard/admin/launch` flags it)
-  - NOT set: `SITE_STAGE`, `EXAMPLE_ORDERS`, `LAUNCHBAY_DEMO`, `SCAN_PROVIDER=test`
+  - NOT set: `SITE_STAGE`, `EXAMPLE_ORDERS`, `LAUNCHBAY_DEMO`, `ENABLE_TEST_CHECKOUT`
 - [ ] Deploy: one instance (pull, `npm ci`, `npm run build`, restart) or blue-green (`deploy/blue-green.sh deploy`), docs/DEPLOYMENT.md
   section 5.
 - [ ] Smoke checks within 15 minutes:

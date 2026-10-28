@@ -101,6 +101,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0066_account_links.sql | Link intents (single use, at most 15 minutes) and the append-only social sign-in link log; providers stay off until B-7; provisional number |
 | 0067_close_default_grants.sql | SECURITY: takes back Supabase's default browser privileges on products_public (updatable security-definer view), ledger_balances, bump_counter() and sequences; new objects start closed; privileges only; provisional number |
 | 0068_column_grants_hold.sql | SECURITY: narrow column grants hold again (notifications read_at only, no seller profile delete by clients, no anon writes on client-policy tables); privileges only; provisional number |
+| 0069_file_approval_without_scan.sql | Owner decision 2026-10-29: approving a source file no longer needs a clean malware scan (REMOVED BY OWNER, SECURITY RISK ACCEPTED); SHA-256, size, private copy and reviewer still required; scan_* columns kept; apply before the release that stops scanning; provisional number |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

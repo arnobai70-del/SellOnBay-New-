@@ -90,7 +90,8 @@ export async function launchChecks(): Promise<Check[]> {
     // Each of these switches a protection off; none may be set when real buyers come (lib/demoMode.ts also ignores the first on a live configuration).
     c('Demo mode off', process.env.LAUNCHBAY_DEMO !== '1', 'LAUNCHBAY_DEMO must not be set on the live site (it would switch sign-in and the database off; it is ignored there, but remove it).'),
     c('Test cards off', process.env.ENABLE_TEST_CHECKOUT !== '1', 'ENABLE_TEST_CHECKOUT lets test cards fund orders: remove it before the market opens.'),
-    c('Test scanner off', (process.env.SCAN_PROVIDER ?? '').trim().toLowerCase() !== 'test', 'SCAN_PROVIDER=test is refused in production; remove it.'),
+    // Never "ok": the owner removed malware scanning and accepted the risk (2026-10-29). It stays visible so nobody mistakes it for done.
+    c('Malware scanning', false, 'REMOVED BY OWNER — SECURITY RISK ACCEPTED. Seller files are not scanned for malware; the sandbox review is the only check of what the code does.', 'warn'),
     c(
       'Payments',
       paymentProvider().name !== 'fake',

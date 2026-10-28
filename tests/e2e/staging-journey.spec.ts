@@ -190,7 +190,7 @@ test.describe('staging journey (custom development)', () => {
     expect(o.data?.funded_at).toBeTruthy();
   });
 
-  test('6-7 release: Delivery authorises the work; nothing reaches the buyer without an approved file (scanner B-3 fails closed)', async () => {
+  test('6-7 release: Delivery authorises the work; nothing reaches the buyer without an approved file and a release by Delivery', async () => {
     expect((await api(A.support, `/api/admin/releases/${S.order}`, { json: { action: 'authorise' } })).status).toBe(403);
     // buyer1 is a new account paying $200: the order waits for a safety check, and nothing starts until Finance clears it
     const hold = await admin().from('order_holds').select('reason').eq('order_id', S.order).is('decided_at', null).maybeSingle();
@@ -204,7 +204,7 @@ test.describe('staging journey (custom development)', () => {
     expect(au.status, JSON.stringify(au.body)).toBe(200);
     expect((await api(A.seller2, `/api/seller/orders/${S.order}/delivery`, { json: { note: 'Not my order, should be refused.' } })).status).toBe(404);
     const del = await api(A.seller, `/api/seller/orders/${S.order}/delivery`, { json: { note: 'The booking site is ready for the buyer.' } });
-    expect(del.status).toBe(400); // no approved delivery file can exist: there is no approved scanner (B-3)
+    expect(del.status).toBe(400); // no delivery file was uploaded and approved by an admin in this journey
     expect((await api(A.delivery, `/api/admin/releases/${S.order}`, { json: { action: 'approve', note: 'try' } })).status).not.toBe(200); // not release_pending
     const ent = await admin().from('entitlements').select('id').eq('order_id', S.order);
     expect(ent.data ?? []).toHaveLength(0);
@@ -240,7 +240,7 @@ test.describe('staging journey (custom development)', () => {
     expect((await api(A.buyer, '/api/tickets', { json: { subject: 'WhatsApp me please', body: 'Where is it?' } })).status).toBe(422);
   });
 
-  test('11 revisions need a released order (blocked by B-3 here); custom development flow covered above', async () => {
+  test('11 revisions need a released order (none is released in this journey); custom development flow covered above', async () => {
     const r = await api(A.buyer, `/api/orders/${S.order}/revisions`, { json: { description: 'Please change the header colour to dark blue.', hint: 'change', consent: true } });
     expect(r.status).toBe(409); // not delivered: nothing was released
   });

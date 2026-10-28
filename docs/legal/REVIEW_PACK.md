@@ -26,7 +26,7 @@ Owner inputs (to fill in):
 | Subscription (seller plan) terms | a few lines in the Terms and Seller Agreement | THIN: draft 2.2 |
 | Custom development terms | Terms (quotations) | THIN: draft 2.3 |
 | Revision policies | per product, shown on each quotation | THIN in the Terms: draft 2.3 |
-| File handling and malware scanning | Terms (2 mentions) | THIN: draft 2.4 (the scanner provider is not chosen yet, B-3) |
+| File handling (no malware scanning) | Terms (2 mentions) | THIN: draft 2.4. Malware scanning was removed by the owner (2026-10-29): the texts must say files are NOT scanned |
 | Data retention | docs/LAUNCH_READINESS.md section 6 (internal) | MISSING from the public texts: draft 2.5 |
 | Country analytics privacy | nowhere public (both features are off: B-5, B-12) | MISSING: draft 2.6. Publish only when a feature is switched on |
 | Advertising responsibilities | nowhere | MISSING: draft 2.7 (both ad features are off: B-9, B-10) |
@@ -69,16 +69,16 @@ Plain language, in the site's style. Each is a starting point for counsel, not a
 4. [LAWYER REVIEW] Ownership and licence of custom code; acceptance of custom work; liability caps; what happens when requirements change
    mid-job.
 
-### 2.4 Files, checks and malware scanning
+### 2.4 Files and checks (no malware scanning)
 
 1. Sellers upload their files to a private quarantine. Before a file can be approved: the archive is checked (size up to 500 MB, number
-   of files, nesting, no encrypted entries), it is checked for leaked secrets, it is scanned for malware by a security provider, a person
-   reviews it, and its SHA-256 fingerprint is recorded.
-2. A file that cannot be scanned (for example password-protected, too large to unpack, or the scan fails) is not approved.
+   of files, nesting, no encrypted entries), it is checked for leaked secrets, its SHA-256 fingerprint is recorded, and a person reviews it.
+2. **Files are NOT scanned for malware or viruses.** SellOnBay does not promise that any file is free of malware. Buyers should review and
+   test files in a safe environment before using them. A file with harmful code is a dispute reason ("harmful code").
 3. Buyers receive files only after payment is verified and an admin releases them, through a signed link that expires.
 4. A rejected file is deleted after 7 days, unless a legal hold applies.
-5. [LAWYER REVIEW] Naming the scanning provider as a processor in the Privacy Policy once chosen (B-3). The scan copy is held for at most
-   1 day in the provider's cloud, in the region chosen (`[REGION]`). Sellers' confidentiality of source code.
+5. [LAWYER REVIEW] The disclaimer wording and liability for harmful code in seller files (seller warranty and indemnity in the Seller
+   Agreement), and whether consumer law in `[COUNTRIES]` limits such a disclaimer.
 
 ### 2.5 How long we keep data (for the Privacy Policy)
 

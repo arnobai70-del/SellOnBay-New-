@@ -6,7 +6,6 @@ import { orderStore } from '../orders/store';
 import { createAdminClient } from '../supabase/server';
 import { inspectArchive } from './archive';
 import { APPROVED, QUARANTINE, ObjectStoreError, objectStore, type ObjectStore } from './objectStore';
-import { scanAllowsApproval, scannerFromEnv, type MalwareScanner } from './scanner';
 import { getFile, insertFile, insertVersion, listFiles, updateFile, type FileObject, type FilePurpose, type FileVersion } from './store';
 
 /*
@@ -14,7 +13,7 @@ import { getFile, insertFile, insertVersion, listFiles, updateFile, type FileObj
  *   1. an authenticated seller asks for an upload slot for their own product        startUpload
  *   2. the file goes straight into the private quarantine bucket                    (signed upload link)
  *   3. the seller says it is uploaded; size is checked                              completeUpload
- *   4. SHA-256 recorded, archive validated, secrets looked for, malware scanned     runChecks (fail closed)
+ *   4. SHA-256 recorded, archive validated, secrets looked for (NO malware scan)   runChecks
  *   5. a Catalog admin reviews it in a sandbox with a checklist                     reviewFile
  *   6. approved bytes are copied once to private product-files, re-hashed, pinned   reviewFile -> file_versions
  *   7. rejected or failed files are deleted from quarantine after 7 days            purgeExpired (unless held)
@@ -115,12 +114,12 @@ export async function completeUpload(sellerId: string, fileId: string, store: Ob
 }
 
 /*
- * 4. The automatic checks. Fail closed: a scanner that cannot answer leaves the file in "checking" (retried later), never approvable.
- * Problems in the archive or a malware finding fail the file; the seller is told what to fix, without any secret value.
+ * 4. The automatic checks: SHA-256, the archive rules and secret detection. Problems fail the file; the seller is told what to fix, without
+ * any secret value. There is NO malware scan (owner decision 2026-10-29, security risk accepted): a file that passes waits for the human
+ * review, which is the only look at what the code does. Its record says so (`malwareScan: 'not performed'`).
  */
-export async function runChecks(fileId: string, opts: { store?: ObjectStore; scanner?: MalwareScanner; now?: number } = {}): Promise<Result<FileObject>> {
+export async function runChecks(fileId: string, opts: { store?: ObjectStore; now?: number } = {}): Promise<Result<FileObject>> {
   const store = opts.store ?? objectStore();
-  const scanner = opts.scanner ?? scannerFromEnv();
   const now = opts.now ?? Date.now();
   const f = await getFile(fileId);
   if (!f) return fail(404, 'File not found.');
@@ -153,57 +152,10 @@ export async function runChecks(fileId: string, opts: { store?: ObjectStore; sca
     if (f.uploadedBy) await notify(f.uploadedBy, 'file_checked', { title: f.originalName, result: 'not accepted', note: report.problems.slice(0, 3).join(' ') });
     return { ok: true, value: next };
   }
-  const scan = await scanner.scan({
-    fileId: f.id,
-    sha256: sha,
-    size: f.sizeBytes ?? 0,
-    open: async () => {
-      const r = await store.reader(QUARANTINE, f.quarantinePath);
-      return r.read(0, r.size);
-    },
-  });
-  if (scan.verdict === 'error') {
-    // Fail closed, without losing the seller's upload: the hash and archive results are kept, the scan is retried.
-    const next = await updateFile(
-      f,
-      { sha256: sha, checks: { ...checks, twins }, scanProvider: scan.provider, scanVerdict: 'error', scanDetail: scan.detail ?? 'The scanner did not answer.', scannedAt: now },
-      { actorId: null, event: 'scan_unavailable', detail: { provider: scan.provider } },
-    );
-    return { ok: true, value: next };
-  }
-  if (scan.verdict === 'infected') {
-    const next = await updateFile(
-      f,
-      {
-        state: 'failed_checks',
-        sha256: sha,
-        checks: { ...checks, twins },
-        scanProvider: scan.provider,
-        scanVerdict: 'infected',
-        scanReference: scan.reference ?? null,
-        scanDetail: scan.detail ?? null,
-        scannedAt: now,
-        purgeAfter: now + CONFIG.files.rejectedKeepDays * DAY_MS,
-      },
-      { actorId: null, event: 'malware_found', detail: { provider: scan.provider, reference: scan.reference } },
-    );
-    await notifyAdmins('file_review_needed', { title: `${f.originalName} (malware found)` });
-    if (f.uploadedBy) await notify(f.uploadedBy, 'file_checked', { title: f.originalName, result: 'not accepted', note: 'The malware scan found a problem in this file.' });
-    return { ok: true, value: next };
-  }
   const next = await updateFile(
     f,
-    {
-      state: 'awaiting_review',
-      sha256: sha,
-      checks: { ...checks, twins, approvedScanner: scanner.approved },
-      scanProvider: scan.provider,
-      scanVerdict: 'clean',
-      scanReference: scan.reference ?? null,
-      scanDetail: scan.detail ?? null,
-      scannedAt: now,
-    },
-    { actorId: null, event: 'checks_passed', detail: { provider: scan.provider, approvedScanner: scanner.approved } },
+    { state: 'awaiting_review', sha256: sha, checks: { ...checks, twins, malwareScan: 'not performed' } },
+    { actorId: null, event: 'checks_passed', detail: { malwareScan: 'not performed' } },
   );
   await notifyAdmins('file_review_needed', { title: f.originalName });
   if (f.uploadedBy)
@@ -221,8 +173,8 @@ export const REVIEW_CHECKLIST = {
 export type ChecklistKey = keyof typeof REVIEW_CHECKLIST;
 
 /*
- * 5 and 6. A Catalog admin approves or rejects. Approving needs: automatic checks passed, a clean result from an approved scanner (fail
- * closed), every checklist item ticked, a version label. The bytes are copied once to product-files, the copy is re-hashed and must match,
+ * 5 and 6. A Catalog admin approves or rejects. Approving needs: automatic checks passed, every checklist item ticked (the files are NOT
+ * malware-scanned: the sandbox review is the only check of what the code does), a version label. The bytes are copied once to product-files, the copy is re-hashed and must match,
  * then a file version is created. Audited before anything changes.
  */
 export async function reviewFile(
@@ -230,7 +182,7 @@ export async function reviewFile(
   fileId: string,
   decision: 'approve' | 'reject',
   input: { note: string; checklist?: Partial<Record<ChecklistKey, boolean>>; label?: string; changelog?: string },
-  opts: { store?: ObjectStore; allowTestScanner?: boolean; now?: number } = {},
+  opts: { store?: ObjectStore; now?: number } = {},
 ): Promise<Result<{ file: FileObject; version?: FileVersion }>> {
   const store = opts.store ?? objectStore();
   const now = opts.now ?? Date.now();
@@ -252,9 +204,8 @@ export async function reviewFile(
   }
   if (f.state !== 'awaiting_review') return fail(409, 'Only a file that passed the automatic checks can be approved.');
   if ((!f.productId && !f.orderId) || !f.sha256 || !f.sizeBytes) return fail(409, 'This file has no product, order or hash recorded.');
-  const approvedScanner = (f.checks as { approvedScanner?: boolean }).approvedScanner === true;
-  if (!scanAllowsApproval({ verdict: f.scanVerdict ?? 'error', approvedScanner }, { allowTestScanner: opts.allowTestScanner }))
-    return fail(409, 'This file has no clean result from an approved malware scanner, so it cannot be approved (fail closed).');
+  // A file an old scanner marked infected is never approved (history kept from before the scanner was removed).
+  if (f.scanVerdict === 'infected') return fail(409, 'A malware scan found a problem in this file before scanning was removed. It cannot be approved.');
   const missing = (Object.keys(REVIEW_CHECKLIST) as ChecklistKey[]).filter((k) => input.checklist?.[k] !== true);
   if (missing.length) return fail(400, `Tick every review item first: ${missing.map((k) => REVIEW_CHECKLIST[k]).join('; ')}.`);
   // A work order's delivery or a revision belongs to one order: it is approved without becoming a product version.
@@ -296,7 +247,7 @@ export async function reviewFile(
   return { ok: true, value: { file: approved, version } };
 }
 
-/* An admin asks for the checks to run again (after a scanner outage). Only for files waiting in "checking". */
+/* An admin asks for the checks to run again (after the file could not be read). Only for files waiting in "checking". */
 export async function retryChecks(adminId: string | null, fileId: string): Promise<Result<FileObject>> {
   const f = await getFile(fileId);
   if (!f) return fail(404, 'File not found.');
@@ -323,15 +274,12 @@ export async function purgeExpired(now = Date.now(), store: ObjectStore = object
 
 /*
  * The scheduled job: runs the checks for uploads waiting in "checking" (a few per run: each may be 500 MB) and deletes expired rejected files.
- * A file already tried with no scanner configured is skipped until a scanner exists, so a missing provider does not re-read big files forever.
  */
-export async function fileJobs(now = Date.now(), opts: { store?: ObjectStore; scanner?: MalwareScanner } = {}): Promise<{ checked: number; purged: number }> {
-  const scanner = opts.scanner ?? scannerFromEnv();
+export async function fileJobs(now = Date.now(), opts: { store?: ObjectStore } = {}): Promise<{ checked: number; purged: number }> {
   let checked = 0;
   for (const f of (await listFiles({ states: ['checking'] })).reverse()) {
     if (checked >= 3) break;
-    if (f.scanVerdict === 'error' && f.scanProvider === scanner.name && !scanner.approved && scanner.name === 'none') continue;
-    const r = await runChecks(f.id, { store: opts.store, scanner, now }).catch(() => null);
+    const r = await runChecks(f.id, { store: opts.store, now }).catch(() => null);
     if (r?.ok) checked++;
   }
   return { checked, purged: await purgeExpired(now, opts.store) };

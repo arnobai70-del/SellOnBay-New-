@@ -133,25 +133,43 @@ Defects found and fixed during the staging journey (each with a unit test):
 - An order on a safety hold could be authorised (delivery timer started, seller told to start) and released: both are refused until
   Finance clears the hold.
 
-Final regression after the fixes (2026-10-28, local, demo servers on 3005 normal and 3002 legacy):
+Final regression after the browser fixes (2026-10-28, local; demo servers 3005 normal and 3002 legacy; `REAL_URL` = the local staging
+server on 3010, password-protected, staging Supabase, signed-out checks only):
 
-| Check                                           | Result                                                   |
-| ----------------------------------------------- | -------------------------------------------------------- |
-| typecheck, lint, format:check, unit tests       | PASS                                                     |
-| check:migrations, check:migration-safety        | PASS                                                     |
-| Normal build, legacy build                      | PASS                                                     |
-| RLS and authorisation on staging (strict suite) | PASS 14/14                                               |
-| API integration on staging (staging journey)    | PASS 8/8                                                 |
-| Staging noindex, password, robots, sitemap      | PASS                                                     |
-| Full Playwright suite                           | 104 PASS, 6 FAIL, 11 BLOCKED, 82 SKIP (retired included) |
-| Accessibility (a11y.spec.ts, part of the suite) | PASS                                                     |
+| Check                                           | Result                                                       |
+| ----------------------------------------------- | ------------------------------------------------------------ |
+| typecheck, lint (0 errors), format:check        | PASS                                                         |
+| Unit tests                                      | PASS 973/973                                                 |
+| check:migrations, check:migration-safety        | PASS                                                         |
+| Normal, legacy and staging builds               | PASS                                                         |
+| RLS and authorisation on staging (strict suite) | PASS 14/14 (run earlier the same day, nothing in it changed) |
+| API integration on staging (staging journey)    | PASS 8/8 (in the full run)                                   |
+| Staging noindex, password, robots, sitemap      | PASS (rechecked on the rebuilt staging server)               |
+| Full Playwright suite                           | 143 PASS, 0 FAIL, 60 SKIP (38 retired, 22 need `.env.local`) |
+| Accessibility (a11y.spec.ts, part of the suite) | PASS                                                         |
 
-Browser FAILs, all older than this work: `seo.spec.ts` 2 and `guest.spec.ts` 1 (as in Phase 13); `maintenance.spec.ts` 3 (closing a
-module answers 503 from the API handlers, but pages behind `proxy.ts` still answer 200 in demo mode). The maintenance cases fail the same
-way on a fresh build of f03147f, so they are not caused by the staging changes; not fixed yet. `search.spec.ts` passed this time. BLOCKED
-11: need the real server on port 3000.
+The six browser failures, fixed (each with a regression test):
+
+- Maintenance (3): a closed module's pages answered 200. proxy.ts rewrote to `/maintenance/<module>` with `status: 503`, but Next 16
+  renders a rewritten page with 200. The proxy now answers the notice itself (`maintenancePageResponse`, lib/maintenance/guard.ts): a
+  real 503 with Retry-After and noindex, every text escaped. The APIs already answered 503. Test: tests/unit/maintenance-guard.test.ts.
+- SEO (2): an unknown address on an admin editor showed the 404 page with status 200, because `dashboard/loading.tsx` starts the
+  response before `notFound()`. The eight dashboard pages that can be a 404 moved to `app/(dash)/(exact)/dashboard` (same addresses,
+  same error screen, outside the loading screen). Test: tests/unit/notfound-boundary.test.ts (fails if a notFound page is under a
+  loading screen).
+- Guest (1): the visitor panel showed an empty Saved list. `lib/saved.ts` kept the first list it read for the life of the page, so a
+  save written by anything other than its own `toggleSaved` (another script, a sign-in copy, client navigation after a direct write)
+  never showed. Every read now compares the stored text. Junk in storage reads as empty, and private mode keeps the list in memory.
+  Test: tests/unit/saved-store.test.ts.
+
+The 11 tests BLOCKED before (admin 3, chat 1, guard 6, privacy 1) need a server with accounts. They now run against the staging server
+(Playwright sends the staging password to that origin only) and PASS. Still SKIPPED, not counted as passed: 38 retired tests (35 instant
+checkout, closed on purpose and not reopened; 3 digital-product listings), and 22 specs (buy-real, extras, listing, orders, presale) that
+read Supabase keys from a `.env.local`, which is not used, because the staging keys stay outside the repository.
 
 ## Log
+
+- 2026-10-28: six browser failures fixed (maintenance pages now a real 503 from proxy.ts, 404 pages moved outside the dashboard loading screen, saved list always read fresh), each with a unit test; the 11 BLOCKED browser tests run against the local staging server and pass; full suite 143 PASS, 0 FAIL, 60 SKIP; Cloudflare Access BLOCKED (no sign-in, and a staging hostname is a production-zone DNS change); docs/SCANNER_EVALUATION.md.
 
 - 2026-10-28: final regression (table above; browser 104 PASS, 6 FAIL older than this work, 11 BLOCKED). Staging 0067 and 0068 applied and verified; RLS 14/14; production read-only check (not vulnerable, drift noted); local staging server and staging journey 8/8; three defects fixed (dates without a time, hold revealed to other sellers, work authorised while on hold). See the staging section and docs/STAGING_LOG.md.
 

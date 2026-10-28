@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAnonKey, supabaseConfigured, supabaseUrl } from '@/lib/supabase/env';
 import { cannotAct } from './lib/accounts';
-import { closedForPath, maintenanceJson, maintenancePage } from './lib/maintenance/guard';
+import { closedForPath, maintenanceJson, maintenancePageResponse } from './lib/maintenance/guard';
 import type { ModuleKey } from './lib/maintenance/config';
 import { crossSiteWrite } from './lib/sameOrigin';
 import { isRetired, isRetiredApi, legacyPublic } from './lib/legacy';
@@ -44,7 +44,7 @@ async function proxyInner(req: NextRequest) {
     return NextResponse.json({ error: 'Not allowed from another site.' }, { status: 403 });
   // A module in maintenance (lib/maintenance): its pages show the maintenance notice, its APIs answer 503. The routes check again themselves.
   const closed = await closedForPath(req.nextUrl.pathname);
-  if (closed && !(await adminPasses(req, closed.key))) return closed.api ? maintenanceJson(closed.row) : NextResponse.rewrite(new URL(maintenancePage(closed.key), req.url), { status: 503 });
+  if (closed && !(await adminPasses(req, closed.key))) return closed.api ? maintenanceJson(closed.row) : maintenancePageResponse(closed.row);
   // The old public site (shelves, developers, domains, blog, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
   if (!legacyPublic() && isRetired(req.nextUrl.pathname)) {
     const headers = { 'x-robots-tag': 'noindex', 'cache-control': 'public, max-age=300' };

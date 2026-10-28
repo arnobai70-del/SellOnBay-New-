@@ -7,23 +7,43 @@ const KEYS = { saved: 'lb:saved', recent: 'lb:recent' } as const;
 type Key = keyof typeof KEYS;
 
 const EMPTY: string[] = [];
-const snaps: Partial<Record<Key, string[]>> = {};
+/* The last list read for each key, with the raw text it came from. Every read compares the text, so a page always shows what is in this
+   browser now, also when something else wrote it (found in the browser suite: the visitor panel kept an empty Saved list it read earlier). */
+const snaps: Partial<Record<Key, { raw: string; list: string[] }>> = {};
 const listeners = new Set<() => void>();
+const memoryOnly = new Set<Key>(); // writing failed (private mode): this page's own list wins
 
-function read(k: Key): string[] {
+function rawOf(k: Key): string {
+  if (memoryOnly.has(k)) return snaps[k]!.raw;
   try {
-    return JSON.parse(localStorage.getItem(KEYS[k]) || '[]');
+    return localStorage.getItem(KEYS[k]) || '[]';
+  } catch {
+    return snaps[k]?.raw ?? '[]'; // storage blocked: keep what this page has in memory
+  }
+}
+function parse(raw: string): string[] {
+  try {
+    const v: unknown = JSON.parse(raw);
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
   } catch {
     return [];
   }
 }
-const get = (k: Key) => (snaps[k] ??= read(k));
+function get(k: Key): string[] {
+  const raw = rawOf(k);
+  const s = snaps[k];
+  if (s && s.raw === raw) return s.list;
+  const list = parse(raw);
+  snaps[k] = { raw, list };
+  return list;
+}
 function set(k: Key, v: string[]) {
-  snaps[k] = v;
+  const raw = JSON.stringify(v);
+  snaps[k] = { raw, list: v };
   try {
-    localStorage.setItem(KEYS[k], JSON.stringify(v));
+    localStorage.setItem(KEYS[k], raw);
   } catch {
-    /* private mode: keep in memory only */
+    memoryOnly.add(k); // private mode: keep in memory only
   }
   listeners.forEach((l) => l());
 }
@@ -31,11 +51,7 @@ function set(k: Key, v: string[]) {
 function subscribe(cb: () => void) {
   listeners.add(cb);
   const onStorage = (e: StorageEvent) => {
-    if (e.key === KEYS.saved || e.key === KEYS.recent) {
-      delete snaps.saved;
-      delete snaps.recent;
-      cb();
-    }
+    if (e.key === KEYS.saved || e.key === KEYS.recent) cb();
   };
   addEventListener('storage', onStorage);
   return () => {
@@ -50,6 +66,8 @@ export const useList = (k: Key) =>
     () => get(k),
     () => EMPTY,
   );
+/* The list as it is in this browser now (what useList shows). */
+export const readList = (k: Key) => get(k);
 export const toggleSaved = (id: string) => {
   const s = get('saved');
   set('saved', s.includes(id) ? s.filter((x) => x !== id) : [id, ...s]);

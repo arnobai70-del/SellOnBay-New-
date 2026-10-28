@@ -4,6 +4,17 @@ Status 2026-10-28: nothing here has been created. Setting it up needs account-le
 DNS record, an Access application and policy) and a tunnel credential, so it waits for the owner's separate written approval. Until then the
 staging app runs on `127.0.0.1:3010` only, with the staging password, and is never exposed by a temporary public tunnel.
 
+Checked 2026-10-28 (read-only), after the owner authorised the setup "subject to verifying the hostname and access policy first":
+
+- `cloudflared` 2026.10.2 is installed on this machine, but it is not signed in (no `~/.cloudflared`, no tunnel certificate), and there
+  is no Cloudflare API token. A tunnel cannot be created without the owner's browser sign-in (`cloudflared tunnel login`).
+- `sellonbay.com` uses Cloudflare name servers. `staging.sellonbay.com` does not exist. Creating it adds a record to the production
+  zone, which the standing rule ("do not change production DNS or routes") does not allow without a separate, explicit yes.
+- So it is BLOCKED. Ways forward, the owner chooses: (a) a written yes for exactly one new CNAME `staging.sellonbay.com` in the zone,
+  then the owner signs in once; or (b) a separate zone (another domain) used only for staging, so the production zone is not touched.
+- Cloudflare Zero Trust Free covers up to 50 users, so Access for a few testers costs nothing. Confirm this on Cloudflare's pricing page
+  before setting it up.
+
 ## What the owner approves
 
 1. A staging hostname that is not used by production, for example `staging.sellonbay.com` (a new record; existing records and routes are not

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { moduleOfApi } from '@/lib/maintenance/config';
-import { closedForPath, maintenanceJson } from '@/lib/maintenance/guard';
+import { closedForPath, maintenanceJson, maintenancePageResponse } from '@/lib/maintenance/guard';
 import { closedRow, forgetRows, isActive, memoryRows, retryAfterSeconds, shownMessage, type ModuleRow } from '@/lib/maintenance/state';
 
 const NOW = Date.parse('2026-10-20T12:00:00Z');
@@ -80,4 +80,20 @@ describe('every API route checks maintenance for itself', () => {
       }
     });
   }
+});
+
+describe('the page notice the proxy answers (found in the browser suite: a rewrite lost its 503)', () => {
+  it('is a real 503 with Retry-After and noindex, and never treats the message as HTML', async () => {
+    const row: ModuleRow = { key: 'seller', enabled: true, message: '<script>alert(1)</script> Back at 14:00.', startAt: null, endAt: Date.now() + 600_000, updatedBy: null, updatedAt: 0 };
+    const res = maintenancePageResponse(row);
+    expect(res.status).toBe(503);
+    expect(Number(res.headers.get('retry-after'))).toBeGreaterThan(500);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+    expect(res.headers.get('content-type')).toContain('text/html');
+    const html = await res.text();
+    expect(html).toContain('<h1>Seller dashboard: back soon</h1>');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt; Back at 14:00.');
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('Planned to be back by');
+  });
 });

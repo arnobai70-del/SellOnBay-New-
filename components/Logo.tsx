@@ -9,13 +9,7 @@ export function Logo() {
       <svg viewBox="0 0 32 32" aria-hidden="true">
         <rect width="32" height="32" rx="9" fill="#2B3DFF" />
         {/* bracket / card outline — matches icon.svg exactly */}
-        <path
-          d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
+        <path d="M9 11h14M9 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
         {/* notification badge dot */}
         <circle cx="21.5" cy="7.5" r="3.4" fill="#FFB52E" />
       </svg>

@@ -103,13 +103,57 @@ S13 redirect allow-list in Supabase, S14 tokens in URLs or logs.
 
 ## Staging (2026-10-28)
 
-Staging project `occketfmjwciilzuddkv` ("SellOnBay New") is empty and not used by the live site (production is `knvxtgzrylvkhyrcezlq`).
-Preflight, sequence, risks and verification: docs/STAGING_PREFLIGHT_2_0.md. NO migration applied, no user or record created, no Auth or Storage
-setting changed. Staging protection (lib/stage.ts, SITE_STAGE=staging) proven on a local staging-mode build. The tracked CLI link to
-production (`supabase/.temp`) was removed from the repository and is git-ignored; it remains in git history (rewriting history needs a
-force push, not approved).
+Staging project `occketfmjwciilzuddkv` ("SellOnBay New"); production (`knvxtgzrylvkhyrcezlq`) is not used by any test. Every step is in
+docs/STAGING_LOG.md.
+
+| Check                                                                                                                                                                                                    | Result                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Migrations 0001-0068 (CLI, reviewed batches, history recorded once)                                                                                                                                      | PASS: 68 versions, 80 tables, RLS on every table, 6 private buckets                                                      |
+| Security fixes found on staging: 0067 (default Supabase grants on products_public, ledger_balances, bump_counter, sequences), 0068 (column grants on notifications, seller_profiles DELETE, anon writes) | Applied to staging only, verified by privilege checks and anonymous REST calls (401)                                     |
+| Strict RLS suite (tests/e2e/rls.spec.ts, CI_STAGING_STRICT=1)                                                                                                                                            | PASS 14/14                                                                                                               |
+| Production read-only catalogue check (5 objects, no rows)                                                                                                                                                | NOT vulnerable; production privileges differ from the migration files (drift): reconcile before applying 0067/0068 there |
+| Staging protection on a local staging build (127.0.0.1:3010): password, X-Robots-Tag, meta noindex, robots `Disallow: /`, empty sitemap, no GA4 or Tawk, no production reference in pages or bundle      | PASS                                                                                                                     |
+| Synthetic accounts (10, `@example.test`), TOTP enrolled for sellers and admins (secrets outside the repository)                                                                                          | PASS                                                                                                                     |
+| Staging journey (tests/e2e/staging-journey.spec.ts, STAGING_JOURNEY=1), custom development path, real sessions through the app's API                                                                     | PASS 8/8                                                                                                                 |
+
+Journey coverage: request, assignment, written requirements confirmed by the buyer, quotation with Super Admin price approval (Support
+refused), acceptance creates one order (accepting twice gives the same order), simulated bank transfer reported by the buyer and reconciled
+by Finance (Support refused, a reference is used once), new-buyer safety hold cleared by Finance only, work authorised by Delivery only,
+buyer/seller/internal message channels kept apart, contact details blocked (422), tickets visible only to the opener and Support, sales PDFs
+(Finance all sales, each seller only their own, nobody else downloads), audit log entries for every sensitive admin step.
+BLOCKED by design on staging: release approval, entitlement, signed download and revisions (no file can be approved without a scanner, B-3),
+and product purchase requests (need an approved product version, same reason). Cloudflare Tunnel with Access: prepared in
+deploy/cloudflare-access-staging.md, needs the owner's approval (account-level changes); no public tunnel was opened.
+
+Defects found and fixed during the staging journey (each with a unit test):
+
+- Finance could not reconcile a payment dated today before 12:00 UTC (18:00 in Bangladesh), and a buyer ahead of UTC could not report a
+  payment made today: dates without a time are now accepted once any time zone has reached them (`receivedAtOf`, `latestToday`).
+- A seller could learn that another seller's order was on a safety hold (409 instead of 404): the hold is checked after the owner check.
+- An order on a safety hold could be authorised (delivery timer started, seller told to start) and released: both are refused until
+  Finance clears the hold.
+
+Final regression after the fixes (2026-10-28, local, demo servers on 3005 normal and 3002 legacy):
+
+| Check                                           | Result                                                   |
+| ----------------------------------------------- | -------------------------------------------------------- |
+| typecheck, lint, format:check, unit tests       | PASS                                                     |
+| check:migrations, check:migration-safety        | PASS                                                     |
+| Normal build, legacy build                      | PASS                                                     |
+| RLS and authorisation on staging (strict suite) | PASS 14/14                                               |
+| API integration on staging (staging journey)    | PASS 8/8                                                 |
+| Staging noindex, password, robots, sitemap      | PASS                                                     |
+| Full Playwright suite                           | 104 PASS, 6 FAIL, 11 BLOCKED, 82 SKIP (retired included) |
+| Accessibility (a11y.spec.ts, part of the suite) | PASS                                                     |
+
+Browser FAILs, all older than this work: `seo.spec.ts` 2 and `guest.spec.ts` 1 (as in Phase 13); `maintenance.spec.ts` 3 (closing a
+module answers 503 from the API handlers, but pages behind `proxy.ts` still answer 200 in demo mode). The maintenance cases fail the same
+way on a fresh build of f03147f, so they are not caused by the staging changes; not fixed yet. `search.spec.ts` passed this time. BLOCKED
+11: need the real server on port 3000.
 
 ## Log
+
+- 2026-10-28: final regression (table above; browser 104 PASS, 6 FAIL older than this work, 11 BLOCKED). Staging 0067 and 0068 applied and verified; RLS 14/14; production read-only check (not vulnerable, drift noted); local staging server and staging journey 8/8; three defects fixed (dates without a time, hold revealed to other sellers, work authorised while on hold). See the staging section and docs/STAGING_LOG.md.
 
 - 2026-10-28: staging 0001-0066 applied and verified (CLI after history repair). SECURITY: default Supabase grants open products_public (writes), ledger_balances (reads) and bump_counter to anon; fix 0067 written, tested locally, waiting for approval for staging and for a production check. See docs/STAGING_LOG.md.
 

@@ -9,9 +9,13 @@ const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start
   stdio: ['ignore', 'ignore', 'pipe'],
 });
 let recentErrors = '';
-child.stderr.on('data', (buf) => { recentErrors = (recentErrors + buf.toString('utf8')).slice(-2000); });
+child.stderr.on('data', (buf) => {
+  recentErrors = (recentErrors + buf.toString('utf8')).slice(-2000);
+});
 let exited = false;
-child.on('exit', () => { exited = true; });
+child.on('exit', () => {
+  exited = true;
+});
 
 async function response(path) {
   return fetch(origin + path, { signal: AbortSignal.timeout(4000), redirect: 'manual' });
@@ -21,8 +25,13 @@ async function waitUntilReady() {
   while (Date.now() < until && !exited) {
     try {
       const res = await response('/robots.txt');
-      if (res.ok) { await res.body?.cancel(); return; }
-    } catch { /* not yet listening */ }
+      if (res.ok) {
+        await res.body?.cancel();
+        return;
+      }
+    } catch {
+      /* not yet listening */
+    }
     await sleep(450);
   }
   throw new Error('Demo Next.js server did not become ready. ' + recentErrors);
@@ -33,17 +42,14 @@ try {
     const res = await response(page);
     if (res.status !== 200) throw new Error(`Demo smoke ${page} returned ${res.status}`);
     if (page === '/') {
-      if (!res.headers.get('content-security-policy')?.includes("default-src 'self'"))
-        throw new Error('Demo root missing security policy');
-      if (res.headers.get('x-content-type-options') !== 'nosniff')
-        throw new Error('Demo root missing nosniff header');
+      if (!res.headers.get('content-security-policy')?.includes("default-src 'self'")) throw new Error('Demo root missing security policy');
+      if (res.headers.get('x-content-type-options') !== 'nosniff') throw new Error('Demo root missing nosniff header');
       if (res.headers.has('x-powered-by')) throw new Error('Unexpected powered-by header');
     }
     if (page === '/api/health') {
       if ((await res.json()).ok !== true) throw new Error('Demo health check did not answer ok');
     } else if (page !== '/robots.txt') {
-      if (!(await res.text()).includes('<html'))
-        throw new Error(`Demo smoke ${page} did not render HTML`);
+      if (!(await res.text()).includes('<html')) throw new Error(`Demo smoke ${page} did not render HTML`);
     } else {
       await res.body?.cancel();
     }

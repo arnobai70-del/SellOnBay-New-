@@ -23,10 +23,7 @@ export async function GET(req: Request) {
     );
   }
   try {
-    return NextResponse.json(
-      { name, live: isLiveRegistrar(provider), results: await provider.search(name) },
-      { headers: { 'cache-control': 'no-store' } },
-    );
+    return NextResponse.json({ name, live: isLiveRegistrar(provider), results: await provider.search(name) }, { headers: { 'cache-control': 'no-store' } });
   } catch {
     return NextResponse.json({ error: 'Domain availability verification is temporarily unavailable.' }, { status: 503, headers: { 'cache-control': 'no-store' } });
   }

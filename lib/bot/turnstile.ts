@@ -10,10 +10,7 @@ const TEST_SECRET = '1x0000000000000000000000000000000AA';
 // The official test keys (1x/2x/3x followed by zeroes) must not count
 // as bot protection even when somebody copies them into production .env.
 const TEST_KEY_PREFIX = /^[123]x0{10,}/;
-export function hasNonTestTurnstileKeys(
-  site = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
-  secret = process.env.TURNSTILE_SECRET_KEY ?? '',
-): boolean {
+export function hasNonTestTurnstileKeys(site = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '', secret = process.env.TURNSTILE_SECRET_KEY ?? ''): boolean {
   const a = site.trim();
   const b = secret.trim();
   return !!a && !!b && !TEST_KEY_PREFIX.test(a) && !TEST_KEY_PREFIX.test(b);

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { sellerOnly } from '@/lib/auth/guards';
-import { HELD_TEXT, heldReason } from '@/lib/holds';
 import { submitDelivery } from '@/lib/release/service';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
@@ -22,7 +21,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const who = await sellerOnly();
   if (!who.ok) return who.res;
   const id = await idOf(params);
-  if (await heldReason(id)) return NextResponse.json({ error: HELD_TEXT }, { status: 409 });
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await submitDelivery(who.id, id, { note: body.data.note, fileId: body.data.fileId });

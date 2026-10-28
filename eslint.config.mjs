@@ -16,5 +16,5 @@ export default defineConfig([
     // `({ secret: _s, ...rest }) => rest` drops a field on purpose; names starting with _ are meant to be unused.
     rules: { '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }] },
   },
-  globalIgnores(['.next/**', '.next-legacy/**', 'out/**', 'build/**', 'coverage/**', 'next-env.d.ts', 'prototype/**', 'scripts/**', 'public/**', '**/*.cjs']),
+  globalIgnores(['.next/**', '.next-legacy/**', '.next-staging/**', 'out/**', 'build/**', 'coverage/**', 'next-env.d.ts', 'prototype/**', 'scripts/**', 'public/**', '**/*.cjs']),
 ]);

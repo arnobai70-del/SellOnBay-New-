@@ -26,6 +26,20 @@ export function checkSubmission(s: Partial<Submission>, dueCents: number, today:
   return { ok: true, value: { methodId: s.methodId, reference, amountCents: amount, paidOn } };
 }
 
+/*
+ * A date typed without a time is a calendar day somewhere on Earth: it is "today" for the buyer or Finance as long as some time zone (up to
+ * UTC+14) has reached it. Found on staging: comparing with the UTC day refused today's date in Bangladesh before 06:00 local time.
+ */
+const AHEAD_MS = 14 * 3_600_000;
+export const latestToday = (now: number) => new Date(now + AHEAD_MS).toISOString().slice(0, 10);
+
+/* When Finance says the money arrived: a full time as given, or a date (noon UTC that day, never later than now). NaN if neither. */
+export function receivedAtOf(text: string, now: number): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return Date.parse(text);
+  if (text > latestToday(now)) return NaN;
+  return Math.min(Date.parse(`${text}T12:00:00Z`), now);
+}
+
 export type Reconciliation = { amountReceivedCents: number; statementRef: string; receivedAt: number };
 export function checkReconciliation(r: Partial<Reconciliation>, now: number): { ok: true; value: Reconciliation } | { ok: false; error: string } {
   const amount = Number(r.amountReceivedCents);

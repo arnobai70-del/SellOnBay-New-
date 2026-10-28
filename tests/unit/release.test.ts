@@ -95,6 +95,23 @@ describe('work orders', () => {
     expect((await submitDelivery(sellerId, orderId, { note: 'Logo added to the home page and the footer.' })).ok).toBe(true);
     expect((await approveRelease('delivery-1', orderId, 'Checked the live site.')).ok).toBe(true);
   });
+
+  it('an order on a safety hold refuses its seller, and tells another seller only "not found" (found on staging)', async () => {
+    const { sellerId, orderId } = await paidOrder(false);
+    const holds = (globalThis as { __holdMem?: Map<string, unknown> }).__holdMem!;
+    holds.set(orderId, { orderId, reason: 'test hold', createdAt: Date.now(), title: 't', priceCents: 100 });
+    expect(await authoriseWork('delivery-1', orderId)).toMatchObject({ ok: false, status: 409 }); // no delivery timer while held
+    expect((await getOrder(orderId))!.state).toBe('funded');
+    holds.delete(orderId);
+    expect((await authoriseWork('delivery-1', orderId)).ok).toBe(true);
+    holds.set(orderId, { orderId, reason: 'test hold', createdAt: Date.now(), title: 't', priceCents: 100 });
+    try {
+      expect(await submitDelivery('other-seller', orderId, { note: 'Not my order, should be refused.' })).toMatchObject({ ok: false, status: 404 });
+      expect(await submitDelivery(sellerId, orderId, { note: 'The site is live at the domain.' })).toMatchObject({ ok: false, status: 409 });
+    } finally {
+      holds.delete(orderId);
+    }
+  });
 });
 
 describe('scheduled reminders never release anything', () => {

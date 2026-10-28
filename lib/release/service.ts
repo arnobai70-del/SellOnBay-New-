@@ -2,6 +2,7 @@ import 'server-only';
 import { auditStrict } from '../admin/audit';
 import { ensureLicense } from '../delivery/service';
 import { getFile } from '../files/store';
+import { HELD_TEXT, heldReason } from '../holdStore';
 import { LICENCE_TEXT_VERSION } from '../licenceTiers';
 import { notify, notifyAdmins } from '../notify';
 import { readyMade, type Order } from '../orders/machine';
@@ -29,6 +30,7 @@ export async function authoriseWork(adminId: string | null, orderId: string): Pr
   if (!o.quotationId) return fail(409, 'Only orders made from a quotation are authorised here.');
   if (o.state !== 'funded') return fail(409, 'Only a paid order waiting to start can be authorised.');
   if (readyMade(o)) return fail(409, 'This order is ready-made files: it goes straight to release review.');
+  if (await heldReason(o.id)) return fail(409, 'This order is on a safety hold. Finance clears the hold first (Admin, Risk).'); // no timer, no seller notice before
   await auditStrict(adminId, 'work_authorised', 'order', o.id, {});
   const r = await move(o.id, 'in_delivery', { actorId: adminId, event: 'work_authorised' });
   if (!r.ok) return r;
@@ -44,6 +46,7 @@ export async function authoriseWork(adminId: string | null, orderId: string): Pr
 export async function submitDelivery(sellerId: string, orderId: string, input: { note: string; fileId?: string }): Promise<Result<Order>> {
   const o = await getOrder(orderId);
   if (!o || o.sellerId !== sellerId) return fail(404, 'Order not found.');
+  if (await heldReason(o.id)) return fail(409, HELD_TEXT); // after the owner check, so another seller learns nothing about the order
   if (!o.quotationId) return fail(409, 'Send this delivery from the order page.');
   if (!['in_delivery', 'overdue', 'fix_requested'].includes(o.state)) return fail(409, 'This order is not waiting for your delivery.');
   const note = input.note.trim();
@@ -76,6 +79,7 @@ export async function approveRelease(adminId: string | null, orderId: string, no
   if (!o.quotationId) return fail(409, 'Legacy orders are reviewed in the legacy section.');
   if (o.state !== 'release_pending') return fail(409, 'Only an order waiting for release can be released.');
   if (!o.fundedAt) return fail(409, 'The payment is not verified.');
+  if (await heldReason(o.id)) return fail(409, 'This order is on a safety hold. Finance clears the hold first (Admin, Risk).');
   const q = await getQuote(o.quotationId);
   await auditStrict(adminId, 'release_approved', 'order', o.id, { note: note.trim().slice(0, 1000), dueAt: o.releaseDueAt ?? null, late: o.releaseDueAt ? now > o.releaseDueAt : false });
   const r = await move(o.id, 'delivered', {

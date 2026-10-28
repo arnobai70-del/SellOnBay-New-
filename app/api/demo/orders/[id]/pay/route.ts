@@ -22,8 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!found) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   // Never allow a fake card event to create escrow/entitlements for a real seller or developer.
   // This applies even to already-funded orders and regardless of NODE_ENV.
-  if (!canUseDemoPayment(found))
-    return NextResponse.json({ error: 'Test-card payments are only available for example products. Live checkout is not connected yet.' }, { status: 403 });
+  if (!canUseDemoPayment(found)) return NextResponse.json({ error: 'Test-card payments are only available for example products. Live checkout is not connected yet.' }, { status: 403 });
   if (found.state !== 'awaiting_payment') return NextResponse.json({ ok: true, already: true });
   if (found.attempts >= MAX_TRIES) return NextResponse.json({ error: 'Too many tries. Start the order again.' }, { status: 429 });
   const parsed = await readJson(req, paySchema, { allowEmpty: true });

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { adminOnly } from '@/lib/admin/guard';
 import { AuditError } from '@/lib/admin/audit';
 import { reconcile, rejectPayment } from '@/lib/payments/service';
+import { receivedAtOf } from '@/lib/payments/rules';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
 
@@ -27,7 +28,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const r = await rejectPayment(a.id, id, d.reason);
       return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
     }
-    const receivedAt = Date.parse(d.receivedOn.length === 10 ? `${d.receivedOn}T12:00:00Z` : d.receivedOn);
+    const receivedAt = receivedAtOf(d.receivedOn, Date.now());
     const r = await reconcile(a.id, id, { amountReceivedCents: Math.round(d.amountReceived * 100), statementRef: d.statementRef, receivedAt, note: d.note });
     return r.ok ? NextResponse.json({ ok: true, funded: r.value.funded, short: r.value.shortCents, excess: r.value.excessCents }) : NextResponse.json({ error: r.error }, { status: r.status });
   } catch (e) {

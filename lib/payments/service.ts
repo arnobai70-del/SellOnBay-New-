@@ -5,7 +5,7 @@ import { ledgerStore } from '../ledgerStore';
 import { notify, notifyAdmins } from '../notify';
 import { cancel, fund, getOrder, move, refundAtProvider } from '../orders/service';
 import type { Order } from '../orders/machine';
-import { checkMethod, checkReconciliation, checkSubmission, coverage, orderCode, proofKind, referenceKey, PROOF_MAX_BYTES, type MethodInput } from './rules';
+import { checkMethod, checkReconciliation, checkSubmission, coverage, latestToday, orderCode, proofKind, referenceKey, PROOF_MAX_BYTES, type MethodInput } from './rules';
 import {
   DuplicateReference,
   attemptsFor,
@@ -37,7 +37,6 @@ import {
 export type Result<T = undefined> = ({ ok: true } & (T extends undefined ? object : { value: T })) | { ok: false; status: number; error: string };
 const fail = (status: number, error: string) => ({ ok: false as const, status, error });
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
-const today = (now: number) => new Date(now).toISOString().slice(0, 10);
 const PAYABLE: readonly Order['state'][] = ['awaiting_payment', 'payment_review'];
 
 /* ---------- methods (Finance) ---------- */
@@ -67,7 +66,7 @@ export async function submitManualPayment(
   if (!o || o.buyerId !== buyerId) return fail(404, 'Order not found.');
   if (!o.quotationId) return fail(409, 'This order is paid another way.');
   if (!PAYABLE.includes(o.state)) return fail(409, 'This order is not waiting for payment.');
-  const c = checkSubmission(input, o.priceCents, today(now));
+  const c = checkSubmission(input, o.priceCents, latestToday(now)); // the buyer's "today" may be ahead of UTC
   if (!c.ok) return fail(400, c.error);
   const method = await getMethod(c.value.methodId);
   if (!method || !method.active) return fail(400, 'Choose one of the payment methods shown.');

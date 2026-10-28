@@ -4,7 +4,7 @@ import { auditList } from '@/lib/admin/audit';
 import { acct } from '@/lib/ledger';
 import { ledgerStore } from '@/lib/ledgerStore';
 import { getOrder } from '@/lib/orders/service';
-import { checkSubmission, coverage, orderCode, proofKind, referenceKey } from '@/lib/payments/rules';
+import { checkSubmission, coverage, latestToday, orderCode, proofKind, receivedAtOf, referenceKey } from '@/lib/payments/rules';
 import { approveRefund, markRefundPaid, reconcile, refundOrder, rejectPayment, saveMethodAsAdmin, submitManualPayment } from '@/lib/payments/service';
 import { attemptsFor, listRefunds } from '@/lib/payments/store';
 import { memRequestable } from '@/lib/requests/products';
@@ -184,5 +184,23 @@ describe('manual payment (D-I): a proof funds nothing until Finance reconciles r
     const off = await saveMethodAsAdmin('finance-1', { kind: 'local_wallet', label: 'Wallet off', instructions: 'Not used at the moment.', currency: 'USD', active: false }, 'Inactive method.');
     if (!off.ok) throw new Error(off.error);
     expect(await submitManualPayment(buyer, orderId, { methodId: off.value.id, reference: ref(), amountCents: 4900, paidOn: '2026-10-20' }, null)).toMatchObject({ ok: false });
+  });
+});
+
+describe('dates without a time (found on staging)', () => {
+  const early = Date.parse('2026-10-28T00:09:00Z'); // 06:09 in Bangladesh
+  it('accepts today for Finance before noon UTC, never later than now', () => {
+    expect(receivedAtOf('2026-10-28', early)).toBe(early);
+    expect(receivedAtOf('2026-10-27', early)).toBe(Date.parse('2026-10-27T12:00:00Z'));
+  });
+  it('accepts a day some time zone has reached, refuses one nobody has', () => {
+    const lateUtc = Date.parse('2026-10-28T23:00:00Z'); // already the 29th in Bangladesh
+    expect(latestToday(lateUtc)).toBe('2026-10-29');
+    expect(receivedAtOf('2026-10-29', lateUtc)).toBe(lateUtc);
+    expect(receivedAtOf('2026-10-31', lateUtc)).toBeNaN();
+    expect(checkSubmission({ methodId: 'm', reference: 'TRX123', amountCents: 100, paidOn: '2026-10-29' }, 4900, latestToday(lateUtc)).ok).toBe(true);
+  });
+  it('keeps a full time as given', () => {
+    expect(receivedAtOf('2026-10-27T08:30:00Z', early)).toBe(Date.parse('2026-10-27T08:30:00Z'));
   });
 });

@@ -14,6 +14,7 @@ test-results
 .DS_Store
 Thumbs.db
 .next-legacy/
+.next-staging/
 
 # Supabase CLI link state (project ref, pooler host): local only, never committed. Link only the staging project.
 supabase/.temp/

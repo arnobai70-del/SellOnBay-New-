@@ -95,3 +95,25 @@ Each line goes in a normal migration file after 0068 (never as ad hoc SQL), so p
 | 1 | read-only SQL on production | owner, in writing |
 | 3, 4 | backup, scratch restore | owner (scratch project costs while it runs) |
 | 5 | production writes (history repair, migrations, drift file) | owner, with the reviewed file list and the window |
+
+## 6. Read-only inspection results (2026-10-29, owner-authorised)
+
+Done through the Supabase connector with SELECT statements only. Nothing was written, no backup was taken, and no migration ran.
+
+| Check | Result |
+| --- | --- |
+| Identity | `knvxtgzrylvkhyrcezlq` "MARKETPLACE PROJECT", ap-northeast-1, Postgres 17.11, healthy |
+| Recorded history | 0001 to 0053 (not 0001 to 0040 as assumed in section 1) |
+| Missing | 0054 to 0068, plus 0069 (not written yet: the scanner-removal plan waits for approval) |
+| Objects of 0001 to 0053 | all present. Four function bodies differ only by Windows line endings (`certificates_immutable`, `record_dispute_outcome`, `ledger_post`, `is_admin`): after removing `\r` and outer whitespace the hashes equal the repository's. No logical drift |
+| Objects of 0054 to 0066 | none present (consistent with the history) |
+| Not in the repository | `public.rls_auto_enable()` (event trigger function, security definer, owner postgres) and event trigger `ensure_rls` on `ddl_command_end`: enables RLS on new tables (most likely the dashboard setting). Cannot be called through the API; harmless for our migrations, which enable RLS themselves. Record it, do not remove it |
+| Security | RLS on all 53 tables; 27 policies; 2 buckets, both private; no table-level INSERT, UPDATE, DELETE or TRUNCATE for anon or authenticated; 70 MAINTAIN grants to anon or authenticated (known drift, section 4) |
+| Orders | 4, all `awaiting_payment` (0060's new status rule validates) |
+| Ledger | 241 entries, 580 lines, debits = credits = 740,900 cents, 0 unbalanced entries; but ALL lines belong to orders that no longer exist, all written on 2026-10-08 (test data). Balances left: 15 `seller_pending` accounts, 306,299 cents in total; 45 non-zero `order_escrow` accounts, 4,500 cents in total; `platform_cash` -372,700 cents; `platform_revenue` 61,901 cents |
+| Other rows | 47 profiles, 23 products, 0 payouts, 0 disputes |
+| Storage | `certificates` 98 objects (0.2 MB, all 2026-10-08), `demos` 551 objects (62 MB) |
+
+Stopped before step 2 (backup): the Supabase CLI has no access token here, there is no database password or connection string, and
+`pg_dump`, `pg_restore`, `psql` and Docker are not installed. A SELECT-based copy would not be a consistent backup, so none was made.
+Steps 3 and 4 depend on step 2 and were not started.

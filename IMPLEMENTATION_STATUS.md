@@ -351,6 +351,8 @@ Paid services: nothing is activated. The owner decides each one; prices change, 
 
 ## Log
 
+- 2026-10-29: production read-only inspection (owner-authorised): history 0001-0053, 0054-0068 missing, no logical drift (4 bodies differ by line endings only), extra event trigger `ensure_rls`, test ledger data with 306,299 cents on 15 seller_pending accounts. Backup NOT taken (no access token, no Postgres tools): migration stopped before any write. docs/PRODUCTION_RECONCILIATION.md section 6.
+
 - 2026-10-29: final local round: demo mode can no longer switch the live site off, launch check covers test switches, Turnstile test keys on staging only, GuardDuty adapter prepared (not connected), search test isolated, legal review pack, paid-services table; unit 1015/1015, browser 110 PASS / 11 BLOCKED / 82 SKIP / 0 FAIL. Local only, no charges.
 
 - 2026-10-29: audit round 2: sign-in flows verified with the Secure cookie (session-flows tests), redirect host locked to the site on production builds (publicOrigin), CSP and XSS reviewed, GuardDuty quotas rechecked (no new upload limits), production reconciliation report and SELECT-only migration probe (docs/PRODUCTION_RECONCILIATION.md, scripts/migration-probe.mjs), exact blocker actions. Local only.

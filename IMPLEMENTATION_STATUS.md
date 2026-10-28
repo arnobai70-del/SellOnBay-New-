@@ -202,10 +202,11 @@ Prepared, not run against production: docs/SCANNER_EVALUATION.md (comparison and
 docs/DELIVERY_TEST_PLAN.md (in-process chain done with the scanner test double; staging run waits for B-3), docs/LAUNCH_READINESS.md
 (migration-history reconciliation, privilege drift with `scripts/privilege-snapshot.sql` and the staging baseline, backup and restore,
 SEO and GA4 baseline, payment eligibility, legal and retention, blocker register, deployment and rollback package), and the exact
-Cloudflare Access proposal in deploy/cloudflare-access-staging.md. Cloudflare is still BLOCKED: it needs a yes for one CNAME, a sign-in,
-and the Access application.
+Cloudflare Access proposal in deploy/cloudflare-access-staging.md. Cloudflare: done later the same day with the staging gate instead of Access (see the log).
 
 ## Log
+
+- 2026-10-28: staging on https://staging.sellonbay.com: Cloudflare Tunnel plus `deploy/staging-gate.mjs` (password on every path including static files and demos, lockout after 10 wrong passwords, http to https, noindex, Secure cookies); one authorised CNAME; public checks and the staging journey (8/8) passed; Access skipped by the owner. Unit 983/983. See deploy/cloudflare-access-staging.md.
 
 - 2026-10-28: authenticated staging tests (22: 14 PASS, 4 retired, 4 BLOCKED) through tests/e2e/realEnv.ts; delivery chain test with the scanner test double; launch readiness, scanner, delivery and Cloudflare documents; privilege snapshot script with staging baseline; full browser suite 156 PASS, 1 FAIL (search rate limit, passes alone), 46 SKIP; RLS 14/14; unit 975/975.
 

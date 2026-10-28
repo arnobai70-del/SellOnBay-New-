@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { authBotCheck, hasNonTestTurnstileKeys, liveSiteKey } from '@/lib/bot/turnstile';
+import { authBotCheck, hasNonTestTurnstileKeys, liveSiteKey, stagingTestKeysAllowed, verifyTurnstile } from '@/lib/bot/turnstile';
+import { PRODUCTION_SUPABASE_REF, STAGING_SUPABASE_REF } from '@/lib/stage';
 
 describe('Turnstile production credentials gate', () => {
   it('rejects missing or partial credentials', () => {
@@ -60,5 +61,48 @@ describe('bot check on sign in, sign up and password reset', () => {
       vi.fn(async () => new Response(JSON.stringify({ success: true }))),
     );
     expect(await authBotCheck('good-token', '1.2.3.4')).toBe(true);
+  });
+});
+
+describe('Cloudflare test keys on a staging server only', () => {
+  const staging = {
+    SITE_STAGE: 'staging',
+    STAGING_BASIC_AUTH: 'tester:Staging-Password-0123456789',
+    NEXT_PUBLIC_SUPABASE_URL: `https://${STAGING_SUPABASE_REF}.supabase.co`,
+    NEXT_PUBLIC_SITE_URL: 'https://staging.sellonbay.com',
+    NEXT_PUBLIC_GA_ID: 'off',
+  };
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+  it('allowed only when every staging safety rule holds', () => {
+    expect(stagingTestKeysAllowed(staging)).toBe(true);
+    expect(stagingTestKeysAllowed({})).toBe(false);
+    expect(stagingTestKeysAllowed({ ...staging, SITE_STAGE: 'production' })).toBe(false);
+    expect(stagingTestKeysAllowed({ ...staging, NEXT_PUBLIC_SUPABASE_URL: `https://${PRODUCTION_SUPABASE_REF}.supabase.co` })).toBe(false);
+    expect(stagingTestKeysAllowed({ ...staging, NEXT_PUBLIC_SITE_URL: 'https://sellonbay.com' })).toBe(false);
+    expect(stagingTestKeysAllowed({ ...staging, STAGING_BASIC_AUTH: '' })).toBe(false);
+  });
+  it('a production build without real keys still refuses every token, and asks Cloudflare nothing', async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', '');
+    vi.stubEnv('TURNSTILE_SECRET_KEY', '');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', `https://${PRODUCTION_SUPABASE_REF}.supabase.co`);
+    vi.stubEnv('LAUNCHBAY_DEMO', '1'); // ignored on the production project (lib/demoMode.ts)
+    expect(await verifyTurnstile('XXXX.DUMMY.TOKEN.XXXX', '203.0.113.1')).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it('the staging server verifies with the test secret', async () => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ success: true })));
+    vi.stubGlobal('fetch', fetch);
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', '');
+    vi.stubEnv('TURNSTILE_SECRET_KEY', '');
+    for (const [k, v] of Object.entries(staging)) vi.stubEnv(k, v);
+    expect(await verifyTurnstile('XXXX.DUMMY.TOKEN.XXXX', '203.0.113.1')).toBe(true);
+    expect(String((fetch.mock.calls[0] as unknown[])[1] && ((fetch.mock.calls[0] as unknown[])[1] as RequestInit).body)).toContain('secret=1x0000');
   });
 });

@@ -102,9 +102,8 @@ const env = realEnv;
 
 test.describe('pre-sale question API guards (real database)', () => {
   test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
-  // A production build (staging included) refuses Cloudflare's universal Turnstile test keys on purpose (lib/bot/turnstile.ts), so these need
-  // staging Turnstile keys and a real widget token. BLOCKED until the owner adds them; the bot check is never bypassed for a test.
-  test.skip(!!process.env.STAGING_BASIC_AUTH && !process.env.STAGING_TURNSTILE_TOKEN, 'BLOCKED on staging: needs staging Turnstile keys (the bot check fails closed)');
+  // A production build refuses Cloudflare's universal Turnstile test keys; a correctly configured staging server accepts them
+  // (stagingTestKeysAllowed in lib/bot/turnstile.ts), so these run on staging with the official dummy token. The live site still fails closed.
   const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321', env.SUPABASE_SERVICE_ROLE_KEY || 'unset', { auth: { persistSession: false } });
   const ids: string[] = [];
   const slug = `qa-presale-${Date.now()}`;
@@ -158,7 +157,7 @@ test.describe('pre-sale question API guards (real database)', () => {
   const body = (over: object = {}) => ({
     productKey: slug,
     body: 'Does the script run on Windows as well?',
-    token: process.env.STAGING_TURNSTILE_TOKEN ?? 'test-token',
+    token: process.env.STAGING_TURNSTILE_TOKEN ?? 'XXXX.DUMMY.TOKEN.XXXX', // what Cloudflare's test widget gives
     hp: '',
     startedAt: Date.now() - 5000,
     ...over,

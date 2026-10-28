@@ -194,6 +194,6 @@ test('the launch check lists what the live server still needs, without showing a
   const box = page.locator('[data-launch]');
   await expect(box).toContainText('Payments');
   await expect(box).toContainText('Known gap');
-  await expect(box.locator('li', { hasText: 'Database' })).toContainText('To do'); // demo mode has no database
+  await expect(box.locator('li', { hasText: /^Database/ })).toContainText('To do'); // demo mode has no database (anchored: other notes mention the database)
   await expect(box.locator('li', { hasText: 'Examples cannot be bought' })).toContainText('Done');
 });

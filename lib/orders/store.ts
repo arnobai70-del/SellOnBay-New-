@@ -2,6 +2,7 @@ import 'server-only';
 import { supabaseConfigured } from '../supabase/env';
 import { createAdminClient } from '../supabase/server';
 import type { Order, OrderEvent, OrderState } from './machine';
+import { demoMode } from '../demoMode';
 
 /*
  * Where orders are kept. With Supabase and migration 0015 applied they are rows in `orders` (+ the append-only `order_events`).
@@ -372,7 +373,7 @@ export async function orderStore(): Promise<OrderStore> {
   if (!supabaseConfigured) {
     // Explicit demo mode can use transient example orders; a production
     // marketplace with missing Supabase credentials must never do so.
-    if (process.env.NODE_ENV === 'production' && process.env.LAUNCHBAY_DEMO !== '1') throw new Error('The order database is not configured. Ordering is unavailable.');
+    if (process.env.NODE_ENV === 'production' && !demoMode()) throw new Error('The order database is not configured. Ordering is unavailable.');
     return memoryStore;
   }
   // With Supabase configured, never silently create transient orders when required

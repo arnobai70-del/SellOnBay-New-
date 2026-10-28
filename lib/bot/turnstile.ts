@@ -1,4 +1,6 @@
 import 'server-only';
+import { demoMode } from '../demoMode';
+import { isStaging, stagingProblem } from '../stage';
 
 /*
  * Cloudflare Turnstile check. Set TURNSTILE_SECRET_KEY and NEXT_PUBLIC_TURNSTILE_SITE_KEY for real use.
@@ -16,13 +18,16 @@ export function hasNonTestTurnstileKeys(site = process.env.NEXT_PUBLIC_TURNSTILE
   return !!a && !!b && !TEST_KEY_PREFIX.test(a) && !TEST_KEY_PREFIX.test(b);
 }
 export const usingTestKeys = () => !hasNonTestTurnstileKeys();
+/* Only a staging server that passes every staging safety rule may verify with the test keys. */
+export const stagingTestKeysAllowed = (env: Record<string, string | undefined> = process.env) => isStaging(env) && stagingProblem(env) === null;
 
 export async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
   if (!token || token.length > 2048) return false;
   const liveKeys = hasNonTestTurnstileKeys();
   // Production must never pass verification using Cloudflare's universal test keys.
-  // A deliberately configured demo prototype is exempt so it stays explorable.
-  if (process.env.NODE_ENV === 'production' && process.env.LAUNCHBAY_DEMO !== '1' && !liveKeys) return false;
+  // A deliberately configured demo prototype is exempt so it stays explorable, and so is a correctly configured staging server
+  // (password on every page, never the production project or address: lib/stage.ts), as Cloudflare advises test keys for automated tests.
+  if (process.env.NODE_ENV === 'production' && !demoMode() && !stagingTestKeysAllowed() && !liveKeys) return false;
   const body = new URLSearchParams({ secret: liveKeys ? process.env.TURNSTILE_SECRET_KEY! : TEST_SECRET, response: token });
   if (ip && ip !== 'unknown') body.set('remoteip', ip);
   try {

@@ -146,7 +146,7 @@ For the lawyer, all texts tagged [LAWYER REVIEW]:
 - [ ] Seller agreement (`app/(site)/seller-agreement`): licences and model or property releases, store-rejection risk for apps, chargeback
   liability, reserve, dispute fees, fake accounts
 - [ ] Escrow wording: "held until accepted", payout 7 days after acceptance, refunds rule (no "no refunds ever"), 7-day bug-fix guarantee
-- [ ] Acceptable use policy and DMCA or copyright notice-and-takedown flow (not written yet)
+- [ ] Acceptable use policy (`/acceptable-use`) and copyright notice-and-takedown (`/dmca`): drafts exist; confirm the designated agent. Gaps and draft clauses: docs/legal/REVIEW_PACK.md
 - [ ] Consumer law for EU and UK buyers (digital content, withdrawal right waiver at release)
 
 Retention (owner and lawyer set the periods; today's code):

@@ -1,6 +1,7 @@
 import type { DomainProvider } from './types';
+import { demoMode } from '../../demoMode';
 
-type Environment = { NODE_ENV?: string; LAUNCHBAY_DEMO?: string };
+type Environment = Record<string, string | undefined>;
 
 /** Public availability results must never be advertised as verified by the fake registrar. */
 export function isLiveRegistrar(provider: DomainProvider): boolean {
@@ -9,7 +10,7 @@ export function isLiveRegistrar(provider: DomainProvider): boolean {
 
 /** Only a deliberately enabled prototype may use made-up domain registration. */
 export function demoRegistrarAllowed(env: Environment = process.env): boolean {
-  return env.NODE_ENV !== 'production' || env.LAUNCHBAY_DEMO === '1';
+  return env.NODE_ENV !== 'production' || demoMode(env);
 }
 
 export function mayOfferNewDomain(provider: DomainProvider, env: Environment = process.env): boolean {

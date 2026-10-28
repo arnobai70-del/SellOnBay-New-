@@ -1,5 +1,6 @@
 /* Real delivery is explicitly opt-in. Missing credentials must not pretend to send. */
 import { ResendEmailProvider, emailSender, resendConfigured } from './resend';
+import { demoMode } from '../../demoMode';
 export type Mail = { to: string; subject: string; text: string; idempotencyKey?: string };
 export interface EmailProvider {
   readonly name: string;
@@ -31,7 +32,7 @@ export const emailProvider = (): EmailProvider => {
   }
   // Real production must not silently pretend to deliver email.
   if (process.env.EMAIL_PROVIDER && process.env.EMAIL_PROVIDER !== 'fake') return unavailable;
-  if (process.env.NODE_ENV === 'production' && process.env.LAUNCHBAY_DEMO !== '1') return unavailable;
+  if (process.env.NODE_ENV === 'production' && !demoMode()) return unavailable;
   return fake;
 };
 export const fakeEmail = fake;

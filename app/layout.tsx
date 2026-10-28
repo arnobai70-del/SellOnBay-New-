@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import Script from 'next/script';
 import './globals.css';
 import './market.css';
 import { CookieNotice } from '@/components/CookieNotice';
@@ -38,8 +39,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${instrument.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${instrument.variable}`} suppressHydrationWarning>
       <body>
+        {/* Before paint: allow entrance animations only when JS runs and motion is welcome, so without JS everything stays visible. */}
+        <Script id="motion-flag" strategy="beforeInteractive">
+          {`if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("motion")`}
+        </Script>
         <a className="skip" href="#main">
           Skip to content
         </a>

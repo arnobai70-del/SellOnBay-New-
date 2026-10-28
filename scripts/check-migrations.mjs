@@ -1,37 +1,15 @@
 // Runs every migration in order against an in-process Postgres (PGlite) with small stand-ins for Supabase (auth, storage, cron, roles).
 // Catches SQL mistakes and clashes between migrations without touching any real database. Usage: node scripts/check-migrations.mjs
 import { PGlite } from '@electric-sql/pglite';
-import fs from 'node:fs';
-import path from 'node:path';
+import { forPglite, migrationFiles, STAND_INS } from './lib/pgliteSupabase.mjs';
 
-const dir = path.join(import.meta.dirname, '..', 'supabase', 'migrations');
-const files = fs
-  .readdirSync(dir)
-  .filter((f) => f.endsWith('.sql'))
-  .sort();
 const db = new PGlite();
 
-await db.exec(`
-  create role anon; create role authenticated; create role service_role;
-  -- Like Supabase: everything created in public is open to the browser roles unless a migration takes it back (found on staging, 0067).
-  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
-  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
-  alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
-  create schema auth; create table auth.users (id uuid primary key default gen_random_uuid(), email text, raw_user_meta_data jsonb default '{}');
-  create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-  create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
-  create schema storage; create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint);
-  create schema cron; create table cron.job (jobid serial, jobname text);
-  create function cron.unschedule(j int) returns boolean language sql as $$ select true $$;
-  create function cron.schedule(a text, b text, c text) returns int language sql as $$ select 1 $$;
-`);
+await db.exec(STAND_INS);
 
 let failed = false;
-for (const f of files) {
-  const sql = fs
-    .readFileSync(path.join(dir, f), 'utf8')
-    .replace(/create extension if not exists pg_cron;/g, '')
-    .replace(/create extension if not exists pgcrypto;/g, '');
+for (const { file: f, sql: raw } of migrationFiles()) {
+  const sql = forPglite(raw);
   try {
     await db.exec(sql);
     console.log('ok  ', f);

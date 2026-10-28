@@ -8,11 +8,17 @@ import { SITE_URL } from './site';
 const INTERNAL = /^(0\.0\.0\.0|\[::\]|\[::1\]|::)(:\d+)?$/;
 const PRIVATE_IP = /^(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+)(:\d+)?$/;
 
-export function publicOrigin(i: { host?: string | null; forwardedHost?: string | null; forwardedProto?: string | null; nextOrigin: string; siteUrl?: string }): string {
+/* On a production build the Host and X-Forwarded-Host headers can come from the visitor (when the host's proxy passes them on), so only the
+   site's own name, its www twin or this computer is used there; any other name gets the site address, and a public name is always https. */
+export function publicOrigin(i: { host?: string | null; forwardedHost?: string | null; forwardedProto?: string | null; nextOrigin: string; siteUrl?: string; production?: boolean }): string {
   const site = (i.siteUrl ?? SITE_URL).replace(/\/$/, '');
   const host = (i.forwardedHost ?? i.host ?? '').split(',')[0].trim().toLowerCase();
   if (!host || INTERNAL.test(host) || PRIVATE_IP.test(host)) return site;
   const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
+  if ((i.production ?? process.env.NODE_ENV === 'production') && !local) {
+    const bare = (x: string) => x.replace(/^www\./, '');
+    return bare(host) === bare(new URL(site).host) ? `https://${host}` : site;
+  }
   const proto = (i.forwardedProto ?? '').split(',')[0].trim() || (local ? new URL(i.nextOrigin).protocol.replace(':', '') : 'https');
   return `${proto}://${host}`;
 }

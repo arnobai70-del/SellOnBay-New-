@@ -1,5 +1,7 @@
 # Malware scanner evaluation (blocker B-3)
 
+Quotas rechecked 2026-10-29 against AWS's own pages ("Quotas in Malware Protection for S3", "Monitoring S3 object scans", the GuardDuty pricing page). Object up to 100 GB; 100,000 extracted files; 100 nesting levels; 25 protected buckets per account per region (none adjustable). Skip reasons that must count as `error`: `PASSWORD_PROTECTED`, `OBJECT_SIZE_LIMIT_EXCEEDED`, `EXTRACTED_FILE_LIMIT_EXCEEDED`, `EXTRACTED_LEVEL_LIMIT_EXCEEDED`, `EXTRACTED_BYTE_LIMIT_EXCEEDED`, `EXTRACTION_RATIO_LIMIT_EXCEEDED`, `UNSUPPORTED_STORAGE_CLASS`, plus every `ACCESS_DENIED` reason (`SSE_C_ENCRYPTED_OBJECT`: do not use SSE-C on the scan bucket). Price: $0.09 per GB scanned in us-east-1 (from $0.60 on 2025-02-01); free tier of 1,000 requests and 1 GB a month, with no trial period. The pricing page gives $0.215 per 1,000 objects only in a worked example, with no region named: confirm it for the chosen region. Some password-protected formats cannot be detected and are scanned as encrypted bytes, which does not prove them clean, so our own check that refuses encrypted ZIP entries must stay.
+
 Status 2026-10-28: desk evaluation from the providers' public documentation. No account was opened, nothing was bought or activated,
 nothing was uploaded, no adapter was connected. Prices and limits change: confirm both on the provider's own pages and in writing before
 choosing. Figures marked "confirm" could not be read from the provider's page (rendered by script) and are older public list prices.
@@ -20,7 +22,7 @@ covered in process with the test double only (tests/unit/delivery-chain.test.ts)
 | Criterion | AWS GuardDuty Malware Protection for S3 | Microsoft Defender for Storage (on-upload) | OPSWAT MetaDefender Core (self-hosted) |
 | --- | --- | --- | --- |
 | 500 MB ZIP | Yes: objects up to 100 GB | Yes: blobs up to 50 GB | Yes: set in our own configuration |
-| Archive limits | Up to 10,000 files and 5 levels deep. Over that the archive is skipped, so a skip must count as `error`. Our limit is 50,000 entries: lower it to 10,000, or tell sellers to leave `node_modules` out | Archives scanned. Nesting and file count limits are not published: ask in writing | Set by us (depth, file count, unpacked size); many engines |
+| Archive limits | Up to 100,000 extracted files and 100 levels deep, neither adjustable (rechecked 2026-10-29). An extracted-byte limit and a compression-ratio limit also exist, with no published number. Over any limit the archive is skipped (`UNSUPPORTED`), so a skip must count as `error`. Our limits (50,000 entries, 4 GB unpacked, ratio 200) are inside the published ones | Archives scanned. Nesting and file count limits are not published: ask in writing | Set by us (depth, file count, unpacked size); many engines |
 | Private source code | Scanned inside our own AWS account. The bytes stay in our bucket | Scanned inside our own Azure account. The bytes stay in our storage account | Nothing leaves our server |
 | Data residency | The AWS region we choose (for example eu-west-1 or ap-south-1) | The Azure region we choose | Wherever our server runs |
 | Scan status | Object tag `GuardDutyMalwareScanStatus` (NO_THREATS_FOUND, THREATS_FOUND, UNSUPPORTED, ACCESS_DENIED, FAILED) and an EventBridge event | Blob index tag and an Event Grid event (No threats found, Malicious, Error, Not scanned) | REST API: data id, then the result with each engine's verdict |
@@ -53,7 +55,7 @@ per GB above it. Inbound transfer to AWS or Azure is free. A temporary S3 or Blo
 store, the bytes stay in an account we own, and little to run. Conditions:
 
 1. Count `UNSUPPORTED`, `FAILED`, `ACCESS_DENIED`, a skipped archive, a password-protected archive and a timeout as `error` (fail closed).
-2. Lower `CONFIG.files.maxEntries` to 10,000 when it is connected, so no accepted archive is too big for the scanner to open.
+2. Keep `CONFIG.files` as it is (rechecked 2026-10-29: 50,000 entries is under the 100,000-file quota, and nesting is limited to 100 levels). The earlier advice to lower `maxEntries` to 10,000 was based on the pre-September-2025 quota and is withdrawn. Ask AWS in writing for the extracted-byte and compression-ratio limits. Until they answer, an `EXTRACTED_BYTE_LIMIT_EXCEEDED` or `EXTRACTION_RATIO_LIMIT_EXCEEDED` skip stays `error`, and the seller is told to split the archive.
 3. Pick the region with the owner and the lawyer (data residency). Sign the AWS DPA. Make a dedicated bucket that blocks public access,
    uses SSE-S3 or SSE-KMS and deletes objects after 1 day, plus an IAM role limited to that bucket.
 4. Defender for Storage is the equal second choice if the site's hosting moves to Azure. MetaDefender Core is the choice only if the owner

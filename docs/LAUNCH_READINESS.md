@@ -6,6 +6,9 @@ Staging (`occketfmjwciilzuddkv`) results are in docs/STAGING_LOG.md.
 
 ## 1. Production migration-history reconciliation
 
+Updated 2026-10-29: the probe for step 2 is built and tested (`scripts/migration-probe.mjs`), and the full report with the drift
+finding is docs/PRODUCTION_RECONCILIATION.md. That report wins where it differs from this section.
+
 What we know: the repository has migrations 0001 to 0068. Staging has all 68, applied with the Supabase CLI and recorded once.
 Production's history is NOT known. CLAUDE.md records an older push of 0001 to 0040 to "the dev Supabase project", and the read-only
 catalogue checks on 2026-10-28 showed production privileges that differ from the files (section 2). So production may hold migrations
@@ -19,9 +22,10 @@ Plan (each step needs the owner's written yes; steps 1 and 2 are read-only):
    functions, policies) built from that migration file. This gives three lists: applied and recorded, applied but not recorded, missing.
 3. Take a fresh backup (section 3) and copy it off the machine.
 4. Apply "applied but not recorded" as history only (`supabase migration repair --status applied <version>`). Use no SQL for these.
-5. Apply the missing migrations in order with the CLI, one batch at a time, stopping at the first error. 0067 and 0068 are NOT applied
-   unchanged: production privileges differ, so a production-specific privileges migration is written from the section 2 diff, reviewed,
-   tried on a staging copy restored from the production backup, and only then applied.
+5. Apply the missing migrations in order with the CLI, one batch at a time, stopping at the first error. 0067 and 0068 can be applied as
+   written (2026-10-29: they only take privileges away, and nothing the live code uses; docs/PRODUCTION_RECONCILIATION.md section 4). The
+   production-specific privileges migration covers only the remaining drift from the section 2 diff. It is reviewed and tried on a
+   staging copy restored from the production backup, and only then applied.
 6. Re-run `scripts/privilege-snapshot.sql` and the strict RLS suite (`CI_STAGING_STRICT=1`) against a restored staging copy.
    Production gets the read-only snapshot only.
 
@@ -165,7 +169,7 @@ Retention (owner and lawyer set the periods; today's code):
 | Id | Blocker | Status | Owner action |
 | --- | --- | --- | --- |
 | B-1 / D1 | Payment provider for marketplace payouts | OPEN | Choose after written answers (section 5) |
-| B-3 | Malware scanner for 500 MB ZIPs | OPEN; recommended AWS GuardDuty for S3 (docs/SCANNER_EVALUATION.md) | Approve the provider, open the account, choose the region, sign the DPA |
+| B-3 | Malware scanner for 500 MB ZIPs | OPEN; recommended AWS GuardDuty for S3 (docs/SCANNER_EVALUATION.md; quotas rechecked 2026-10-29, no new upload limits needed) | Approve the provider, open the account, choose the region, sign the DPA |
 | B-5 | GA4 never checked against Google | OPEN | Give a GA4 test property |
 | B-6, B-7 | Social sign-in providers | OFF; account-linking tests S1 to S4, S7 and S12 to S14 waiting | Provider keys and approval of the linking setting |
 | B-9, B-10 | Advertising platform access and terms | OFF; P22 migration proposed only | Written platform access, counsel review |

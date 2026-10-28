@@ -1,6 +1,7 @@
 import { originOf } from './lib/publicOrigin';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { sessionCookieOptions } from '@/lib/supabase/cookieOptions';
 import { supabaseAnonKey, supabaseConfigured, supabaseUrl } from '@/lib/supabase/env';
 import { cannotAct } from './lib/accounts';
 import { closedForPath, maintenanceJson, maintenancePageResponse } from './lib/maintenance/guard';
@@ -93,6 +94,7 @@ async function handle(req: NextRequest) {
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: sessionCookieOptions(),
     cookies: {
       getAll: () => req.cookies.getAll(),
       setAll: (list) => {

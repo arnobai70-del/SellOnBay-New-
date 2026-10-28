@@ -199,12 +199,17 @@ Sign off each line before the first production deployment of 2.0:
   - `PAYMENT_WEBHOOK_SECRET`, `CRON_SECRET`, `DELIVERY_SECRET`, `GUARD_SALT`, `ANALYTICS_SALT`
   - Turnstile keys and `NEXT_PUBLIC_SITE_URL=https://sellonbay.com`
   - `NEXT_PUBLIC_GA_ID` as approved
+  - `CLIENT_IP_HEADER=cf-connecting-ip` if every request comes through Cloudflare, otherwise `TRUSTED_PROXY_HOPS` = the number of proxies
+    (without one of them a visitor can write their own address and slip past the rate limits; `/dashboard/admin/launch` flags it)
   - NOT set: `SITE_STAGE`, `EXAMPLE_ORDERS`, `LAUNCHBAY_DEMO`, `SCAN_PROVIDER=test`
 - [ ] Deploy: one instance (pull, `npm ci`, `npm run build`, restart) or blue-green (`deploy/blue-green.sh deploy`), docs/DEPLOYMENT.md
   section 5.
 - [ ] Smoke checks within 15 minutes:
   - `/api/health`, the home page and the five categories
   - sign in as a synthetic buyer, seller and admin with TOTP
+  - the session cookie: in the browser's developer tools every `sb-<ref>-auth-token` cookie shows Secure, SameSite Lax, path `/`
+    (lib/supabase/cookieOptions.ts). It is not HttpOnly on purpose (the browser client reads it). A cookie set before this release keeps
+    its old flags until the session refreshes (within the hour the access token lasts) or the person signs in again
   - robots.txt and sitemap are the live ones
   - no noindex on public pages
   - maintenance off

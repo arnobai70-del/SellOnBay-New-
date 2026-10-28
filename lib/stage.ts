@@ -44,7 +44,8 @@ export function basicAuthOk(header: string | null, expected: string): boolean {
   if (!header || !/^Basic\s+/i.test(header)) return false;
   let given = '';
   try {
-    given = atob(header.replace(/^Basic\s+/i, '').trim());
+    // UTF-8, like browsers send and the staging gate reads (atob alone gives Latin-1, so a non-ASCII password would never match).
+    given = new TextDecoder().decode(Uint8Array.from(atob(header.replace(/^Basic\s+/i, '').trim()), (c) => c.charCodeAt(0)));
   } catch {
     return false;
   }

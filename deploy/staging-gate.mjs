@@ -46,7 +46,26 @@ export function basicOk(header, expected) {
   return timingSafeEqual(digest(given), digest(expected));
 }
 
-/* Wrong passwords per address: `max` in `windowMs` locks the address out for `lockMs`. */
+/* The lock-out key for an address. An IPv6 visitor usually holds a whole /64, so the key is that /64, or rotating addresses would dodge the lock. */
+export function addressKey(ip) {
+  const a = String(ip ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/^::ffff:(?=\d+\.)/, '');
+  if (!a.includes(':')) return a || 'unknown';
+  const [head, tail = ''] = a.split('::');
+  const h = head ? head.split(':') : [];
+  const t = tail ? tail.split(':') : [];
+  const full = a.includes('::') ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
+  return (
+    full
+      .slice(0, 4)
+      .map((x) => x.replace(/^0+(?=.)/, ''))
+      .join(':') + '::/64'
+  );
+}
+
+/* Wrong passwords per address: `max` in `windowMs` locks the address out for `lockMs`. The table never grows past `maxKeys`. */
 export function createLimiter({ max = 10, windowMs = 15 * 60_000, lockMs = 15 * 60_000, maxKeys = 10_000 } = {}) {
   const seen = new Map();
   return {
@@ -56,6 +75,8 @@ export function createLimiter({ max = 10, windowMs = 15 * 60_000, lockMs = 15 * 
     },
     fail(key, now = Date.now()) {
       if (seen.size >= maxKeys) for (const [k, e] of seen) if (e.until <= now && now - e.first > windowMs) seen.delete(k);
+      // Still full (many addresses at once): drop the oldest entries that are not locked out, so memory stays bounded.
+      if (seen.size >= maxKeys) for (const [k, e] of seen) if (seen.size >= maxKeys && e.until <= now) seen.delete(k);
       const e = seen.get(key);
       const next = !e || now - e.first > windowMs ? { first: now, count: 1, until: 0 } : { ...e, count: e.count + 1 };
       if (next.count >= max) next.until = now + lockMs;
@@ -74,6 +95,15 @@ export function httpsRedirect(proto, origin, url) {
   return `${origin}${url.startsWith('/') ? url : '/'}`;
 }
 
+/* Headers for the app. The visitor can write X-Forwarded-For, X-Forwarded-Host and Host themselves (Cloudflare keeps them), and the app's
+   rate limits and redirects read them, so the gate overwrites them with what it knows: the address Cloudflare saw and the fixed staging origin. */
+export function forwardHeaders(headers, origin, ip) {
+  const host = new URL(origin).host;
+  const out = { ...headers };
+  for (const k of ['forwarded', 'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port', 'x-real-ip', 'cf-connecting-ip', 'true-client-ip']) delete out[k];
+  return { ...out, host, 'x-forwarded-host': host, 'x-forwarded-proto': 'https', 'x-forwarded-for': ip, 'x-real-ip': ip, 'cf-connecting-ip': ip };
+}
+
 /* Staging is reached over https only, so every cookie the app sets is marked Secure (the Supabase session cookies are not by default). */
 export const secureCookie = (c) => (/;\s*secure(;|$)/i.test(c) ? c : `${c}; Secure`);
 
@@ -88,7 +118,9 @@ export function startGate(env = process.env) {
   const limiter = createLimiter();
   const origin = new URL(env.NEXT_PUBLIC_SITE_URL).origin;
   const server = http.createServer((req, res) => {
-    const key = String(req.headers['cf-connecting-ip'] ?? req.socket.remoteAddress ?? 'unknown');
+    // Cloudflare sets CF-Connecting-IP itself (a visitor's own value is replaced), and only the tunnel reaches this loopback port.
+    const ip = String(req.headers['cf-connecting-ip'] ?? req.socket.remoteAddress ?? 'unknown').slice(0, 64);
+    const key = addressKey(ip);
     const to = httpsRedirect(req.headers['x-forwarded-proto'], origin, req.url ?? '/');
     if (to) {
       res.writeHead(req.method === 'GET' || req.method === 'HEAD' ? 308 : 403, { ...base, location: to });
@@ -105,7 +137,7 @@ export function startGate(env = process.env) {
       return res.end('Sign in to the SellOnBay staging site.');
     }
     limiter.ok(key);
-    const up = http.request({ host: '127.0.0.1', port: appPort, method: req.method, path: req.url, headers: req.headers }, (r) => {
+    const up = http.request({ host: '127.0.0.1', port: appPort, method: req.method, path: req.url, headers: forwardHeaders(req.headers, origin, ip) }, (r) => {
       const cookies = r.headers['set-cookie'];
       res.writeHead(r.statusCode ?? 502, { ...r.headers, ...base, ...(cookies ? { 'set-cookie': cookies.map(secureCookie) } : {}) });
       r.pipe(res);

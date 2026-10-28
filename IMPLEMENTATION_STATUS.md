@@ -204,7 +204,47 @@ docs/DELIVERY_TEST_PLAN.md (in-process chain done with the scanner test double; 
 SEO and GA4 baseline, payment eligibility, legal and retention, blocker register, deployment and rollback package), and the exact
 Cloudflare Access proposal in deploy/cloudflare-access-staging.md. Cloudflare: done later the same day with the staging gate instead of Access (see the log).
 
+## Session cookie and staging gate audit (2026-10-28)
+
+Local source only. Production was not opened, nothing was pushed or deployed, and the staging tunnel, URL and gate configuration are as
+they were (no staging process was running; the changes reach staging at its next restart).
+
+Session cookie. Cause of the missing Secure flag in production: `@supabase/ssr` 0.12.7 writes its cookies with its own defaults (path `/`,
+SameSite Lax, not HttpOnly, 400 days, no Secure), and none of our three clients (proxy.ts, lib/supabase/server.ts, lib/supabase/client.ts)
+passed `cookieOptions`. Staging only looked right because `deploy/staging-gate.mjs` adds Secure to every cookie on its way out.
+
+| Flag     | Before (production)                               | After                                                                        | Why                                                                                                                                                             |
+| -------- | ------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Secure   | missing                                           | on for a production build whose site address is https; development unchanged | `lib/supabase/cookieOptions.ts`, passed by all three clients; a production build was checked: the browser bundle has the value inlined                          |
+| SameSite | Lax (library default)                             | Lax, now set by us                                                           | Strict would drop the cookie on the way back from Google sign-in and email links; Lax plus `lib/sameOrigin.ts` covers cross-site writes                         |
+| HttpOnly | off                                               | off (unchanged, on purpose)                                                  | the browser client reads the session (chat, authenticator code, uploads, reset); the CSP carries that risk, and its `'unsafe-inline'` scripts weaken it (known) |
+| HTTPS    | HSTS 2 years with preload                         | unchanged                                                                    | next.config.ts; the launch check now marks an `http://` NEXT_PUBLIC_SITE_URL as to-do (before, it passed any value in production)                               |
+| Session  | access token about 1 hour, refreshed by the proxy | unchanged                                                                    | cookies set before the release keep their old flags until the next refresh or sign-in                                                                           |
+
+Staging gate review (deploy/staging-gate.mjs, lib/stage.ts):
+
+| Finding                                                                                                                                                                                                                                                                                                                                                        | Severity | State                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| The gate passed the visitor's own `X-Forwarded-For`, `X-Forwarded-Host` and `Host` to the app. Staging does not set `CLIENT_IP_HEADER`, so the app's rate limits read the first X-Forwarded-For value, which anyone with the password could write                                                                                                              | Medium   | FIXED: the gate overwrites them with the address Cloudflare saw and the fixed staging host (`forwardHeaders`) |
+| Lock-out per single address: an IPv6 visitor can rotate through their /64                                                                                                                                                                                                                                                                                      | Low      | FIXED: IPv6 addresses are locked per /64 (`addressKey`)                                                       |
+| The lock-out table only dropped expired entries, so many addresses at once could grow it without limit                                                                                                                                                                                                                                                         | Low      | FIXED: it never passes 10,000 entries and keeps the ones that are locked out                                  |
+| The app read the Basic password as Latin-1, the gate as UTF-8: a non-ASCII password passed the gate and failed in the app                                                                                                                                                                                                                                      | Low      | FIXED in lib/stage.ts                                                                                         |
+| `STAGING_BASIC_AUTH`, `PAYPAL_CLIENT_SECRET` and `ANALYTICS_SALT` were not in the client-bundle leak check                                                                                                                                                                                                                                                     | Low      | FIXED in scripts/check-bundle.mjs; checked on a production build: none of the names is in the client bundle   |
+| Reviewed, no change: SHA-256 then constant-time comparison; 20+ characters of three kinds; 10 wrong in 15 minutes locks for 15 minutes; http sent to the fixed https origin before any password; loopback-only ports; no websockets; no password in logs or error texts; CF-Connecting-IP trusted only because the gate listens on 127.0.0.1 behind the tunnel | –        | –                                                                                                             |
+| HTTP Basic is one shared password, with no per-person sign-in or revocation                                                                                                                                                                                                                                                                                    | Accepted | Cloudflare Access was skipped by the owner; change the password when a tester leaves                          |
+
+Production follow-up (needs the owner's approval, not done): set `CLIENT_IP_HEADER` or `TRUSTED_PROXY_HOPS` on the live server (same
+X-Forwarded-For problem as staging, already flagged by the launch check), deploy this commit, then check the cookie flags
+(docs/LAUNCH_READINESS.md section 8).
+
+Tests: tests/unit/session-cookie.test.ts (real `@supabase/ssr` server and browser clients: without our options no Secure; with them every
+cookie is Secure, SameSite Lax, path `/`; all three clients pass them; the site-address rule) and new cases in tests/unit/staging-gate.test.ts
+(forged headers never reach the app, IPv6 /64, bounded table, UTF-8 password in gate and app). typecheck, lint (0 errors) and format:check
+PASS. Unit tests PASS 995/995 (an earlier full run had one timing test time out under load; it passes alone, as before).
+
 ## Log
+
+- 2026-10-28: session cookie Secure fix (lib/supabase/cookieOptions.ts; cause: @supabase/ssr has no Secure default), staging gate hardening (forwarded headers, IPv6 /64 lock-out, bounded table, UTF-8 password), launch check refuses an http site address, three more secret names in the bundle check. Local only.
 
 - 2026-10-28: staging on https://staging.sellonbay.com: Cloudflare Tunnel plus `deploy/staging-gate.mjs` (password on every path including static files and demos, lockout after 10 wrong passwords, http to https, noindex, Secure cookies); one authorised CNAME; public checks and the staging journey (8/8) passed; Access skipped by the owner. Unit 983/983. See deploy/cloudflare-access-staging.md.
 

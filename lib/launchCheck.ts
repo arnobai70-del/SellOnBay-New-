@@ -20,6 +20,10 @@ import { derivedSecret } from './secrets';
 export type Check = { name: string; state: 'ok' | 'todo' | 'warn'; note: string };
 const set = (k: string, min = 1) => (process.env[k] ?? '').length >= min;
 
+/* The site address is fine when it is https, or unset on a production build (which then uses https://sellonbay.com). An http address would also
+   leave the sign-in cookie without Secure (lib/supabase/cookieOptions.ts). */
+export const siteAddressOk = (site: string, production: boolean) => /^https:\/\//.test(site) || (!site && production);
+
 export async function launchChecks(): Promise<Check[]> {
   const s = await getSettings();
   const confirm = await emailConfirmationOn();
@@ -33,8 +37,10 @@ export async function launchChecks(): Promise<Check[]> {
   return [
     c(
       'Site address',
-      /^https:\/\//.test(site) || process.env.NODE_ENV === 'production',
-      site ? `NEXT_PUBLIC_SITE_URL is ${site}` : 'NEXT_PUBLIC_SITE_URL is not set: the live site uses https://sellonbay.com. Set it only if your address is different.',
+      siteAddressOk(site, process.env.NODE_ENV === 'production'),
+      site
+        ? `NEXT_PUBLIC_SITE_URL is ${site}${/^https:\/\//.test(site) ? '' : ': it must start with https://, or the sign-in cookie is sent without Secure.'}`
+        : 'NEXT_PUBLIC_SITE_URL is not set: the live site uses https://sellonbay.com. Set it only if your address is different.',
     ),
     c('Database', supabaseConfigured && set('SUPABASE_SERVICE_ROLE_KEY'), 'Supabase URL, anon key and service key are set, and demo mode is off.'),
     c(

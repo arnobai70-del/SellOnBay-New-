@@ -167,7 +167,47 @@ The 11 tests BLOCKED before (admin 3, chat 1, guard 6, privacy 1) need a server 
 checkout, closed on purpose and not reopened; 3 digital-product listings), and 22 specs (buy-real, extras, listing, orders, presale) that
 read Supabase keys from a `.env.local`, which is not used, because the staging keys stay outside the repository.
 
+## Launch blocker resolution (2026-10-28)
+
+Authenticated staging tests: the five specs that read Supabase keys from `.env.local` now use `tests/e2e/realEnv.ts`, which takes the
+isolated staging keys from the process environment (kept outside the repository), refuses the production project outright, and sends
+the staging password only to a server that asks for it. Of the 22:
+
+| Spec         | Result                                                                                                                                                                                                          |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| listing (8)  | 8 PASS                                                                                                                                                                                                          |
+| orders (2)   | 2 PASS (rewritten: synthetic order rows; tests `order_apply` and `ledger_post` directly, because instant checkout stays closed)                                                                                 |
+| extras (5)   | 3 PASS; 2 retired (the public digital shelf is retired on the live structure; new listings are websites only)                                                                                                   |
+| buy-real (4) | 1 PASS (rewritten for 2.0: the old checkout answers 410 for everyone; a visitor gets 401 and a seller 403 on `/api/requests`); 2 retired (card payment through instant checkout); 1 BLOCKED (real provider, D1) |
+| presale (3)  | BLOCKED: a production build refuses the Turnstile test keys on purpose, so staging needs its own Turnstile keys                                                                                                 |
+
+Total: 14 PASS, 4 newly retired (each listed in tests/e2e/retired.ts with its reason), 4 BLOCKED. The 38 earlier retired tests stay
+retired; instant checkout was not reopened. Fixed in the tests: the login helper clicked the header search button (two submit buttons
+on the page), the MFA step clicked the wrong form, and a listing written straight to the database shows after the 60-second catalogue
+cache (`CONFIG.catalogCacheSeconds`); admin approval clears that cache at once, so this is not a product defect.
+
+Final regression (this round; no app code changed since b3ffaa4, only tests, the test fixture and docs):
+
+| Check                                                                  | Result                                                                                                                      |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| typecheck, lint (0 errors), format:check                               | PASS                                                                                                                        |
+| Unit tests                                                             | PASS 975/975 (new: tests/unit/delivery-chain.test.ts)                                                                       |
+| check:migrations, check:migration-safety                               | PASS                                                                                                                        |
+| Strict RLS on staging                                                  | PASS 14/14                                                                                                                  |
+| Full browser suite (demo 3005 and 3002, staging 3010, staging journey) | 156 PASS, 1 FAIL, 46 SKIP (42 retired, 4 BLOCKED)                                                                           |
+| search.spec.ts (the 1 FAIL)                                            | PASS 2/2 when run alone, twice; in the full run it hits the 90-a-minute search limit for one address (known since Phase 13) |
+| Synthetic users left on staging                                        | 0                                                                                                                           |
+
+Prepared, not run against production: docs/SCANNER_EVALUATION.md (comparison and monthly costs; recommendation AWS GuardDuty for S3),
+docs/DELIVERY_TEST_PLAN.md (in-process chain done with the scanner test double; staging run waits for B-3), docs/LAUNCH_READINESS.md
+(migration-history reconciliation, privilege drift with `scripts/privilege-snapshot.sql` and the staging baseline, backup and restore,
+SEO and GA4 baseline, payment eligibility, legal and retention, blocker register, deployment and rollback package), and the exact
+Cloudflare Access proposal in deploy/cloudflare-access-staging.md. Cloudflare is still BLOCKED: it needs a yes for one CNAME, a sign-in,
+and the Access application.
+
 ## Log
+
+- 2026-10-28: authenticated staging tests (22: 14 PASS, 4 retired, 4 BLOCKED) through tests/e2e/realEnv.ts; delivery chain test with the scanner test double; launch readiness, scanner, delivery and Cloudflare documents; privilege snapshot script with staging baseline; full browser suite 156 PASS, 1 FAIL (search rate limit, passes alone), 46 SKIP; RLS 14/14; unit 975/975.
 
 - 2026-10-28: six browser failures fixed (maintenance pages now a real 503 from proxy.ts, 404 pages moved outside the dashboard loading screen, saved list always read fresh), each with a unit test; the 11 BLOCKED browser tests run against the local staging server and pass; full suite 143 PASS, 0 FAIL, 60 SKIP; Cloudflare Access BLOCKED (no sign-in, and a staging hostname is a production-zone DNS change); docs/SCANNER_EVALUATION.md.
 

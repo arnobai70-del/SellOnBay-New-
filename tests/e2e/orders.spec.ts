@@ -163,23 +163,12 @@ test.describe('payment webhooks', () => {
 
 /* The same flow against the real database: rows in `orders`, the append-only `order_events`, and the all-or-nothing order_apply. Skipped until migration 0015 is applied. */
 import { createClient } from '@supabase/supabase-js';
-import fs from 'node:fs';
-import path from 'node:path';
 import { skipRetired } from './retired';
+import { realEnv } from './realEnv';
 
 skipRetired('orders.spec.ts');
 
-const REAL = process.env.REAL_URL ?? 'http://localhost:3000';
-const envFile = path.join(__dirname, '..', '..', '.env.local');
-const env: Record<string, string> = fs.existsSync(envFile)
-  ? Object.fromEntries(
-      fs
-        .readFileSync(envFile, 'utf8')
-        .split(/\r?\n/)
-        .filter((l) => l.includes('='))
-        .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-    )
-  : {};
+const env = realEnv;
 
 test.describe('orders on the real database', () => {
   test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
@@ -195,74 +184,67 @@ test.describe('orders on the real database', () => {
     if (made.length) await admin.from('orders').delete().in('id', made);
   });
 
-  test('rows, history, double-apply protection and append-only log', async ({ request }) => {
+  /*
+   * SellOnBay 2.0 closed instant checkout (POST /api/demo/orders answers 410, not reopened), so these make a synthetic order row with the
+   * service role and test what the database itself guarantees: order_apply and ledger_post. The 2.0 purchase chain is in the staging journey.
+   */
+  const newOrder = async (priceCents = 3000) => {
+    const { data, error } = await admin
+      .from('orders')
+      .insert({ title: 'QA database order', price_cents: priceCents, fee_cents: Math.round(priceCents * 0.15), lines: [['QA site', priceCents]], demo: true })
+      .select('id, status')
+      .single();
+    if (error) throw error;
+    made.push(data.id);
+    return data as { id: string; status: string };
+  };
+  const at = () => new Date().toISOString();
+
+  test('rows, history, double-apply protection and append-only log', async () => {
     test.skip(!ready, 'migration 0015 is not applied yet');
-    const res = await request.post(`${REAL}/api/demo/orders`, { data: site });
-    const id = (await res.json()).id as string;
-    made.push(id);
-    let row = (await admin.from('orders').select('*').eq('id', id).single()).data!;
-    expect(row).toMatchObject({ status: 'awaiting_payment', kind: 'product', price_cents: expect.any(Number), demo: true, currency: 'USD' });
-    expect(row.fee_cents).toBe(Math.round(row.lines[0][1] * (row.lines[0][1] < 2000 ? 0.3 : 0.22))); // 30% under $20, else 22%
-
-    expect((await pay(request, id, CARD, REAL)).status()).toBe(200);
-    row = (await admin.from('orders').select('*').eq('id', id).single()).data!;
-    expect(['funded', 'in_delivery']).toContain(row.status);
+    const { id, status } = await newOrder();
+    expect(status).toBe('awaiting_payment');
+    const fund = { p_order: id, p_from: 'awaiting_payment', p_patch: { status: 'funded', funded_at: at() }, p_event: { event: 'funded', from: 'awaiting_payment', to: 'funded', at: at() } };
+    expect((await admin.rpc('order_apply', fund)).data).toBe(true);
+    const row = (await admin.from('orders').select('status, funded_at').eq('id', id).single()).data!;
+    expect(row.status).toBe('funded');
     expect(row.funded_at).toBeTruthy();
-    expect(row.payment_last4).toBe('4242');
-    expect(JSON.stringify(row)).not.toContain('4242424242424242');
 
-    await request.post(`${REAL}/api/demo/orders/${id}/skip`);
-    expect((await request.post(`${REAL}/api/demo/orders/${id}/accept`, { data: { consent: true } })).status()).toBe(200);
-    row = (await admin.from('orders').select('*').eq('id', id).single()).data!;
-    expect(row.status).toBe('accepted');
-    expect(Date.parse(row.payout_after) - Date.parse(row.accepted_at)).toBe(7 * 86_400_000);
-
-    const events = (await admin.from('order_events').select('event, from_state, to_state').eq('order_id', id).order('id')).data!;
-    expect(events.map((e) => e.event)).toEqual(['created', 'funded', 'demo_skip', 'accepted', 'certificate_issued']);
-    expect(events.find((e) => e.event === 'accepted')).toMatchObject({ from_state: 'delivered', to_state: 'accepted' });
-
-    // a second writer that still thinks the order is delivered loses, and no event is written for it
-    const stale = await admin.rpc('order_apply', {
-      p_order: id,
-      p_from: 'delivered',
-      p_patch: { status: 'accepted' },
-      p_event: { event: 'stale', from: 'delivered', to: 'accepted', at: new Date().toISOString() },
-    });
+    // a second writer that still thinks the order is unpaid loses, and no event is written for it
+    const stale = await admin.rpc('order_apply', { ...fund, p_event: { event: 'stale', from: 'awaiting_payment', to: 'funded', at: at() } });
     expect(stale.data).toBe(false);
     expect((await admin.from('order_events').select('id').eq('order_id', id).eq('event', 'stale')).data).toHaveLength(0);
     // an unknown column is refused, a bad state is refused by the database
-    expect((await admin.rpc('order_apply', { p_order: id, p_from: 'accepted', p_patch: { buyer_id: null }, p_event: { event: 'x', at: new Date().toISOString() } })).error).toBeTruthy();
-    expect((await admin.rpc('order_apply', { p_order: id, p_from: 'accepted', p_patch: { status: 'banana' }, p_event: { event: 'x', at: new Date().toISOString() } })).error).toBeTruthy();
+    expect((await admin.rpc('order_apply', { p_order: id, p_from: 'funded', p_patch: { buyer_id: null }, p_event: { event: 'x', at: at() } })).error).toBeTruthy();
+    expect((await admin.rpc('order_apply', { p_order: id, p_from: 'funded', p_patch: { status: 'banana' }, p_event: { event: 'x', at: at() } })).error).toBeTruthy();
+    expect((await admin.from('orders').select('status').eq('id', id).single()).data!.status).toBe('funded');
 
     // the history cannot be edited or removed on its own
+    const events = (await admin.from('order_events').select('event, from_state, to_state').eq('order_id', id).order('id')).data!;
+    expect(events).toEqual([{ event: 'funded', from_state: 'awaiting_payment', to_state: 'funded' }]);
     expect((await admin.from('order_events').update({ event: 'edited' }).eq('order_id', id)).error).toBeTruthy();
     expect((await admin.from('order_events').delete().eq('order_id', id)).error).toBeTruthy();
-    expect((await admin.from('order_events').select('id').eq('order_id', id)).data!.length).toBe(5);
+    expect((await admin.from('order_events').select('id').eq('order_id', id)).data!.length).toBe(1);
   });
 
-  test('ledger in the database: balanced, never negative, once per key, append only', async ({ request }) => {
+  test('ledger in the database: balanced, never negative, once per key, append only', async () => {
     test.skip(!ready, 'migration 0015 is not applied yet');
     const probe = await admin.from('ledger_entries').select('id').limit(1);
     test.skip(!!probe.error, 'migration 0016 is not applied yet');
-    const res = await request.post(`${REAL}/api/demo/orders`, { data: site });
-    const id = (await res.json()).id as string;
-    made.push(id);
-    const total = (await admin.from('orders').select('price_cents').eq('id', id).single()).data!.price_cents as number;
-    await pay(request, id, CARD, REAL);
+    const total = 3000;
+    const fee = 450;
+    const { id } = await newOrder(total);
     const escrow = `order_escrow:${id}`;
+    const pending = `seller_pending:qa-${id}`;
     const bal = async (account: string) => Number((await admin.from('ledger_balances').select('net_cents').eq('account', account).maybeSingle()).data?.net_cents ?? 0);
+    const paid = [
+      { account: 'platform_cash', amountCents: total, side: 'debit' },
+      { account: escrow, amountCents: total, side: 'credit' },
+    ];
+    expect((await admin.rpc('ledger_post', { p_key: `pay:${id}`, p_order: id, p_memo: 'Buyer paid into escrow', p_lines: paid })).data).toBe(true);
     expect(await bal(escrow)).toBe(total);
     // posting the same business event again changes nothing
-    const again = await admin.rpc('ledger_post', {
-      p_key: `pay:${id}`,
-      p_order: id,
-      p_memo: 'again',
-      p_lines: [
-        { account: 'platform_cash', amountCents: total, side: 'debit' },
-        { account: escrow, amountCents: total, side: 'credit' },
-      ],
-    });
-    expect(again.data).toBe(false);
+    expect((await admin.rpc('ledger_post', { p_key: `pay:${id}`, p_order: id, p_memo: 'again', p_lines: paid })).data).toBe(false);
     expect(await bal(escrow)).toBe(total);
     // an entry that does not balance, and one that would take escrow below zero, are refused whole
     const lines = (a: number, b: number) => [
@@ -273,10 +255,15 @@ test.describe('orders on the real database', () => {
     expect((await admin.rpc('ledger_post', { p_key: `bad2:${id}`, p_order: id, p_memo: '', p_lines: lines(total + 1, total + 1) })).error?.message).toMatch(/below zero/);
     expect(await bal(escrow)).toBe(total);
     expect((await admin.from('ledger_entries').select('id').eq('entry_id', `bad2:${id}`)).data).toHaveLength(0);
-    // delivered and accepted: escrow is empty, the seller's pending balance and the platform fee add up to the total
-    await request.post(`${REAL}/api/demo/orders/${id}/skip`);
-    await request.post(`${REAL}/api/demo/orders/${id}/accept`, { data: { consent: true } });
+    // accepted: escrow is empty, the seller's pending balance and the platform fee add up to the total
+    const accepted = [
+      { account: escrow, amountCents: total, side: 'debit' },
+      { account: pending, amountCents: total - fee, side: 'credit' },
+      { account: 'platform_revenue', amountCents: fee, side: 'credit' },
+    ];
+    expect((await admin.rpc('ledger_post', { p_key: `accept:${id}`, p_order: id, p_memo: 'Order accepted', p_lines: accepted })).data).toBe(true);
     expect(await bal(escrow)).toBe(0);
+    expect(await bal(pending)).toBe(total - fee);
     const rows = (await admin.from('ledger_entries').select('account, amount_cents, direction').eq('order_id', id)).data!;
     const net = rows.reduce((sum, r) => sum + (r.direction === 'credit' ? 1 : -1) * Number(r.amount_cents), 0);
     expect(net).toBe(0);

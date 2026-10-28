@@ -9,7 +9,13 @@ import { test } from '@playwright/test';
  *   - new listings are websites only (13b98ae), so the digital-product listing checks have no form to run against.
  * Listed by file and exact title, found from the 2026-10-28 full run. Remove an entry when its test is rewritten for the 2.0 flow.
  */
-const RETIRED: [string, string][] = [
+const RETIRED: [string, string, string?][] = [
+  // found on staging 2026-10-28 (they were skipped before for want of a database): card payment of a seller order through instant checkout
+  ['buy-real.spec.ts', 'fake cards cannot fund a real seller order or unlock its files'],
+  ['buy-real.spec.ts', 'a listing that is not live, is above the price range, or does not offer that package cannot be bought'],
+  // the public digital shelf is retired on the live structure (lib/legacy.ts answers 410); the staging build is the live structure
+  ['extras.spec.ts', 'a seller can save a sample link and a trial link; a plain http link is refused; a Figma kit ignores the trial link', 'Retired: new listings are websites only (13b98ae).'],
+  ['extras.spec.ts', 'the demo badge and the free sample show on the shelf and the listing', 'Retired: the public shelves are retired on the live structure (lib/legacy.ts, 2026-10-23).'],
   ['admin.spec.ts', 'the buyer reports a problem: reason and real detail needed, contact details refused, only while reviewing'],
   ['admin.spec.ts', 'opening one holds the order; a second is refused; the admin refunds; everything is in the history and the audit log'],
   ['admin.spec.ts', 'a full refund sends the order to refunded'],
@@ -49,14 +55,16 @@ const RETIRED: [string, string][] = [
   ['reviews.spec.ts', 'only an accepted order can be reviewed; then one review, with the rating shown on the product page and in the structured data'],
   ['reviews.spec.ts', 'the order page offers the review form after acceptance'],
 ];
-const KEYS = new Set(RETIRED.map(([f, t]) => f + '::' + t));
+const REASONS = new Map(RETIRED.map(([f, t, why]) => [f + '::' + t, why]));
 export function skipRetired(file: string) {
   test.beforeEach(({}, info) => {
+    const key = file + '::' + info.title;
     test.skip(
-      KEYS.has(file + '::' + info.title),
-      file === 'listing.spec.ts'
-        ? 'Retired: new listings are websites only (13b98ae).'
-        : 'Retired: instant checkout is closed in SellOnBay 2.0 (2715e58); covered by unit tests, browser coverage needs staging.',
+      REASONS.has(key),
+      REASONS.get(key) ??
+        (file === 'listing.spec.ts'
+          ? 'Retired: new listings are websites only (13b98ae).'
+          : 'Retired: instant checkout is closed in SellOnBay 2.0 (2715e58); covered by unit tests, browser coverage needs staging.'),
     );
   });
 }

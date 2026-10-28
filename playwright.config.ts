@@ -8,9 +8,10 @@ import { defineConfig } from '@playwright/test';
  */
 export const DEMO_URL = process.env.DEMO_URL ?? 'http://localhost:3002';
 export const REAL_URL = process.env.REAL_URL ?? 'http://localhost:3000';
-// REAL_URL may be the local staging server (lib/stage.ts): its password is sent to that origin only, never to the demo servers.
+// REAL_URL may be the local staging server (lib/stage.ts). Its password is sent only to a server that asks for it (a 401 challenge),
+// which only the staging servers do; the demo servers never ask.
 const [stageUser, stagePass] = (process.env.STAGING_BASIC_AUTH ?? '').split(':');
-const stageLogin = stageUser && stagePass ? { httpCredentials: { username: stageUser, password: stagePass, origin: new URL(REAL_URL).origin, send: 'always' as const } } : {};
+const stageLogin = stageUser && stagePass ? { httpCredentials: { username: stageUser, password: stagePass, send: 'unauthorized' as const } } : {};
 
 export default defineConfig({
   testDir: './tests/e2e',

@@ -1,23 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { expect, test, type Browser, type BrowserContext } from '@playwright/test';
-import fs from 'node:fs';
-import path from 'node:path';
+import { realContext, realEnv } from './realEnv';
+import { skipRetired } from './retired';
+
+skipRetired('buy-real.spec.ts');
 
 /*
  * Buying a REAL seller's listing, against the real database: the order carries the seller and the listing, the money goes to that seller's accounts,
  * the files come through the signed link, and a listing that is not live, too dear or not offered cannot be bought.
  */
 const REAL = process.env.REAL_URL ?? 'http://localhost:3000';
-const envFile = path.join(__dirname, '..', '..', '.env.local');
-const env: Record<string, string> = fs.existsSync(envFile)
-  ? Object.fromEntries(
-      fs
-        .readFileSync(envFile, 'utf8')
-        .split(/\r?\n/)
-        .filter((l) => l.includes('='))
-        .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-    )
-  : {};
+const env = realEnv;
 const CARD = { number: '4242424242424242', exp: '12/34', cvc: '123', name: 'Test Buyer' };
 
 test.describe('buying a seller listing', () => {
@@ -41,12 +34,12 @@ test.describe('buying a seller listing', () => {
     return data.user.id;
   };
   const login = async (browser: Browser, email: string) => {
-    const ctx = await browser.newContext();
+    const ctx = await browser.newContext(realContext);
     const page = await ctx.newPage();
     await page.goto(`${REAL}/login`);
     await page.locator('#a-mail').fill(email);
     await page.locator('#a-pass').fill('Qa-test-pass-123');
-    await page.locator('form button[type=submit]').click();
+    await page.locator('form:has(#a-pass) button[type=submit]').click();
     await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 });
     return ctx;
   };
@@ -96,12 +89,17 @@ test.describe('buying a seller listing', () => {
   const order = (data: object) => buyer.request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis', ...data } });
 
   test('a visitor who is not signed in cannot buy it, and a seller account cannot buy at all', async ({ request }) => {
-    const res = await request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } });
+    // SellOnBay 2.0: the old instant checkout is closed for everyone (410, pointing to a request), and purchases start with a request
+    const closed = await request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } });
+    expect(closed.status()).toBe(410);
+    expect((await closed.json()).error).toMatch(/Request to buy/);
+    const ask = { product: slug, kind: 'product', intendedUse: 'A site for my own bakery.', consent: true };
+    const res = await request.post(`${REAL}/api/requests`, { data: ask });
     expect(res.status()).toBe(401);
-    expect((await res.json()).error).toMatch(/Sign in/);
-    const mine = await own.request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } });
+    const mine = await own.request.post(`${REAL}/api/requests`, { data: ask });
     expect(mine.status()).toBe(403); // only buyer accounts buy
-    expect((await mine.json()).error).toMatch(/Only buyer accounts/);
+    expect((await mine.json()).error).toMatch(/Only a buyer account/);
+    expect((await own.request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } })).status()).toBe(410);
   });
 
   // The real-provider happy path must be restored once D1 connects a verified PSP.

@@ -1,9 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { expect, test, type Browser, type BrowserContext } from '@playwright/test';
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 import { skipRetired } from './retired';
+import { realContext, realEnv } from './realEnv';
 
 skipRetired('listing.spec.ts');
 
@@ -83,16 +82,7 @@ test.describe('listing form: submit for review is blocked until the minimum is m
 });
 
 /* ---- the server enforces the same rules (real database, a seller with an authenticator) ---- */
-const envFile = path.join(__dirname, '..', '..', '.env.local');
-const env: Record<string, string> = fs.existsSync(envFile)
-  ? Object.fromEntries(
-      fs
-        .readFileSync(envFile, 'utf8')
-        .split(/\r?\n/)
-        .filter((l) => l.includes('='))
-        .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-    )
-  : {};
+const env = realEnv;
 
 const b32 = (s: string) => {
   const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -142,14 +132,14 @@ test.describe('listing API: the server enforces the same rules', () => {
     const en = await call('/auth/v1/factors', { factor_type: 'totp', friendly_name: 'qa' });
     const ch = await call(`/auth/v1/factors/${en.id}/challenge`, {});
     await call(`/auth/v1/factors/${en.id}/verify`, { challenge_id: ch.id, code: totp(en.totp.secret) });
-    const c = await browser.newContext();
+    const c = await browser.newContext(realContext);
     const page = await c.newPage();
     await page.goto(`${REAL}/login`);
     await page.locator('#a-mail').fill(email);
     await page.locator('#a-pass').fill('Qa-test-pass-123');
-    await page.locator('form button[type=submit]').click();
+    await page.locator('form:has(#a-pass) button[type=submit]').click();
     await page.locator('#mfa-code').fill(totp(en.totp.secret));
-    await page.locator('form button[type=submit]').click();
+    await page.locator('form:has(#mfa-code) button[type=submit]').click();
     await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 });
     return c;
   }

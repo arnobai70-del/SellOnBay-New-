@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { expect, test, type Page } from '@playwright/test';
-import fs from 'node:fs';
-import path from 'node:path';
+import { realContext, realEnv } from './realEnv';
 
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';
 const REAL = process.env.REAL_URL ?? 'http://localhost:3000';
@@ -99,19 +98,13 @@ test.describe('pre-sale question API guards (demo mode)', () => {
 });
 
 /* Real database: sign-in needed, per-address and daily caps, blocked rows with a reason. */
-const envFile = path.join(__dirname, '..', '..', '.env.local');
-const env: Record<string, string> = fs.existsSync(envFile)
-  ? Object.fromEntries(
-      fs
-        .readFileSync(envFile, 'utf8')
-        .split(/\r?\n/)
-        .filter((l) => l.includes('='))
-        .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-    )
-  : {};
+const env = realEnv;
 
 test.describe('pre-sale question API guards (real database)', () => {
   test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
+  // A production build (staging included) refuses Cloudflare's universal Turnstile test keys on purpose (lib/bot/turnstile.ts), so these need
+  // staging Turnstile keys and a real widget token. BLOCKED until the owner adds them; the bot check is never bypassed for a test.
+  test.skip(!!process.env.STAGING_BASIC_AUTH && !process.env.STAGING_TURNSTILE_TOKEN, 'BLOCKED on staging: needs staging Turnstile keys (the bot check fails closed)');
   const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321', env.SUPABASE_SERVICE_ROLE_KEY || 'unset', { auth: { persistSession: false } });
   const ids: string[] = [];
   const slug = `qa-presale-${Date.now()}`;
@@ -154,15 +147,22 @@ test.describe('pre-sale question API guards (real database)', () => {
   });
 
   async function login(browser: import('@playwright/test').Browser, email: string) {
-    const ctx = await browser.newContext();
+    const ctx = await browser.newContext(realContext);
     const page = await ctx.newPage();
     await page.goto(`${REAL}/login`);
     await page.locator('#a-mail').fill(email);
     await page.locator('#a-pass').fill('Qa-test-pass-123');
-    await Promise.all([page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 }).catch(() => null), page.locator('form button[type=submit]').click()]);
+    await Promise.all([page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 }).catch(() => null), page.locator('form:has(#a-pass) button[type=submit]').click()]);
     return ctx;
   }
-  const body = (over: object = {}) => ({ productKey: slug, body: 'Does the script run on Windows as well?', token: 'test-token', hp: '', startedAt: Date.now() - 5000, ...over });
+  const body = (over: object = {}) => ({
+    productKey: slug,
+    body: 'Does the script run on Windows as well?',
+    token: process.env.STAGING_TURNSTILE_TOKEN ?? 'test-token',
+    hp: '',
+    startedAt: Date.now() - 5000,
+    ...over,
+  });
 
   test('signed out gets 401; signed in is stored for the right seller; a blocked one is stored with its reason', async ({ browser, request }) => {
     const anon = await request.post(`${REAL}/api/presale`, { data: body(), headers: { 'x-forwarded-for': ip(2, 1) } });

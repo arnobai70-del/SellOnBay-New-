@@ -2,9 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 import { expect, test, type Browser, type BrowserContext } from '@playwright/test';
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import crypto from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
 import { skipRetired } from './retired';
+import { realContext, realEnv } from './realEnv';
 
 skipRetired('extras.spec.ts');
 
@@ -14,16 +14,7 @@ skipRetired('extras.spec.ts');
  */
 const OFF = process.env.REAL_URL ?? 'http://localhost:3000';
 const ON = 'http://localhost:3004';
-const envFile = path.join(__dirname, '..', '..', '.env.local');
-const env: Record<string, string> = fs.existsSync(envFile)
-  ? Object.fromEntries(
-      fs
-        .readFileSync(envFile, 'utf8')
-        .split(/\r?\n/)
-        .filter((l) => l.includes('='))
-        .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-    )
-  : {};
+const env = realEnv;
 
 const b32 = (s: string) => {
   const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -63,15 +54,15 @@ test.describe('sample link, trial copy and demo badge', () => {
     return data.user.id;
   };
   const login = async (browser: Browser, base: string, email: string, secret?: string): Promise<BrowserContext> => {
-    const ctx = await browser.newContext();
+    const ctx = await browser.newContext(realContext);
     const page = await ctx.newPage();
     await page.goto(`${base}/login`);
     await page.locator('#a-mail').fill(email);
     await page.locator('#a-pass').fill('Qa-test-pass-123');
-    await page.locator('form button[type=submit]').click();
+    await page.locator('form:has(#a-pass) button[type=submit]').click();
     if (secret) {
       await page.locator('#mfa-code').fill(totp(secret));
-      await page.locator('form button[type=submit]').click();
+      await page.locator('form:has(#mfa-code) button[type=submit]').click();
     }
     await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 });
     return ctx;
@@ -125,7 +116,9 @@ test.describe('sample link, trial copy and demo badge', () => {
     const ctx = await login(browser, OFF, `qa-tr-buyer-${stamp}@launchbay.test`);
     expect((await ctx.request.post(`${OFF}/api/products/${slugScript}/trial`)).status()).toBe(404);
     const page = await ctx.newPage();
-    await page.goto(`${OFF}/product/${slugScript}`);
+    // The rows were written straight to the database, so the public list shows them once its cache runs out (CONFIG.catalogCacheSeconds)
+    test.setTimeout(150_000);
+    await expect.poll(async () => (await page.goto(`${OFF}/product/${slugScript}`))?.status(), { timeout: 90_000, intervals: [5_000] }).toBe(200);
     await expect(page.getByText('Try before you buy')).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Free sample' })).toHaveAttribute('href', 'https://example.com/sample'); // the sample is on by default
     await ctx.close();

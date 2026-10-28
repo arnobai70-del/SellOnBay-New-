@@ -1,47 +1,75 @@
 # Malware scanner evaluation (blocker B-3)
 
-Status 2026-10-28: desk evaluation only, from the providers' public documentation. No account was opened, nothing was uploaded, no
-adapter was connected. Prices and limits change: confirm them on the provider's own pages and in writing before choosing.
+Status 2026-10-28: desk evaluation from the providers' public documentation. No account was opened, nothing was bought or activated,
+nothing was uploaded, no adapter was connected. Prices and limits change: confirm both on the provider's own pages and in writing before
+choosing. Figures marked "confirm" could not be read from the provider's page (rendered by script) and are older public list prices.
 
 Why it blocks: `lib/files/scanner.ts` (`MalwareScanner`) fails closed, so no file version can be approved, and release, entitlement,
-signed download, revisions and product purchase requests cannot run end to end (staging journey: BLOCKED by design).
+signed download, revisions and product purchase requests cannot run on staging (staging journey: BLOCKED by design). The same chain is
+covered in process with the test double only (tests/unit/delivery-chain.test.ts), which proves nothing about a real scanner.
 
 ## What we need
 
-- ZIP archives up to 500 MB, with nested archives and thousands of files (source code, `node_modules`, assets).
-- Seller source code is confidential: it must not be shared with a community, kept by the provider, or used for training.
-- A verdict per file version (clean, infected, error) and a reference we can keep as evidence; an error or timeout stays fail-closed.
-- A data processing agreement and a known region for the files.
+- ZIP archives up to 500 MB (`CONFIG.files.maxArchiveMb`), nested archives, up to 50,000 entries (`CONFIG.files.maxEntries`).
+- Seller source code is confidential: not shared with a community, not kept after the scan, not used for training.
+- A verdict per file (clean, infected, error) with a reference kept as evidence. An error, a timeout or a skipped archive stays fail-closed.
+- A data processing agreement and a known region.
 
-## Options
+## Comparison
 
-| Option | 500 MB ZIP | Where the files go | Notes |
+| Criterion | AWS GuardDuty Malware Protection for S3 | Microsoft Defender for Storage (on-upload) | OPSWAT MetaDefender Core (self-hosted) |
 | --- | --- | --- | --- |
-| AWS GuardDuty Malware Protection for S3 | Yes: objects up to 100 GB, archives up to 10,000 files and 5 levels deep (raised September 2025) | Our own AWS account; the bucket is scanned in place | Needs an S3 bucket we control (Supabase Storage is not that bucket): copy the upload to a private quarantine bucket, read the result tag, delete. Pay per GB scanned. |
-| Microsoft Defender for Storage (on-upload scanning) | Yes: blobs up to 50 GB, archives included | Our own Azure storage account | Same pattern with an Azure Blob quarantine container; result as blob index tag or Event Grid event. Monthly cap configurable. |
-| OPSWAT MetaDefender Core (self-hosted) | Yes, set by our own configuration | Our own server; nothing leaves it | Many engines and archive handling; licensed per engine and server; needs a machine we run and update. Strong fit for confidential code, highest cost and effort. |
-| OPSWAT MetaDefender Cloud | Only on Enterprise (Standard 140 MB, Professional 256 MB) | OPSWAT cloud; private processing deletes the file after the scan | Check that private processing is in the contract, and the archive file count per tier (500 / 10,000 / 50,000). |
-| Cloudmersive Virus Scan API | Up to 2 GB over plain upload (larger with chunked upload), paid plan over 10 MB | Cloudmersive cloud | Archive limits not published: ask in writing. |
-| ClamAV (open source, self-hosted) | Yes, with raised `MaxFileSize`, `MaxScanSize`, `MaxFiles` | Our own server | No cost and nothing leaves us, but lower detection than commercial engines. Good as an extra first layer, not as the only scanner. |
-| VirusTotal | Not suitable | Files are shared with the security community | Never for seller code. |
+| 500 MB ZIP | Yes: objects up to 100 GB | Yes: blobs up to 50 GB | Yes: set in our own configuration |
+| Archive limits | Up to 10,000 files and 5 levels deep. Over that the archive is skipped, so a skip must count as `error`. Our limit is 50,000 entries: lower it to 10,000, or tell sellers to leave `node_modules` out | Archives scanned. Nesting and file count limits are not published: ask in writing | Set by us (depth, file count, unpacked size); many engines |
+| Private source code | Scanned inside our own AWS account. The bytes stay in our bucket | Scanned inside our own Azure account. The bytes stay in our storage account | Nothing leaves our server |
+| Data residency | The AWS region we choose (for example eu-west-1 or ap-south-1) | The Azure region we choose | Wherever our server runs |
+| Scan status | Object tag `GuardDutyMalwareScanStatus` (NO_THREATS_FOUND, THREATS_FOUND, UNSUPPORTED, ACCESS_DENIED, FAILED) and an EventBridge event | Blob index tag and an Event Grid event (No threats found, Malicious, Error, Not scanned) | REST API: data id, then the result with each engine's verdict |
+| Secure transfer | Server-side copy from Supabase quarantine to a private S3 bucket over TLS, IAM role with write-only rights to one prefix; or presigned PUT | Same pattern with a SAS token limited to one container and a short expiry | Over TLS inside our own network |
+| Fit with our Supabase quarantine | Add a step: quarantine (Supabase) to S3 scan bucket, read the tag, delete the S3 copy. The approved copy stays in Supabase `product-files` | Same, with Azure Blob | Stream from Supabase quarantine to Core, no extra bucket |
+| Cost model | $0.09 per GB scanned plus $0.215 per 1,000 objects (us-east-1, from February 2025), plus S3 storage and requests (small; the copy is deleted after the scan) | About $10 per storage account a month plus about $0.15 per GB scanned (confirm) | Annual licence by quote (public estimates for OPSWAT run about $12k to $84k a year), plus a server |
+| Failure handling | A FAILED or UNSUPPORTED tag, a missing event, or a timeout counts as `error`, and an admin retries | Error and not scanned count as `error`. Scanning halts at the monthly cap, which also counts as `error` | Engine or timeout errors count as `error`. We have to keep the engines updated |
+| Operational effort | Low. One AWS account, one bucket, one IAM role, an EventBridge rule or polling | Low. One Azure subscription, a storage account and an Event Grid subscription | High. A server to run, patch, license and monitor |
+
+Not suitable as the only scanner: OPSWAT MetaDefender Cloud (500 MB needs Enterprise; Standard is 140 MB and Professional 256 MB),
+Cloudmersive (archive limits not published), ClamAV on its own (lower detection), VirusTotal (files are shared: never for seller code).
+
+## Estimated monthly cost (scanning only, confirm before choosing)
+
+Assumptions: every upload is scanned once, with no rescans. Low is 50 ZIPs of 100 MB (5 GB). Medium is 500 ZIPs of 150 MB (75 GB).
+High is 3,000 ZIPs of 250 MB (750 GB).
+
+| Usage | GuardDuty for S3 | Defender for Storage (confirm) | MetaDefender Core |
+| --- | --- | --- | --- |
+| Low (5 GB) | about $0.50 | about $11 | about $1,000 to $7,000 (licence) + server |
+| Medium (75 GB) | about $7 | about $21 | same, by quote |
+| High (750 GB) | about $68 | about $123 | same, by quote |
+
+Moving the files also costs something. Copying out of Supabase counts as Supabase egress, which is included in the plan quota and charged
+per GB above it. Inbound transfer to AWS or Azure is free. A temporary S3 or Blob copy that is deleted within hours costs cents.
 
 ## Recommendation
 
-1. First choice: a scanner that runs in an account we control, so the code never goes to a separate scanning company. AWS GuardDuty for
-   S3 or Microsoft Defender for Storage both cover 500 MB ZIPs well inside their limits. Pick the cloud that also suits hosting.
-2. If the owner wants the strongest detection and can run a server: OPSWAT MetaDefender Core.
-3. Keep fail-closed. Any error, timeout, a skipped archive (over the file count or depth limit), or a password-protected archive counts as
-   `error`, never `clean`.
-4. Before any real file is sent: written approval, DPA signed, region chosen, and a test with synthetic archives only (EICAR test file,
-   nested ZIP, a ZIP over the file count limit, a password-protected ZIP, a 500 MB synthetic ZIP).
+**AWS GuardDuty Malware Protection for S3**: the lowest cost at every volume, well inside the 500 MB need, verdicts we can read and
+store, the bytes stay in an account we own, and little to run. Conditions:
 
-## Adapter plan (after approval)
+1. Count `UNSUPPORTED`, `FAILED`, `ACCESS_DENIED`, a skipped archive, a password-protected archive and a timeout as `error` (fail closed).
+2. Lower `CONFIG.files.maxEntries` to 10,000 when it is connected, so no accepted archive is too big for the scanner to open.
+3. Pick the region with the owner and the lawyer (data residency). Sign the AWS DPA. Make a dedicated bucket that blocks public access,
+   uses SSE-S3 or SSE-KMS and deletes objects after 1 day, plus an IAM role limited to that bucket.
+4. Defender for Storage is the equal second choice if the site's hosting moves to Azure. MetaDefender Core is the choice only if the owner
+   wants several engines and accepts the licence and the server.
 
-- `lib/files/scanner.ts`: a new `MalwareScanner` for the chosen provider. Keys stay on the server only.
-- Upload goes to the quarantine bucket, the scan result comes back by webhook or by polling, and the verdict is written to the file version
-  with the provider reference. Then the quarantine copy is deleted.
-- Unit tests: verdict mapping, skipped archive becomes `error`, timeout becomes `error`, and the webhook signature is checked.
+## Adapter plan (after written approval)
 
-Sources: AWS "Quotas in Malware Protection for S3"; AWS What's New, September 2025 (limits expanded); Microsoft Learn "Malware scanning
-in Defender for Storage"; OPSWAT MetaDefender Cloud store page and licensing docs; Cloudmersive "How to scan large files for viruses
-and malware".
+- `lib/files/scannerAws.ts` implements `MalwareScanner` with `approved: true`, and is added to `scannerFromEnv()` behind
+  `SCAN_PROVIDER=aws-guardduty`. AWS keys live on the server only, preferably as a role, never as a `NEXT_PUBLIC_` variable.
+- `runChecks` streams the quarantine object to `s3://<scan-bucket>/<fileId>/<sha256>.zip`, then waits for the tag (EventBridge to a
+  signed webhook, or polling with a deadline). It stores the verdict and the scan id, and deletes the S3 copy.
+- Unit tests map every status to a verdict, check that a missing tag times out to `error`, that an unsigned webhook is refused, and that
+  a scan reference is stored.
+- Staging acceptance uses synthetic files only: the EICAR test file, a nested ZIP, a ZIP with more than 10,000 files, a
+  password-protected ZIP and a 500 MB synthetic ZIP. Then the delivery chain in docs/DELIVERY_TEST_PLAN.md is run.
+
+Sources: AWS "Quotas in Malware Protection for S3"; AWS What's New (September 2025, limits expanded; February 2025, price reduction);
+aws.amazon.com/guardduty/pricing; Microsoft Learn "On-upload malware scanning" and Defender for Cloud pricing page; OPSWAT MetaDefender
+Cloud store page and licensing docs; Vendr's OPSWAT page (third-party estimate); Cloudmersive "How to scan large files".

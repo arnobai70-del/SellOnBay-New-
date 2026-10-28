@@ -2,10 +2,20 @@ import { memRequestable } from '@/lib/requests/products';
 import { reconcile, saveMethodAsAdmin, submitManualPayment } from '@/lib/payments/service';
 import { acceptQuote, adminRequestAction, draftQuote, issueQuote, submitRequest, superDecision } from '@/lib/requests/service';
 
-/* A paid quotation order. readyMade: files only (download, as is); otherwise a work order (live site). */
-export async function paidOrder(readyMade: boolean, opts: { terms?: Record<string, unknown>; beforeQuote?: (productId: string, sellerId: string) => Promise<void> } = {}) {
-  const id = crypto.randomUUID();
-  const sellerId = `seller-${id.slice(0, 6)}`;
+/*
+ * A paid quotation order. readyMade: files only (download, as is); otherwise a work order (live site). `version` uses a product whose file
+ * really went through upload, checks and approval (tests/unit/delivery-chain.test.ts); without it the version id is made up.
+ */
+export async function paidOrder(
+  readyMade: boolean,
+  opts: {
+    terms?: Record<string, unknown>;
+    beforeQuote?: (productId: string, sellerId: string) => Promise<void>;
+    version?: { productId: string; sellerId: string; versionId: string };
+  } = {},
+) {
+  const id = opts.version?.productId ?? crypto.randomUUID();
+  const sellerId = opts.version?.sellerId ?? `seller-${id.slice(0, 6)}`;
   memRequestable({
     id,
     slug: `rel-${id.slice(0, 6)}`,
@@ -24,7 +34,7 @@ export async function paidOrder(readyMade: boolean, opts: { terms?: Record<strin
     customCents: null,
     expressCents: null,
     expressHelps: true,
-    latestVersionId: crypto.randomUUID(),
+    latestVersionId: opts.version?.versionId ?? crypto.randomUUID(),
   });
   if (opts.beforeQuote) await opts.beforeQuote(id, sellerId);
   const buyer = `buyer-${id.slice(0, 6)}`;

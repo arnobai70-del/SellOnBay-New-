@@ -15,6 +15,36 @@ Checked 2026-10-28 (read-only), after the owner authorised the setup "subject to
 - Cloudflare Zero Trust Free covers up to 50 users, so Access for a few testers costs nothing. Confirm this on Cloudflare's pricing page
   before setting it up.
 
+## Exact proposal for approval (2026-10-28)
+
+Checked read-only first. The zone `sellonbay.com` is on Cloudflare name servers. Production is `sellonbay.com` (AAAA records) and `www`
+(a CNAME to Hostinger's CDN). `staging.sellonbay.com` does not exist, and there is no wildcard record (a random name does not resolve),
+so the new name collides with nothing. `lib/stage.ts` accepts `https://staging.sellonbay.com` as `NEXT_PUBLIC_SITE_URL` (only
+`sellonbay.com` and `www` are refused).
+
+| Item                                     | Exact value                                                                                                                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hostname                                 | `staging.sellonbay.com`                                                                                                                                                                      |
+| DNS record (the ONLY change in the zone) | `CNAME staging -> <tunnel-id>.cfargotunnel.com`, proxied (orange cloud), created by `cloudflared tunnel route dns`. No existing record is edited or removed                                  |
+| Tunnel                                   | Named tunnel `sellonbay-staging`, run by `cloudflared` on this machine only while tests run                                                                                                  |
+| Tunnel route (ingress)                   | `staging.sellonbay.com -> http://127.0.0.1:3010`, everything else `http_status:404`                                                                                                          |
+| Access application                       | Self-hosted, domain `staging.sellonbay.com` (all paths), session 8 hours, Cloudflare login page                                                                                              |
+| Access policy                            | One policy, action Allow, include "Emails" = the owner's address plus named testers (listed by the owner, not written in this public repository). No "Everyone", no Bypass, no service token |
+| Login method                             | One-time PIN by email (no extra identity provider)                                                                                                                                           |
+| App behind it                            | Still `SITE_STAGE=staging`: password (basic auth), noindex, robots `Disallow: /`, empty sitemap, `NEXT_PUBLIC_SITE_URL=https://staging.sellonbay.com`, GA4 off                               |
+| Cost                                     | Cloudflare Zero Trust Free (up to 50 users) and Tunnel are free. Confirm on Cloudflare's pricing page; no paid plan is turned on                                                             |
+
+What the owner does:
+
+1. Gives a written yes for exactly the CNAME above.
+2. Runs `cloudflared tunnel login` once in a browser and picks `sellonbay.com`. The certificate stays in `%USERPROFILE%\.cloudflared`.
+3. Sends the list of allowed emails.
+4. Creates the Access application and policy in Zero Trust → Access → Applications with the values above, BEFORE the DNS record exists.
+   The tunnel certificate cannot create Access applications. Alternatively, give a short-lived API token limited to "Access: Apps and
+   Policies Edit" on this account only, which is deleted afterwards.
+
+The rest is done from this machine, and the verification list below is run before any test goes through it.
+
 ## What the owner approves
 
 1. A staging hostname that is not used by production, for example `staging.sellonbay.com` (a new record; existing records and routes are not

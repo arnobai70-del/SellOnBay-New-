@@ -7,19 +7,17 @@ import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
 import { PageExtras } from '@/components/PageExtras';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
-import { AppArt } from '@/components/AppPhone';
-import { SaveButton } from '@/components/SaveButton';
 import { HeroDomain } from '@/components/HeroDomain';
-import { LoopVideo } from '@/components/LoopVideo';
-import { ScaledPage } from '@/components/ScaledPage';
-import { StoreMotion } from '@/components/StoreMotion';
-import { TemplatePage } from '@/components/TemplatePage';
-import { Tilt } from '@/components/Tilt';
-import { SHELVES, isApp, platformOf, shelfHref, shelfLabel, type AppPlatform, type Platform } from '@/lib/apps';
+import { Cover, HomeCard } from '@/components/home/HomeCard';
+import { FeaturedTabs } from '@/components/home/FeaturedTabs';
+import { HeroVideo } from '@/components/home/HeroVideo';
+import { HomeMotion } from '@/components/home/HomeMotion';
+import { RailControls } from '@/components/home/RailControls';
+import { serif } from '@/components/home/serif';
+import { platformOf, shelfHref, shelfLabel, type Platform } from '@/lib/apps';
 import { getLiveDbProducts } from '@/lib/catalog';
-import { SHOW_LIST_PRICES } from '@/lib/config';
 import { CONFIG, PAYOUT_HOLD_DAYS, PLAN_KEEP_TEXT, REVIEW_HOURS, pct } from '@/lib/config';
-import { daysLabel, imageFor, isNew, money, type Product } from '@/lib/data';
+import { type Product } from '@/lib/data';
 import { AREAS } from '@/lib/developers';
 import { starterProducts } from '@/lib/examples';
 import { legacyPublic } from '@/lib/legacy';
@@ -28,6 +26,7 @@ import { allHubViews, allocation, hubProductPath } from '@/lib/seo/hubStore';
 import { applyControls } from '@/lib/seo/applyControls';
 import { pageControls } from '@/lib/seo/controlStore';
 import { getSeo } from '@/lib/seo/site';
+import '../home.css';
 
 const HOME_DESCRIPTION = 'Websites, apps and digital products in one place. Look at the real thing before you pay; your money is held until you accept.';
 
@@ -59,10 +58,21 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
-/* The clip behind the hero: our own product pages drifting past in browser windows, rendered from
-   scripts/hero-video-scene.html (see the note in scripts/hero-video-render.cjs). To use another clip, put it in
-   public/video/ (short, silent, H.264, under ~5 MB) with a poster and change these two paths. */
-const HERO_VIDEO = { src: '/video/marketplace-wall.mp4', poster: '/video/marketplace-wall-poster.webp' };
+/* The still behind the hero, shown first and kept as the LCP picture; the clip itself (components/home/HeroVideo.tsx) comes in after the page has
+   loaded. Both live in public/media/. */
+const HERO_POSTER = '/media/hero-poster.jpg';
+// The glow behind each "Popular right now" panel, in category order.
+const PANEL_TINTS = ['#3B5BFF', '#6C4CF5', '#0E8C7A', '#E0A21E', '#C2532E'];
+
+/* A small padlock, as in an address bar. */
+function Lock({ dark = false }: { dark?: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={dark ? '#1A1405' : '#12A37A'} strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 018 0v3" />
+    </svg>
+  );
+}
 
 const SHELF_ORDER: Platform[] = ['web', 'android', 'ios', 'webapp', 'desktop', 'digital'];
 const AREA_NOTE: Record<(typeof AREAS)[number], string> = {
@@ -162,70 +172,6 @@ function Glyph({ k, size = 28 }: { k: string; size?: number }) {
   }
 }
 
-/* A big picture of the product, the same one the browse cards use: the site's own page, the app on a phone or in a window, or the files of a digital product. */
-function Cover({ p, sizes = '(max-width: 640px) 100vw, 380px', badges = false }: { p: Product; sizes?: string; badges?: boolean }) {
-  const app = isApp(p);
-  const img = app ? undefined : imageFor(p.id);
-  const shot = p.shots?.[0];
-  const wide = app && SHELVES[platformOf(p) as AppPlatform].delivery !== 'store';
-  return (
-    <span
-      className={'tc-shot ex-cover' + (app ? ' app-shot' : '') + (wide ? ' wide' : '')}
-      style={app && p.app ? { background: `linear-gradient(165deg, ${p.app.accent}33, ${p.app.bg})` } : undefined}
-    >
-      {app ? (
-        shot ? (
-          <span className="ap-real">
-            <Image src={shot} alt="" fill sizes="200px" unoptimized style={{ objectFit: 'cover', objectPosition: 'top' }} />
-          </span>
-        ) : (
-          <AppArt p={p} />
-        )
-      ) : shot ? (
-        <Image className="tc-img" src={shot} alt="" fill sizes={sizes} unoptimized style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
-      ) : img ? (
-        <Image className="tc-img" src={img.src} alt="" fill sizes={sizes} style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
-      ) : (
-        <span className="tc-pan" aria-hidden="true">
-          <ScaledPage>
-            <TemplatePage p={p} />
-          </ScaledPage>
-        </span>
-      )}
-      {badges && <span className="ex-plat">{shelfLabel(platformOf(p))}</span>}
-      {badges && (p.example ? <span className="ex-new ex-eg">Example</span> : isNew(p) && <span className="ex-new">New</span>)}
-    </span>
-  );
-}
-
-function Card({ p, href }: { p: Product; href?: string }) {
-  return (
-    <Tilt className="ex-tilt" max={6}>
-      <div className="pwrap ex-card">
-        <Link href={href ?? `/product/${p.id}`} className="ex-card-in">
-          <Cover p={p} badges />
-          <b className="ex-name">{p.name}</b>
-          <span className="ex-sub">{p.tag}</span>
-          <span className="ex-rate">
-            {p.reviews > 0 ? (
-              <>
-                <span className="star">★</span> {p.rating} ({p.reviews})
-              </>
-            ) : (
-              'No reviews yet'
-            )}
-          </span>
-          <span className="ex-foot">
-            {SHOW_LIST_PRICES && <span className="ex-price">{money(p.price)}</span>}
-            <span className="chip">{daysLabel(p.days, p.hours)}</span>
-          </span>
-        </Link>
-        <SaveButton id={p.id} name={p.name} />
-      </div>
-    </Tilt>
-  );
-}
-
 /* Shelves and categories with the most products, as collections of three pictures. */
 type Collection = { key: string; title: string; href: string; items: Product[]; count: number };
 function collections(all: Product[]): Collection[] {
@@ -293,46 +239,159 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const sets = old ? collections(all) : views.map((v) => ({ key: v.hub.slug, title: v.hub.name, href: hubLinkHref(v.hub.slug), items: v.products, count: v.products.length }));
   const keep = (bps: number) => pct(10_000 - bps);
 
+  // The hero's words, from the same strings as before; split here only so the headline can rise line by line and the scroll scenes can reuse them.
+  const h1 = old ? 'Websites, apps and digital products, ready to use' : 'Website templates, ready to make yours';
+  const sub = old
+    ? 'Built once by real developers and made yours: your name, your domain, your store accounts. Look at the real thing before you pay.'
+    : 'Built once by real developers and made yours: your name, your domain, your brand. Look at the real thing before you pay.';
+  const cut = h1.lastIndexOf(', ') + 1;
+  const [line1, line2] = [h1.slice(0, cut), h1.slice(cut + 1)];
+  const accent = line2.lastIndexOf(' ') + 1;
+  const [claim, ...rest] = sub.split(/(?<=\.)\s+/);
+  const look = rest.join(' ');
+  const claimWords = claim.split(' ');
+  const delivery = `Live in ${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays} days`;
+  const tabs = TABS.map(([k, label]) => [k, label, k === 'popular' ? '/' : `/?tab=${k}`] as const);
+  const coverOf = (c: (typeof sets)[number], i: number) => c.items[i];
+  const railed = views.filter((v) => v.products.length > 0);
+
   // The built-in sections, drawn in the order an admin saved in Site builder (hidden ones left out; the top banner always stays).
   const parts: Record<string, React.ReactNode> = {
     hero: (
-      <section className="mk-hero" aria-labelledby="mk-h1">
-        <LoopVideo className="mk-hero-video" src={HERO_VIDEO.src} poster={HERO_VIDEO.poster} />
-        <span className="mk-hero-shade" aria-hidden="true" />
-        <div className="wrap mk-hero-in">
-          <div className="mk-hero-copy">
-            <h1 id="mk-h1">{old ? 'Websites, apps and digital products, ready to use' : 'Website templates, ready to make yours'}</h1>
-            <p>
-              {old
-                ? 'Built once by real developers and made yours: your name, your domain, your store accounts. Look at the real thing before you pay.'
-                : 'Built once by real developers and made yours: your name, your domain, your brand. Look at the real thing before you pay.'}
-            </p>
-            {sets.length > 0 && (
-              <nav className="mk-hero-pop" aria-label="Popular right now">
-                <span>Popular right now</span>
-                <ul>
-                  {sets.map((c) => (
-                    <li key={c.key}>
-                      <Link href={c.href}>
-                        {c.title}
-                        {c.count > 0 && <em>{c.count}</em>}
-                      </Link>
+      <>
+        <section className="mk-hero vhero" aria-labelledby="mk-h1" data-scrub>
+          <div className="vh-stick">
+            <div className="screen">
+              <Image className="vh-poster" src={HERO_POSTER} alt="" fill sizes="100vw" loading="eager" fetchPriority="high" />
+              <HeroVideo />
+              <span className="shade" aria-hidden="true" />
+              <div className="chrome" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <span className="url">
+                  <Lock />
+                  <span className="url-t">yourname.com</span>
+                </span>
+                <span className="lp">Live demo</span>
+              </div>
+            </div>
+            <div className="vh-copy">
+              <div className={'wrap vh-row' + (old ? ' with-side' : '')}>
+                <div className="hero-copy">
+                  <h1 id="mk-h1">
+                    <span className="ln">
+                      <span>{line1}</span>
+                    </span>{' '}
+                    <span className="ln">
+                      <span>
+                        {line2.slice(0, accent)}
+                        <em className="swash">
+                          {line2.slice(accent)}
+                          <svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true">
+                            <path d="M3 14 C 50 4, 120 4, 197 11" />
+                          </svg>
+                        </em>
+                      </span>
+                    </span>
+                  </h1>
+                  <p className="hero-sub">{sub}</p>
+                  {sets.length > 0 && (
+                    <nav className="mk-hero-pop" aria-label="Popular right now">
+                      <span>Popular right now</span>
+                      <ul>
+                        {sets.map((c) => (
+                          <li key={c.key}>
+                            <Link href={c.href}>
+                              {c.title}
+                              {c.count > 0 && <em>{c.count}</em>}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </nav>
+                  )}
+                  <ul className="mk-hero-points">
+                    <li>Payment held in escrow until you accept</li>
+                    <li>{REVIEW_HOURS} hours to check it</li>
+                    <li>
+                      Live in {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays} days
                     </li>
-                  ))}
-                </ul>
-              </nav>
-            )}
-            <ul className="mk-hero-points">
-              <li>Payment held in escrow until you accept</li>
-              <li>{REVIEW_HOURS} hours to check it</li>
-              <li>
-                Live in {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays} days
-              </li>
-            </ul>
+                  </ul>
+                </div>
+                {old && (
+                  <div className="vh-side">
+                    <HeroDomain />
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* The hero's second sentence again, as the caption over the shrinking window: decorative, the paragraph above already says it. */}
+            <div className="vh-b wrap" aria-hidden="true">
+              <span>{look}</span>
+            </div>
+            <span className="mouse" aria-hidden="true">
+              <span className="m">
+                <i />
+              </span>
+              <span className="chev" />
+            </span>
           </div>
-          {old && <HeroDomain />}
-        </div>
-      </section>
+        </section>
+        <section className="state" data-scrub>
+          <div className="st-stick">
+            <p className="st-text wrap" aria-hidden="true" style={{ '--n': claimWords.length } as React.CSSProperties}>
+              {claimWords.map((w, i) => (
+                <Fragment key={i}>
+                  <span className={'w' + (/^made$/i.test(w) || (i > 0 && /^made$/i.test(claimWords[i - 1]) && /^yours/i.test(w)) ? ' am' : '')} style={{ '--i': i } as React.CSSProperties}>
+                    {w}
+                  </span>{' '}
+                </Fragment>
+              ))}
+            </p>
+            <span className="st-kicker" aria-hidden="true">
+              {delivery}
+            </span>
+          </div>
+        </section>
+        {sets.length > 0 && (
+          <section className="hscroll" aria-labelledby="mk-pop-h" data-scrub>
+            <div className="hs-stick">
+              <div className="wrap hs-head" data-reveal>
+                <h2 id="mk-pop-h">
+                  <span className="lr">
+                    <span>Popular right now</span>
+                  </span>
+                </h2>
+              </div>
+              <div className="hs-track">
+                {sets.map((c, n) => (
+                  <Link key={c.key} className="panel" href={c.href} style={{ '--pc': PANEL_TINTS[n % PANEL_TINTS.length] } as React.CSSProperties}>
+                    <span className="num" aria-hidden="true">
+                      {String(n + 1).padStart(2, '0')}
+                    </span>
+                    {[0, 1].map((i) =>
+                      coverOf(c, i) ? (
+                        <span key={i} className={'pth ' + (i ? 'b' : 'a')} aria-hidden="true">
+                          <Cover p={coverOf(c, i)!} alt="" sizes="(max-width: 600px) 70vw, 340px" />
+                        </span>
+                      ) : null,
+                    )}
+                    <h3>{c.title}</h3>
+                    <span className="pc">
+                      <span>{c.count > 0 && <em className="pcount">{c.count}</em>}</span>
+                      <span className="go">See all</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+              <div className="hs-bar" aria-hidden="true">
+                <i />
+              </div>
+            </div>
+          </section>
+        )}
+      </>
     ),
     band: old ? (
       <section className="mk-band" aria-labelledby="mk-made">
@@ -346,7 +405,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
               All developers
             </Link>
           </div>
-          <div className="mk-row" data-rise>
+          <div className="mk-row">
             {AREAS.map((a) => (
               <Link key={a} className="mk-svc" href={`/developers?area=${encodeURIComponent(a)}`}>
                 <span className="mk-svc-ico">
@@ -361,172 +420,235 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       </section>
     ) : null,
     featured: (
-      <section className="wrap mk-sec" aria-labelledby="ex-feat">
-        <div className="mk-head">
-          <h2 id="ex-feat">Featured products</h2>
-          {old && (
-            <Link className="link-u" href="/browse">
-              Browse everything
-            </Link>
-          )}
-        </div>
-        <div className="ex-tabs" role="tablist" aria-label="Order">
-          {TABS.map(([k, label]) => (
-            <Link key={k} href={k === 'popular' ? '/' : `/?tab=${k}`} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : undefined} scroll={false}>
-              {label}
-            </Link>
-          ))}
-        </div>
-        <div className="ex-grid mk-grid" data-rise>
-          {featured.map((p) => (
-            <Card key={p.id} p={p} href={old ? undefined : hubProductPath(productHub.get(p.id) ?? ecom.hub, alloc, p.id)} />
-          ))}
+      <section className="mk-sec sec fx cine-feat" aria-labelledby="ex-feat" data-reveal>
+        <div className="wrap">
+          <div className="mk-head sec-head">
+            <h2 id="ex-feat">
+              <span className="lr">
+                <span>Featured products</span>
+              </span>
+            </h2>
+            {old && (
+              <Link className="link-u" href="/browse">
+                Browse everything
+              </Link>
+            )}
+          </div>
+          <FeaturedTabs tab={tab} tabs={tabs}>
+            {featured.map((p, i) => (
+              <HomeCard key={p.id} p={p} d={i} href={old ? undefined : hubProductPath(productHub.get(p.id) ?? ecom.hub, alloc, p.id)} />
+            ))}
+          </FeaturedTabs>
         </div>
       </section>
     ),
-    categories: views.some((v) => v.products.length > 0) ? (
-      <div className="wrap mk-cats">
-        {views
-          .filter((v) => v.products.length > 0)
-          .map((v) => (
-            <section key={v.hub.slug} className="mk-sec mk-cat-sec" aria-labelledby={`cat-${v.hub.slug}`}>
-              <div className="mk-head">
-                <h2 id={`cat-${v.hub.slug}`}>{v.hub.name}</h2>
-                <Link className="link-u" href={hubLinkHref(v.hub.slug)}>
-                  See all
-                </Link>
-              </div>
-              <div className="ex-grid mk-grid" data-rise>
-                {v.products.map((p) => (
-                  <Card key={p.id} p={p} href={old ? undefined : hubProductPath(v.hub, alloc, p.id)} />
-                ))}
+    categories:
+      railed.length > 0 ? (
+        <div className="mk-cats-home">
+          {railed.map((v, n) => (
+            <section key={v.hub.slug} className={'mk-sec mk-cat-sec cat-sec fx' + (n % 2 ? ' amb' : '')} aria-labelledby={`cat-${v.hub.slug}`} data-reveal>
+              <div className="wrap">
+                <div className="mk-head sec-head">
+                  <div className="cat-title">
+                    <h2 id={`cat-${v.hub.slug}`}>
+                      <span className="lr">
+                        <span>{v.hub.name}</span>
+                      </span>
+                    </h2>
+                    <span className="count">{v.products.length}</span>
+                  </div>
+                  <div className="cat-end">
+                    <RailControls rail={`rail-${v.hub.slug}`} label={v.hub.name} />
+                    <Link className="link-u see" href={hubLinkHref(v.hub.slug)}>
+                      See all
+                    </Link>
+                  </div>
+                </div>
+                <div id={`rail-${v.hub.slug}`} className="mk-grid rail stg">
+                  {v.products.map((p, i) => (
+                    <HomeCard key={p.id} p={p} d={i} href={old ? undefined : hubProductPath(v.hub, alloc, p.id)} />
+                  ))}
+                </div>
               </div>
             </section>
           ))}
-      </div>
-    ) : null,
+        </div>
+      ) : null,
     why: (
-      <section className="mk-why" aria-labelledby="mk-why-h">
+      <section className="mk-why why" aria-labelledby="mk-why-h" data-reveal>
         <div className="wrap">
-          <h2 id="mk-why-h">Why people buy on SellOnBay</h2>
-          <div className="mk-why-cols" data-rise>
-            <div className="mk-why-col">
-              <span className="mk-why-art" data-a="look" aria-hidden="true">
-                <span className="mk-wa-win">
-                  <span className="mk-wa-bar">
+          <h2 id="mk-why-h">
+            <span className="lr">
+              <span>Why people buy on SellOnBay</span>
+            </span>
+          </h2>
+          <div className="stack">
+            <article className="wcard" style={{ '--i': 0 } as React.CSSProperties} data-play>
+              <div className="illo" aria-hidden="true">
+                <span className="brw">
+                  <span className="brw-bar">
                     <i />
                     <i />
                     <i />
                     <span>yourname.com</span>
                   </span>
-                  <span className="mk-wa-page">
-                    <b />
-                    <s />
-                    <s />
-                    <span className="mk-wa-live">Live demo</span>
+                  <span className="brw-body">
+                    <i />
+                    <i />
+                    <i />
                   </span>
+                  <span className="demo">Live demo</span>
+                  <svg className="cursor" viewBox="0 0 24 24">
+                    <path d="M4 2l16 9-7 2-3 7z" fill="#10142E" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" />
+                  </svg>
                 </span>
-                <svg className="mk-wa-cursor" width="22" height="22" viewBox="0 0 24 24">
-                  <path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke="#0F1330" strokeWidth="1.5" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <h3>Look before you pay</h3>
-              <p>Click through the live site or try the app first. What you see is what the seller delivers.</p>
-            </div>
-            <div className="mk-why-col">
-              <span className="mk-why-art" data-a="hold" aria-hidden="true">
-                <span className="mk-wa-flow">
-                  <span className="mk-wa-node">
-                    <i>1</i>
-                    You pay
+              </div>
+              <div className="wtext">
+                <span className="k" aria-hidden="true">
+                  01
+                </span>
+                <h3>Look before you pay</h3>
+                <p>Click through the live site or try the app first. What you see is what the seller delivers.</p>
+              </div>
+            </article>
+            <article className="wcard" style={{ '--i': 1 } as React.CSSProperties} data-play>
+              <div className="illo" aria-hidden="true">
+                <span className="esc">
+                  <span className="node">
+                    <b>1</b>You pay
                   </span>
-                  <span className="mk-wa-node mk-wa-lock">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <rect x="5" y="11" width="14" height="10" rx="2" />
-                      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                    </svg>
+                  <span className="link l1" />
+                  <span className="node mid">
+                    <b>
+                      <Lock dark />
+                    </b>
                     Held safely
                   </span>
-                  <span className="mk-wa-node">
-                    <i>3</i>
-                    You accept
+                  <span className="link l2" />
+                  <span className="node end">
+                    <b>3</b>You accept
                   </span>
                 </span>
-              </span>
-              <h3>Your money waits for you</h3>
-              <p>Payment stays in escrow. You get {REVIEW_HOURS} hours to check the work, and a fair dispute if something is wrong.</p>
-            </div>
-            <div className="mk-why-col">
-              <span className="mk-why-art" data-a="yours" aria-hidden="true">
-                <span className="mk-wa-domain">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <rect x="5" y="11" width="14" height="10" rx="2" />
-                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                  </svg>
-                  yourshop.com
+              </div>
+              <div className="wtext">
+                <span className="k" aria-hidden="true">
+                  02
                 </span>
-                <span className="mk-wa-owner">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12.5l4.5 4.5L19 7" />
-                  </svg>
-                  Registered to you
+                <h3>Your money waits for you</h3>
+                <p>Payment stays in escrow. You get {REVIEW_HOURS} hours to check the work, and a fair dispute if something is wrong.</p>
+              </div>
+            </article>
+            <article className="wcard" style={{ '--i': 2 } as React.CSSProperties} data-play>
+              <div className="illo" aria-hidden="true">
+                <span className="dom">
+                  <span className="dom-in">
+                    <Lock />
+                    <span className="typed">yourshop.com</span>
+                  </span>
+                  <span className="reg">
+                    <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+                      <path d="M5 10.5l3 3 7-7" />
+                    </svg>
+                    Registered to you
+                  </span>
                 </span>
-              </span>
-              <h3>Made to be yours</h3>
-              <p>Domains and store accounts are in your name. Need changes? Order them from the seller or hire a developer.</p>
-            </div>
+              </div>
+              <div className="wtext">
+                <span className="k" aria-hidden="true">
+                  03
+                </span>
+                <h3>Made to be yours</h3>
+                <p>Domains and store accounts are in your name. Need changes? Order them from the seller or hire a developer.</p>
+              </div>
+            </article>
           </div>
         </div>
       </section>
     ),
     steps: (
-      <section className="wrap mk-sec" aria-labelledby="mk-steps">
-        <h2 id="mk-steps" className="mk-steps-h">
-          How a purchase goes
-        </h2>
-        <ol className="mk-steps" data-rise>
-          <li>
-            <b>Pick it</b>
-            <span>Find a site, app or file and look at the live demo.</span>
-          </li>
-          <li>
-            <b>Pay into escrow</b>
-            <span>Your money is held. The seller cannot touch it yet.</span>
-          </li>
-          <li>
-            <b>Get it delivered</b>
-            <span>
-              Live on your domain or accounts in {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays} days. Files arrive at once.
-            </span>
-          </li>
-          <li>
-            <b>Check and accept</b>
-            <span>
-              You have {REVIEW_HOURS} hours. The seller is paid {PAYOUT_HOLD_DAYS} days after you accept.
-            </span>
-          </li>
-        </ol>
+      <section className="mk-sec sec fx amb cine-how" aria-labelledby="mk-steps" data-reveal>
+        <div className="wrap">
+          <div className="sec-head">
+            <h2 id="mk-steps" className="mk-steps-h">
+              <span className="lr">
+                <span>How a purchase goes</span>
+              </span>
+            </h2>
+          </div>
+          <ol className="mk-steps cine-steps stg">
+            <li>
+              <span className="step-n" aria-hidden="true">
+                1
+              </span>
+              <h3>Pick it</h3>
+              <p>Find a site, app or file and look at the live demo.</p>
+            </li>
+            <li>
+              <span className="step-n" aria-hidden="true">
+                2
+              </span>
+              <h3>Pay into escrow</h3>
+              <p>Your money is held. The seller cannot touch it yet.</p>
+            </li>
+            <li>
+              <span className="step-n" aria-hidden="true">
+                3
+              </span>
+              <h3>Get it delivered</h3>
+              <p>
+                Live on your domain or accounts in {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays} days. Files arrive at once.
+              </p>
+            </li>
+            <li>
+              <span className="step-n" aria-hidden="true">
+                4
+              </span>
+              <h3>Check and accept</h3>
+              <p>
+                You have {REVIEW_HOURS} hours. The seller is paid {PAYOUT_HOLD_DAYS} days after you accept.
+              </p>
+            </li>
+          </ol>
+        </div>
       </section>
     ),
     sell: (
-      <section className="mk-sellband" aria-labelledby="mk-sell-h">
-        <div className="wrap mk-sellband-in">
-          <div>
-            <h2 id="mk-sell-h">Build once, sell it again and again</h2>
+      <section className="mk-sellband seller" aria-labelledby="mk-sell-h" data-reveal>
+        <div className="wrap mk-sellband-in seller-in">
+          <div className="stg">
+            <h2 id="mk-sell-h">
+              <span className="lr">
+                <span>Build once, sell it again and again</span>
+              </span>
+            </h2>
             <p>
               Upload a site, app or digital product once and deliver it to many buyers. You keep {PLAN_KEEP_TEXT} of every sale, depending on your plan ({keep(CONFIG.plans.free.commissionBps)} on the
               free plan); the same rate applies to custom and extra work.
             </p>
-          </div>
-          <div className="mk-sellband-cta">
-            <Link className="btn btn-gold btn-lg" href="/sell">
-              Start selling
-            </Link>
-            {old && (
-              <Link className="btn btn-line btn-lg" href="/developers/join">
-                Join as a developer
+            <div className="mk-sellband-cta">
+              <Link className="btn btn-gold btn-lg" href="/sell">
+                Start selling
               </Link>
-            )}
+              {old && (
+                <Link className="btn btn-line btn-lg" href="/developers/join">
+                  Join as a developer
+                </Link>
+              )}
+            </div>
+          </div>
+          {/* The same figures as the sentence beside it (PLAN_KEEP_TEXT), large: decorative, so screen readers hear them once. */}
+          <div className="seller-fig" aria-hidden="true">
+            <b>
+              {PLAN_KEEP_TEXT.split(/(\d+(?:\.\d+)?)/).map((s, i) =>
+                i % 2 ? (
+                  <span key={i} data-count={/^\d+$/.test(s) ? s : undefined}>
+                    {s}
+                  </span>
+                ) : (
+                  s
+                ),
+              )}
+            </b>
           </div>
         </div>
       </section>
@@ -538,8 +660,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   );
 
   return (
-    <div className="mk-home">
-      <StoreMotion />
+    <div className={'mk-home cine ' + serif.variable}>
+      <HomeMotion />
       {sections.map((k) => (
         <Fragment key={k}>{parts[k]}</Fragment>
       ))}

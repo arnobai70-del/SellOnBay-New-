@@ -52,6 +52,11 @@ describe('cinematic home page', () => {
     expect(pinned).toEqual([]);
   });
 
+  it('the h1 and the line under it have no entrance: visible at first paint', () => {
+    const hero = rules(css).filter(([sel, body]) => /\b(ln|hero-sub)\b|vhero h1/.test(sel) && /animation|opacity/.test(body));
+    expect(hero).toEqual([]);
+  });
+
   it('sets html.motion before paint, never with reduced motion', () => {
     expect(layout).toMatch(/<script id="motion-flag">\{'if\(!matchMedia\(`\(prefers-reduced-motion: reduce\)`\)\.matches\)document\.documentElement\.classList\.add\(`motion`\)'\}<\/script>/);
     expect(layout).not.toContain('GoogleAnalytics'); // GA stays in the (site) layout, untouched
@@ -65,7 +70,9 @@ describe('cinematic home page', () => {
     expect(video).toMatch(/saveData/);
     expect(video).toMatch(/2g/);
     expect(video).toMatch(/prefers-reduced-motion/);
-    expect(page).toMatch(/<Image className="vh-poster"[^>]*fetchPriority="high"/);
+    // the poster is the LCP picture: preloaded (Next 16's name for priority), high priority, full width
+    expect(page).toContain('<Image className="vh-poster" src={HERO_POSTER} alt="" fill sizes="100vw" preload fetchPriority="high" />');
+    expect(page).toContain("'/media/hero-poster.webp'");
   });
 
   it('adds no animation library', () => {

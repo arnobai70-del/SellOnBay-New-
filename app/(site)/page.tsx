@@ -58,9 +58,9 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
-/* The still behind the hero, shown first and kept as the LCP picture; the clip itself (components/home/HeroVideo.tsx) comes in after the page has
+/* The still behind the hero (WebP, under 60 KB), shown first and kept as the LCP picture, preloaded (Next 16's name for priority); the clip itself (components/home/HeroVideo.tsx) comes in after the page has
    loaded. Both live in public/media/. */
-const HERO_POSTER = '/media/hero-poster.jpg';
+const HERO_POSTER = '/media/hero-poster.webp';
 // The glow behind each "Popular right now" panel, in category order.
 const PANEL_TINTS = ['#3B5BFF', '#6C4CF5', '#0E8C7A', '#E0A21E', '#C2532E'];
 
@@ -262,7 +262,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
         <section className="mk-hero vhero" aria-labelledby="mk-h1" data-scrub>
           <div className="vh-stick">
             <div className="screen">
-              <Image className="vh-poster" src={HERO_POSTER} alt="" fill sizes="100vw" loading="eager" fetchPriority="high" />
+              <Image className="vh-poster" src={HERO_POSTER} alt="" fill sizes="100vw" preload fetchPriority="high" />
               <HeroVideo />
               <span className="shade" aria-hidden="true" />
               <div className="chrome" aria-hidden="true">

@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 
 /* The hero's background clip. Decorative: the server HTML has no source and no autoplay, so the poster (an optimised image) is what loads first.
-   The source is set after the page has loaded, never with reduced motion, Save-Data or a 2g connection, and the clip pauses while the hero is off screen. */
+   The source is set after the page has loaded and the browser is idle, never with reduced motion, Save-Data or a 2g connection, and the clip pauses while the hero is off screen. */
 const SRC = { wide: '/media/hero-1280.mp4', narrow: '/media/hero-854.mp4' };
 
 export function HeroVideo() {
@@ -19,12 +19,18 @@ export function HeroVideo() {
       v.play().catch(() => {
         /* autoplay refused: the poster stays */
       });
+    // After load, once the browser is idle, so the clip never competes with the page itself.
+    const begin = () => {
+      v.src = innerWidth < 760 ? SRC.narrow : SRC.wide;
+      v.addEventListener('playing', () => v.classList.add('on'), { once: true });
+      if (visible) play();
+    };
+    let idle = 0;
     const start = () => {
       timer = setTimeout(() => {
-        v.src = innerWidth < 760 ? SRC.narrow : SRC.wide;
-        v.addEventListener('playing', () => v.classList.add('on'), { once: true });
-        if (visible) play();
-      }, 200);
+        if ('requestIdleCallback' in window) idle = requestIdleCallback(begin, { timeout: 4000 });
+        else begin();
+      }, 1200);
     };
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
@@ -37,6 +43,7 @@ export function HeroVideo() {
     else addEventListener('load', start, { once: true });
     return () => {
       clearTimeout(timer);
+      if (idle) cancelIdleCallback(idle);
       removeEventListener('load', start);
       io.disconnect();
       v.pause();

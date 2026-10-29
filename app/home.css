@@ -44,7 +44,7 @@
   background:linear-gradient(90deg,rgba(6,9,32,.94) 0%,rgba(6,9,32,.72) 42%,rgba(6,9,32,.25) 100%),linear-gradient(0deg,rgba(6,9,32,.85) 0%,transparent 45%)}
 @media (max-width:760px){.cine .shade{background:linear-gradient(180deg,rgba(6,9,32,.55),rgba(6,9,32,.88) 55%,rgba(6,9,32,.95))}}
 .cine .chrome{display:none}
-.cine .vh-copy{position:relative;z-index:3;flex:1;display:flex;align-items:center;padding:clamp(56px,9vh,110px) 0 clamp(56px,8vh,90px);color:#fff}
+.cine .vh-copy{position:relative;z-index:3;flex:1;display:flex;align-items:flex-start;padding:clamp(56px,9vh,110px) 0 clamp(56px,8vh,90px);color:#fff}
 .cine .vh-row{width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:40px;align-items:center}
 .cine .vh-row.with-side{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
 @media (max-width:1023px){.cine .vh-row.with-side{grid-template-columns:minmax(0,1fr)}}
@@ -262,13 +262,13 @@ html.motion .cine .hero-sub{animation:cine-up .9s .45s var(--ease) both}
 html.motion .cine .mk-hero-pop{animation:cine-up .9s .6s var(--ease) both}
 html.motion .cine .mk-hero-points{animation:cine-up .9s .75s var(--ease) both}
 
-/* The top bar lies over the hero only when the hero is the first thing on the page (no admin blocks above it). Decided in CSS, before paint, so
-   nothing moves after load; --hdr-css is the bar's fixed height (logo row + category bar), checked by a browser test at each width. */
+/* The top bar lies over the hero only when the hero is the first thing on the page (no admin blocks above it). Decided before paint (the hero by CSS, the bar by
+   its .over class on /), so nothing moves after load; --hdr-css is the bar's fixed height (logo row + category bar), checked by a browser test at each width. */
 :root{--hdr-css:141px}
 @media (max-width:1023px){:root{--hdr-css:185px}}
-html.motion body:has(#main>.cine:first-child>.vhero:first-child) .cine .vhero{margin-top:calc(var(--hdr-css) * -1)}
-html.motion body:has(#main>.cine:first-child>.vhero:first-child) .cine .vh-copy{padding-top:calc(var(--hdr-css) + 40px)}
-@media (max-width:760px){html.motion body:has(#main>.cine:first-child>.vhero:first-child) .cine .vh-copy{padding-top:calc(var(--hdr-css) + 22px)}}
+html.motion #main>.cine:first-child>.vhero:first-child{margin-top:calc(var(--hdr-css) * -1)}
+html.motion #main>.cine:first-child>.vhero:first-child .vh-copy{padding-top:calc(var(--hdr-css) + clamp(28px, 11vh, 120px))}
+@media (max-width:760px){html.motion #main>.cine:first-child>.vhero:first-child .vh-copy{padding-top:calc(var(--hdr-css) + 22px)}}
 
 /* hero: pinned, and the clip scales into a browser window */
 html.motion .cine .vhero{height:270vh}
@@ -287,7 +287,7 @@ html.motion .cine .url-t{display:inline-block;overflow:hidden;white-space:nowrap
 html.motion .cine .chrome .lp{font:600 13px var(--display);background:var(--green);color:#fff;padding:7px 14px;border-radius:999px;display:flex;align-items:center;gap:7px}
 html.motion .cine .chrome .lp::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;animation:cine-ping 2s infinite}
 @media (max-width:600px){html.motion .cine .chrome{height:44px;padding:0 12px}html.motion .cine .chrome .lp{display:none}html.motion .cine .url{font-size:13px}}
-html.motion .cine .vh-copy{--o:clamp(0,calc((var(--p,0) - .02) / .22),1);position:absolute;inset:0;padding-top:40px;
+html.motion .cine .vh-copy{--o:clamp(0,calc((var(--p,0) - .02) / .22),1);position:absolute;inset:0;padding-top:clamp(40px, 14vh, 150px);
   opacity:calc(1 - var(--o));transform:translateY(calc(var(--o) * -90px)) scale(calc(1 - var(--o) * .04))}
 html.motion .cine .vh-b{--b:clamp(0,calc((var(--p,0) - .42) / .2),1);display:block;position:absolute;z-index:3;left:0;right:0;top:max(3.2vh,18px);text-align:center;color:#fff;pointer-events:none;
   opacity:var(--b);transform:translateY(calc((1 - var(--b)) * 40px));font:800 clamp(24px,3.6vw,48px)/1.05 var(--display);letter-spacing:-.035em}
@@ -297,8 +297,6 @@ html.motion .cine .mouse .m{width:26px;height:42px;border-radius:14px;border:2px
 html.motion .cine .mouse .m i{width:4px;height:9px;border-radius:2px;background:var(--amber);animation:cine-wheel 1.8s var(--ease) infinite}
 html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgba(255,255,255,.55);border-bottom:2px solid rgba(255,255,255,.55);transform:rotate(45deg);margin-top:-6px}
 @keyframes cine-wheel{0%{transform:translateY(0);opacity:0}20%{opacity:1}70%{transform:translateY(14px);opacity:0}100%{opacity:0}}
-/* the vh-copy is absolutely placed while pinned, so it centres itself */
-html.motion .cine .vh-copy .vh-row{align-self:center}
 @media (max-width:760px){
   html.motion .cine .vhero{height:210vh}
   html.motion .cine .screen{transform:translateY(calc(var(--s) * 8vh)) scale(calc(1 - var(--s) * .12))}

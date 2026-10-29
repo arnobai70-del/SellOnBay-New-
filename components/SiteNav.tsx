@@ -101,6 +101,12 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
   // coming back on the way up (wide screens only, see market.css), and the reading-progress line. Its height is shared as --hdr.
   const [atTop, setAtTop] = useState(true);
   const [hidden, setHidden] = useState(false);
+  // On / the bar lies over the hero (set on the server, so it is right at first paint); an admin block placed above the hero turns that off.
+  const [heroFirst, setHeroFirst] = useState(true);
+  useEffect(() => {
+    if (path === '/') setHeroFirst(!!document.querySelector('#main>.cine:first-child>.vhero:first-child'));
+  }, [path]);
+  const over = path === '/' && heroFirst;
   const busy = useRef(false);
   useEffect(() => {
     busy.current = !!open || sheet || focus;
@@ -206,7 +212,10 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
   const accountLabel = dashHref ? 'My dashboard' : 'Sign in';
 
   return (
-    <header ref={box} className={'mk-hdr' + (scrolled ? ' scrolled' : '') + (sheet ? ' open' : '') + (atTop ? ' at-top' : '') + (hidden && !sheet && !open && !focus ? ' hide' : '')}>
+    <header
+      ref={box}
+      className={'mk-hdr' + (scrolled ? ' scrolled' : '') + (sheet ? ' open' : '') + (atTop ? ' at-top' : '') + (over ? ' over' : '') + (hidden && !sheet && !open && !focus ? ' hide' : '')}
+    >
       <span className="mk-progress" aria-hidden="true" />
       <div className="wrap mk-top">
         <button type="button" className="mk-burger" aria-label={sheet ? 'Close menu' : 'Open menu'} aria-expanded={sheet} aria-controls="mk-sheet" onClick={() => setSheet((o) => !o)}>

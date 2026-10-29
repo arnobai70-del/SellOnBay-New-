@@ -260,12 +260,13 @@
 @keyframes cine-spin{to{transform:rotate(360deg)}}
 @keyframes cine-ping{0%{box-shadow:0 0 0 0 rgba(253,181,47,.55)}80%,100%{box-shadow:0 0 0 9px rgba(253,181,47,0)}}
 
-/* hero entrance: the h1 and the line under it are there at first paint, with no entrance (they are the first thing read and may be the LCP);
-   the chips and points only lift a little, from visible, and the amber line under "yours" draws itself */
-@keyframes cine-lift{from{transform:translateY(14px)}to{transform:none}}
+/* hero entrance: the h1 and the line under it are there at first paint, with no entrance (they are read first and may be the LCP). The chips and
+   points fade in a moment later, after the web fonts have settled the lines above them, so the fonts arriving never moves anything visible (CLS);
+   the amber line under "yours" draws itself */
+@keyframes cine-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 html.motion .cine .swash path{animation:cine-draw 1.2s .5s var(--ease) both}
-html.motion .cine .mk-hero-pop{animation:cine-lift .9s .15s var(--ease) both}
-html.motion .cine .mk-hero-points{animation:cine-lift .9s .3s var(--ease) both}
+html.motion .cine .mk-hero-pop{animation:cine-up .8s .45s var(--ease) both}
+html.motion .cine .mk-hero-points{animation:cine-up .8s .6s var(--ease) both}
 
 /* hero: pinned, and the clip scales into a browser window */
 html.motion .cine .vhero{height:270vh}

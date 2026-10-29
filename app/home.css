@@ -268,6 +268,14 @@ html.motion .cine .swash path{animation:cine-draw 1.2s .5s var(--ease) both}
 html.motion .cine .mk-hero-pop{animation:cine-up .8s .45s var(--ease) both}
 html.motion .cine .mk-hero-points{animation:cine-up .8s .6s var(--ease) both}
 
+/* The top bar lies over the hero only when the hero is the first thing on the page (no admin blocks above it). Decided before paint (the hero by CSS, the bar by
+   its .over class on /), so nothing moves after load; --hdr-css is the bar's fixed height (logo row + category bar), checked by a browser test at each width. */
+:root{--hdr-css:141px}
+@media (max-width:1023px){:root{--hdr-css:185px}}
+html.motion #main>.cine:first-child>.vhero:first-child{margin-top:calc(var(--hdr-css) * -1)}
+html.motion #main>.cine:first-child>.vhero:first-child .vh-copy{padding-top:calc(var(--hdr-css) + clamp(28px, 11vh, 120px))}
+@media (max-width:760px){html.motion #main>.cine:first-child>.vhero:first-child .vh-copy{padding-top:calc(var(--hdr-css) + 22px)}}
+
 /* hero: pinned, and the clip scales into a browser window */
 html.motion .cine .vhero{height:270vh}
 html.motion .cine .vh-stick{position:sticky;top:0;height:100vh;height:100svh;min-height:0}

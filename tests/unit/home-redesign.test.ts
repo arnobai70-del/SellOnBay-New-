@@ -57,6 +57,19 @@ describe('cinematic home page', () => {
     expect(hero).toEqual([]);
   });
 
+  it('the header changes apply on the home page only; every other page keeps the bar as it was', () => {
+    const market = readFileSync('app/market.css', 'utf8');
+    const nav = readFileSync('components/SiteNav.tsx', 'utf8');
+    const added = rules(market).filter(([sel]) => /mk-progress|\.hide\b|\.over\b|\.at-top\b/.test(sel));
+    expect(added.length).toBeGreaterThan(0);
+    expect(added.filter(([sel]) => !sel.split(',').every((s) => s.includes('.mk-hdr.home')))).toEqual([]);
+    expect(nav).toContain("const home = path === '/';");
+    expect(nav).toContain('{home && <span className="mk-progress" aria-hidden="true" />}');
+    // the hero slides up under the see-through bar by the bar's height, decided in CSS before paint
+    expect(css).toContain('html.motion #main>.cine:first-child>.vhero:first-child{margin-top:calc(var(--hdr-css) * -1)}');
+    expect(css).toMatch(/:root\{--hdr-css:\d+px\}/);
+  });
+
   it('sets html.motion before paint, never with reduced motion', () => {
     expect(layout).toMatch(/<script id="motion-flag">\{'if\(!matchMedia\(`\(prefers-reduced-motion: reduce\)`\)\.matches\)document\.documentElement\.classList\.add\(`motion`\)'\}<\/script>/);
     expect(layout).not.toContain('GoogleAnalytics'); // GA stays in the (site) layout, untouched

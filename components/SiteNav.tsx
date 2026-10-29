@@ -97,27 +97,30 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
     setFocus(false);
     setShelf(shelfOfPage);
   }, [path, shelfOfPage]);
-  // One passive listener and one frame per scroll: the shadow, "at the top" (the bar can lie over the home hero), hiding on the way down and
-  // coming back on the way up (wide screens only, see market.css), and the reading-progress line. Its height is shared as --hdr.
+  useEffect(() => {
+    const f = () => setScrolled(scrollY > 4);
+    f();
+    addEventListener('scroll', f, { passive: true });
+    return () => removeEventListener('scroll', f);
+  }, []);
+  // The home page only (owner, 2026-10-29): an amber reading-progress line, hiding on the way down and coming back on the way up (wide screens,
+  // see market.css), and see-through over the hero while at the top. Every other page keeps the bar exactly as it was.
+  const home = path === '/';
   const [atTop, setAtTop] = useState(true);
   const [hidden, setHidden] = useState(false);
-  // On / the bar lies over the hero (set on the server, so it is right at first paint); an admin block placed above the hero turns that off.
+  // Set on the server, so it is right at first paint; an admin block placed above the hero turns it off.
   const [heroFirst, setHeroFirst] = useState(true);
-  useEffect(() => {
-    if (path === '/') setHeroFirst(!!document.querySelector('#main>.cine:first-child>.vhero:first-child'));
-  }, [path]);
-  const over = path === '/' && heroFirst;
   const busy = useRef(false);
   useEffect(() => {
     busy.current = !!open || sheet || focus;
   }, [open, sheet, focus]);
   useEffect(() => {
+    if (!home) return;
     let last = scrollY;
     let frame = 0;
     const f = () => {
       frame = 0;
       const y = scrollY;
-      setScrolled(y > 4);
       setAtTop(y < 30);
       if (busy.current || y < 160) setHidden(false);
       else if (y > last + 4) setHidden(true);
@@ -126,19 +129,21 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
       const max = document.documentElement.scrollHeight - innerHeight;
       box.current?.style.setProperty('--read', String(max > 0 ? Math.min(1, y / max) : 0));
     };
+    const start = () => {
+      setHeroFirst(!!document.querySelector('#main>.cine:first-child>.vhero:first-child'));
+      f();
+    };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(f);
     };
-    f();
+    start();
     addEventListener('scroll', schedule, { passive: true });
-    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--hdr', (box.current?.offsetHeight ?? 0) + 'px'));
-    if (box.current) ro.observe(box.current);
     return () => {
       removeEventListener('scroll', schedule);
       cancelAnimationFrame(frame);
-      ro.disconnect();
     };
-  }, []);
+  }, [home]);
+  const over = home && heroFirst;
   // Panels close on Escape and on a click elsewhere; the sheet also locks the page behind it.
   useEffect(() => {
     if (!open && !sheet) return;
@@ -214,9 +219,14 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
   return (
     <header
       ref={box}
-      className={'mk-hdr' + (scrolled ? ' scrolled' : '') + (sheet ? ' open' : '') + (atTop ? ' at-top' : '') + (over ? ' over' : '') + (hidden && !sheet && !open && !focus ? ' hide' : '')}
+      className={
+        'mk-hdr' +
+        (scrolled ? ' scrolled' : '') +
+        (sheet ? ' open' : '') +
+        (home ? ' home' + (atTop ? ' at-top' : '') + (over ? ' over' : '') + (hidden && !sheet && !open && !focus ? ' hide' : '') : '')
+      }
     >
-      <span className="mk-progress" aria-hidden="true" />
+      {home && <span className="mk-progress" aria-hidden="true" />}
       <div className="wrap mk-top">
         <button type="button" className="mk-burger" aria-label={sheet ? 'Close menu' : 'Open menu'} aria-expanded={sheet} aria-controls="mk-sheet" onClick={() => setSheet((o) => !o)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">

@@ -5,20 +5,20 @@
 .mk-hdr{position:sticky;top:0;z-index:60;background:#fff;color:var(--ink);transition:box-shadow .2s}
 .mk-hdr.scrolled{box-shadow:0 8px 24px -16px rgba(15,19,48,.45)}
 .mk-hdr .wrap{max-width:1360px}
-/* the amber reading-progress line, hiding on the way down (wide screens, where the bar is sticky), and see-through over the home hero while at the
-   top (.over: on / when the hero is the first thing on the page, see SiteNav; only with JS: html.motion; see app/home.css) */
-.mk-hdr{transition:box-shadow .2s,transform .5s cubic-bezier(.22,1,.36,1),background .4s}
-.mk-progress{position:absolute;left:0;right:0;bottom:-1px;z-index:2;height:2px;background:linear-gradient(90deg,var(--gold),#FFD77A);transform-origin:0 50%;transform:scaleX(var(--read,0));pointer-events:none}
-@media (min-width:1024px){.mk-hdr.hide{transform:translateY(-100%)}}
-.mk-top,.mk-cats{transition:background-color .4s,border-color .4s}
-html.motion .mk-hdr.over.at-top:not(.open){background:linear-gradient(180deg,rgba(7,11,36,.75),rgba(7,11,36,0));box-shadow:none}
-html.motion .mk-hdr.over.at-top:not(.open) .mk-top{background-color:transparent}
-html.motion .mk-hdr.over.at-top:not(.open) .mk-cats{background:transparent;border-color:transparent}
-html.motion .mk-hdr.over.at-top:not(.open) .mk-cat-link{color:rgba(255,255,255,.82)}
-html.motion .mk-hdr.over.at-top:not(.open) .mk-cat-link:hover,
-html.motion .mk-hdr.over.at-top:not(.open) .mk-cat-link[aria-current]{color:#fff}
-html.motion .mk-hdr.over.at-top:not(.open) .mk-cat-btn{color:rgba(255,255,255,.7)}
-html.motion .mk-hdr.over.at-top:not(.open) .mk-cat-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+/* the home page only (.home, see SiteNav): the amber reading-progress line, hiding on the way down (wide screens, where the bar is sticky), and
+   see-through over the hero while at the top (.over: when the hero is the first thing on the page; only with JS: html.motion; see app/home.css) */
+.mk-hdr.home{transition:box-shadow .2s,transform .5s cubic-bezier(.22,1,.36,1),background .4s}
+.mk-hdr.home .mk-progress{position:absolute;left:0;right:0;bottom:-1px;z-index:2;height:2px;background:linear-gradient(90deg,var(--gold),#FFD77A);transform-origin:0 50%;transform:scaleX(var(--read,0));pointer-events:none}
+@media (min-width:1024px){.mk-hdr.home.hide{transform:translateY(-100%)}}
+.mk-hdr.home .mk-top,.mk-hdr.home .mk-cats{transition:background-color .4s,border-color .4s}
+html.motion .mk-hdr.home.over.at-top:not(.open){background:linear-gradient(180deg,rgba(7,11,36,.75),rgba(7,11,36,0));box-shadow:none}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-top{background-color:transparent}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cats{background:transparent;border-color:transparent}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link{color:rgba(255,255,255,.82)}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link:hover,
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link[aria-current]{color:#fff}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-btn{color:rgba(255,255,255,.7)}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-btn:hover{background:rgba(255,255,255,.1);color:#fff}
 .mk-top{display:flex;align-items:center;gap:20px;min-height:68px;padding-top:10px;padding-bottom:10px;background:var(--ink);color:#fff;max-width:none!important;padding-left:max(24px,calc((100% - 1312px)/2));padding-right:max(24px,calc((100% - 1312px)/2))}
 .mk-top .logo{color:#fff}
 .mk-top .logo b{color:var(--gold)}

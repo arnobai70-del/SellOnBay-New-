@@ -71,9 +71,11 @@ test('sections below the screen rise in as you scroll, and nothing is ever left 
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(`${DEMO}/`);
   await expect(page.locator('.mk-hero h1')).toHaveCSS('opacity', '1'); // the hero words finish arriving
+  await expect(page.locator('html')).toHaveClass(/\bmotion\b/); // set before paint, only when motion is welcome
+  // the steps section waits below the screen with its items hidden, then brings them in (app/home.css, components/home/HomeMotion.tsx)
+  const how = page.locator('section:has(.mk-steps)');
   const steps = page.locator('.mk-steps');
-  await expect(steps).toHaveClass(/\brise\b/); // starts below the screen, so it waits
-  await expect(steps).not.toHaveClass(/\bin\b/);
+  await expect(how).not.toHaveClass(/\bin\b/);
   expect(
     await steps
       .locator('li')
@@ -81,16 +83,16 @@ test('sections below the screen rise in as you scroll, and nothing is ever left 
       .evaluate((el) => getComputedStyle(el).opacity),
   ).toBe('0');
   await steps.scrollIntoViewIfNeeded();
-  await expect(steps).toHaveClass(/\bin\b/);
+  await expect(how).toHaveClass(/\bin\b/);
   for (const li of await steps.locator('li').all()) await expect(li).toHaveCSS('opacity', '1');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1280);
   // switching tabs after the cards came in keeps the new cards visible
   const grid = page.locator('.ex-grid');
   await grid.scrollIntoViewIfNeeded();
-  await expect(grid).toHaveClass(/\bin\b/);
+  await expect(page.locator('section:has(.ex-grid)').first()).toHaveClass(/\bin\b/);
   await page.getByRole('tab', { name: 'Top rated' }).click();
   await expect(page).toHaveURL(/tab=top/);
-  for (const c of await grid.locator('.ex-card').all()) await expect(c.locator('xpath=ancestor::div[contains(@class,"tilt")][1]')).toHaveCSS('opacity', '1');
+  for (const c of await grid.locator('.ex-card').all()) await expect(c).toHaveCSS('opacity', '1');
   expect(errors).toEqual([]);
 });
 
@@ -98,8 +100,15 @@ test('with reduced motion the home page shows everything at once', async ({ page
   await page.setViewportSize({ width: 1280, height: 700 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(`${DEMO}/`);
-  await expect(page.locator('.rise')).toHaveCount(0);
-  expect(await page.locator('.mk-hero h1').evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+  await expect(page.locator('html')).not.toHaveClass(/\bmotion\b/); // nothing starts hidden, nothing is pinned
+  expect(
+    await page
+      .locator('.mk-hero h1 .ln > span')
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe('none');
+  expect(await page.locator('.vh-stick').evaluate((el) => getComputedStyle(el).position)).not.toBe('sticky');
+  expect(await page.locator('.vh-video').getAttribute('src')).toBeNull(); // no clip with reduced motion
   for (const li of await page.locator('.mk-steps li').all()) expect(await li.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
 });
 

@@ -27,6 +27,14 @@
 .cine .lr{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
 .cine .lr>span{display:inline-block}
 
+/* the small label above a section heading: the same pill everywhere, light on dark sections */
+.cine .kick{display:inline-flex;align-items:center;gap:9px;font:600 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--indigo);background:var(--indigo-soft);
+  border:1px solid #DDE1FF;padding:6px 14px 6px 10px;border-radius:999px;margin-bottom:16px;max-width:100%;white-space:normal}
+.cine .kick i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--amber)}
+.cine .why .kick,.cine .seller .kick{color:#C9CCFF;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
+.cine .head-c{text-align:center}
+.cine .hs-head .kick{position:relative}
+
 /* living glow that drifts with each section's scroll */
 .cine .fx{position:relative;isolation:isolate}
 .cine .fx::after{content:"";position:absolute;z-index:-1;pointer-events:none;width:min(900px,90vw);height:520px;left:calc(10% + var(--f,0) * 35%);top:12%;
@@ -284,6 +292,7 @@ html.motion .cine .mouse{--m:clamp(0,calc(var(--p,0) * 14),1);position:absolute;
   transform:translateY(calc(var(--m) * 20px));opacity:calc(1 - var(--m))}
 html.motion .cine .mouse .m{width:26px;height:42px;border-radius:14px;border:2px solid rgba(255,255,255,.55);display:flex;justify-content:center;padding-top:7px}
 html.motion .cine .mouse .m i{width:4px;height:9px;border-radius:2px;background:var(--amber);animation:cine-wheel 1.8s var(--ease) infinite}
+html.motion .cine .mouse .mouse-t{font:600 11px var(--display);letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.75)}
 html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgba(255,255,255,.55);border-bottom:2px solid rgba(255,255,255,.55);transform:rotate(45deg);margin-top:-6px}
 @keyframes cine-wheel{0%{transform:translateY(0);opacity:0}20%{opacity:1}70%{transform:translateY(14px);opacity:0}100%{opacity:0}}
 @media (max-width:760px){
@@ -319,6 +328,9 @@ html.motion .cine [data-reveal] .stg>*{opacity:0;transform:translateY(36px) scal
 html.motion .cine [data-reveal].in .stg>*{opacity:1;transform:none}
 html.motion .cine [data-reveal].in .stg.done>*{transition-delay:0s}
 html.motion .cine .stg.swap>*{animation:cine-swap .7s var(--ease) both;animation-delay:calc(var(--d,0) * 50ms)}
+html.motion .cine .kick i{animation:cine-ping 2.2s infinite}
+html.motion .cine [data-reveal] .kick{opacity:0;transform:translateY(16px);transition:opacity .8s var(--ease) .05s,transform .9s var(--ease) .05s}
+html.motion .cine [data-reveal].in .kick{opacity:1;transform:none}
 html.motion .cine [data-reveal] .count,html.motion .cine [data-reveal] .cat-end{opacity:0;transform:translateY(16px);transition:opacity .8s var(--ease) .25s,transform .9s var(--ease) .25s}
 html.motion .cine [data-reveal].in .count,html.motion .cine [data-reveal].in .cat-end{opacity:1;transform:none}
 /* the rail cards keep their lift on hover once they are in */

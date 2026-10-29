@@ -64,6 +64,16 @@ const HERO_POSTER = '/media/hero-poster.webp';
 // The glow behind each "Popular right now" panel, in category order.
 const PANEL_TINTS = ['#3B5BFF', '#6C4CF5', '#0E8C7A', '#E0A21E', '#C2532E'];
 
+/* The small label above a section heading (labels approved by the owner, 2026-10-29), the same pill everywhere. */
+function Kick({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="kick">
+      <i aria-hidden="true" />
+      {children}
+    </span>
+  );
+}
+
 /* A small padlock, as in an address bar. */
 function Lock({ dark = false }: { dark?: boolean }) {
   return (
@@ -335,6 +345,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
                 <i />
               </span>
               <span className="chev" />
+              <span className="mouse-t">Scroll</span>
             </span>
           </div>
         </section>
@@ -358,6 +369,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
           <section className="hscroll" aria-labelledby="mk-pop-h" data-scrub>
             <div className="hs-stick">
               <div className="wrap hs-head" data-reveal>
+                <Kick>Browse by kind</Kick>
                 <h2 id="mk-pop-h">
                   <span className="lr">
                     <span>Popular right now</span>
@@ -423,11 +435,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       <section className="mk-sec sec fx cine-feat" aria-labelledby="ex-feat" data-reveal>
         <div className="wrap">
           <div className="mk-head sec-head">
-            <h2 id="ex-feat">
-              <span className="lr">
-                <span>Featured products</span>
-              </span>
-            </h2>
+            <div>
+              <Kick>Handpicked</Kick>
+              <h2 id="ex-feat">
+                <span className="lr">
+                  <span>Featured products</span>
+                </span>
+              </h2>
+            </div>
             {old && (
               <Link className="link-u" href="/browse">
                 Browse everything
@@ -449,13 +464,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
             <section key={v.hub.slug} className={'mk-sec mk-cat-sec cat-sec fx' + (n % 2 ? ' amb' : '')} aria-labelledby={`cat-${v.hub.slug}`} data-reveal>
               <div className="wrap">
                 <div className="mk-head sec-head">
-                  <div className="cat-title">
-                    <h2 id={`cat-${v.hub.slug}`}>
-                      <span className="lr">
-                        <span>{v.hub.name}</span>
-                      </span>
-                    </h2>
-                    <span className="count">{v.products.length}</span>
+                  <div>
+                    <Kick>
+                      {v.products.length} {v.products.length === 1 ? 'template' : 'templates'} · live demos
+                    </Kick>
+                    <div className="cat-title">
+                      <h2 id={`cat-${v.hub.slug}`}>
+                        <span className="lr">
+                          <span>{v.hub.name}</span>
+                        </span>
+                      </h2>
+                      <span className="count">{v.products.length}</span>
+                    </div>
                   </div>
                   <div className="cat-end">
                     <RailControls rail={`rail-${v.hub.slug}`} label={v.hub.name} />
@@ -477,6 +497,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
     why: (
       <section className="mk-why why" aria-labelledby="mk-why-h" data-reveal>
         <div className="wrap">
+          <div className="head-c">
+            <Kick>Buyer protection</Kick>
+          </div>
           <h2 id="mk-why-h">
             <span className="lr">
               <span>Why people buy on SellOnBay</span>
@@ -569,11 +592,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       <section className="mk-sec sec fx amb cine-how" aria-labelledby="mk-steps" data-reveal>
         <div className="wrap">
           <div className="sec-head">
-            <h2 id="mk-steps" className="mk-steps-h">
-              <span className="lr">
-                <span>How a purchase goes</span>
-              </span>
-            </h2>
+            <div>
+              <Kick>Four simple steps</Kick>
+              <h2 id="mk-steps" className="mk-steps-h">
+                <span className="lr">
+                  <span>How a purchase goes</span>
+                </span>
+              </h2>
+            </div>
           </div>
           <ol className="mk-steps cine-steps stg">
             <li>
@@ -616,6 +642,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       <section className="mk-sellband seller" aria-labelledby="mk-sell-h" data-reveal>
         <div className="wrap mk-sellband-in seller-in">
           <div className="stg">
+            <Kick>For sellers</Kick>
             <h2 id="mk-sell-h">
               <span className="lr">
                 <span>Build once, sell it again and again</span>

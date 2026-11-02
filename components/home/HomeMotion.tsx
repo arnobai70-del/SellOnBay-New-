@@ -31,49 +31,63 @@ export function HomeMotion() {
       show.style.setProperty('--dist', String(dist));
     };
 
+    // Every rectangle is read first and every property written after, so a frame costs one layout instead of one per element.
+    const written = new Map<HTMLElement, Record<string, string>>();
+    const put = (el: HTMLElement, k: string, v: string) => {
+      const was = written.get(el) ?? {};
+      if (was[k] === v) return;
+      was[k] = v;
+      written.set(el, was);
+      el.style.setProperty(k, v);
+    };
     const measure = () => {
       const vh = innerHeight;
+      const out: [HTMLElement, string, string][] = [];
       for (const o of scrubs) {
         const r = o.el.getBoundingClientRect();
         o.tgt = clamp(-r.top / Math.max(1, r.height - vh));
       }
-      cards.forEach((c, i) => {
-        const next = cards[i + 1];
-        if (!next) return c.style.setProperty('--k', '0');
-        const a = c.getBoundingClientRect();
-        const b = next.getBoundingClientRect();
-        c.style.setProperty('--k', clamp(1 - (b.top - a.top) / a.height).toFixed(3));
-      });
-      if (steps) steps.style.setProperty('--sp', clamp((vh * 0.85 - steps.getBoundingClientRect().top) / (vh * 0.5)).toFixed(3));
+      const rects = cards.map((c) => c.getBoundingClientRect());
+      cards.forEach((c, i) => out.push([c, '--k', rects[i + 1] ? clamp(1 - (rects[i + 1].top - rects[i].top) / rects[i].height).toFixed(3) : '0']));
+      if (steps) out.push([steps, '--sp', clamp((vh * 0.85 - steps.getBoundingClientRect().top) / (vh * 0.5)).toFixed(3)]);
       for (const el of flows) {
         const r = el.getBoundingClientRect();
         if (r.bottom < 0 || r.top > vh) continue;
-        el.style.setProperty('--f', clamp((vh - r.top) / (vh + r.height)).toFixed(3));
+        out.push([el, '--f', clamp((vh - r.top) / (vh + r.height)).toFixed(3)]);
       }
       const cx = innerWidth / 2;
       for (const pn of panels) {
         const r = pn.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) continue;
         const q = Math.max(-1, Math.min(1, (r.left + r.width / 2 - cx) / (innerWidth * 0.75)));
-        pn.style.setProperty('--q', q.toFixed(3));
-        pn.style.setProperty('--qa', Math.abs(q).toFixed(3));
+        out.push([pn, '--q', q.toFixed(3)], [pn, '--qa', Math.abs(q).toFixed(3)]);
       }
+      for (const [el, k, v] of out) put(el, k, v);
     };
 
+    // The pinned scenes follow the scroll closely (about 60ms behind), the same on a 60Hz and a 120Hz screen.
     let running = false;
     let raf = 0;
-    const tick = () => {
+    let last = 0;
+    const tick = (now: number) => {
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      const a = 1 - Math.exp(-dt / 60);
       measure();
       let moving = false;
       for (const o of scrubs) {
         const d = o.tgt - o.cur;
-        if (Math.abs(d) > 0.0004) {
-          o.cur += d * 0.14;
+        if (Math.abs(d) > 0.0005) {
+          o.cur += d * a;
           moving = true;
         } else o.cur = o.tgt;
-        o.el.style.setProperty('--p', o.cur.toFixed(4));
+        put(o.el, '--p', o.cur.toFixed(4));
       }
       if (moving) raf = requestAnimationFrame(tick);
-      else running = false;
+      else {
+        running = false;
+        last = 0;
+      }
     };
     const kick = () => {
       if (running) return;

@@ -251,7 +251,7 @@
 @media (max-width:900px){.cine .seller-in{grid-template-columns:minmax(0,1fr)}}
 .cine .seller h2{font-size:clamp(30px,4vw,46px);font-weight:800;letter-spacing:-.035em;line-height:1.05}
 .cine .seller p{color:#DADCFF;font-size:16.5px;max-width:560px;margin:16px 0 26px}
-.cine .seller-fig{display:grid;place-items:center;padding:28px 22px;border-radius:22px;background:rgba(253,181,47,.16);border:1px solid rgba(253,181,47,.5);backdrop-filter:blur(8px)}
+.cine .seller-fig{display:grid;place-items:center;padding:28px 22px;border-radius:22px;background:rgba(253,181,47,.16);border:1px solid rgba(253,181,47,.5)}
 .cine .seller-fig b{font:800 clamp(38px,6vw,76px)/1 var(--display);letter-spacing:-.04em;color:var(--amber);text-align:center;overflow-wrap:anywhere}
 
 /* ================= motion: only with html.motion (JS on, motion welcome) ================= */
@@ -281,7 +281,10 @@ html.motion .cine .vhero{height:270vh}
 html.motion .cine .vh-stick{position:sticky;top:0;height:100vh;height:100svh;min-height:0}
 html.motion .cine .screen{--s:clamp(0,calc((var(--p,0) - .1) / .42),1);
   transform:translateY(calc(var(--s) * 9vh)) scale(calc(1 - var(--s) * .3));border-radius:calc(var(--s) * 26px);
-  box-shadow:0 50px 140px -40px rgba(0,0,0,calc(var(--s) * .9)),0 0 0 calc(var(--s) * 1.5px) rgba(255,255,255,.14);will-change:transform}
+  box-shadow:0 0 0 calc(var(--s) * 1.5px) rgba(255,255,255,.14);will-change:transform}
+/* the big soft shadow is drawn once and only fades, so it is not painted again on every frame */
+html.motion .cine .vh-stick::before{content:"";position:absolute;left:15%;right:15%;top:30%;bottom:6%;border-radius:26px;box-shadow:0 50px 140px -20px rgba(0,0,0,.9);
+  opacity:clamp(0,calc((var(--p,0) - .1) / .42),1);pointer-events:none;will-change:opacity}
 html.motion .cine .shade{opacity:calc(1 - var(--s) * .9)}
 html.motion .cine .chrome{--c:clamp(0,calc((var(--p,0) - .38) / .14),1);position:absolute;z-index:2;left:0;right:0;top:0;height:52px;display:flex;align-items:center;gap:8px;padding:0 20px;
   background:rgba(250,251,255,.96);color:var(--ink);opacity:var(--c);transform:translateY(calc((1 - var(--c)) * -100%));box-shadow:0 1px 0 rgba(0,0,0,.06)}
@@ -307,6 +310,7 @@ html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgb
 @media (max-width:760px){
   html.motion .cine .vhero{height:210vh}
   html.motion .cine .screen{transform:translateY(calc(var(--s) * 8vh)) scale(calc(1 - var(--s) * .12))}
+  html.motion .cine .vh-stick::before{left:6%;right:6%;top:20%;bottom:2%}
   html.motion .cine .vh-copy{align-items:flex-start;padding-top:28px;padding-bottom:80px}
   html.motion .cine .mouse{display:none}
 }
@@ -317,12 +321,13 @@ html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgb
   html.motion .cine .vh-copy{position:relative;inset:auto;opacity:1;transform:none}
   html.motion .cine .chrome,html.motion .cine .vh-b,html.motion .cine .mouse{display:none}
   html.motion .cine .screen{transform:none;border-radius:0;box-shadow:none}
+  html.motion .cine .vh-stick::before{display:none}
 }
 
 /* statement: pinned, the words light up one by one */
 html.motion .cine .state{height:230vh}
 html.motion .cine .st-stick{position:sticky;top:0;height:100vh;height:100svh;padding:0}
-html.motion .cine .st-text .w{opacity:clamp(.13,calc(var(--p,0) * 1.25 * var(--n) - var(--i)),1);transition:opacity .15s linear}
+html.motion .cine .st-text .w{opacity:clamp(.13,calc(var(--p,0) * 1.25 * var(--n) - var(--i)),1)}
 
 /* popular right now: pinned while the track slides sideways (HomeMotion sets the section's height to fit the track) */
 html.motion .cine .hs-stick{position:sticky;top:0;height:100vh;height:100svh;padding:calc(var(--hdr,var(--hdr-css)) * .5) 0 0;overflow:hidden}

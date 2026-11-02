@@ -11,10 +11,10 @@
 .mk-hdr.home .mk-progress{position:absolute;left:0;right:0;bottom:-1px;z-index:2;height:2px;background:linear-gradient(90deg,var(--gold),#FFD77A);transform-origin:0 50%;transform:scaleX(var(--read,0));pointer-events:none}
 @media (min-width:1024px){.mk-hdr.home.hide{transform:translateY(-100%)}}
 .mk-hdr.home .mk-top,.mk-hdr.home .mk-cats{transition:background-color .4s,border-color .4s}
-html.motion .mk-hdr.home.over.at-top:not(.open){background:linear-gradient(180deg,rgba(7,11,36,.75),rgba(7,11,36,0));box-shadow:none}
+html.motion .mk-hdr.home.over.at-top:not(.open){background:linear-gradient(180deg,rgba(7,11,36,.82),rgba(7,11,36,.6) 62%,rgba(7,11,36,0));box-shadow:none}
 html.motion .mk-hdr.home.over.at-top:not(.open) .mk-top{background-color:transparent}
 html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cats{background:transparent;border-color:transparent}
-html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link{color:rgba(255,255,255,.82)}
+html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link{color:rgba(255,255,255,.92);text-shadow:0 1px 10px rgba(0,0,0,.55)}
 html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link:hover,
 html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-link[aria-current]{color:#fff}
 html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-btn{color:rgba(255,255,255,.7)}
@@ -77,6 +77,8 @@ html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-btn:hover{background:rgb
 .mk-cat-link{display:flex;align-items:center;height:100%;padding:0 2px 0 8px;font-size:14px;font-weight:600;color:var(--ink-2);white-space:nowrap;border-bottom:3px solid transparent;border-top:3px solid transparent}
 .mk-cat-link:hover,.mk-cat.open .mk-cat-link{color:var(--cobalt)}
 .mk-cat-link[aria-current]{color:var(--ink);border-bottom-color:var(--gold)}
+/* an entry with no panel has no chevron after it, so its link keeps the space on both sides */
+.mk-cat-link:only-child{padding:0 12px}
 .mk-cat-btn{width:24px;height:30px;border:0;background:transparent;color:var(--mute);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:2px}
 .mk-cat-btn svg{transition:transform .2s}
 .mk-cat.open .mk-cat-btn svg{transform:rotate(180deg)}

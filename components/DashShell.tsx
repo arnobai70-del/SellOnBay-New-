@@ -22,6 +22,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     ],
     extra: [
       { label: 'Browse templates', href: '/', icon: 'bag' },
+      { label: 'Your profile', href: '/account/profile', icon: 'user' },
       { label: 'Sign-in methods', href: '/account/sign-in', icon: 'user' },
       { label: 'Your data', href: '/account/privacy', icon: 'user' },
       { label: 'Back to site', href: '/', icon: 'home' },
@@ -42,6 +43,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     ],
     extra: [
       { label: 'List a new site', href: '/sell/new', icon: 'plus' },
+      { label: 'Your profile', href: '/account/profile', icon: 'user' },
       { label: 'Sign-in methods', href: '/account/sign-in', icon: 'user' },
       { label: 'Your data', href: '/account/privacy', icon: 'user' },
       { label: 'Back to site', href: '/', icon: 'home' },

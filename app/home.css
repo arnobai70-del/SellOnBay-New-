@@ -22,6 +22,11 @@
 /* ---------- section rhythm and headings ---------- */
 .cine .sec{padding-top:var(--sec);padding-bottom:var(--sec)}
 .cine .cine-feat{padding-top:calc(var(--sec) * .5);padding-bottom:calc(var(--sec) * .5)}
+/* the products sit on a dark stage, so the white cards and their screenshots are what the eye meets first (owner, 2026-11-03) */
+.cine .cine-feat{padding-top:calc(var(--sec) * .8);color:#fff;
+  background:radial-gradient(900px 480px at 12% 0%,rgba(84,70,255,.38),transparent 70%),radial-gradient(760px 420px at 92% 100%,rgba(253,181,47,.13),transparent 70%),var(--deep)}
+.cine .cine-feat::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:clamp(60px,9vh,110px);background:linear-gradient(var(--mist),transparent);pointer-events:none}
+.cine .cine-feat .sec-head h2{color:#fff}
 .cine .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:var(--gap-head)}
 .cine .sec-head h2,.cine .mk-steps-h,.cine .mk-head h2{font-size:clamp(26px,3vw,38px);font-weight:700;letter-spacing:-.03em;line-height:1.08;margin:0}
 .cine .lr{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
@@ -31,7 +36,7 @@
 .cine .kick{display:inline-flex;align-items:center;gap:9px;font:600 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--indigo);background:var(--indigo-soft);
   border:1px solid #DDE1FF;padding:6px 14px 6px 10px;border-radius:999px;margin-bottom:16px;max-width:100%;white-space:normal}
 .cine .kick i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--amber)}
-.cine .why .kick,.cine .seller .kick{color:#C9CCFF;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
+.cine .why .kick,.cine .seller .kick,.cine .cine-feat .kick{color:#C9CCFF;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
 .cine .head-c{text-align:center}
 .cine .hs-head .kick{position:relative}
 
@@ -126,6 +131,12 @@
 .cine .hc-tabs a.on{color:var(--indigo)}
 .cine .hc-tabs:not(:has(.hc-tab-bar)) a.on{box-shadow:inset 0 -2.5px 0 var(--indigo)}
 .cine .hc-tab-bar{position:absolute;bottom:-1px;left:0;height:2.5px;border-radius:2px;background:var(--indigo);transition:transform .45s var(--ease),width .45s var(--ease)}
+.cine .cine-feat .hc-tabs{border-bottom-color:rgba(255,255,255,.12)}
+.cine .cine-feat .hc-tabs a{color:rgba(255,255,255,.6)}
+.cine .cine-feat .hc-tabs a:hover{color:#fff}
+.cine .cine-feat .hc-tabs a.on{color:var(--amber)}
+.cine .cine-feat .hc-tabs:not(:has(.hc-tab-bar)) a.on{box-shadow:inset 0 -2.5px 0 var(--amber)}
+.cine .cine-feat .hc-tab-bar{background:var(--amber)}
 .cine .hc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
 @media (max-width:1060px){.cine .hc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:780px){.cine .hc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
@@ -135,8 +146,11 @@
 .cine .hc-in{display:flex;flex-direction:column;gap:4px;padding:10px;height:100%;border:1px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);
   transition:transform .5s var(--ease),box-shadow .5s var(--ease),border-color .5s}
 .cine .hc:hover .hc-in{transform:translateY(-6px);border-color:#D9DCF5;box-shadow:0 24px 48px -18px rgba(28,34,110,.28),0 6px 14px -6px rgba(28,34,110,.12)}
+.cine .cine-feat .hc-in{border-color:transparent;box-shadow:0 26px 56px -30px rgba(0,0,0,.75)}
+.cine .cine-feat .hc:hover .hc-in{border-color:var(--amber);box-shadow:0 34px 70px -28px rgba(0,0,0,.85),0 0 0 4px rgba(253,181,47,.18)}
+.cine .cat-sec .hc-in{border-color:transparent;box-shadow:0 14px 34px -22px rgba(28,34,110,.35),0 1px 2px rgba(28,34,110,.06)}
 .cine .hc-thumb{position:relative;display:block}
-.cine .hc .tc-shot.ex-cover{aspect-ratio:16/10.4;margin:0;border-radius:12px;transform:none;box-shadow:inset 0 0 0 1px rgba(16,20,46,.06)}
+.cine .hc .tc-shot.ex-cover{aspect-ratio:4/3;margin:0;border-radius:12px;transform:none;box-shadow:inset 0 0 0 1px rgba(16,20,46,.06)}
 .cine .hc .tc-img{transition:object-position 4.5s cubic-bezier(.45,0,.2,1),transform 1.2s var(--ease)}
 .cine .hc:hover .tc-img{object-position:50% 100%!important}
 .cine .hc:hover .tc-pan{transform:translateY(-36%)}
@@ -158,8 +172,8 @@
 @keyframes hc-pop{40%{transform:scale(1.28)}}
 
 /* ---------- category rails ---------- */
-.cine .mk-cats-home{padding-bottom:calc(var(--sec) * .5)}
-.cine .cat-sec{padding-top:calc(var(--sec) * .5);padding-bottom:calc(var(--sec) * .5);border-top:1px solid var(--line)}
+.cine .mk-cats-home{padding-bottom:calc(var(--sec) * .5);background:var(--mist)}
+.cine .cat-sec{padding-top:calc(var(--sec) * .5);padding-bottom:calc(var(--sec) * .5);background:var(--mist);border-top:1px solid #fff}
 .cine .cat-sec .sec-head{margin-bottom:calc(var(--gap-head) * .7)}
 .cine .cat-title{display:flex;align-items:center;gap:12px;min-width:0}
 .cine .cat-title h2{min-width:0;overflow-wrap:anywhere}

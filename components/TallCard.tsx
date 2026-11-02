@@ -29,13 +29,13 @@ export function TallCard({ p, compare, href }: { p: Product; compare?: Compare; 
             {app ? (
               shot ? (
                 <span className="ap-real">
-                  <Image src={shot} alt="" fill sizes="200px" unoptimized style={{ objectFit: 'cover', objectPosition: 'top' }} />
+                  <Image src={shot} alt="" fill sizes="200px" style={{ objectFit: 'cover', objectPosition: 'top' }} />
                 </span>
               ) : (
                 <AppArt p={p} />
               )
             ) : shot ? (
-              <Image className="tc-img" src={shot} alt="" fill sizes="(max-width: 760px) 100vw, 380px" unoptimized style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
+              <Image className="tc-img" src={shot} alt="" fill sizes="(max-width: 760px) 100vw, 380px" style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
             ) : img ? (
               <Image className="tc-img" src={img.src} alt="" fill sizes="(max-width: 760px) 100vw, 380px" style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
             ) : (

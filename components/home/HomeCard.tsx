@@ -24,13 +24,13 @@ export function Cover({ p, sizes = CARD_SIZES, badges = false, alt = p.name }: {
       {app ? (
         shot ? (
           <span className="ap-real">
-            <Image src={shot} alt={alt} fill sizes="200px" unoptimized style={{ objectFit: 'cover', objectPosition: 'top' }} />
+            <Image src={shot} alt={alt} fill sizes="200px" style={{ objectFit: 'cover', objectPosition: 'top' }} />
           </span>
         ) : (
           <AppArt p={p} />
         )
       ) : shot ? (
-        <Image className="tc-img" src={shot} alt={alt} fill sizes={sizes} unoptimized style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
+        <Image className="tc-img" src={shot} alt={alt} fill sizes={sizes} style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
       ) : img ? (
         <Image className="tc-img" src={img.src} alt={alt} fill sizes={sizes} style={{ objectFit: 'cover', objectPosition: '50% 0%' }} />
       ) : (
@@ -40,7 +40,7 @@ export function Cover({ p, sizes = CARD_SIZES, badges = false, alt = p.name }: {
           </ScaledPage>
         </span>
       )}
-      {badges && <span className="ex-plat">{shelfLabel(platformOf(p))}</span>}
+      {badges && app && <span className="ex-plat">{shelfLabel(platformOf(p))}</span>}
       {badges && (p.example ? <span className="ex-new ex-eg">Example</span> : isNew(p) && <span className="ex-new">New</span>)}
     </span>
   );
@@ -59,15 +59,11 @@ export function HomeCard({ p, href, d = 0 }: { p: Product; href?: string; d?: nu
         </span>
         <h3 className="ex-name">{p.name}</h3>
         <span className="ex-sub">{p.tag}</span>
-        <span className="ex-rate">
-          {p.reviews > 0 ? (
-            <>
-              <span className="star">★</span> {p.rating} ({p.reviews})
-            </>
-          ) : (
-            'No reviews yet'
-          )}
-        </span>
+        {p.reviews > 0 && (
+          <span className="ex-rate">
+            <span className="star">★</span> {p.rating} ({p.reviews})
+          </span>
+        )}
         <span className="ex-foot">
           {SHOW_LIST_PRICES && <span className="ex-price">{money(p.price)}</span>}
           <span className="chip">{daysLabel(p.days, p.hours)}</span>

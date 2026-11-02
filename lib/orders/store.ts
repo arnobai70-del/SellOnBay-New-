@@ -297,7 +297,11 @@ export const postgresStore: OrderStore = {
     return (data?.length ?? 0) > 0;
   },
   async events(id) {
-    const { data, error } = await createAdminClient().from('order_events').select('order_id, actor_id, event, from_state, to_state, meta, created_at').eq('order_id', id).order('id', { ascending: true });
+    const { data, error } = await createAdminClient()
+      .from('order_events')
+      .select('order_id, actor_id, event, from_state, to_state, meta, created_at')
+      .eq('order_id', id)
+      .order('id', { ascending: true });
     if (error) throw new Error('Could not read the order history: ' + error.message);
     return (data ?? []).map((r) => ({ orderId: r.order_id, actorId: r.actor_id, event: r.event, from: r.from_state, to: r.to_state, meta: r.meta ?? {}, at: Date.parse(r.created_at) }));
   },

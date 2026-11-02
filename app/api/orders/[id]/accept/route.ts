@@ -7,6 +7,7 @@ import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
 
 const schema = z.object({ consent: z.literal(true) });
+const ACCEPTED: string[] = ['accepted', 'payout_pending', 'paid_out'];
 
 /* The buyer accepts a delivered order. Only the buyer of that order can, with the box ticked (logged as evidence). The state machine decides whether it is allowed now. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -20,11 +21,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const order = await getOrder(id);
   if (!order || order.buyerId !== user.id) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  if (ACCEPTED.includes(order.state)) return NextResponse.json({ ok: true, already: true }); // accepting twice is the same acceptance
   if (order.state !== 'delivered') return NextResponse.json({ error: 'This order is not ready to accept.' }, { status: 409 });
   const body = await readJson(req, schema, { allowEmpty: true });
   if (!body.ok) return NextResponse.json({ error: 'Tick the box to accept the order.' }, { status: 400 });
-  await recordConsent({ orderId: id, userId: user.id, ...whoIs(req) });
   const r = await accept(id, user.id);
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  if (!r.ok) {
+    const now = await getOrder(id);
+    if (now && ACCEPTED.includes(now.state)) return NextResponse.json({ ok: true, already: true }); // another click accepted it first
+    return NextResponse.json({ error: r.error }, { status: r.status });
+  }
+  await recordConsent({ orderId: id, userId: user.id, ...whoIs(req) }); // once, for the click that accepted the order
   return NextResponse.json({ ok: true });
 }

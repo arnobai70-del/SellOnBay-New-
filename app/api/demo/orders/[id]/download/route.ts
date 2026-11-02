@@ -31,7 +31,13 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const real = !!o.productId && !!o.buyerId;
   if (real) {
     if (await heldReason(id)) return NextResponse.json({ error: HELD_TEXT }, { status: 403 });
-    const profile = supabaseConfigured ? (await createAdminClient().from('profiles').select('created_at, flagged').eq('id', o.buyerId!).maybeSingle()).data : null;
+    let profile: { created_at: string | null; flagged: boolean | null } | null = null;
+    if (supabaseConfigured) {
+      const p = await createAdminClient().from('profiles').select('created_at, flagged').eq('id', o.buyerId!).maybeSingle();
+      // Fail closed: without the buyer's facts the release delay for new or flagged buyers cannot be applied.
+      if (p.error) return NextResponse.json({ error: 'Your files could not be prepared just now. Try again in a minute.' }, { status: 503 });
+      profile = p.data;
+    }
     const d = decideRelease(
       {
         status: o.state,

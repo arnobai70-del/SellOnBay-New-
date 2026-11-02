@@ -205,7 +205,12 @@ export async function requestDeletion(userId: string): Promise<Result<{ blockers
 
 export async function myRequests(userId: string): Promise<DataRequest[]> {
   if (!(await pg())) return [];
-  const { data, error } = await createAdminClient().from('data_requests').select('id, user_id, kind, status, note, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(20);
+  const { data, error } = await createAdminClient()
+    .from('data_requests')
+    .select('id, user_id, kind, status, note, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(20);
   if (error) throw new Error('Could not read your data requests.'); // a pending deletion must never look absent
   return (data ?? []).map((r) => ({ id: r.id, userId: r.user_id, kind: r.kind, status: r.status, note: r.note ?? undefined, createdAt: Date.parse(r.created_at) }));
 }

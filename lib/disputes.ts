@@ -117,16 +117,19 @@ export async function evidenceOf(disputeId: string): Promise<Evidence[]> {
 export type R<T> = { ok: true; value: T } | { ok: false; status: number; error: string };
 const fail = (status: number, error: string): { ok: false; status: number; error: string } => ({ ok: false, status, error });
 
-async function addEvidence(d: Dispute, authorId: string | null, text: string): Promise<void> {
+/* Saves one piece of evidence; false when the database refused it. */
+async function addEvidence(d: Dispute, authorId: string | null, text: string): Promise<boolean> {
   const e: Evidence = { id: crypto.randomUUID(), disputeId: d.id, authorId, text, at: Date.now() };
   if (await pg()) {
-    if (authorId)
-      await createAdminClient()
-        .from('dispute_evidence')
-        .insert({ id: e.id, dispute_id: d.id, author_id: authorId, text, created_at: iso(e.at) });
-    return; // evidence by an anonymous (demo) buyer is kept in the dispute detail only
+    if (!authorId) return true; // evidence by an anonymous (demo) buyer is kept in the dispute detail only
+    const { error } = await createAdminClient()
+      .from('dispute_evidence')
+      .insert({ id: e.id, dispute_id: d.id, author_id: authorId, text, created_at: iso(e.at) });
+    if (error) console.error('disputes: could not save evidence', d.id, error.message);
+    return !error;
   }
   mem.evidence.push(e);
+  return true;
 }
 
 const checkText = (text: string, min: number, what: string): string | null => {
@@ -146,6 +149,12 @@ export function disputeWindow(o: Order, now = Date.now()): 'delivered' | 'accept
 export async function openDispute(orderId: string, buyerId: string | null, i: { reason: string; detail: string }, now = Date.now()): Promise<R<Dispute>> {
   const o = await getOrder(orderId);
   if (!o) return fail(404, 'Order not found.');
+  // The same report sent again (a double click, a resend after the first went through) gets that dispute back, not an error.
+  // A different second report still waits for the first to be decided.
+  if (o.state === 'disputed') {
+    const mine = (await disputesForOrder(orderId)).find((x) => x.status !== 'decided' && x.openedBy === buyerId && x.reason === i.reason && x.detail === i.detail.trim());
+    if (mine) return { ok: true, value: mine };
+  }
   if (!(DISPUTE_REASONS as readonly string[]).includes(i.reason)) return fail(400, 'Pick a reason.');
   const bad = checkText(i.detail, 20, 'what is wrong (screenshots or steps help)');
   if (bad) return fail(400, bad);
@@ -165,27 +174,33 @@ export async function openDispute(orderId: string, buyerId: string | null, i: { 
     adminDueAt: now + CONFIG.dispute.adminDecisionDays * DAY_MS,
     createdAt: now,
   };
-  // The order is held first: if two disputes race, only one can move it.
-  const held = await move(orderId, 'disputed', { actorId: buyerId, event: 'dispute_opened', meta: { disputeId: d.id, reason: d.reason, from }, now });
-  if (!held.ok) return fail(held.status, held.error);
-  if (await pg()) {
-    const { error } = await createAdminClient()
-      .from('disputes')
-      .insert({
-        id: d.id,
-        order_id: orderId,
-        opened_by: buyerId,
-        reason: d.reason,
-        detail: d.detail,
-        status: 'open',
-        from_state: from,
-        seller_due_at: iso(d.sellerDueAt),
-        admin_due_at: iso(d.adminDueAt),
-        created_at: iso(d.createdAt),
-      });
-    if (error) return fail(500, 'Could not save the dispute. Ask support, the order is held.');
+  // The dispute is saved first and the order held second, so a held order always has its dispute (an order cannot go back from disputed).
+  // If two disputes race, only one can move the order; the other removes its own row and reports the order changed.
+  const db = (await pg()) ? createAdminClient() : null;
+  if (db) {
+    const { error } = await db.from('disputes').insert({
+      id: d.id,
+      order_id: orderId,
+      opened_by: buyerId,
+      reason: d.reason,
+      detail: d.detail,
+      status: 'open',
+      from_state: from,
+      seller_due_at: iso(d.sellerDueAt),
+      admin_due_at: iso(d.adminDueAt),
+      created_at: iso(d.createdAt),
+    });
+    if (error) return fail(500, 'Could not save your report. Nothing was changed; try again in a moment.');
   } else mem.disputes.set(d.id, d);
-  await addEvidence(d, buyerId, d.detail);
+  const held = await move(orderId, 'disputed', { actorId: buyerId, event: 'dispute_opened', meta: { disputeId: d.id, reason: d.reason, from }, now });
+  if (!held.ok) {
+    if (db) {
+      const { error } = await db.from('disputes').delete().eq('id', d.id);
+      if (error) console.error('disputes: could not remove an unused dispute', d.id, error.message);
+    } else mem.disputes.delete(d.id);
+    return fail(held.status, held.error);
+  }
+  await addEvidence(d, buyerId, d.detail); // the words are also in the dispute itself, so a failed copy here loses nothing
   await bump('disputes', 1, now);
   return { ok: true, value: d };
 }
@@ -206,7 +221,7 @@ export async function addEvidenceTo(disputeId: string, authorId: string | null, 
   if (d.status === 'decided') return fail(409, 'This dispute is already decided.');
   const bad = checkText(text, 5, 'your evidence');
   if (bad) return fail(400, bad);
-  await addEvidence(d, authorId, text.trim());
+  if (!(await addEvidence(d, authorId, text.trim()))) return fail(500, 'Could not save your evidence. Try again in a moment.');
   return { ok: true, value: true };
 }
 
@@ -219,7 +234,7 @@ export async function sellerReply(disputeId: string, sellerId: string | null, te
   const next: Dispute = { ...d, status: 'seller_replied', sellerReply: text.trim(), sellerRepliedAt: now };
   if (!(await save(d, { status: 'seller_replied', seller_reply: next.sellerReply, seller_replied_at: iso(now) }))) return fail(409, 'This dispute has just changed.');
   if (!(await pg())) mem.disputes.set(d.id, next);
-  await addEvidence(d, sellerId, `Seller reply: ${next.sellerReply}`);
+  await addEvidence(d, sellerId, `Seller reply: ${next.sellerReply}`); // the reply itself is saved on the dispute above
   const o = await getOrder(d.orderId);
   if (o) await notify(o.buyerId, 'dispute_reply', { title: o.title, orderId: o.id });
   return { ok: true, value: next };

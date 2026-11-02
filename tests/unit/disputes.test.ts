@@ -73,6 +73,14 @@ describe('opening a dispute', () => {
     expect((await openDispute(o.id, o.buyerId, { reason: 'malware', detail: GOOD })).ok).toBe(false);
     expect(await disputesForOrder(o.id)).toHaveLength(1);
   });
+  it('the same report sent twice (a double click) returns the first dispute and opens nothing new', async () => {
+    const o = await order('delivered');
+    const a = await openDispute(o.id, o.buyerId, { reason: 'not_working', detail: GOOD });
+    const b = await openDispute(o.id, o.buyerId, { reason: 'not_working', detail: GOOD });
+    if (!a.ok || !b.ok) throw new Error('both should answer ok');
+    expect(b.value.id).toBe(a.value.id);
+    expect(await disputesForOrder(o.id)).toHaveLength(1);
+  });
 });
 
 describe('evidence and the seller reply', () => {

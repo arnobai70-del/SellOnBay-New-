@@ -48,6 +48,7 @@ export default async function Page({ params }: { params: Promise<{ category: str
           c={shown}
           products={v.products}
           productHref={(p) => hubProductPath(hub, a, p.id)}
+          cat={hub.slug}
           others={HUBS.filter((x) => x.slug !== hub.slug).map((x) => ({ ...x, slug: hubPublicSlug(x, a) }))}
           faq={saved.length ? [] : hub.faq}
         />

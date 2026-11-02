@@ -27,7 +27,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       <EarlyBar />
       <SiteNavByPath menu={menu} />
-      <main id="main">
+      <main id="main" className="night">
         <TopBlocks slots={slots} />
         {children}
       </main>

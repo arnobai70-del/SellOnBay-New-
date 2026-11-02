@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { daysLabel, doesFeature, imageFor, isNew, money, type Product } from '@/lib/data';
 import { APP_FEATURES, FEATURES, SHELVES, isApp, platformOf } from '@/lib/apps';
 import { SHOW_LIST_PRICES } from '@/lib/config';
+import { catAttr } from '@/lib/catAccent';
 import { AppArt } from './AppPhone';
 import { PlatformBadge } from './PlatformBadge';
 import { SaveButton } from './SaveButton';
@@ -13,14 +14,14 @@ import { TemplatePage } from './TemplatePage';
 export type Compare = { on: boolean; full: boolean; toggle: () => void };
 
 /* Tall site card: the page glides down on hover, badges say what it does, and "View details" appears. */
-export function TallCard({ p, compare, href }: { p: Product; compare?: Compare; href?: string }) {
+export function TallCard({ p, compare, href, cat }: { p: Product; compare?: Compare; href?: string; cat?: string }) {
   const app = isApp(p);
   const img = app ? undefined : imageFor(p.id);
   const feats = [...FEATURES, ...APP_FEATURES].filter((f) => doesFeature(p, f.key)).slice(0, 2);
   const shot = p.shots?.[0];
   return (
     <Tilt className="tilt-tall" max={5}>
-      <div className="pwrap tall">
+      <div className="pwrap tall" data-cat={catAttr(cat)}>
         <Link className="pcard" href={href ?? `/product/${p.id}`}>
           <div
             className={'tc-shot' + (app ? ' app-shot' : '') + (app && SHELVES[platformOf(p) as Exclude<ReturnType<typeof platformOf>, 'web'>].delivery !== 'store' ? ' wide' : '')}

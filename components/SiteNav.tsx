@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { catAttr, catOfHref } from '@/lib/catAccent';
 import { MARKET_MENU, type MenuEntry } from '@/lib/marketMenu';
 import { useList } from '@/lib/saved';
 import { KINDS, KIND_LABEL, MIN_QUERY, type Hit } from '@/lib/siteSearchCore';
@@ -319,7 +320,7 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
       <nav className="mk-cats" aria-label="Categories" onPointerLeave={hoverClose} onPointerEnter={() => clearTimeout(leave.current)}>
         <div className="wrap mk-cats-in">
           {menu.map((e) => (
-            <div key={e.key} className={'mk-cat' + (open === e.key ? ' open' : '')} onPointerEnter={hoverOpen(e.key)}>
+            <div key={e.key} className={'mk-cat' + (open === e.key ? ' open' : '')} data-cat={catAttr(e.key) ?? catOfHref(e.href)} onPointerEnter={hoverOpen(e.key)}>
               <Link className="mk-cat-link" href={e.href} aria-current={on === e.key ? 'page' : undefined} onClick={done}>
                 {e.label}
               </Link>

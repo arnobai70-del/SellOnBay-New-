@@ -6,6 +6,7 @@ import { ScaledPage } from '@/components/ScaledPage';
 import { TemplatePage } from '@/components/TemplatePage';
 import { SHELVES, isApp, platformOf, shelfLabel, type AppPlatform } from '@/lib/apps';
 import { SHOW_LIST_PRICES } from '@/lib/config';
+import { catAttr } from '@/lib/catAccent';
 import { daysLabel, imageFor, isNew, money, type Product } from '@/lib/data';
 
 const CARD_SIZES = '(max-width: 480px) 86vw, (max-width: 780px) 46vw, (max-width: 1060px) 31vw, 300px';
@@ -47,9 +48,9 @@ export function Cover({ p, sizes = CARD_SIZES, badges = false, alt = p.name }: {
 }
 
 /* One product card on the home page: lifts on hover, the picture scrolls like a live preview, the heart keeps the saved-sites list. */
-export function HomeCard({ p, href, d = 0 }: { p: Product; href?: string; d?: number }) {
+export function HomeCard({ p, href, d = 0, cat }: { p: Product; href?: string; d?: number; cat?: string }) {
   return (
-    <div className="pwrap ex-card hc" style={{ '--d': d } as React.CSSProperties}>
+    <div className="pwrap ex-card hc" data-cat={catAttr(cat)} style={{ '--d': d } as React.CSSProperties}>
       <Link href={href ?? `/product/${p.id}`} className="ex-card-in hc-in">
         <span className="hc-thumb">
           <Cover p={p} badges />

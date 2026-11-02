@@ -9,6 +9,7 @@ import { PageExtras } from '@/components/PageExtras';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { HeroDomain } from '@/components/HeroDomain';
 import { Cover, HomeCard } from '@/components/home/HomeCard';
+import { catAttr } from '@/lib/catAccent';
 import { FeaturedTabs } from '@/components/home/FeaturedTabs';
 import { HeroVideo } from '@/components/home/HeroVideo';
 import { HomeMotion } from '@/components/home/HomeMotion';
@@ -435,7 +436,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
           </div>
           <FeaturedTabs tab={tab} tabs={tabs}>
             {featured.map((p, i) => (
-              <HomeCard key={p.id} p={p} d={i} href={old ? undefined : hubProductPath(productHub.get(p.id) ?? ecom.hub, alloc, p.id)} />
+              <HomeCard key={p.id} p={p} d={i} cat={productHub.get(p.id)?.slug} href={old ? undefined : hubProductPath(productHub.get(p.id) ?? ecom.hub, alloc, p.id)} />
             ))}
           </FeaturedTabs>
         </div>
@@ -445,7 +446,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
       railed.length > 0 ? (
         <div className="mk-cats-home">
           {railed.map((v, n) => (
-            <section key={v.hub.slug} className={'mk-sec mk-cat-sec cat-sec fx' + (n % 2 ? ' amb' : '')} aria-labelledby={`cat-${v.hub.slug}`} data-reveal>
+            <section key={v.hub.slug} className={'mk-sec mk-cat-sec cat-sec fx' + (n % 2 ? ' amb' : '')} data-cat={catAttr(v.hub.slug)} aria-labelledby={`cat-${v.hub.slug}`} data-reveal>
               <div className="wrap">
                 <div className="mk-head sec-head">
                   <div>
@@ -470,7 +471,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
                 </div>
                 <div id={`rail-${v.hub.slug}`} className="mk-grid rail stg">
                   {v.products.map((p, i) => (
-                    <HomeCard key={p.id} p={p} d={i} href={old ? undefined : hubProductPath(v.hub, alloc, p.id)} />
+                    <HomeCard key={p.id} p={p} d={i} cat={v.hub.slug} href={old ? undefined : hubProductPath(v.hub, alloc, p.id)} />
                   ))}
                 </div>
               </div>

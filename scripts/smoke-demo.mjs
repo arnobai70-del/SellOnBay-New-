@@ -38,7 +38,7 @@ async function waitUntilReady() {
 }
 try {
   await waitUntilReady();
-  for (const page of ['/', '/browse', '/login', '/robots.txt', '/api/health']) {
+  for (const page of ['/', '/templates/saas', '/login', '/robots.txt', '/api/health']) {
     const res = await response(page);
     if (res.status !== 200) throw new Error(`Demo smoke ${page} returned ${res.status}`);
     if (page === '/') {
@@ -55,6 +55,11 @@ try {
     }
     console.log(`Demo smoke passed: GET ${page}`);
   }
+  // The retired public pages (lib/legacy.ts, owner 2026-10-23) must stay gone.
+  const gone = await response('/browse');
+  await gone.body?.cancel();
+  if (gone.status !== 410) throw new Error(`Demo smoke /browse returned ${gone.status}, expected 410 Gone`);
+  console.log('Demo smoke passed: GET /browse is 410 Gone');
   // A route that sets no cache header of its own must still come back uncacheable.
   const api = await response('/api/demo/orders/smoke-missing');
   await api.body?.cancel();

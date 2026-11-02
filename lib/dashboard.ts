@@ -22,6 +22,8 @@ import { deliveryText } from './deliveryTime';
  */
 const ACCEPTED = ['accepted', 'payout_pending', 'paid_out'];
 const IN_PROGRESS = ['funded', 'in_delivery', 'delivered', 'disputed', 'fix_requested', 'overdue'];
+/* What a buyer counts as in progress: also a payment being checked and a paid order waiting for its release (SellOnBay 2.0). */
+const BUYER_IN_PROGRESS = ['payment_review', 'release_pending', ...IN_PROGRESS];
 const pg = async () => (await orderStore()).kind === 'postgres';
 
 /* Share of delivered orders that were delivered on or before their deadline. Null when nothing was delivered yet. */
@@ -52,18 +54,19 @@ export type BuyerView = {
   inProgress: number;
   totalSpentCents: number;
   extras: { order: Order; request: ChangeRequest }[];
-  unread: number;
+  unread: number | null; // null: the count could not be read
 };
 export async function buyerDashboard(userId: string, now = Date.now()): Promise<BuyerView> {
   const all = await (await orderStore()).forUser(userId);
-  const orders = all.filter((o) => o.buyerId === userId && o.state !== 'cancelled' && o.state !== 'refunded' && (!!o.fundedAt || o.state === 'awaiting_payment'));
-  const extras: BuyerView['extras'] = [];
-  for (const o of orders) for (const r of await listExtras(o.id)) if (r.state === 'pending') extras.push({ order: o, request: r });
+  // A manual payment waiting to be checked (payment_review) is not funded yet but must stay in the list.
+  const orders = all.filter((o) => o.buyerId === userId && o.state !== 'cancelled' && o.state !== 'refunded' && (!!o.fundedAt || o.state === 'awaiting_payment' || o.state === 'payment_review'));
+  const lists = await Promise.all(orders.map((o) => listExtras(o.id)));
+  const extras: BuyerView['extras'] = orders.flatMap((o, i) => lists[i].filter((r) => r.state === 'pending').map((request) => ({ order: o, request })));
   return {
     orders,
     needsReview: orders.filter((o) => o.state === 'delivered' && o.reviewEndsAt).map((o) => ({ order: o, hoursLeft: Math.max(0, Math.ceil((o.reviewEndsAt! - now) / HOUR_MS)) })),
     liveSites: orders.filter((o) => ACCEPTED.includes(o.state) && o.domain).length,
-    inProgress: orders.filter((o) => IN_PROGRESS.includes(o.state)).length,
+    inProgress: orders.filter((o) => BUYER_IN_PROGRESS.includes(o.state)).length,
     totalSpentCents: orders.filter((o) => !!o.fundedAt).reduce((s, o) => s + o.priceCents - o.refundedCents, 0),
     extras,
     unread: await unreadCount(userId),

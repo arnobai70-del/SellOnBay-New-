@@ -274,7 +274,9 @@ export const postgresStore: OrderStore = {
     if (ev.error) throw new Error('Could not log the order: ' + ev.error.message);
   },
   async get(id) {
-    const { data } = await createAdminClient().from('orders').select('*').eq('id', id).maybeSingle();
+    // A failed read is an error, never "no such order": callers would otherwise tell a buyer their order does not exist.
+    const { data, error } = await createAdminClient().from('orders').select('*').eq('id', id).maybeSingle();
+    if (error) throw new Error('Could not read the order: ' + error.message);
     return data ? fromRow(data) : null;
   },
   async apply(prev, next, event) {
@@ -295,11 +297,13 @@ export const postgresStore: OrderStore = {
     return (data?.length ?? 0) > 0;
   },
   async events(id) {
-    const { data } = await createAdminClient().from('order_events').select('order_id, actor_id, event, from_state, to_state, meta, created_at').eq('order_id', id).order('id', { ascending: true });
+    const { data, error } = await createAdminClient().from('order_events').select('order_id, actor_id, event, from_state, to_state, meta, created_at').eq('order_id', id).order('id', { ascending: true });
+    if (error) throw new Error('Could not read the order history: ' + error.message);
     return (data ?? []).map((r) => ({ orderId: r.order_id, actorId: r.actor_id, event: r.event, from: r.from_state, to: r.to_state, meta: r.meta ?? {}, at: Date.parse(r.created_at) }));
   },
   async forUser(userId) {
-    const { data } = await createAdminClient().from('orders').select('*').or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).order('created_at', { ascending: false }).limit(2000); // the seller dashboard counts on every open order being here
+    const { data, error } = await createAdminClient().from('orders').select('*').or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).order('created_at', { ascending: false }).limit(2000); // the seller dashboard counts on every open order being here
+    if (error) throw new Error('Could not read your orders: ' + error.message); // never an empty list that reads as "no orders yet"
     return (data ?? []).map(fromRow);
   },
   async unpaidSince(buyerId, sinceMs) {

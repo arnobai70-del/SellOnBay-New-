@@ -50,7 +50,7 @@ export default async function BuyerDashboard() {
         </div>
         <div>
           <small>Notifications</small>
-          <b>{v?.unread ?? 0}</b>
+          <b>{v ? (v.unread ?? '—') : 0}</b>
           <span className="muted" style={{ fontSize: '13.5px' }}>
             <Link href="/notifications">Open them</Link>
           </span>

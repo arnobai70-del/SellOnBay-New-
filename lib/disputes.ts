@@ -84,14 +84,16 @@ const fromRow = (r: Row): Dispute => ({
 
 export async function getDispute(id: string): Promise<Dispute | null> {
   if (await pg()) {
-    const { data } = await createAdminClient().from('disputes').select('*').eq('id', id).maybeSingle();
+    const { data, error } = await createAdminClient().from('disputes').select('*').eq('id', id).maybeSingle();
+    if (error) throw new Error('Could not read the dispute.');
     return data ? fromRow(data) : null;
   }
   return mem.disputes.get(id) ?? null;
 }
 export async function disputesForOrder(orderId: string): Promise<Dispute[]> {
   if (await pg()) {
-    const { data } = await createAdminClient().from('disputes').select('*').eq('order_id', orderId).order('created_at', { ascending: true });
+    const { data, error } = await createAdminClient().from('disputes').select('*').eq('order_id', orderId).order('created_at', { ascending: true });
+    if (error) throw new Error('Could not read the disputes of this order.'); // "none open" must never be a guess
     return (data ?? []).map(fromRow);
   }
   return [...mem.disputes.values()].filter((d) => d.orderId === orderId).sort((a, b) => a.createdAt - b.createdAt);

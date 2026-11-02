@@ -73,12 +73,13 @@ export async function notify(userId: string | null | undefined, kind: Notificati
 
 export async function notificationsFor(userId: string, limit = 50): Promise<Notification[]> {
   if (await pg()) {
-    const { data } = await createAdminClient()
+    const { data, error } = await createAdminClient()
       .from('notifications')
       .select('id, user_id, kind, payload, read_at, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
+    if (error) throw new Error('Could not read your notifications.');
     return Promise.all(
       (data ?? []).map(async (r) => {
         const k = r.kind as NotificationKind;
@@ -92,7 +93,18 @@ export async function notificationsFor(userId: string, limit = 50): Promise<Noti
     .sort((a, b) => b.at - a.at)
     .slice(0, limit);
 }
-export const unreadCount = async (userId: string) => (await notificationsFor(userId, 200)).filter((n) => !n.read).length;
+/* How many are unread: one count query, not a read of every notification. null when it cannot be read, so a page shows that it does not know. */
+export async function unreadCount(userId: string): Promise<number | null> {
+  if (await pg()) {
+    const { count, error } = await createAdminClient().from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).is('read_at', null);
+    if (error) {
+      console.error('notify: could not count unread notifications', error.message);
+      return null;
+    }
+    return count ?? 0;
+  }
+  return mem.filter((n) => n.userId === userId && !n.read).length;
+}
 
 export async function markRead(userId: string, id: string | 'all'): Promise<void> {
   if (await pg()) {

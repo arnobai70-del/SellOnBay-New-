@@ -43,7 +43,7 @@ export async function insertMessage(m: Omit<Message, 'id' | 'at'>): Promise<Mess
 export async function messagesOf(subjectType: SubjectType, subjectId: string, channels: Channel[]): Promise<Message[]> {
   if (!channels.length) return [];
   if (!(await pg())) return mem.messages.filter((m) => m.subjectType === subjectType && m.subjectId === subjectId && channels.includes(m.channel));
-  const { data } = await createAdminClient()
+  const { data, error } = await createAdminClient()
     .from('conversation_messages')
     .select('id, subject_type, subject_id, channel, sender_id, sender_role, body, created_at')
     .eq('subject_type', subjectType)
@@ -51,6 +51,7 @@ export async function messagesOf(subjectType: SubjectType, subjectId: string, ch
     .in('channel', channels)
     .order('created_at')
     .limit(1000);
+  if (error) throw new Error('Could not read the messages.'); // never an empty conversation that hides real messages
   return (data ?? []).map((r) => ({
     id: r.id,
     subjectType: r.subject_type,

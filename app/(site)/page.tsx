@@ -257,10 +257,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
   const cut = h1.lastIndexOf(', ') + 1;
   const [line1, line2] = [h1.slice(0, cut), h1.slice(cut + 1)];
   const accent = line2.lastIndexOf(' ') + 1;
-  const [claim, ...rest] = sub.split(/(?<=\.)\s+/);
-  const look = rest.join(' ');
-  const claimWords = claim.split(' ');
-  const delivery = `Live in ${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays} days`;
+  const look = sub
+    .split(/(?<=\.)\s+/)
+    .slice(1)
+    .join(' ');
   const tabs = TABS.map(([k, label]) => [k, label, k === 'popular' ? '/' : `/?tab=${k}`] as const);
   const coverOf = (c: (typeof sets)[number], i: number) => c.items[i];
   const railed = views.filter((v) => v.products.length > 0);
@@ -346,22 +346,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
               </span>
               <span className="chev" />
               <span className="mouse-t">Scroll</span>
-            </span>
-          </div>
-        </section>
-        <section className="state" data-scrub>
-          <div className="st-stick">
-            <p className="st-text wrap" aria-hidden="true" style={{ '--n': claimWords.length } as React.CSSProperties}>
-              {claimWords.map((w, i) => (
-                <Fragment key={i}>
-                  <span className={'w' + (/^made$/i.test(w) || (i > 0 && /^made$/i.test(claimWords[i - 1]) && /^yours/i.test(w)) ? ' am' : '')} style={{ '--i': i } as React.CSSProperties}>
-                    {w}
-                  </span>{' '}
-                </Fragment>
-              ))}
-            </p>
-            <span className="st-kicker" aria-hidden="true">
-              {delivery}
             </span>
           </div>
         </section>

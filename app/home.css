@@ -85,15 +85,6 @@
   .cine .mk-hero-points{margin-top:18px;font-size:13px}
 }
 
-/* ---------- statement ---------- */
-.cine .state{position:relative;background:var(--deep)}
-.cine .st-stick{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:clamp(80px,12vh,140px) 0;overflow:hidden}
-.cine .st-stick::before{content:"";position:absolute;width:900px;max-width:140vw;height:600px;left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(.6 + var(--p,1) * .7));
-  background:radial-gradient(rgba(84,70,255,.32),transparent 65%);filter:blur(20px);opacity:calc(.3 + var(--p,1) * .7);pointer-events:none}
-.cine .st-text{position:relative;margin:0 auto;max-width:1100px;font:700 clamp(30px,5.2vw,72px)/1.1 var(--display);letter-spacing:-.035em;color:#fff;text-wrap:balance;text-align:left}
-.cine .st-text .am{color:var(--amber);font-family:var(--serif-it);font-style:italic;font-weight:400;letter-spacing:-.01em}
-.cine .st-kicker{position:relative;font:600 12px var(--display);letter-spacing:.2em;text-transform:uppercase;color:#7F86C4}
-
 /* ---------- popular right now: a horizontal track of the categories ---------- */
 .cine .hscroll{position:relative;background:var(--mist)}
 .cine .hscroll::before{content:"";position:absolute;left:0;right:0;top:0;height:clamp(120px,18vh,200px);background:linear-gradient(var(--deep),var(--mist));pointer-events:none}
@@ -172,8 +163,22 @@
 @keyframes hc-pop{40%{transform:scale(1.28)}}
 
 /* ---------- category rails ---------- */
-.cine .mk-cats-home{padding-bottom:calc(var(--sec) * .5);background:var(--mist)}
-.cine .cat-sec{padding-top:calc(var(--sec) * .5);padding-bottom:calc(var(--sec) * .5);background:var(--mist);border-top:1px solid #fff}
+.cine .mk-cats-home{background:var(--deep)}
+.cine .cat-sec{padding-top:calc(var(--sec) * .6);padding-bottom:calc(var(--sec) * .6)}
+/* each category is its own stage, light cobalt and dark navy in turn, so the cards never sit on plain white (owner, 2026-11-03) */
+.cine .cat-sec:not(.amb){background:radial-gradient(800px 420px at 85% 0%,rgba(84,70,255,.2),transparent 70%),linear-gradient(180deg,#EEF0FF,#E3E7FF)}
+.cine .cat-sec.amb{color:#fff;background:radial-gradient(900px 460px at 10% 0%,rgba(84,70,255,.36),transparent 70%),radial-gradient(700px 400px at 95% 100%,rgba(253,181,47,.14),transparent 70%),var(--deep)}
+.cine .cat-sec.amb .sec-head h2{color:#fff}
+.cine .cat-sec.amb .kick{color:#C9CCFF;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
+.cine .cat-sec.amb .count{background:rgba(255,255,255,.12);color:#fff}
+.cine .cat-sec.amb .hc-rail-ctl button{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff}
+.cine .cat-sec.amb .hc-rail-ctl button:hover:not(:disabled){background:var(--amber);border-color:var(--amber);color:var(--ink)}
+.cine .cat-sec .see{padding:9px 18px;border-radius:999px;text-decoration:none;background:var(--ink);color:#fff;transition:background .2s,color .2s}
+.cine .cat-sec .see:hover{background:var(--indigo);color:#fff}
+.cine .cat-sec.amb .see{background:#fff;color:var(--ink)}
+.cine .cat-sec.amb .see:hover{background:var(--amber);color:var(--ink)}
+.cine .cat-sec.amb .hc-in{box-shadow:0 26px 56px -30px rgba(0,0,0,.75)}
+.cine .cat-sec.amb .hc:hover .hc-in{border-color:var(--amber);box-shadow:0 34px 70px -28px rgba(0,0,0,.85),0 0 0 4px rgba(253,181,47,.18)}
 .cine .cat-sec .sec-head{margin-bottom:calc(var(--gap-head) * .7)}
 .cine .cat-title{display:flex;align-items:center;gap:12px;min-width:0}
 .cine .cat-title h2{min-width:0;overflow-wrap:anywhere}
@@ -337,11 +342,6 @@ html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgb
   html.motion .cine .screen{transform:none;border-radius:0;box-shadow:none}
   html.motion .cine .vh-stick::before{display:none}
 }
-
-/* statement: pinned, the words light up one by one */
-html.motion .cine .state{height:150vh}
-html.motion .cine .st-stick{position:sticky;top:0;height:100vh;height:100svh;padding:0}
-html.motion .cine .st-text .w{opacity:clamp(.13,calc(var(--p,0) * 1.25 * var(--n) - var(--i)),1)}
 
 /* popular right now: pinned while the track slides sideways (HomeMotion sets the section's height to fit the track) */
 html.motion .cine .hs-stick{position:sticky;top:0;height:100vh;height:100svh;padding:calc(var(--hdr,var(--hdr-css)) * .5) 0 0;overflow:hidden}

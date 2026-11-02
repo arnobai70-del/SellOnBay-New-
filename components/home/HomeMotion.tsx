@@ -15,13 +15,26 @@ export function HomeMotion() {
     const home = document.querySelector<HTMLElement>('.cine');
     if (!home) return;
 
-    const scrubs = [...home.querySelectorAll<HTMLElement>('[data-scrub]')].map((el) => ({ el, cur: 0, tgt: 0 }));
     const show = home.querySelector<HTMLElement>('.hscroll');
     const track = show?.querySelector<HTMLElement>('.hs-track');
+    // Where each pinned scene writes its progress. The popular track writes it on the track and its bar only, so the panels inside are not
+    // restyled on every frame; the hero needs it on the whole scene.
+    const scrubs = [...home.querySelectorAll<HTMLElement>('[data-scrub]')].map((el) => {
+      const to = el === show ? ([track, show?.querySelector<HTMLElement>('.hs-bar')].filter(Boolean) as HTMLElement[]) : [el];
+      return { el, to, cur: 0, tgt: 0 };
+    });
     const panels = [...home.querySelectorAll<HTMLElement>('.panel')];
     const cards = [...home.querySelectorAll<HTMLElement>('.stack .wcard')];
     const steps = home.querySelector<HTMLElement>('.cine-steps');
-    const flows = [...home.querySelectorAll<HTMLElement>('.fx')];
+    // The drifting glow of a section is its own empty element: --f is written on it alone, not on the section and every card in it.
+    const flows = [...home.querySelectorAll<HTMLElement>('.fx')].map((el) => {
+      const glow = document.createElement('span');
+      glow.className = 'fx-glow';
+      glow.setAttribute('aria-hidden', 'true');
+      el.prepend(glow);
+      el.classList.add('glow-on');
+      return { el, glow };
+    });
     const clamp = (n: number) => Math.min(1, Math.max(0, n));
 
     const layout = () => {
@@ -51,10 +64,10 @@ export function HomeMotion() {
       const rects = cards.map((c) => c.getBoundingClientRect());
       cards.forEach((c, i) => out.push([c, '--k', rects[i + 1] ? clamp(1 - (rects[i + 1].top - rects[i].top) / rects[i].height).toFixed(3) : '0']));
       if (steps) out.push([steps, '--sp', clamp((vh * 0.85 - steps.getBoundingClientRect().top) / (vh * 0.5)).toFixed(3)]);
-      for (const el of flows) {
+      for (const { el, glow } of flows) {
         const r = el.getBoundingClientRect();
         if (r.bottom < 0 || r.top > vh) continue;
-        out.push([el, '--f', clamp((vh - r.top) / (vh + r.height)).toFixed(3)]);
+        out.push([glow, '--f', clamp((vh - r.top) / (vh + r.height)).toFixed(3)]);
       }
       const cx = innerWidth / 2;
       for (const pn of panels) {
@@ -82,7 +95,7 @@ export function HomeMotion() {
           o.cur += d * a;
           moving = true;
         } else o.cur = o.tgt;
-        put(o.el, '--p', o.cur.toFixed(4));
+        for (const t of o.to) put(t, '--p', o.cur.toFixed(4));
       }
       if (moving) raf = requestAnimationFrame(tick);
       else {
@@ -157,6 +170,10 @@ export function HomeMotion() {
       counted.disconnect();
       reveals.forEach((el) => el.classList.add('in')); // never leave a section hidden
       if (show) show.style.height = '';
+      for (const { el, glow } of flows) {
+        glow.remove();
+        el.classList.remove('glow-on');
+      }
     };
   }, []);
   return null;

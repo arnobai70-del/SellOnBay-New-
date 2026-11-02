@@ -214,7 +214,7 @@ export function AuthClient({
                   <button
                     type="button"
                     onClick={() => setMode('forgot')}
-                    style={{ background: 'none', border: 0, padding: 0, marginTop: 8, cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, fontSize: 14 }}
+                    style={{ background: 'none', border: 0, padding: '11px 0', minHeight: 44, cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, fontSize: 14 }}
                   >
                     Forgot password?
                   </button>
@@ -242,7 +242,7 @@ export function AuthClient({
               {signup ? 'Already have an account? ' : 'New to SellOnBay? '}
               <button
                 type="button"
-                style={{ background: 'none', border: 0, padding: '8px 0', cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, textDecoration: 'underline' }}
+                style={{ background: 'none', border: 0, padding: '11px 0', minHeight: 44, cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, textDecoration: 'underline' }}
                 onClick={() => setMode(signup ? 'signin' : 'signup')}
               >
                 {signup ? 'Sign in' : 'Create an account'}

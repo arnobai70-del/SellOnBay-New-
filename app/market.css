@@ -62,7 +62,7 @@ html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-btn:hover{background:rgb
 .mk-end{margin-left:auto;display:flex;align-items:center;gap:6px;flex:none}
 .mk-ico{position:relative;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff}
 .mk-ico:hover{background:rgba(255,255,255,.1)}
-.mk-ico i{position:absolute;top:4px;right:3px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--gold);color:var(--ink);font-size:11px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
+.mk-ico i{position:absolute;top:4px;right:3px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--gold);color:var(--on-light);font-size:11px;font-weight:800;font-style:normal;display:flex;align-items:center;justify-content:center}
 .mk-ico-acct{display:none}
 .mk-ico-acct.mk-ico-guest{display:flex} /* signed out: the person icon opens the visitor panel */
 .mk-sell{padding:10px 12px;font-weight:600;font-size:14px;white-space:nowrap;border-radius:10px}
@@ -80,9 +80,9 @@ html.motion .mk-hdr.home.over.at-top:not(.open) .mk-cat-btn:hover{background:rgb
 /* a template category link underlines in its own colour (data-cat, app/globals.css) */
 .mk-cat[data-cat] .mk-cat-link:hover,.mk-cat[data-cat] .mk-cat-link[aria-current]{border-bottom-color:var(--cat)}
 /* the dark public site: the top row, the footer and the why band sit on the page colour */
-body:has(.night) .mk-top,body:has(.night) .mk-foot,body:has(.night) .mk-why{background:var(--night)}
-body:has(.night) .mk-top{border-bottom:1px solid var(--line-dark)}
-body:has(.night) .mk-foot{border-top:1px solid var(--line-dark)}
+.night .mk-top,.night .mk-foot,.night .mk-why{background:var(--night)}
+.night .mk-top{border-bottom:1px solid var(--line-dark)}
+.night .mk-foot{border-top:1px solid var(--line-dark)}
 /* an entry with no panel has no chevron after it, so its link keeps the space on both sides */
 .mk-cat-link:only-child{padding:0 12px}
 .mk-cat-btn{width:24px;height:30px;border:0;background:transparent;color:var(--mute);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:2px}
@@ -245,7 +245,7 @@ body:has(.night) .mk-foot{border-top:1px solid var(--line-dark)}
 .mk-steps li{position:relative;overflow:hidden;counter-increment:mk;display:grid;align-content:start;gap:6px;padding:22px;border-radius:18px;border:1px solid var(--line);background:var(--paper);transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
 .mk-steps li::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--cobalt-fill));transform-origin:left}
 .mk-steps li:hover{border-color:var(--cobalt);box-shadow:0 22px 36px -24px rgba(43,61,255,.55)}
-.mk-steps li::before{content:counter(mk);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:800;margin-bottom:6px;transition:background-color .2s ease,color .2s ease,transform .25s cubic-bezier(.2,.7,.2,1)}
+.mk-steps li::before{content:counter(mk);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--on-light);font-family:var(--display);font-weight:800;margin-bottom:6px;transition:background-color .2s ease,color .2s ease,transform .25s cubic-bezier(.2,.7,.2,1)}
 .mk-steps li:hover::before{background:var(--cobalt-fill);color:#fff}
 .mk-steps b{font-size:1.05rem}
 .mk-steps span{color:var(--mute);font-size:14.5px}
@@ -395,7 +395,7 @@ html.sheet-open{overflow:hidden}
 .mk-hero-pop>span{font-size:14px;font-weight:600;color:#C9CEEC}
 .mk-hero-pop ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .mk-hero-pop a{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:600;font-size:14.5px;transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
-.mk-hero-pop a:hover{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.mk-hero-pop a:hover{background:var(--gold);border-color:var(--gold);color:var(--on-light)}
 .mk-hero-pop em{font-style:normal;font-size:12px;padding:1px 7px;border-radius:99px;background:rgba(255,255,255,.16)}
 .mk-hero-pop a:hover em{background:rgba(15,19,48,.12)}
 @media (max-width:640px){.mk-hero-pop li:nth-child(n+5){display:none}}
@@ -434,7 +434,7 @@ html.sheet-open{overflow:hidden}
 /* ---------- home hero domain finder (owner, 2026-10-21, replaced the card deck): a panel that types a name, scans and lists
    name ideas, and a real form to /domains. Off-screen, hidden tab, hover/focus and reduced motion keep it still. ---------- */
 .mk-find{display:grid;gap:14px;max-width:500px;width:100%;justify-self:end}
-.mk-find-panel{padding:18px;border-radius:22px;background:rgba(255,255,255,.96);color:var(--ink);box-shadow:0 40px 70px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.16)}
+.mk-find-panel{padding:18px;border-radius:22px;background:rgba(255,255,255,.96);color:var(--on-light);box-shadow:0 40px 70px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.16)}
 .mk-find-bar{display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;background:var(--fog);border:1px solid var(--line);color:var(--mute)}
 .mk-find-typed{min-width:0;color:var(--ink);font-family:var(--display);font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden}
 .mk-find-caret{display:inline-block;width:2px;height:1.05em;margin-left:2px;vertical-align:-2px;background:var(--cobalt-fill);opacity:0}
@@ -475,3 +475,10 @@ html.sheet-open{overflow:hidden}
 .mk-hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,19,48,.92) 0%,rgba(15,19,48,.78) 40%,rgba(15,19,48,.42) 100%),radial-gradient(60% 90% at 85% 10%,rgba(43,61,255,.35),transparent 70%)}
 .mk-hero-in{position:relative}
 @media (max-width:1023px){.mk-hero-shade{background:linear-gradient(180deg,rgba(15,19,48,.9),rgba(15,19,48,.78))}}
+
+/* Touch screens: the search, the popular links and the category links are at least 44px tall to tap (layout audit, 2026-11-03). */
+@media (pointer:coarse){
+  .mk-hdr .mk-search{height:52px}
+  .mk-hero-pop a{min-height:44px}
+  .mk-cat-link{min-height:44px}
+}

@@ -15,8 +15,8 @@
   --serif-it:var(--font-serif),Georgia,serif;
   overflow-x:clip;
 }
-/* the dark public site: the home page's own tokens follow the shared ones (app/globals.css, body:has(.night)) */
-body:has(.night) .cine{--ink:var(--night-tx);--ink-2:#d9d6f7;--ink-3:var(--night-mute);--line:var(--line-dark);--mist:var(--night);--navy:var(--night);--indigo:var(--link-on-dark);--indigo-soft:#252a63}
+/* the dark public site: the home page's own tokens follow the shared ones (app/globals.css, .night) */
+.night .cine{--ink:var(--night-tx);--ink-2:#d9d6f7;--ink-3:var(--night-mute);--line:var(--line-dark);--mist:var(--night);--navy:var(--night);--indigo:var(--link-on-dark);--indigo-soft:#252a63}
 .cine .wrap{max-width:1240px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 @media (max-width:640px){.cine .wrap{padding-left:16px;padding-right:16px}}
 .cine :focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:6px}
@@ -38,15 +38,18 @@ body:has(.night) .cine{--ink:var(--night-tx);--ink-2:#d9d6f7;--ink-3:var(--night
 .cine .kick{display:inline-flex;align-items:center;gap:9px;font:600 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--indigo);background:var(--indigo-soft);
   border:1px solid #DDE1FF;padding:6px 14px 6px 10px;border-radius:999px;margin-bottom:16px;max-width:100%;white-space:normal}
 .cine .kick i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--amber)}
-.cine .why .kick,.cine .seller .kick,.cine .cine-feat .kick{color:#C9CCFF;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
+.cine .why .kick,.cine .seller .kick,.cine .cine-feat .kick,.cine .hs-head .kick,.cine .cat-sec .kick,.cine .cine-how .kick{color:#C9CCFF;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
 .cine .head-c{text-align:center}
 .cine .hs-head .kick{position:relative}
 
-/* living glow that drifts with each section's scroll */
+/* living glow that drifts with each section's scroll: a still ::after without JS; with JS its own element (.fx-glow, made by HomeMotion) that
+   moves with transform only, so the drift costs one small element per frame and no layout */
 .cine .fx{position:relative;isolation:isolate}
-.cine .fx::after{content:"";position:absolute;z-index:-1;pointer-events:none;width:min(900px,90vw);height:520px;left:calc(10% + var(--f,0) * 35%);top:12%;
-  background:radial-gradient(closest-side,rgba(84,70,255,.07),transparent);transform:translateY(calc((var(--f,0) - .5) * -120px))}
-.cine .fx.amb::after{background:radial-gradient(closest-side,rgba(253,181,47,.09),transparent)}
+.cine .fx::after,.cine .fx-glow{content:"";position:absolute;z-index:-1;pointer-events:none;width:min(900px,90vw);height:520px;left:10%;top:12%;
+  background:radial-gradient(closest-side,rgba(84,70,255,.07),transparent)}
+.cine .fx.amb::after,.cine .fx.amb .fx-glow{background:radial-gradient(closest-side,rgba(253,181,47,.09),transparent)}
+.cine .fx.glow-on::after{content:none}
+.cine .fx-glow{transform:translate(calc(var(--f,0) * 35vw),calc((var(--f,0) - .5) * -120px));will-change:transform}
 
 /* ---------- hero: the clip shrinks into a browser window ---------- */
 .cine .vhero{position:relative;background:var(--deep);color:#fff;overflow:visible}
@@ -389,3 +392,6 @@ html.motion .cine .step-n{transition:border-color .5s,color .5s,box-shadow .5s}
 
 /* seller band: the slow rotating light */
 html.motion .cine .seller::before{animation:cine-spin 18s linear infinite}
+
+/* Touch screens: the popular links and the card hearts on the home page are at least 44px to tap (layout audit, 2026-11-03). */
+@media (pointer:coarse){.cine .mk-hero-pop a{min-height:44px}.cine .hc .save{width:44px;height:44px}}

@@ -25,13 +25,16 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const social = await savedSocial(); // social media links from Admin > Site builder (lib/site/social.ts)
   return (
     <>
-      <EarlyBar />
-      <SiteNavByPath menu={menu} />
-      <main id="main" className="night">
-        <TopBlocks slots={slots} />
-        {children}
-      </main>
-      <Footer columns={own?.map((c) => ({ title: c.title, links: c.links.map((l) => [l.label, l.href] as [string, string]) }))} social={social} />
+      {/* The public pages are dark: .night carries the dark tokens for the bar, the page and the footer (app/globals.css). */}
+      <div className="night">
+        <EarlyBar />
+        <SiteNavByPath menu={menu} />
+        <main id="main">
+          <TopBlocks slots={slots} />
+          {children}
+        </main>
+        <Footer columns={own?.map((c) => ({ title: c.title, links: c.links.map((l) => [l.label, l.href] as [string, string]) }))} social={social} />
+      </div>
       <Suspense fallback={null}>
         <VisitTracker />
       </Suspense>

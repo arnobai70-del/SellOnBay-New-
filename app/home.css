@@ -277,7 +277,7 @@ html.motion #main>.cine:first-child>.vhero:first-child .vh-copy{padding-top:calc
 @media (max-width:760px){html.motion #main>.cine:first-child>.vhero:first-child .vh-copy{padding-top:calc(var(--hdr-css) + 22px)}}
 
 /* hero: pinned, and the clip scales into a browser window */
-html.motion .cine .vhero{height:270vh}
+html.motion .cine .vhero{height:160vh}
 html.motion .cine .vh-stick{position:sticky;top:0;height:100vh;height:100svh;min-height:0}
 html.motion .cine .screen{--s:clamp(0,calc((var(--p,0) - .1) / .42),1);
   transform:translateY(calc(var(--s) * 9vh)) scale(calc(1 - var(--s) * .3));border-radius:calc(var(--s) * 26px);
@@ -308,7 +308,7 @@ html.motion .cine .mouse .mouse-t{font:600 11px var(--display);letter-spacing:.2
 html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgba(255,255,255,.55);border-bottom:2px solid rgba(255,255,255,.55);transform:rotate(45deg);margin-top:-6px}
 @keyframes cine-wheel{0%{transform:translateY(0);opacity:0}20%{opacity:1}70%{transform:translateY(14px);opacity:0}100%{opacity:0}}
 @media (max-width:760px){
-  html.motion .cine .vhero{height:210vh}
+  html.motion .cine .vhero{height:140vh}
   html.motion .cine .screen{transform:translateY(calc(var(--s) * 8vh)) scale(calc(1 - var(--s) * .12))}
   html.motion .cine .vh-stick::before{left:6%;right:6%;top:20%;bottom:2%}
   html.motion .cine .vh-copy{align-items:flex-start;padding-top:28px;padding-bottom:80px}
@@ -325,7 +325,7 @@ html.motion .cine .mouse .chev{width:10px;height:10px;border-right:2px solid rgb
 }
 
 /* statement: pinned, the words light up one by one */
-html.motion .cine .state{height:230vh}
+html.motion .cine .state{height:150vh}
 html.motion .cine .st-stick{position:sticky;top:0;height:100vh;height:100svh;padding:0}
 html.motion .cine .st-text .w{opacity:clamp(.13,calc(var(--p,0) * 1.25 * var(--n) - var(--i)),1)}
 

@@ -27,7 +27,8 @@ export function HomeMotion() {
     const layout = () => {
       if (!show || !track) return;
       const dist = Math.max(0, track.scrollWidth - innerWidth);
-      show.style.height = innerHeight + dist + 'px';
+      // The track moves two pixels sideways for each pixel scrolled, so the products below arrive sooner (owner, 2026-11-03).
+      show.style.height = innerHeight + dist / 2 + 'px';
       show.style.setProperty('--dist', String(dist));
     };
 

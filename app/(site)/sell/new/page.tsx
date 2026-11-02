@@ -4,6 +4,7 @@ import { flags } from '@/lib/flags';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { allowedHours, getSettings } from '@/lib/settings';
 import { hasDeliveryHours } from '@/lib/catalog';
+import { hasTags } from '@/lib/listingTagsStore';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { sellerPlan } from '@/lib/plans/service';
 
@@ -23,6 +24,7 @@ export default async function Sell() {
       hourChoices={(await hasDeliveryHours()) ? allowedHours(lim) : []}
       commissionBps={plan?.commissionBps ?? undefined}
       planName={plan?.name ?? undefined}
+      tagsEnabled={await hasTags()}
     />
   );
 }

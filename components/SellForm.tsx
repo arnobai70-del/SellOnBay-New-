@@ -10,6 +10,7 @@ import { pct as percent, planNetCents } from '@/lib/config';
 import { LICENCES, LICENCE_TYPES, THIRD_PARTY_LICENCES, isLicenceType } from '@/lib/licences';
 import { CONFIG } from '@/lib/config';
 import { deliveryChoices, expressHelps, readDelivery } from '@/lib/deliveryTime';
+import { cleanTags } from '@/lib/listingTags';
 
 const MAX_ZIP = 25 * 1024 * 1024;
 const MAX_SHOT = 4 * 1024 * 1024;
@@ -46,6 +47,7 @@ export function SellForm({
   hourChoices = [],
   commissionBps = CONFIG.plans.free.commissionBps,
   planName = 'Free',
+  tagsEnabled = false,
 }: {
   live: boolean;
   trialEnabled?: boolean;
@@ -57,6 +59,8 @@ export function SellForm({
   /* The seller's current plan (lib/plans), for the earnings preview. */
   commissionBps?: number;
   planName?: string;
+  /* Tags are kept once migration 0070 is applied (lib/listingTagsStore.ts); until then the field is hidden. */
+  tagsEnabled?: boolean;
 }) {
   // Delivery: the admin's hour choices, then 1 to 7 days. A listing being edited keeps hours it already promises, even if no longer offered.
   const [keptHours, setKeptHours] = useState<number | null>(null);
@@ -108,6 +112,7 @@ export function SellForm({
   const [check, setCheck] = useState<Check | null>(null);
   const prefill = useRef<Record<string, string | number> | null>(null);
   const [done, setDone] = useState<Done>(null);
+  const [dirty, setDirty] = useState(false); // something was typed or picked since the form opened
   const form = useRef<HTMLFormElement>(null);
   // SellOnBay 2.0: the seller's plan commission (F-1); the quotation fixes the real figure when a buyer's request is quoted
   const you = planNetCents(price * 100, commissionBps) / 100;
@@ -228,6 +233,7 @@ export function SellForm({
       set('updateDays', d.updateDays);
       set('license', d.license);
       set('days', d.days);
+      set('tags', d.tags);
       if (d.days) setDeliveryV(String(d.days));
       if (d.demo) setDemoN(String(d.demo));
       if (d.category) setCat(String(d.category));
@@ -237,6 +243,31 @@ export function SellForm({
     }, 60);
     return () => clearTimeout(t);
   }, [kind]);
+
+  // Unsaved changes: leaving the page (closing, reloading or following a link on the site) asks first, until the listing is sent.
+  useEffect(() => {
+    if (!dirty || done) return;
+    const LEAVE = 'You have changes that are not saved. Leave this page?';
+    const unload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    const click = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a || a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      if (new URL(a.href, location.href).origin !== location.origin || (a.hash && a.pathname === location.pathname)) return;
+      if (!window.confirm(LEAVE)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    addEventListener('beforeunload', unload);
+    document.addEventListener('click', click, true);
+    return () => {
+      removeEventListener('beforeunload', unload);
+      document.removeEventListener('click', click, true);
+    };
+  }, [dirty, done]);
 
   // What is still missing, worked out from the form as it is now.
   const checkMissing = () => {
@@ -267,6 +298,8 @@ export function SellForm({
     if (m.length) return setMissing(m);
     const fd = new FormData(form.current!);
     const str = (k: string) => String(fd.get(k) ?? '').trim();
+    const tagCheck = cleanTags(str('tags')); // the same rule the server applies
+    if (!tagCheck.ok) return setError(tagCheck.error);
     const lt = str('licenceType');
     setCheck({
       name: str('name'),
@@ -534,6 +567,7 @@ export function SellForm({
               ref={form}
               noValidate
               hidden={!!check}
+              onInput={() => setDirty(true)}
               onSubmit={(e) => {
                 e.preventDefault();
                 openCheck();
@@ -859,6 +893,13 @@ export function SellForm({
                 <textarea id="s-third" name="third" rows={3} placeholder={'One per line, for example:\nDate picker - MIT\nChart helper - GPL-3.0'} />
                 <small>Licences we know: {THIRD_PARTY_LICENCES.join(', ')}. Buyers see a note when a licence comes with conditions.</small>
               </div>
+              {tagsEnabled && (
+                <div className="field">
+                  <label htmlFor="s-tags">Tags (optional)</label>
+                  <input id="s-tags" name="tags" maxLength={400} placeholder="For example: restaurant, online booking, dark theme" autoComplete="off" />
+                  <small>Up to {CONFIG.listing.maxTags} short words buyers might search for, separated by commas. Changing tags never sends a listing back to review.</small>
+                </div>
+              )}
               {dig && (
                 <>
                   <div className="field">

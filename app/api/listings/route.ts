@@ -21,6 +21,8 @@ import { FUNDED_STATES } from '@/lib/orders/machine';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { forgetLiveProducts, hasDeliveryHours } from '@/lib/catalog';
 import { checkListingLimit } from '@/lib/plans/service';
+import { cleanTags } from '@/lib/listingTags';
+import { hasTags } from '@/lib/listingTagsStore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -113,8 +115,14 @@ export async function POST(req: Request) {
     updateDays: text('updateDays'),
     setupPrice: text('setupPrice'),
     customPrice: text('customPrice'),
+    tags: text('tags'),
   });
   if (!fields.ok) return fields.res;
+  // Tags (migration 0070): one rule for a new listing, a draft and an edit; left out until the column exists.
+  const tagsReady = await hasTags();
+  const tagCheck = cleanTags(tagsReady ? text('tags') : '');
+  if (!tagCheck.ok) return fail(tagCheck.error);
+  const tagsField = tagsReady ? { tags: tagCheck.tags } : {};
 
   const platform = fields.data.platform;
   const isApp = platform !== 'web';
@@ -211,6 +219,7 @@ export async function POST(req: Request) {
       setup_price_cents: setupCents,
       custom_price_cents: customCents,
       license: license || 'I wrote all of it',
+      ...tagsField,
       status: 'draft',
     };
     if (draftSlug) {
@@ -349,6 +358,7 @@ export async function POST(req: Request) {
     setup_price_cents: setupCents,
     custom_price_cents: customCents,
     license,
+    ...tagsField,
     status: 'in_review' as const,
   };
   // An edit that changes a link or a file goes back to review (buyers cannot buy it until it is approved again): that is where harm could hide.
@@ -479,6 +489,7 @@ type Editing = {
 };
 
 type EditRow = {
+  tags?: string[] | null;
   name: string;
   category: string;
   description: string;
@@ -524,7 +535,8 @@ export async function GET(req: Request) {
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== 'aal2') return fail('Enter your authenticator code first.', 403);
   const withHours = await hasDeliveryHours();
-  const cols: string = `name, category, description, includes, platform, app_stack, price_cents, delivery_days${withHours ? ', delivery_hours' : ''}, demo_url, code_url, license, sample_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents, status, demo_path, app_shots`;
+  const withTags = await hasTags();
+  const cols: string = `name, category, description, includes, platform, app_stack, price_cents, delivery_days${withHours ? ', delivery_hours' : ''}, demo_url, code_url, license, sample_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents, status, demo_path, app_shots${withTags ? ', tags' : ''}`;
   const { data: found } = await createAdminClient()
     .from('products')
     .select(cols)
@@ -561,5 +573,6 @@ export async function GET(req: Request) {
     status: p.status,
     keptZip: !!p.demo_path && p.platform === 'web',
     keptShots: (p.app_shots ?? []).length,
+    tags: (p.tags ?? []).join(', '),
   });
 }

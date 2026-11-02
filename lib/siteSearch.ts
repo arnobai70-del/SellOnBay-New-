@@ -7,6 +7,7 @@ import { CATS, type Product } from './data';
 import { getDevs } from './devsDb';
 import { starterProducts } from './examples';
 import { legacyPublic } from './legacy';
+import { liveTagsBySlug } from './listingTagsStore';
 import { allHubViews, allocation, hubProductPath, hubPublicPath } from './seo/hubStore';
 import { HUBS } from './seo/hubs';
 import { markdownText } from './markdown';
@@ -57,16 +58,19 @@ const productDoc = (p: Product): Doc => ({
 });
 
 async function productDocs(): Promise<{ docs: Doc[]; all: Product[] }> {
+  // A seller's tags (migration 0070) are searched with the words of the listing.
+  const tags = await liveTagsBySlug();
+  const withTags = (d: Doc, p: Product): Doc => (tags.has(p.id) ? { ...d, text: `${d.text} · ${tags.get(p.id)!.join(' ')}` } : d);
   if (!legacyPublic()) {
     // The public site is the five template categories: only their products are found, at their public addresses.
     const alloc = await allocation();
     const rows = (await allHubViews()).flatMap((v) => v.products.map((p) => ({ p, hub: v.hub })));
-    return { docs: rows.map(({ p, hub }) => ({ ...productDoc(p), href: hubProductPath(hub, alloc, p.id), sub: hub.name })), all: rows.map((r) => r.p) };
+    return { docs: rows.map(({ p, hub }) => withTags({ ...productDoc(p), href: hubProductPath(hub, alloc, p.id), sub: hub.name }, p)), all: rows.map((r) => r.p) };
   }
   const live = (await Promise.all(SHELVES.map((pl) => getLiveDbProducts(pl)))).flat();
   const ids = new Set(live.map((p) => p.id));
   const all = [...live, ...(await starterProducts()).filter((p) => !ids.has(p.id))];
-  return { docs: all.map(productDoc), all };
+  return { docs: all.map((p) => withTags(productDoc(p), p)), all };
 }
 
 function categoryDocs(all: Product[]): Doc[] {

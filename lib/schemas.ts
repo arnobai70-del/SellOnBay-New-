@@ -101,6 +101,7 @@ export const listingFieldsSchema = z.object({
   updateDays: text(4).optional(),
   setupPrice: text(6).optional(),
   customPrice: text(6).optional(),
+  tags: text(400).optional(), // the words are checked by cleanTags (lib/listingTags.ts), the same rule as the form
 });
 
 /* What is stored in products.third_party. */

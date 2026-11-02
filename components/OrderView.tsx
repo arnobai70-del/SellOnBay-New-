@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { OrderChat } from './OrderChat';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DEMO, type OrderView as View } from '@/lib/commerce/types';
 import { hoursText, promiseHours } from '@/lib/deliveryTime';
 import { ACCEPT_TEXT } from '@/lib/consentText';
@@ -24,33 +24,59 @@ const NOTE: Record<string, [string, string]> = {
 
 export function OrderView({ initial, kind, paidNow, files = [], realtime = false }: { initial: View; kind: Kind; paidNow: boolean; files?: [string, string][]; realtime?: boolean }) {
   const [o, setO] = useState(initial);
-  const [skew, setSkew] = useState(initial.now - Date.now());
+  const [skew, setSkew] = useState(() => initial.now - Date.now());
   const [now, setNow] = useState(initial.now);
   const [busy, setBusy] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [err, setErr] = useState('');
+  const [stale, setStale] = useState(false); // the last refresh failed: what is shown may be out of date
   const [dlink, setDlink] = useState<{ url: string; expiresAt: string; licenseKey: string } | null>(null);
-  async function getFiles() {
-    setBusy('files');
+
+  // One action at a time: a second click while the first is on its way does nothing (the server also refuses to run one twice).
+  // A failed connection is said plainly and the button comes back, instead of staying on "One moment" for good.
+  const running = useRef(false);
+  async function run(key: string, fn: () => Promise<void>) {
+    if (running.current) return;
+    running.current = true;
+    setBusy(key);
     setErr('');
-    const r = await fetch(`/api/demo/orders/${initial.id}/download`, { method: 'POST' });
-    const body = await r.json().catch(() => ({}));
-    if (r.ok) setDlink(body);
-    else setErr(body.error ?? 'Could not prepare your files.');
-    setBusy('');
+    try {
+      await fn();
+    } catch {
+      setErr('Could not reach SellOnBay. Check your connection and try again.');
+    } finally {
+      running.current = false;
+      setBusy('');
+    }
   }
+  const errorOf = async (r: Response, fallback = 'Something went wrong. Try again.') => ((await r.json().catch(() => ({}))) as { error?: string }).error ?? fallback;
+
+  const getFiles = () =>
+    run('files', async () => {
+      const r = await fetch(`/api/demo/orders/${initial.id}/download`, { method: 'POST' });
+      const body = await r.json().catch(() => ({}));
+      if (r.ok) setDlink(body);
+      else setErr(body.error ?? 'Could not prepare your files.');
+    });
 
   const load = useCallback(async () => {
-    const r = await fetch(`/api/demo/orders/${initial.id}`, { cache: 'no-store' });
-    if (!r.ok) return;
-    const v: View = await r.json();
-    setO(v);
-    setSkew(v.now - Date.now());
+    try {
+      const r = await fetch(`/api/demo/orders/${initial.id}`, { cache: 'no-store' });
+      if (!r.ok) return setStale(true);
+      const v: View = await r.json();
+      setO(v);
+      setSkew(v.now - Date.now());
+      setStale(false);
+    } catch {
+      setStale(true);
+    }
   }, [initial.id]);
   const stage = o.progress.stage;
   useEffect(() => {
-    if (stage === 'accepted') return;
-    const t = setInterval(load, 1500);
+    if (stage === 'accepted' || stage === 'cancelled') return; // nothing more happens on its own
+    const t = setInterval(() => {
+      if (!document.hidden) void load();
+    }, 1500);
     return () => clearInterval(t);
   }, [load, stage]);
   useEffect(() => {
@@ -58,65 +84,55 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
     return () => clearInterval(t);
   }, [skew]);
 
-  async function act(path: 'accept' | 'skip' | 'cancel' | 'confirm-access') {
-    setBusy(path);
-    setErr('');
-    const r = await fetch(
-      `/api/demo/orders/${initial.id}/${path}`,
-      path === 'accept' ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ consent: true }) } : { method: 'POST' },
-    );
-    if (!r.ok) setErr((await r.json().catch(() => ({}))).error ?? 'Something went wrong.');
-    await load();
-    setBusy('');
-  }
+  const act = (path: 'accept' | 'skip' | 'cancel' | 'confirm-access') =>
+    run(path, async () => {
+      const r = await fetch(
+        `/api/demo/orders/${initial.id}/${path}`,
+        path === 'accept' ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ consent: true }) } : { method: 'POST' },
+      );
+      if (!r.ok) setErr(await errorOf(r));
+      await load();
+    });
 
-  async function extraAct(id: string, action: 'approve' | 'decline') {
-    setBusy('extra:' + id);
-    setErr('');
-    const r = await fetch(`/api/demo/orders/${initial.id}/extra/${id}/${action}`, { method: 'POST' });
-    const j = (await r.json().catch(() => ({}))) as { error?: string; url?: string };
-    if (j.url && /^https:\/\/([a-z0-9-]+\.)*paypal\.com\//.test(j.url)) {
-      window.location.assign(j.url); // a real order: the extra work is paid at PayPal
-      return;
-    }
-    if (!r.ok) setErr(j.error ?? 'Something went wrong.');
-    await load();
-    setBusy('');
-  }
+  const extraAct = (id: string, action: 'approve' | 'decline') =>
+    run('extra:' + id, async () => {
+      const r = await fetch(`/api/demo/orders/${initial.id}/extra/${id}/${action}`, { method: 'POST' });
+      const j = (await r.json().catch(() => ({}))) as { error?: string; url?: string };
+      if (j.url && /^https:\/\/([a-z0-9-]+\.)*paypal\.com\//.test(j.url)) {
+        window.location.assign(j.url); // a real order: the extra work is paid at PayPal
+        return;
+      }
+      if (!r.ok) setErr(j.error ?? 'Something went wrong. Try again.');
+      await load();
+    });
   const [reason, setReason] = useState('not_as_described');
   const [detail, setDetail] = useState('');
   const [showDispute, setShowDispute] = useState(false);
-  async function openDispute() {
-    setBusy('dispute');
-    setErr('');
-    const r = await fetch(`/api/demo/orders/${initial.id}/dispute`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ reason, detail }) });
-    if (!r.ok) setErr((await r.json().catch(() => ({}))).error ?? 'Something went wrong.');
-    else setShowDispute(false);
-    await load();
-    setBusy('');
-  }
+  const openDispute = () =>
+    run('dispute', async () => {
+      const r = await fetch(`/api/demo/orders/${initial.id}/dispute`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ reason, detail }) });
+      if (!r.ok) setErr(await errorOf(r));
+      else setShowDispute(false);
+      await load();
+    });
   const [stars, setStars] = useState(5);
   const [note, setNote] = useState('');
-  async function sendReview() {
-    setBusy('review');
-    setErr('');
-    const r = await fetch(`/api/demo/orders/${initial.id}/review`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rating: stars, body: note }) });
-    if (!r.ok) setErr((await r.json().catch(() => ({}))).error ?? 'Something went wrong.');
-    await load();
-    setBusy('');
-  }
-  async function demoExtra() {
-    setBusy('demo-extra');
-    setErr('');
-    const r = await fetch(`/api/demo/orders/${initial.id}/extra`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ title: 'Add a contact form and a gallery page', priceCents: 2500, addDays: 1 }),
+  const sendReview = () =>
+    run('review', async () => {
+      const r = await fetch(`/api/demo/orders/${initial.id}/review`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rating: stars, body: note }) });
+      if (!r.ok) setErr(await errorOf(r));
+      await load();
     });
-    if (!r.ok) setErr((await r.json().catch(() => ({}))).error ?? 'Something went wrong.');
-    await load();
-    setBusy('');
-  }
+  const demoExtra = () =>
+    run('demo-extra', async () => {
+      const r = await fetch(`/api/demo/orders/${initial.id}/extra`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ title: 'Add a contact form and a gallery page', priceCents: 2500, addDays: 1 }),
+      });
+      if (!r.ok) setErr(await errorOf(r));
+      await load();
+    });
 
   const p = o.progress,
     hire = kind === 'hire',
@@ -405,7 +421,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 </div>
                 <div>
                   <dt>Support</dt>
-                  <dd>{o.info.supportUntil ? `Until ${day(o.info.supportUntil)}, in the order chat${o.info.supportUntil < Date.now() ? ' (ended)' : ''}` : 'None. You got the product as it is.'}</dd>
+                  <dd>{o.info.supportUntil ? `Until ${day(o.info.supportUntil)}, in the order chat${o.info.supportUntil < now ? ' (ended)' : ''}` : 'None. You got the product as it is.'}</dd>
                 </div>
                 {o.info.versions.isNew && (
                   <div data-new-version>
@@ -418,7 +434,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 )}
                 <div>
                   <dt>Updates</dt>
-                  <dd>{o.info.updateUntil ? `New versions until ${day(o.info.updateUntil)}${o.info.updateUntil < Date.now() ? ' (ended)' : ''}` : 'None. You got the version you bought.'}</dd>
+                  <dd>{o.info.updateUntil ? `New versions until ${day(o.info.updateUntil)}${o.info.updateUntil < now ? ' (ended)' : ''}` : 'None. You got the version you bought.'}</dd>
                 </div>
               </dl>
               {o.info.versions.list.length > 0 && (
@@ -444,6 +460,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           {err && (
             <p className="form-err" role="alert">
               {err}
+            </p>
+          )}
+          {stale && (
+            <p className="muted" role="status">
+              Could not refresh this order just now, so what you see may be a moment old. It updates again by itself.
             </p>
           )}
 
@@ -524,7 +545,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             </div>
           )}
           {o.extras.length > 0 && (
-            <div className="ord-extras" aria-label="Extra work">
+            <div className="ord-extras" id="extra" aria-label="Extra work">
               <b>Extra work</b>
               {o.extras.map((x) => (
                 <div className="ord-extra" key={x.id}>

@@ -18,36 +18,72 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // loading until the first answer; none: not a conversation this person is part of (the panel stays hidden); failed: say so, never a blank
+  const [status, setStatus] = useState<'loading' | 'ready' | 'none' | 'failed'>('loading');
 
   const load = useCallback(async () => {
-    const r = await fetch(`/api/conversations/${type}/${id}`, { cache: 'no-store' });
-    if (!r.ok) return;
-    const j = (await r.json()) as { channels: Channel[]; messages: Msg[] };
-    setChannels(j.channels);
-    setMessages(j.messages);
-    setTab((t) => t ?? j.channels[0] ?? null);
+    try {
+      const r = await fetch(`/api/conversations/${type}/${id}`, { cache: 'no-store' });
+      if (r.status === 404) return setStatus('none');
+      if (!r.ok) return setStatus((s) => (s === 'ready' ? s : 'failed')); // keep showing what was read before
+      const j = (await r.json()) as { channels: Channel[]; messages: Msg[] };
+      setChannels(j.channels);
+      setMessages(j.messages);
+      setTab((t) => t ?? j.channels[0] ?? null);
+      setStatus(j.channels.length ? 'ready' : 'none');
+    } catch {
+      setStatus((s) => (s === 'ready' ? s : 'failed'));
+    }
   }, [type, id]);
 
   useEffect(() => {
-    void load();
+    const first = setTimeout(() => void load(), 0); // read after the first paint, not inside the effect
     const t = setInterval(() => void load(), 20_000);
-    return () => clearInterval(t);
+    return () => (clearTimeout(first), clearInterval(t));
   }, [load]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
     if (!tab) return;
+    if (busy) return;
     setBusy(true);
     setError('');
-    const r = await fetch(`/api/conversations/${type}/${id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ channel: tab, body: text }) });
-    const j = await r.json().catch(() => ({}));
-    setBusy(false);
-    if (!r.ok) return setError(j.error ?? 'Could not send the message.');
-    setText('');
-    void load();
+    try {
+      const r = await fetch(`/api/conversations/${type}/${id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ channel: tab, body: text }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return setError(j.error ?? 'Could not send the message. Try again.');
+      setText('');
+      void load();
+    } catch {
+      setError('Could not reach SellOnBay. Check your connection and try again; your message is still here.');
+    } finally {
+      setBusy(false);
+    }
   }
 
-  if (!channels.length) return null;
+  if (status === 'none') return null;
+  if (status !== 'ready')
+    return (
+      <div className="dp conv" data-conversation={`${type}:${id}`}>
+        <div className="hd">
+          <div>
+            <h2>{heading}</h2>
+          </div>
+        </div>
+        {status === 'loading' ? (
+          <p className="muted" role="status">
+            Loading messages…
+          </p>
+        ) : (
+          <p className="note warn" role="alert">
+            <span>Could not load your messages just now.</span>{' '}
+            <button type="button" className="btn btn-line btn-sm" onClick={() => void load()}>
+              Try again
+            </button>
+          </p>
+        )}
+      </div>
+    );
   const shown = messages.filter((m) => m.channel === tab);
   const who = (m: Msg) => (m.senderRole === me ? MINE[me] : m.senderRole === 'admin' ? 'SellOnBay' : m.senderRole === 'buyer' ? 'Buyer' : 'Seller');
   return (

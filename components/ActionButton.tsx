@@ -33,12 +33,19 @@ export function ActionButton({
   const needsStep = !!note || !!confirm;
 
   async function go() {
+    if (busy) return;
     setBusy(true);
     setMsg('');
-    const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, ...(note ? { note: text } : {}) }) });
+    let r: Response;
+    try {
+      r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, ...(note ? { note: text } : {}) }) });
+    } catch {
+      setBusy(false);
+      return setMsg('Could not reach SellOnBay. Check your connection and try again.');
+    }
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg(j.error ?? 'Something went wrong.');
+    if (!r.ok) return setMsg(j.error ?? 'Something went wrong. Try again.');
     const to = goTo?.(j);
     if (to) router.push(to);
     else {

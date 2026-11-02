@@ -21,7 +21,7 @@ export default async function Messages({ searchParams }: { searchParams: Promise
         <div className="hd">
           <div>
             <h2>Your order chats</h2>
-            <p className="sub">Every order has its own chat, open once the payment is held in escrow. Emails, phone numbers, links and outside payments are blocked.</p>
+            <p className="sub">Each paid order has its messages with SellOnBay here, and the earlier buyer and seller chat to read. Emails, phone numbers, links and outside payments are blocked.</p>
           </div>
         </div>
         {!supabaseConfigured && <p className="muted">In demo mode there are no accounts, so each order has its chat on its own order page, under the timeline.</p>}

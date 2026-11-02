@@ -17,9 +17,15 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
   const box = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
-    const r = await fetch(`${endpoint}?since=${last.current}`, { cache: 'no-store' });
-    if (!r.ok) return;
-    const j: { messages: Msg[] } = await r.json();
+    let j: { messages: Msg[] };
+    try {
+      const r = await fetch(`${endpoint}?since=${last.current}`, { cache: 'no-store' });
+      if (!r.ok) return setErr('Could not load the messages. They come back when you reload the page.');
+      j = await r.json();
+    } catch {
+      return setErr('Could not reach SellOnBay to load the messages. Check your connection.');
+    }
+    setErr('');
     if (!j.messages.length) return;
     last.current = Math.max(last.current, ...j.messages.map((m) => m.at));
     setMsgs((cur) => {
@@ -29,20 +35,21 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
   }, [endpoint]);
 
   useEffect(() => {
-    void load();
-    const t = setInterval(load, 4000);
-    return () => clearInterval(t);
-  }, [load]);
+    const first = setTimeout(() => void load(), 0); // read after the first paint, not inside the effect
+    if (!open) return () => clearTimeout(first); // a closed (read-only) chat gets no new messages: read it once, do not keep asking
+    const t = setInterval(() => void load(), 4000);
+    return () => (clearTimeout(first), clearInterval(t));
+  }, [load, open]);
 
   useEffect(() => {
-    if (!live) return;
+    if (!live || !open) return;
     const sb = createClient();
     const ch = sb
       .channel(`order:${orderId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `order_id=eq.${orderId}` }, () => void load())
       .subscribe();
     return () => void sb.removeChannel(ch);
-  }, [live, orderId, load]);
+  }, [live, open, orderId, load]);
 
   useEffect(() => {
     box.current?.scrollTo({ top: box.current.scrollHeight });
@@ -55,7 +62,14 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
     setBusy(true);
     setErr('');
     setText(''); // cleared at once, so what is typed next is never wiped by a slow answer
-    const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ body: sending }) });
+    let r: Response;
+    try {
+      r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ body: sending }) });
+    } catch {
+      setBusy(false);
+      setText((cur) => cur || sending);
+      return setErr('Could not reach SellOnBay. Check your connection and try again.');
+    }
     const j = await r.json().catch(() => ({}));
     setBusy(false);
     if (!r.ok) {

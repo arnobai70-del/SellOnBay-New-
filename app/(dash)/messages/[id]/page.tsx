@@ -5,7 +5,7 @@ import { DashShell } from '@/components/DashShell';
 import { shellRole } from '@/lib/admin/mode';
 import { OrderChat } from '@/components/OrderChat';
 import { ConversationPanel } from '@/components/ConversationPanel';
-import { chatOpen, roleIn } from '@/lib/chat';
+import { roleIn } from '@/lib/chat';
 import { getOrder } from '@/lib/orders/service';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { getViewerId, requireViewer } from '@/lib/supabase/viewer';

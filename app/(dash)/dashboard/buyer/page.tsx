@@ -136,7 +136,7 @@ export default async function BuyerDashboard() {
                     {order.title} · {money(request.priceCents)} · +{request.addDays} {request.addDays === 1 ? 'day' : 'days'}
                   </small>
                 </div>
-                <Link className="btn btn-gold btn-sm" href={`/orders/${order.id}#orders`}>
+                <Link className="btn btn-gold btn-sm" href={`/orders/${order.id}#extra`}>
                   Approve or decline
                 </Link>
               </li>
@@ -149,12 +149,12 @@ export default async function BuyerDashboard() {
         <div className="hd">
           <div>
             <h2>Need something changed?</h2>
-            <p className="sub">Ask the seller in the order chat. Anything extra is paid into escrow first, and you approve it before work starts.</p>
+            <p className="sub">Write to SellOnBay in the messages of the order. Anything extra is paid into escrow first, and you approve it before work starts.</p>
           </div>
         </div>
         <p>
           <Link className="btn btn-line btn-sm" href="/messages">
-            Open my chats
+            Open my messages
           </Link>
         </p>
       </div>

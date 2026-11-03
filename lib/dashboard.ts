@@ -83,6 +83,7 @@ export type SellerListing = {
   ratingAvg: number | null;
   ratingCount: number;
   digital: boolean;
+  category: string; // the catalogue category, for its template colour (lib/catAccent.ts)
   reviewNote: string | null; // what the admin wrote when sending it back or declining it
   versions: { version: string; status: string }[]; // newest first (digital products)
 };
@@ -134,7 +135,7 @@ export async function sellerDashboard(userId: string, now = Date.now()): Promise
     const db = createAdminClient();
     const { data: rows } = await db
       .from('products')
-      .select(`id, slug, name, status, price_cents, delivery_days${(await hasDeliveryHours()) ? ', delivery_hours' : ''}, rating_avg, rating_count, platform, review_note`)
+      .select(`id, slug, name, status, price_cents, delivery_days${(await hasDeliveryHours()) ? ', delivery_hours' : ''}, rating_avg, rating_count, platform, review_note, category`)
       .eq('seller_id', userId)
       .neq('status', 'draft')
       .order('created_at', { ascending: false })
@@ -150,6 +151,7 @@ export async function sellerDashboard(userId: string, now = Date.now()): Promise
       rating_count: number | null;
       platform: string | null;
       review_note: string | null;
+      category: string | null;
     };
     listings = ((rows ?? []) as unknown as ListingRow[]).map((r) => ({
       slug: r.slug,
@@ -160,6 +162,7 @@ export async function sellerDashboard(userId: string, now = Date.now()): Promise
       ratingAvg: r.rating_avg === null ? null : Number(r.rating_avg),
       ratingCount: r.rating_count ?? 0,
       digital: r.platform === 'digital',
+      category: r.category ?? '',
       reviewNote: r.status === 'rejected' && typeof r.review_note === 'string' && r.review_note ? r.review_note : null,
       versions: [],
     }));

@@ -19,6 +19,7 @@ import { listFiles } from '@/lib/files/store';
 import { PLANS_V1, PLAN_CODES } from '@/lib/plans/rules';
 import { sellerPlan } from '@/lib/plans/service';
 import { planById, publishedOrWaiting } from '@/lib/plans/store';
+import { catForCategory } from '@/lib/catAccent';
 
 export const metadata: Metadata = { title: 'Seller dashboard', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -430,7 +431,7 @@ export default async function SellerDashboard() {
             {v?.listings.map((l) => {
               const [label, cls] = LISTING_CHIP[l.status] ?? [l.status, 'chip'];
               return (
-                <li key={l.slug}>
+                <li key={l.slug} className="cat-card" data-cat={catForCategory(l.category)}>
                   <div className="grow">
                     <b>{l.name}</b>
                     <small>

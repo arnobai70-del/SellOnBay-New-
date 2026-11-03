@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { cannotAct } from '@/lib/accounts';
 import { listMessages, roleIn } from '@/lib/chat';
@@ -22,7 +23,7 @@ async function party(id: string) {
   if (!o || !role) return { error: 404 as const };
   if (role === 'seller') {
     const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.currentLevel !== 'aal2') return { error: 403 as const };
+    if (!passedCode(aal)) return { error: 403 as const };
   }
   return { error: undefined, o, role, userId: user.id };
 }

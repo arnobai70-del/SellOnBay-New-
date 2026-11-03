@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { isBlocked } from '@/lib/chatFilter';
 import { AREAS, DEVS, LANGS, SKILLS, parseTrialInput } from '@/lib/developers';
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   if (!g.ok) return fail(g.error, g.status);
   if (me.role !== 'buyer') {
     const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.currentLevel !== 'aal2') return fail('Enter your authenticator code first.', 403);
+    if (!passedCode(aal)) return fail('Enter your authenticator code first.', 403);
   }
 
   const parsed = await readJson(req, developerSchema);

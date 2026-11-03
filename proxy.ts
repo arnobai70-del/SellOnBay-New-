@@ -1,3 +1,4 @@
+import { passedCode } from './lib/auth/authenticator';
 import { originOf } from './lib/publicOrigin';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -78,7 +79,7 @@ async function adminPasses(req: NextRequest, key: ModuleKey): Promise<boolean> {
   const { data: p } = await sb.from('profiles').select('role, banned, suspended_until').eq('id', user.id).single();
   if (!p || p.role !== 'admin' || cannotAct(p)) return false;
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  return aal?.currentLevel === 'aal2';
+  return passedCode(aal);
 }
 
 async function handle(req: NextRequest) {
@@ -122,7 +123,7 @@ async function handle(req: NextRequest) {
 
   if (role !== 'buyer' && STAFF.some((p) => path.startsWith(p))) {
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.currentLevel !== 'aal2') return go('/login/mfa?next=' + encodeURIComponent(path));
+    if (!passedCode(aal)) return go('/login/mfa?next=' + encodeURIComponent(path));
   }
   return res;
 }

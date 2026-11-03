@@ -129,7 +129,7 @@ An admin can close one module (13 in `MODULES`, `lib/maintenance/config.ts`) whi
 
 - Tables need explicit grants (`supabase/migrations/0004_grants.sql`); RLS alone is not enough. Clients get the minimum columns, never TRUNCATE. New tables must add their grants in the same migration.
 - Every protected page calls `requireViewer()` (`lib/supabase/viewer.ts`). `proxy.ts` is not enough: a Server Action redirect renders the next page without going through the proxy.
-- Sellers and admins need aal2 (authenticator code) on every protected page, checked on the server.
+- Sellers and admins need aal2 (authenticator code) on every protected page, checked on the server. Always check through `passedCode` (`lib/auth/authenticator.ts`). `AUTHENTICATOR_OFF=1` in the server environment turns the code off everywhere (owner, 2026-11-04, temporary, so products can be uploaded); it is unset by default. The database's `is_admin()` (migration 0045) still needs aal2, so an admin's direct database rights stay closed while it is off. Remove the setting before the market opens.
 
 ## Next steps (in order)
 

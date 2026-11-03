@@ -35,6 +35,7 @@ export function AuthClient({
   botKey = '',
   oauth = [],
   appleExisting = false,
+  codeRequired = true,
 }: {
   live: boolean;
   error?: string;
@@ -44,6 +45,8 @@ export function AuthClient({
   oauth?: OAuthProvider[];
   /* Apple is hidden from new sign-ups; existing Apple accounts keep a secondary link (Addendum 3.5). */
   appleExisting?: boolean;
+  /* Sellers and admins need the authenticator code (lib/auth/authenticator.ts); the words about it are hidden while it is off. */
+  codeRequired?: boolean;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
@@ -82,7 +85,7 @@ export function AuthClient({
         </div>
         <ul className="auth-trust">
           <li>Money held in escrow on every order</li>
-          <li>Sellers sign in with an authenticator code</li>
+          {codeRequired && <li>Sellers sign in with an authenticator code</li>}
         </ul>
       </div>
       <div className="form">
@@ -97,7 +100,7 @@ export function AuthClient({
         {!signup && next?.startsWith('/dashboard/admin') && (
           <div className="note" style={{ marginTop: 16 }}>
             <span>
-              You are opening the <b>admin area</b>. Sign in, then enter the code from your authenticator app.
+              You are opening the <b>admin area</b>. {codeRequired ? 'Sign in, then enter the code from your authenticator app.' : 'Sign in to continue.'}
             </span>
           </div>
         )}
@@ -251,9 +254,11 @@ export function AuthClient({
           </>
         )}
 
-        <p className="muted" style={{ marginTop: 8, fontSize: '14.5px' }}>
-          Sellers and admins sign in with a code from an authenticator app.
-        </p>
+        {codeRequired && (
+          <p className="muted" style={{ marginTop: 8, fontSize: '14.5px' }}>
+            Sellers and admins sign in with a code from an authenticator app.
+          </p>
+        )}
       </div>
     </div>
   );

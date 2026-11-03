@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { createExtra } from '@/lib/orders/extra';
 import { getOrder } from '@/lib/orders/service';
@@ -19,7 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
+  if (!passedCode(aal)) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
   if (await viewerBlocked(user.id)) return NextResponse.json({ error: 'This account cannot ask for extra work right now.' }, { status: 403 });
   const g = await guard('extra', user.id);
   if (!g.ok) return NextResponse.json({ error: g.error }, { status: g.status });

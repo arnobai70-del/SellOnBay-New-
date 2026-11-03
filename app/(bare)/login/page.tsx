@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthClient } from '@/components/AuthClient';
 import { SiteNav } from '@/components/SiteNav';
+import { authenticatorRequired } from '@/lib/auth/authenticator';
 import { liveSiteKey } from '@/lib/bot/turnstile';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { signInOptions } from '@/lib/auth/socialService';
@@ -14,7 +15,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   return (
     <>
       <SiteNav menu={await navMenu()} />
-      <AuthClient live={supabaseConfigured} error={error} next={next} sent={sent === '1'} botKey={liveSiteKey()} oauth={social.providers} appleExisting={social.appleExisting} />
+      <AuthClient live={supabaseConfigured} error={error} next={next} sent={sent === '1'} botKey={liveSiteKey()} oauth={social.providers} appleExisting={social.appleExisting} codeRequired={authenticatorRequired()} />
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { getOrder, handoverSent } from '@/lib/orders/service';
 import { createClient } from '@/lib/supabase/server';
@@ -16,7 +17,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
+  if (!passedCode(aal)) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
   const order = await getOrder(id);
   if (!order || order.sellerId !== user.id) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   if (await heldReason(id)) return NextResponse.json({ error: HELD_TEXT }, { status: 409 });

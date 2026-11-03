@@ -1,4 +1,5 @@
 import 'server-only';
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { cannotAct } from '../accounts';
 import { supabaseConfigured } from '../supabase/env';
@@ -42,7 +43,7 @@ export async function adminOnly(need: AdminScope | readonly AdminScope[]): Promi
   if (!p || cannotAct(p) || p.role !== 'admin') return no('Not allowed.', 403);
   if (hasSocialIdentity(user.identities as Identity[] | undefined)) return no('Admin accounts sign in with password and authenticator code only.', 403); // O-7
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return no('Enter your authenticator code first.', 403);
+  if (!passedCode(aal)) return no('Enter your authenticator code first.', 403);
   const scopes = effectiveScopes(p.admin_scopes);
   if (!hasScope(scopes, need)) return no('Your admin account does not have permission for this.', 403);
   return { ok: true, id: user.id, scopes };

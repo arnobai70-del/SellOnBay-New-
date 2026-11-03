@@ -1,4 +1,5 @@
 import 'server-only';
+import { passedCode } from '@/lib/auth/authenticator';
 import { notFound, redirect } from 'next/navigation';
 import { mayUseDemoAdmin } from '@/lib/admin/mode';
 import { createAdminClient, createClient } from './server';
@@ -53,7 +54,7 @@ export async function requireViewer(opts: { path: string; roles?: ViewerRole[]; 
   if (opts.roles && !opts.roles.includes(role)) redirect('/dashboard/' + role);
 
   if (role !== 'buyer') {
-    if (aal?.currentLevel !== 'aal2') redirect('/login/mfa?next=' + encodeURIComponent(opts.path));
+    if (!passedCode(aal)) redirect('/login/mfa?next=' + encodeURIComponent(opts.path));
   }
   if (mod && closed && role !== 'admin') redirect(maintenancePage(mod));
   let scopes: AdminScope[] = [];
@@ -106,7 +107,7 @@ export async function staffNeedsCode(): Promise<boolean> {
   const { data: p } = await sb.from('profiles').select('role').eq('id', user.id).single();
   if ((p?.role ?? 'buyer') === 'buyer') return false;
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  return aal?.currentLevel !== 'aal2';
+  return !passedCode(aal);
 }
 
 /*
@@ -125,7 +126,7 @@ export async function mayViewUnreleased(sellerId: string | null | undefined): Pr
     if (me?.role !== 'admin') return false;
   }
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  return aal?.currentLevel === 'aal2';
+  return passedCode(aal);
 }
 
 /* Just the signed-in user's id (or undefined), for pages that show a draft only to its owner. */

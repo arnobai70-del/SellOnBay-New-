@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { type ThemeKey } from '@/lib/data';
 import { WEB_CATS, isWebCat } from '@/lib/webCategories';
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
   if (!me || cannotAct(me)) return fail('This account cannot list sites.', 403);
   if (me.role === 'buyer') return fail('Only seller accounts can list sites. Create a seller account to continue.', 403);
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return fail('Enter your authenticator code first.', 403);
+  if (!passedCode(aal)) return fail('Enter your authenticator code first.', 403);
 
   let form: FormData;
   try {
@@ -533,7 +534,7 @@ export async function GET(req: Request) {
   if (!user) return fail('Sign in first.', 401);
   // The answer holds the private files link: the same authenticator code as saving a listing.
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return fail('Enter your authenticator code first.', 403);
+  if (!passedCode(aal)) return fail('Enter your authenticator code first.', 403);
   const withHours = await hasDeliveryHours();
   const withTags = await hasTags();
   const cols: string = `name, category, description, includes, platform, app_stack, price_cents, delivery_days${withHours ? ', delivery_hours' : ''}, demo_url, code_url, license, sample_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents, status, demo_path, app_shots${withTags ? ', tags' : ''}`;

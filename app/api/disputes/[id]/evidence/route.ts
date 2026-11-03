@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { addEvidenceTo, getDispute } from '@/lib/disputes';
@@ -32,7 +33,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!p || cannotAct(p)) return NextResponse.json({ error: 'Not allowed.' }, { status: 403 });
     if (user.id === o.sellerId && user.id !== o.buyerId) {
       const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aal?.currentLevel !== 'aal2') return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
+      if (!passedCode(aal)) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
     }
     me = user.id;
   }

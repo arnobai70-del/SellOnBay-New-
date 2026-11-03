@@ -1,6 +1,7 @@
 'use server';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { authenticatorRequired } from '@/lib/auth/authenticator';
 import { authBotCheck } from '@/lib/bot/turnstile';
 import { guard, noteAccount } from '@/lib/guard';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
@@ -64,7 +65,7 @@ export async function authenticate(formData: FormData) {
   const role = profile?.role ?? 'buyer';
   const dest = next || '/dashboard/' + role;
   // Sellers and admins go straight to the authenticator step so the address bar matches what they see.
-  if (role !== 'buyer') redirect('/login/mfa?next=' + encodeURIComponent(dest));
+  if (role !== 'buyer' && authenticatorRequired()) redirect('/login/mfa?next=' + encodeURIComponent(dest));
   redirect(dest);
 }
 

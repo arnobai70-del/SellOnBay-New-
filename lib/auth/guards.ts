@@ -1,4 +1,5 @@
 import 'server-only';
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { cannotAct, mayBuy } from '../accounts';
 import { supabaseConfigured } from '../supabase/env';
@@ -33,7 +34,7 @@ async function signedIn(): Promise<{ ok: true; id: string; email: string | null;
     email: user.email ?? null,
     role: p.role ?? 'buyer',
     name: p.full_name || 'You',
-    aal2: aal?.currentLevel === 'aal2',
+    aal2: passedCode(aal),
     social: hasSocialIdentity(user.identities as Identity[] | undefined),
   };
 }

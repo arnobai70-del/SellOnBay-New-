@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDispute, sellerReply } from '@/lib/disputes';
@@ -20,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
+  if (!passedCode(aal)) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
   const d = await getDispute(id);
   const o = d ? await getOrder(d.orderId) : null;
   if (!d || !o || o.sellerId !== user.id) return NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });

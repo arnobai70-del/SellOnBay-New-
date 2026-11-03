@@ -44,6 +44,18 @@ async function pipeline(commands: (string | number)[][]): Promise<unknown[]> {
   return out.map((r) => r.result);
 }
 
+/* How long a PING to the shared Redis takes, in ms, for the admin system page; null when it does not answer, 'off' when it is not set up. */
+export async function redisPing(): Promise<number | null | 'off'> {
+  if (!sharedLimitsConfigured()) return 'off';
+  const t0 = Date.now();
+  try {
+    const [r] = await pipeline([['PING']]);
+    return r === 'PONG' ? Date.now() - t0 : null;
+  } catch {
+    return null;
+  }
+}
+
 /* True when the action may go ahead, and counts it; false when key has had max hits in the last windowMs. */
 export async function limit(key: string, max: number, windowMs: number, nowMs = Date.now()): Promise<boolean> {
   if (!sharedLimitsConfigured()) return allow(key, max, windowMs, nowMs);

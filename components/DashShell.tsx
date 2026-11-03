@@ -86,6 +86,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
       { label: 'Launch check', href: '/dashboard/admin/launch', icon: 'check', key: 'admin-launch', group: 'Site' },
       { label: 'Maintenance Manager', href: '/dashboard/admin/maintenance', icon: 'tool', key: 'admin-maintenance', group: 'System' },
       { label: 'Feature flags', href: '/dashboard/admin/flags', icon: 'gear', key: 'admin-flags', group: 'System' },
+      { label: 'Server and system', href: '/dashboard/admin/system', icon: 'pulse', key: 'admin-system', group: 'System' },
     ],
     extra: [{ label: 'Back to site', href: '/', icon: 'home' }],
   },

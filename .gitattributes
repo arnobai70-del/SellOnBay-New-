@@ -4,3 +4,4 @@
 *.jpg binary
 *.webp binary
 *.mp4 binary
+build-commit.txt export-subst

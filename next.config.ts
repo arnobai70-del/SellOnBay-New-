@@ -1,4 +1,33 @@
+import { readFileSync } from 'node:fs';
 import type { NextConfig } from 'next';
+
+/*
+ * The commit this build was made from, shown read-only on the admin system page. A zip made with `git archive` (the Hostinger upload) carries it
+ * in build-commit.txt (export-subst in .gitattributes fills in the hash and its date); a git checkout has it in .git. Files only, no commands.
+ */
+function buildCommit(): string {
+  try {
+    const stamped = readFileSync('build-commit.txt', 'utf8').trim().split(' ')[0];
+    if (/^[0-9a-f]{40}$/.test(stamped)) return stamped;
+  } catch {
+    // no stamped file: a git checkout
+  }
+  try {
+    const head = readFileSync('.git/HEAD', 'utf8').trim();
+    if (/^[0-9a-f]{40}$/.test(head)) return head;
+    const ref = head.replace(/^ref: /, '');
+    try {
+      return readFileSync(`.git/${ref}`, 'utf8').trim();
+    } catch {
+      const packed = readFileSync('.git/packed-refs', 'utf8')
+        .split(/\r?\n/)
+        .find((l) => l.endsWith(` ${ref}`));
+      return packed?.split(' ')[0] ?? '';
+    }
+  } catch {
+    return '';
+  }
+}
 
 /*
  * Security headers on every page and API answer (spec section 9). The hosted seller demos under /demo are left out on purpose: they set their own
@@ -28,6 +57,8 @@ const nextConfig: NextConfig = {
   // A second build can live beside the first (a test server with the old public site): NEXT_DIST_DIR=.next-legacy.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   poweredByHeader: false,
+  // server code reads these (lib/admin/system.ts); a commit hash and a time are not secrets
+  env: { SOB_BUILD_SHA: buildCommit(), SOB_BUILD_TIME: new Date().toISOString() },
   // `next dev` only: lets a phone on the same Wi-Fi or a quick Cloudflare tunnel load the dev scripts, so menus work there too.
   allowedDevOrigins: ['*.trycloudflare.com', '192.168.*.*', '10.*.*.*'],
   async headers() {

@@ -65,12 +65,30 @@ export function mayPost(r: ErrorReport, now = Date.now()): boolean {
 }
 export const resetMonitorForTests = () => void (g.__monitor = undefined);
 
+/*
+ * One kind of error, for the counts on the admin system page (migration 0072): the route (or the path when Next gave none), the status and the
+ * first line of the already blanked message. FNV-1a in plain JS, so it works in every runtime the proxy may use.
+ */
+export function errorFingerprint(r: Pick<ErrorReport, 'route' | 'path' | 'message'>, status = 500): string {
+  const text = `${r.route || r.path}|${status}|${r.message.split(/\r?\n/)[0]}`;
+  let a = 0x811c9dc5,
+    b = 0x01000193;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193) >>> 0;
+    b = Math.imul(b ^ c, 0x811c9dc5) >>> 0;
+  }
+  return 'e' + a.toString(16).padStart(8, '0') + b.toString(16).padStart(8, '0');
+}
+
 export const webhookConfigured = () => /^https:\/\/[^\s]+$/.test(process.env.ERROR_WEBHOOK_URL ?? '');
 
 export async function reportError(err: unknown, req: Req, ctx: Ctx, fetcher: typeof fetch = fetch): Promise<void> {
   try {
     const r = errorReport(err, req, ctx);
     console.error(JSON.stringify(r));
+    // Counted for the admin system page; loaded on demand so this file stays usable in every runtime, and never awaited by the response.
+    void import('./appErrors').then((m) => m.logAppError(r)).catch(() => {});
     if (!webhookConfigured() || !mayPost(r)) return;
     const text = `SellOnBay server error on ${r.method} ${r.path}: ${r.message}${r.digest ? ` (digest ${r.digest})` : ''}`;
     await fetcher(process.env.ERROR_WEBHOOK_URL as string, {

@@ -7,6 +7,7 @@ import { ListingReviewCard } from '@/components/ListingReviewCard';
 import { devQueue, listReports, listingQueue } from '@/lib/admin/queue';
 import { ageText, opsQueues } from '@/lib/admin/opsQueues';
 import { SCOPE_LABEL, hasScope } from '@/lib/admin/scopes';
+import { quickStatus } from '@/lib/admin/system';
 import { openDisputes } from '@/lib/disputes';
 import { listPayouts } from '@/lib/payouts';
 import { blockedList } from '@/lib/presale/service';
@@ -78,6 +79,8 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const badges: Record<string, number> = { 'admin-listings': listings.length, 'admin-disputes': disputes.length, 'admin-payouts': payouts.length, 'admin-abuse': reports.length };
   for (const q of queues) if (QUEUE_ITEM[q.key]) badges[QUEUE_ITEM[q.key]] = (badges[QUEUE_ITEM[q.key]] ?? 0) + q.n;
   const scopes = viewer?.scopes ?? [];
+  // The server chip for those who may open the system page (Super Admin): a light reading, not the whole system page.
+  const server = !viewer || hasScope(scopes, 'super') ? await quickStatus() : null;
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin" title="Admin overview" badges={badges}>
       {denied && (
@@ -89,6 +92,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         <small className="adm-label">Admin overview</small>
         <h2>{viewer?.name ? `Hello, ${viewer.name.split(' ')[0]}` : 'Hello'}</h2>
         <div className="adm-chips">
+          {server && (
+            <Link href="/dashboard/admin/system" className={`sys-chip ${server}`}>
+              <i />
+              {server === 'bad' ? 'Needs attention' : server === 'warn' ? 'Needs a look' : 'Server healthy'}
+            </Link>
+          )}
           {scopes.map((sc) => (
             <span key={sc} className="chip st-violet">
               <i />

@@ -103,6 +103,9 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0068_column_grants_hold.sql | SECURITY: narrow column grants hold again (notifications read_at only, no seller profile delete by clients, no anon writes on client-policy tables); privileges only; provisional number |
 | 0069_file_approval_without_scan.sql | Owner decision 2026-10-29: approving a source file no longer needs a clean malware scan (REMOVED BY OWNER, SECURITY RISK ACCEPTED); SHA-256, size, private copy and reviewer still required; scan_* columns kept; apply before the release that stops scanning; provisional number |
 | 0070_product_tags.sql | Owner 2026-11-03: optional tags on a listing (text[], at most 8), set by the seller on the listing form and used by site search; nullable, so the running site works before and after; the code checks for the column and leaves tags out until it exists |
+| 0071_cron_runs.sql | Owner 2026-11-03: one row per run of the orders and payouts jobs (start, finish, ok, first 500 characters of an error) for the admin system page; server only (RLS on, no client grant); kept 30 days |
+| 0072_app_errors.sql | Owner 2026-11-03: server error counts per kind and hour (fingerprint of route, status and first message line, already blanked by lib/monitor.ts) and log_app_error(), service role only; kept 30 days |
+| 0073_system_db_stats.sql | Owner 2026-11-03: system_db_stats() returns the database size and connection count for the admin system page; read only, service role only |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

@@ -55,6 +55,7 @@ In number order, one file at a time (`supabase/migrations/00NN_*.sql`, paste int
 | `PAYPAL_WEBHOOK_ID` | Webhook for refunds made inside PayPal: webhook `https://<your domain>/api/webhooks/payment`, events `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.CAPTURE.REFUNDED` |
 | `NEXT_PUBLIC_SITE_URL` | Only if your address is not `https://sellonbay.com` (build-time: set it before `npm run build`) |
 | `TURNSTILE_SECRET_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare bot check on sign-up and sign-in |
+| `SUPABASE_ACCESS_TOKEN` | A Supabase personal access token (server only, a secret) so Admin → Server and system can show the security and performance advisor counts; without it the page says "not connected" |
 | `ADMIN_ALERT_EMAIL` | Another address for the admin alerts (default `sellonbayus@gmail.com`) |
 | `GUARD_SALT`, `DELIVERY_SECRET`, `PAYMENT_WEBHOOK_SECRET`, `ANALYTICS_SALT`, `APP_SECRET` | Your own keys instead of the made ones. Do not change them later: it forgets abuse blocks and ends open download links |
 

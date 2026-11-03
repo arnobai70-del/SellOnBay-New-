@@ -1,17 +1,18 @@
 import Link from 'next/link';
 import { AdminForm } from './AdminForm';
 import type { QueueListing } from '@/lib/admin/queue';
+import { catForCategory } from '@/lib/catAccent';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 
 /* One listing waiting for review: what the seller wrote, the links, the price (with a way to fix it) and the decision. */
 export function ListingReviewCard({ l }: { l: QueueListing }) {
   return (
-    <div className="adm-card">
+    <div className="adm-card cat-card" data-cat={catForCategory(l.category)}>
       <h3>{l.name}</h3>
       <div className="meta">
         <span>by {l.seller}</span>
-        <span>{l.category}</span>
+        <span className="cat-tag">{l.category}</span>
         <span>{l.platform}</span>
         <span>{money(l.priceCents)}</span>
         <span>{l.licence ?? 'no licence type'}</span>

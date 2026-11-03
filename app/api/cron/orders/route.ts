@@ -6,6 +6,7 @@ import { runDueJobs } from '@/lib/orders/service';
 import { checkAnomalies } from '@/lib/metrics';
 import { releaseDueReserves } from '@/lib/reserve';
 import { beat } from '@/lib/heartbeat';
+import { purgeSystemRecords, recordRun } from '@/lib/cronRuns';
 import { sendQueued } from '@/lib/emailQueue';
 import { dailyReport } from '@/lib/analytics';
 import { fileJobs } from '@/lib/files/service';
@@ -23,7 +24,8 @@ export async function POST(req: Request) {
   const a = Buffer.from(given),
     b = Buffer.from(secret);
   if (!secret || a.length !== b.length || !timingSafeEqual(a, b)) return NextResponse.json({ error: 'Not allowed.' }, { status: 401 });
-  const done = {
+  // Each run is recorded for the admin system page (lib/cronRuns.ts); a failure is recorded and thrown on as before.
+  const done = await recordRun('orders', async () => ({
     moved: await runDueJobs(),
     domainReminders: await domainReminders(),
     purgedEvents: await purgeSecurityEvents(),
@@ -36,7 +38,8 @@ export async function POST(req: Request) {
     releases: await releaseJobs(), // reminders and 12-hour target alerts; never releases anything (lib/release)
     reports: await purgeReports(), // generated sales PDFs and receipts deleted after 24 hours; their log entries stay (lib/reports)
     adminSocial: await adminIdentityCheck(), // alerts if an admin account holds a social sign-in (O-7); never changes accounts
-  };
+    systemRecords: await purgeSystemRecords(), // job runs and error counts older than 30 days (lib/cronRuns.ts)
+  }));
   await beat('orders');
   return NextResponse.json(done);
 }

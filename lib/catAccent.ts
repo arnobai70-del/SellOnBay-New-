@@ -1,3 +1,5 @@
+import { HUBS } from './seo/hubs';
+
 /* The template categories that have their own accent colour (the [data-cat] rules in app/globals.css). The slugs are the hub slugs of lib/seo/hubs.ts. */
 export const CAT_SLUGS = ['ecommerce', 'saas', 'business', 'portfolio', 'industry'] as const;
 export type CatSlug = (typeof CAT_SLUGS)[number];
@@ -7,3 +9,6 @@ export const catAttr = (slug: string | undefined): CatSlug | undefined => ((CAT_
 
 /* The category a menu link points at: the E-commerce hub is the home page (/), the others are /templates/<slug> (lib/seo/hubLinks.ts). */
 export const catOfHref = (href: string): CatSlug | undefined => (href === '/' ? 'ecommerce' : catAttr(/^\/templates\/([^/?#]+)\/?$/.exec(href)?.[1]));
+
+/* The colour of a listing from its catalogue category (lib/seo/hubs.ts lists which categories each template category holds). */
+export const catForCategory = (category: string | null | undefined): CatSlug | undefined => catAttr(HUBS.find((h) => h.cats.includes(category ?? ''))?.slug);

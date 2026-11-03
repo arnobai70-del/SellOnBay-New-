@@ -6,7 +6,8 @@ import { DashShell } from '@/components/DashShell';
 import { ListingReviewCard } from '@/components/ListingReviewCard';
 import { devQueue, listReports, listingQueue } from '@/lib/admin/queue';
 import { ageText, opsQueues } from '@/lib/admin/opsQueues';
-import { hasScope } from '@/lib/admin/scopes';
+import { SCOPE_LABEL, hasScope } from '@/lib/admin/scopes';
+import { quickStatus } from '@/lib/admin/system';
 import { openDisputes } from '@/lib/disputes';
 import { listPayouts } from '@/lib/payouts';
 import { blockedList } from '@/lib/presale/service';
@@ -62,34 +63,50 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     { label: 'Payouts to send', n: payouts.length, href: '/dashboard/admin/payouts', icon: 'wallet', tone: 'mint' },
     { label: 'Abuse reports', n: reports.length, href: '/dashboard/admin/abuse', icon: 'flag', tone: 'gold' },
   ];
+  const queues = ops.filter((q) => !viewer || hasScope(viewer.scopes, q.scope));
+  // The menu shows how much waits behind each item (DashShell badges): the work queues and the counts above, by menu key.
+  const QUEUE_ITEM: Record<string, string> = {
+    requests: 'admin-requests',
+    custom: 'admin-requests',
+    super: 'admin-requests',
+    payments: 'admin-payments-review',
+    releases: 'admin-releases',
+    revisions: 'admin-revisions',
+    files: 'admin-files',
+    tickets: 'admin-support',
+    plans: 'admin-sellers',
+  };
+  const badges: Record<string, number> = { 'admin-listings': listings.length, 'admin-disputes': disputes.length, 'admin-payouts': payouts.length, 'admin-abuse': reports.length };
+  for (const q of queues) if (QUEUE_ITEM[q.key]) badges[QUEUE_ITEM[q.key]] = (badges[QUEUE_ITEM[q.key]] ?? 0) + q.n;
+  const scopes = viewer?.scopes ?? [];
+  // The server chip for those who may open the system page (Super Admin): a light reading, not the whole system page.
+  const server = !viewer || hasScope(scopes, 'super') ? await quickStatus() : null;
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin" title="Admin overview">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin" title="Admin overview" badges={badges}>
       {denied && (
         <p className="note warn" role="alert" data-denied>
           <span>Your admin account does not have permission for that page. A Super Admin can change your permissions.</span>
         </p>
       )}
-      <div className="dp" data-ops-queues>
-        <div className="hd">
-          <div>
-            <h2>Work waiting</h2>
-            <p className="sub">
-              Requests, payments, releases and the rest, with how long the oldest has waited. Releases aim for 12 hours, every day of the year; a missed target never releases anything.
-            </p>
-          </div>
-        </div>
-        <div className="kpis">
-          {ops
-            .filter((q) => !viewer || hasScope(viewer.scopes, q.scope))
-            .map((q) => (
-              <Link key={q.key} href={q.href} className={'kpi' + (q.n > 0 ? ' kpi-on' : '')} data-queue={q.key}>
-                <small>{q.label}</small>
-                <b>{q.n}</b>
-                <em>{q.n === 0 ? 'All clear' : q.overdue ? `${q.overdue} past the target` : `oldest ${ageText(q.oldestAt)}`}</em>
-              </Link>
-            ))}
+      <div className="dp adm-hello">
+        <small className="adm-label">Admin overview</small>
+        <h2>{viewer?.name ? `Hello, ${viewer.name.split(' ')[0]}` : 'Hello'}</h2>
+        <div className="adm-chips">
+          {server && (
+            <Link href="/dashboard/admin/system" className={`sys-chip ${server}`}>
+              <i />
+              {server === 'bad' ? 'Needs attention' : server === 'warn' ? 'Needs a look' : 'Server healthy'}
+            </Link>
+          )}
+          {scopes.map((sc) => (
+            <span key={sc} className="chip st-violet">
+              <i />
+              {SCOPE_LABEL[sc]}
+            </span>
+          ))}
         </div>
       </div>
+
       <div className="kpis">
         {counts.map((c) => (
           <Link key={c.label} href={c.href} className={'kpi' + (c.n > 0 ? ' kpi-on' : '')}>
@@ -103,23 +120,24 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         ))}
       </div>
 
-      <div className="dp">
+      <div className="dp" data-ops-queues>
         <div className="hd">
           <div>
-            <h2>Shortcuts</h2>
-            <p className="sub">The pages you open most.</p>
+            <h2>Waiting for you</h2>
+            <p className="sub">
+              Requests, payments, releases and the rest, with how long the oldest has waited. Releases aim for 12 hours, every day of the year; a missed target never releases anything.
+            </p>
           </div>
         </div>
-        <div className="qlinks">
-          {SHORTCUTS.map((q) => (
-            <Link key={q.href + q.label} href={q.href} className="qlink">
-              <span className="kpi-i">
-                <DashIcon n={q.icon} />
+        <div className="ops-grid">
+          {queues.map((q) => (
+            <Link key={q.key} href={q.href} className={'ops-tile' + (q.overdue ? ' late' : '') + (q.n > 0 ? ' on' : '')} data-queue={q.key}>
+              <span className="ops-top">
+                <span>{q.label}</span>
+                <span className="ops-scope">{SCOPE_LABEL[q.scope]}</span>
               </span>
-              <span>
-                <b>{q.label}</b>
-                <small>{q.text}</small>
-              </span>
+              <b>{q.n}</b>
+              <small>{q.n === 0 ? 'All clear' : q.overdue ? `${q.overdue} past the target · oldest ${ageText(q.oldestAt)}` : `oldest ${ageText(q.oldestAt)}`}</small>
             </Link>
           ))}
         </div>
@@ -185,13 +203,35 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                   {m.product_key ? ` on ${m.product_key}` : ''}: &ldquo;{(m.body ?? '').slice(0, 140)}&rdquo;
                 </small>
               </div>
-              <span className="chip rose">
+              <span className="chip st-pink">
                 <i />
                 Blocked
               </span>
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="dp">
+        <div className="hd">
+          <div>
+            <h2>Build the site</h2>
+            <p className="sub">The pages you open most.</p>
+          </div>
+        </div>
+        <div className="qlinks">
+          {SHORTCUTS.map((q) => (
+            <Link key={q.href + q.label} href={q.href} className="qlink">
+              <span className="kpi-i">
+                <DashIcon n={q.icon} />
+              </span>
+              <span>
+                <b>{q.label}</b>
+                <small>{q.text}</small>
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
     </DashShell>
   );

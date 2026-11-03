@@ -86,6 +86,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
       { label: 'Launch check', href: '/dashboard/admin/launch', icon: 'check', key: 'admin-launch', group: 'Site' },
       { label: 'Maintenance Manager', href: '/dashboard/admin/maintenance', icon: 'tool', key: 'admin-maintenance', group: 'System' },
       { label: 'Feature flags', href: '/dashboard/admin/flags', icon: 'gear', key: 'admin-flags', group: 'System' },
+      { label: 'Server and system', href: '/dashboard/admin/system', icon: 'pulse', key: 'admin-system', group: 'System' },
     ],
     extra: [{ label: 'Back to site', href: '/', icon: 'home' }],
   },
@@ -99,6 +100,7 @@ export function DashShell({
   name,
   signedIn = false,
   viewerRole,
+  badges,
 }: {
   role: Role;
   active: string;
@@ -107,8 +109,12 @@ export function DashShell({
   name?: string;
   signedIn?: boolean;
   viewerRole?: Role;
+  /* How many things wait behind a menu item, by item key (only the admin overview passes these). */
+  badges?: Record<string, number>;
 }) {
   const [open, setOpen] = useState(false);
+  const [find, setFind] = useState('');
+  const q = find.trim().toLowerCase();
   // A clicked menu link answers at once: it lights up and shows it is loading until the page address changes.
   const search = useSearchParams().toString();
   const at = usePathname() + (search ? '?' + search : '');
@@ -121,6 +127,38 @@ export function DashShell({
   const roleLabel = signedIn && viewerRole ? viewerRole[0].toUpperCase() + viewerRole.slice(1) : d.label;
   const here = d.items.find((i) => i.key === active);
   const crumb = here && here.key !== role ? (here.group ?? d.label) : null;
+
+  // The menu in its groups, in order; items before the first group have no heading.
+  const groups: { name: string; items: Item[] }[] = [];
+  for (const i of d.items) {
+    const name = i.group ?? '';
+    if (groups.at(-1)?.name !== name) groups.push({ name, items: [] });
+    groups.at(-1)!.items.push(i);
+  }
+  // Which groups are open: the one with the current page, and Orders and money for an admin, unless the person folded them. Remembered per role
+  // in this browser (read after the first paint, so the server and the browser draw the same menu first).
+  const [saved, setSaved] = useState<Record<string, boolean>>({});
+  const store = `sob-dash-groups:${role}`;
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        setSaved(JSON.parse(localStorage.getItem(store) ?? '{}'));
+      } catch {
+        /* storage blocked: keep the defaults */
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [store]);
+  const isOpen = (g: string) => saved[g] ?? (g === here?.group || (role === 'admin' && g === 'Orders and money'));
+  const toggle = (g: string) => {
+    const next = { ...saved, [g]: !isOpen(g) };
+    setSaved(next);
+    try {
+      localStorage.setItem(store, JSON.stringify(next));
+    } catch {
+      /* storage blocked: the choice lasts until the page is left */
+    }
+  };
 
   // The phone menu: Escape closes it and the page behind does not scroll while it is open.
   useEffect(() => {
@@ -154,33 +192,67 @@ export function DashShell({
             </svg>
           </button>
         </div>
+        {role === 'admin' && (
+          <div className="side-find">
+            <label className="sr-only" htmlFor="dash-find">
+              Find a page
+            </label>
+            <input id="dash-find" type="search" placeholder="Find a page" autoComplete="off" value={find} onChange={(e) => setFind(e.target.value)} />
+          </div>
+        )}
         <nav className="side-nav" ref={navRef}>
-          {d.items.map((i, n) => (
-            <Fragment key={i.key}>
-              {i.group && i.group !== d.items[n - 1]?.group && <div className="grp">{i.group}</div>}
-              <Link
-                className={'it' + (going === i.href ? ' going' : '')}
-                href={i.href}
-                aria-current={i.key === active ? 'page' : undefined}
-                aria-busy={going === i.href || undefined}
-                onClick={() => {
-                  if (i.href.split('#')[0] !== at) setClick({ href: i.href, from: at });
-                  close();
-                }}
-              >
-                <Ico n={i.icon} />
-                <span>{i.label}</span>
-              </Link>
-            </Fragment>
-          ))}
-          <div className="grp">Go to</div>
+          {groups.map((g) => {
+            const items = q ? g.items.filter((i) => i.label.toLowerCase().includes(q)) : g.items;
+            if (!items.length) return null;
+            const shut = !!g.name && !q && !isOpen(g.name);
+            const waiting = g.items.reduce((s, i) => s + (badges?.[i.key] ?? 0), 0);
+            const id = g.name ? 'grp-' + g.name.replace(/\W+/g, '-').toLowerCase() : undefined;
+            return (
+              <Fragment key={g.name || 'main'}>
+                {g.name && (
+                  <button type="button" className="grp" aria-expanded={!shut} aria-controls={id} onClick={() => toggle(g.name)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                    <span>{g.name}</span>
+                    {shut && waiting > 0 && <span className="wait">{waiting} waiting</span>}
+                  </button>
+                )}
+                <div className="grp-items" id={id} hidden={shut}>
+                  {items.map((i) => (
+                    <Link
+                      key={i.key}
+                      className={'it' + (going === i.href ? ' going' : '')}
+                      href={i.href}
+                      aria-current={i.key === active ? 'page' : undefined}
+                      aria-busy={going === i.href || undefined}
+                      onClick={() => {
+                        if (i.href.split('#')[0] !== at) setClick({ href: i.href, from: at });
+                        close();
+                      }}
+                    >
+                      <Ico n={i.icon} />
+                      <span>{i.label}</span>
+                      {(badges?.[i.key] ?? 0) > 0 && (
+                        <span className="nb" aria-label={`${badges![i.key]} waiting`}>
+                          {badges![i.key]}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </Fragment>
+            );
+          })}
+          {q && !d.items.some((i) => i.label.toLowerCase().includes(q)) && <p className="side-empty">No page called that.</p>}
+          <div className="grp grp-fixed">Go to</div>
           {d.extra.map((i) => (
             <Link key={i.href} className="it" href={i.href} onClick={close}>
               <Ico n={i.icon} />
               <span>{i.label}</span>
             </Link>
           ))}
-          {can.some((r) => r !== role) && <div className="grp">Switch view</div>}
+          {can.some((r) => r !== role) && <div className="grp grp-fixed">Switch view</div>}
           {can
             .filter((r) => r !== role)
             .map((r) => (

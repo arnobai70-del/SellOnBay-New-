@@ -28,6 +28,15 @@ export default async function BuyerDashboard() {
             <span>
               {order.domain ? `Check it on ${order.domain.name}. ` : 'Check what the seller delivered. '}It is accepted for you in {hoursLeft} {hoursLeft === 1 ? 'hour' : 'hours'}.
             </span>
+            {/* where the order is, from its own dates: paid and delivered are done, checking is now, the seller is paid after acceptance */}
+            <ol className="buy-steps" aria-label="Where this order is">
+              <li className={order.fundedAt ? 'done' : ''}>Paid into escrow</li>
+              <li className={order.deliveredAt ? 'done' : ''}>Delivered</li>
+              <li className="now" aria-current="step">
+                You check it
+              </li>
+              <li>Seller paid</li>
+            </ol>
           </div>
           <Link className="btn btn-gold btn-sm" href={`/orders/${order.id}`}>
             Review now
@@ -44,7 +53,7 @@ export default async function BuyerDashboard() {
         <div>
           <small>Orders in progress</small>
           <b>{v?.inProgress ?? 0}</b>
-          <span className="d" style={{ color: 'var(--amber)' }}>
+          <span className="d" style={{ color: 'var(--amber-tx)' }}>
             {v?.needsReview.length ? `${v.needsReview.length} need your review` : 'Nothing waiting on you'}
           </span>
         </div>

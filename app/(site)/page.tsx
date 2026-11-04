@@ -325,9 +325,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ t
                   <ul className="mk-hero-points">
                     <li>Payment held in escrow until you accept</li>
                     <li>{REVIEW_HOURS} hours to check it</li>
-                    <li>
-                      Live in {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays} days
-                    </li>
+                    <li>Live within a few hours</li>
                   </ul>
                 </div>
                 {old && (

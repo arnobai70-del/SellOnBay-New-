@@ -177,3 +177,7 @@ The public site is the home page (E-commerce Templates), `/templates/saas`, `/te
 ## Search Console (owner, 2026-11-04)
 
 The owner wants no Search Console errors. Product structured data appears only on a listing with a real review: Google reports Product data with no offers, review or rating as an error, and offers stay out by decision O-11 (`ProductView.tsx`). Public pages link to real addresses only: no retired address (410) and no address that redirects, such as `/templates/ecommerce`, which is the home page. A product's breadcrumb, `WebPage` address and `og:url` use its category address, not `/product/<id>`.
+
+## Light mode and the hero (owner, 2026-11-04)
+
+The home hero's text is centred and its third point reads "Live within a few hours". That line is the owner's wording, not a rule: delivery stays what each listing says (`lib/config.ts`), and other pages still say 1 to 7 days. The public pages are dark by default. The switch after My dashboard (`components/ThemeSwitch.tsx`) sets `<html data-theme="light">`, remembered in this browser and set before paint by the script in `app/layout.tsx`. `app/light.css` turns the `.night` tokens back to light. The hero, the first row of the top bar, the footer and the coloured bands stay dark in both modes, and dashboards stay dark.

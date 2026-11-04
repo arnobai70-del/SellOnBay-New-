@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import './market.css';
+import './light.css';
 import { CookieNotice } from '@/components/CookieNotice';
 import { isStaging } from '@/lib/stage';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
@@ -43,6 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Runs while the page is parsed, before anything paints: allow entrance animations only when JS runs and motion is welcome, so without
             JS everything stays visible. Backticks only, no quotes or < > &, so the text needs no escaping. */}
         <script id="motion-flag">{'if(!matchMedia(`(prefers-reduced-motion: reduce)`).matches)document.documentElement.classList.add(`motion`)'}</script>
+        {/* The visitor's light or dark choice, before paint so a light page never flashes dark (components/ThemeSwitch.tsx has the same key). */}
+        <script id="theme-flag">{'try{if(localStorage.getItem(`sob-theme`)===`light`)document.documentElement.dataset.theme=`light`}catch(e){}'}</script>
         <a className="skip" href="#main">
           Skip to content
         </a>

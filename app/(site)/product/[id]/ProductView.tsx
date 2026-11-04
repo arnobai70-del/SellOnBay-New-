@@ -48,7 +48,7 @@ export async function productMetadata(id: string, canonical?: string): Promise<M
   const ctl = await pageControls(listingPath(found.product.id));
   if (found.status === 'live' && !isPublic(listingPath(found.product.id), ctl)) return { title: 'Not found', robots: { index: false } };
   const m = listingMetadata(found.product, found.status, (await allPageSeo())[listingPath(found.product.id)], ctl);
-  return canonical && !ctl.canonical ? { ...m, alternates: { ...m.alternates, canonical } } : m;
+  return canonical && !ctl.canonical ? { ...m, alternates: { ...m.alternates, canonical }, openGraph: { ...m.openGraph, url: canonical } } : m;
 }
 
 export default async function ProductView({ id, canonical, crumbs }: ProductViewProps) {
@@ -90,17 +90,18 @@ export default async function ProductView({ id, canonical, crumbs }: ProductView
   const shownCount = real.count || p.reviews;
   const shownRating = real.count ? real.avg : p.rating;
   const self = SITE_URL + (canonical ?? `/product/${p.id}`);
-  const jsonLd: Record<string, unknown> = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: p.name,
-    description: p.desc,
-    category: p.cat,
-    url: self,
-    // No Offer (owner decision O-11): in SellOnBay 2.0 the final price comes from a quotation, so a fixed offers.price would be misleading
-    // markup. The listed price still shows on the page as a starting price. Add an Offer back only under a reviewed rule.
-    ...(real.count > 0
+  // No Offer (owner decision O-11): in SellOnBay 2.0 the final price comes from a quotation, so a fixed offers.price would be misleading
+  // markup. The listed price still shows on the page as a starting price. Add an Offer back only under a reviewed rule.
+  // Google reports Product data with no offers, review or rating as an error in Search Console, so a listing has it only once it has a real review.
+  const jsonLd: Record<string, unknown> | null =
+    real.count > 0
       ? {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: p.name,
+          description: p.desc,
+          category: p.cat,
+          url: self,
           aggregateRating: { '@type': 'AggregateRating', ratingValue: real.avg, reviewCount: real.count, bestRating: 5, worstRating: 1 },
           review: realReviews.map((r) => ({
             '@type': 'Review',
@@ -109,13 +110,12 @@ export default async function ProductView({ id, canonical, crumbs }: ProductView
             ...(r.body ? { reviewBody: r.body } : {}),
           })),
         }
-      : {}),
-  };
+      : null;
   const shelf = { href: shelfHref(pl), label: pl === 'web' ? 'Browse sites' : shelfLabel(pl) };
 
   return (
     <div className="wrap" data-pdp>
-      <JsonLd data={jsonLd} />
+      {jsonLd && <JsonLd data={jsonLd} />}
       {crumbs && crumbs.length > 0 && (
         <JsonLd
           data={{
@@ -126,7 +126,19 @@ export default async function ProductView({ id, canonical, crumbs }: ProductView
         />
       )}
       <div className="crumbs">
-        <Link href={shelf.href}>{shelf.label}</Link> / <span>{p.name}</span>
+        {/* A product in a category follows the same trail as its structured data; the old shelves are retired (410). */}
+        {crumbs && crumbs.length > 0 ? (
+          crumbs.map((c) => (
+            <span key={c.url}>
+              <Link href={c.url.slice(SITE_URL.length) || '/'}>{c.name}</Link> /{' '}
+            </span>
+          ))
+        ) : (
+          <>
+            <Link href={shelf.href}>{shelf.label}</Link> /{' '}
+          </>
+        )}
+        <span>{p.name}</span>
       </div>
       <div className="pd-head">
         <span className="pd-chips">
@@ -377,7 +389,7 @@ export default async function ProductView({ id, canonical, crumbs }: ProductView
           </div>
         </div>
       )}
-      <PageExtras path={listingPath(p.id)} name={p.name} description={p.desc} defaultFaqs={productFaqs(p)} />
+      <PageExtras path={listingPath(p.id)} urlPath={canonical} name={p.name} description={p.desc} defaultFaqs={productFaqs(p)} />
     </div>
   );
 }

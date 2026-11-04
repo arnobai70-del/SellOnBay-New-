@@ -49,7 +49,7 @@ export default async function Page({ params }: { params: Promise<{ category: str
           products={v.products}
           productHref={(p) => hubProductPath(hub, a, p.id)}
           cat={hub.slug}
-          others={HUBS.filter((x) => x.slug !== hub.slug).map((x) => ({ ...x, slug: hubPublicSlug(x, a) }))}
+          others={HUBS.filter((x) => x.slug !== hub.slug).map((x) => ({ ...x, slug: hubPublicSlug(x, a), href: hubPublicPath(x, a) }))}
           faq={saved.length ? [] : hub.faq}
         />
         <PageExtras path={hubPath(hub)} urlPath={hubPublicPath(hub, a)} name={hub.h1} description={hub.description} collection />

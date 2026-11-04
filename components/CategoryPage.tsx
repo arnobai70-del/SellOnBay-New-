@@ -17,7 +17,7 @@ export function CategoryPage({
 }: {
   c: CategoryCopy;
   products: Product[];
-  others: CategoryCopy[];
+  others: (CategoryCopy & { href?: string })[];
   faq?: [string, string][];
   productHref?: (p: Product) => string;
   cat?: string; // the hub slug, for its accent colour
@@ -82,7 +82,7 @@ export function CategoryPage({
         <p>
           {others.map((o, i, a) => (
             <span key={o.slug}>
-              <Link href={`${base}/${o.slug}`}>{o.name}</Link>
+              <Link href={o.href ?? `${base}/${o.slug}`}>{o.name}</Link>
               {i < a.length - 1 ? ', ' : ''}
             </span>
           ))}

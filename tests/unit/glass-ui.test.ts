@@ -49,6 +49,16 @@ describe('glass UI', () => {
     expect(reveal).not.toContain('filter');
   });
 
+  it('hides the phone menu buttons on a wide screen, whatever order the rules are in', () => {
+    // .g-iconbtn sets display too: with one class each, the later rule wins and both buttons show on a desktop.
+    expect(css).toMatch(/\.g-iconbtn\.g-side-x\s*\{\s*display: none/);
+    expect(css).toMatch(/\.g-iconbtn\.g-menu-btn\s*\{\s*display: none/);
+  });
+
+  it('keeps a first child’s top margin inside the page, so no strip of the old body shows above', () => {
+    expect(css).toMatch(/\.g-page\s*\{[^}]*display: flow-root/);
+  });
+
   it('keeps grid columns from pushing past a phone', () => {
     expect(css).not.toMatch(/minmax\(\d+px,/);
     expect(css).not.toMatch(/[^(,\s]\s*1fr\)?;?\s*\n?\s*grid-template-columns: 1fr/);

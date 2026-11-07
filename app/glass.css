@@ -76,6 +76,7 @@
 .g-page {
   position: relative;
   isolation: isolate;
+  display: flow-root; /* a first child's top margin stays inside, so the old page's body never shows above */
   min-height: 100vh;
   overflow: clip;
   background:
@@ -748,7 +749,7 @@ textarea.g-input {
 .g-side .g-logo {
   padding: 2px 10px 10px;
 }
-.g-side-x {
+.g-iconbtn.g-side-x {
   display: none;
 }
 .g-grp {
@@ -830,7 +831,7 @@ textarea.g-input {
 .g-top-gap {
   flex: 1 1 auto;
 }
-.g-menu-btn {
+.g-iconbtn.g-menu-btn {
   display: none;
 }
 .g-iconbtn {
@@ -923,13 +924,13 @@ textarea.g-input {
     transform: none;
     visibility: visible;
   }
-  .g-side-x {
+  .g-iconbtn.g-side-x {
     position: absolute;
     top: 8px;
     right: 8px;
     display: inline-flex;
   }
-  .g-menu-btn {
+  .g-iconbtn.g-menu-btn {
     display: inline-flex;
   }
   .g-shell-open .g-scrim {
@@ -953,6 +954,12 @@ textarea.g-input {
 @media (max-width: 640px) {
   .g-wrap {
     padding: 0 16px;
+  }
+}
+/* On a narrow phone the name chip would drop to a line of its own; the menu has the sign-out. */
+@media (max-width: 480px) {
+  .g-me {
+    display: none;
   }
 }
 @media (pointer: coarse) {

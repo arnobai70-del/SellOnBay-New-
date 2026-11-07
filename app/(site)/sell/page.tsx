@@ -44,7 +44,7 @@ export default async function Sell() {
           </div>
           <div>
             <b>Weekly</b>
-            <span>Payouts, every Sunday</span>
+            <span>Payouts, every Thursday</span>
           </div>
           <div>
             <b>Again and again</b>

@@ -66,15 +66,16 @@ describe('seller plan lifecycle (O-4: admin decides each step)', () => {
 });
 
 describe('listing limit by plan (O-3)', () => {
-  it('Free sellers can have 5 published or waiting listings; Business 100', async () => {
+  it('every seller on the flat plan can have 100 published or waiting listings', async () => {
     const s = seller();
-    setMemListings(s, 4);
+    setMemListings(s, 99);
     expect(await checkListingLimit(s)).toEqual({ ok: true });
-    setMemListings(s, 5);
+    setMemListings(s, 100);
     expect((await checkListingLimit(s)).ok).toBe(false);
     const r = await requestPlan(s, 'business', 'yearly');
     if (!r.ok) throw new Error('request');
     await adminSubscriptionAction('admin-1', r.value.id, 'activate', { reason: 'Paid yearly.', paymentRef: 'Y-1', periodDays: 365 });
+    setMemListings(s, 99);
     expect(await checkListingLimit(s)).toEqual({ ok: true });
     setMemListings(s, 100);
     expect((await checkListingLimit(s)).ok).toBe(false);

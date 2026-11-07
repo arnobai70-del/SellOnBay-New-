@@ -45,7 +45,7 @@ export const LABEL: Record<Key, string> = {
   deliveryHourChoices: 'The hour choices sellers get, like 6, 12, 18',
 };
 const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinCents', [number, number]> = {
-  priceMinCents: [100, 100_000],
+  priceMinCents: [CONFIG.sale.priceMinCents, 100_000], // never below the $20 minimum (owner, 2026-11-07)
   priceMaxCents: [500, 1_000_000],
   holdNewBuyerMinCents: [0, 1_000_000],
 };
@@ -97,6 +97,7 @@ async function load(): Promise<Settings> {
     ? Object.fromEntries(((await createAdminClient().from('app_settings').select('key, value')).data ?? []).map((r) => [r.key, r.value]))
     : mem.saved;
   for (const k of Object.keys(DEFAULTS) as Key[]) if (k in saved && typeof saved[k] === typeof DEFAULTS[k]) (out as Record<string, unknown>)[k] = saved[k];
+  out.priceMinCents = Math.max(out.priceMinCents, CONFIG.sale.priceMinCents); // an older saved minimum cannot undercut the $20 rule, and the rest of the saved set still counts
   const result = problemWith(out) ? { ...DEFAULTS } : out; // a bad saved set never takes the shop down
   // The made-up examples are gone from a live site whatever is saved (lib/exampleMode.ts).
   return examplesAllowed() ? result : { ...result, showExamples: false };

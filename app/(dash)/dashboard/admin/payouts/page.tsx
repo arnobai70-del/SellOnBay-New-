@@ -67,7 +67,7 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
           <div>
             <h2>Weekly payouts</h2>
             <p className="sub">
-              Sellers are paid for orders accepted at least 7 days ago. Make the batch (it also runs every Sunday), download the CSV, send the money with Payoneer, Wise or the bank, then mark each
+              Sellers are paid for orders accepted at least 7 days ago. Make the batch (it also runs every Thursday UTC), download the CSV, send the money with Payoneer, Wise or the bank, then mark each
               payout paid with the transfer reference. Sellers who chose PayPal can be paid with one click (Send with PayPal), then Check PayPal marks it paid when it arrives. Nothing is sent unless
               you click.
             </p>

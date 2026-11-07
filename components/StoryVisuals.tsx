@@ -156,7 +156,7 @@ export function Chapter4() {
             <i key={i} style={{ height: h + '%' }} />
           ))}
         </div>
-        <span className="sv-chip-in">Next payout Sunday</span>
+        <span className="sv-chip-in">Next payout Thursday</span>
       </div>
       {devs.map((d, i) => (
         <div key={d.id} className={'sv-card sv-dev d' + i} style={K(-40 - i * 22)}>

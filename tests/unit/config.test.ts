@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BRAND_NAME } from '@/lib/brand';
-import { CONFIG, FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, SELLER_KEEP_TEXT, feeCents, planNetCents, sellerNetCents } from '@/lib/config';
+import { CONFIG, FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, SELLER_KEEP_TEXT, feeCents, planNetCents, sellerNetCents } from '@/lib/config';
 
 describe('rules in one place', () => {
   it('holds the rules the spec states', () => {
@@ -31,7 +31,9 @@ describe('rules in one place', () => {
       defaultSetupCents: 3000,
       defaultCustomCents: 10000,
     });
-    expect(CONFIG.sale).toEqual({ priceMinCents: 500, priceMaxCents: 7000 });
+    expect(CONFIG.sale).toEqual({ priceMinCents: 2000, priceMaxCents: 7000 });
+    expect(CONFIG.payout).toEqual({ holdDays: 7, weekday: 4 });
+    expect(CONFIG.flatPlan).toEqual({ commissionBps: 2200, listingLimit: 100 });
     expect(CONFIG.reserve).toEqual({ percent: 0, days: 0 });
     expect(CONFIG.risk).toEqual({
       holdNewBuyerMinCents: 5000,
@@ -54,10 +56,11 @@ describe('rules in one place', () => {
     expect(FEE_CUSTOM_TEXT).toBe('20%');
     expect(SELLER_KEEP_TEXT).toBe('78% (70% under $20)');
   });
-  it('public copy uses the plan commission (F-1); the flat fees stay for orders made before plans', () => {
-    expect(PLAN_FEE_TEXT).toBe('15% on Free, 10% on Pro and 5% on Business');
-    expect(PLAN_KEEP_TEXT).toBe('85% to 95%');
-    expect(planNetCents(3900)).toBe(3315); // Free 15%
+  it('public copy uses the flat fee, seller 78% and platform 22% (owner, 2026-11-07); older orders keep what they recorded', () => {
+    expect(PLAN_FEE_TEXT).toBe('22%');
+    expect(PLAN_KEEP_TEXT).toBe('78%');
+    expect(PAYOUT_TEXT).toBe('Paid every Thursday for earnings accepted at least 7 days ago');
+    expect(planNetCents(4900)).toBe(3822); // the design's own example: $49 gives the seller $38.22
     expect(planNetCents(10_000, CONFIG.plans.business.commissionBps)).toBe(9500);
   });
   it('fee and payout always add up to the price, whatever the rounding', () => {

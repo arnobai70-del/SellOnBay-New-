@@ -9,11 +9,11 @@ import { accept, createOrder, deliver, getOrder, runDueJobs } from '@/lib/orders
 import { csvCell, exportPayouts, listPayouts, markFailed, markPaid, payoutsCsv, planPayouts, registerSellerPayout, weekStartOf } from '@/lib/payouts';
 
 describe('payout week and CSV', () => {
-  it('the batch week starts on the Sunday on or before the date (UTC)', () => {
-    expect(weekStartOf(Date.UTC(2026, 9, 4, 15))).toBe('2026-10-04'); // a Sunday
-    expect(weekStartOf(Date.UTC(2026, 9, 10, 23, 59))).toBe('2026-10-04'); // Saturday night
-    expect(weekStartOf(Date.UTC(2026, 9, 11, 0, 0))).toBe('2026-10-11'); // next Sunday
-    expect(new Date(weekStartOf(Date.now()) + 'T00:00:00Z').getUTCDay()).toBe(0);
+  it('the batch week starts on the Thursday on or before the date (UTC)', () => {
+    expect(weekStartOf(Date.UTC(2026, 9, 8, 15))).toBe('2026-10-08'); // a Thursday
+    expect(weekStartOf(Date.UTC(2026, 9, 14, 23, 59))).toBe('2026-10-08'); // Wednesday night
+    expect(weekStartOf(Date.UTC(2026, 9, 15, 0, 0))).toBe('2026-10-15'); // next Thursday
+    expect(new Date(weekStartOf(Date.now()) + 'T00:00:00Z').getUTCDay()).toBe(4);
   });
   it('cells that a spreadsheet would run as a formula are made safe; commas and quotes are quoted', () => {
     expect(csvCell('=HYPERLINK("http://x","y")')).toBe('"\'=HYPERLINK(""http://x"",""y"")"');

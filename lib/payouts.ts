@@ -1,6 +1,6 @@
 import 'server-only';
 import { audit } from './admin/audit';
-import { DAY_MS } from './config';
+import { CONFIG, DAY_MS } from './config';
 import { acct, payoutBatch, sellerKey, split } from './ledger';
 import { ledgerStore, type LedgerStore } from './ledgerStore';
 import { notify, notifyAdmins } from './notify';
@@ -14,7 +14,7 @@ import { paypalConfigured, paypalPayments } from './providers/payment';
 import { claimReserves, releasedUnpaid, unclaimReserves } from './reserve';
 
 /*
- * Weekly payouts, paid by hand. The batch (one per seller per week, Sunday) lists what each seller is owed from orders whose 7-day hold has ended.
+ * Weekly payouts, paid by hand. The batch (one per seller per week, Thursday UTC) lists what each seller is owed from orders whose 7-day hold has ended.
  * An admin downloads the CSV, sends the money through Payoneer, Wise or the bank, then marks each payout paid with the transfer reference.
  * Marking paid is what moves the money in the ledger (seller_available -> payout_out) and the orders to paid_out. Nothing here talks to a payment company.
  */
@@ -26,7 +26,7 @@ export type Payout = {
   method: string;
   account: string; // where to send it (the seller's own payout details)
   amountCents: number;
-  weekStart: string; // YYYY-MM-DD, the Sunday
+  weekStart: string; // YYYY-MM-DD, the payout day (Thursday)
   status: PayoutStatus;
   reference?: string;
   orderIds: string[];
@@ -36,11 +36,11 @@ export type Payout = {
 };
 export type Skipped = { sellerId: string; reason: string; amountCents: number };
 
-/* The Sunday on or before this moment (UTC), as a date string. */
+/* The payout day (Thursday UTC, CONFIG.payout.weekday) on or before this moment, as a date string. */
 export const weekStartOf = (ms: number) => {
   const d = new Date(ms);
   d.setUTCHours(0, 0, 0, 0);
-  d.setTime(d.getTime() - d.getUTCDay() * DAY_MS);
+  d.setTime(d.getTime() - ((d.getUTCDay() - CONFIG.payout.weekday + 7) % 7) * DAY_MS);
   return d.toISOString().slice(0, 10);
 };
 

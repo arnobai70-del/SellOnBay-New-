@@ -107,7 +107,7 @@ export function HeroSlides({ children }: { children?: React.ReactNode }) {
                 </div>
                 <span className="chip blue">
                   <i />
-                  Next payout Sunday
+                  Next payout Thursday
                 </span>
               </div>
               <div className="pill-note s3-l" style={{ '--z': 110, '--d': 20 } as React.CSSProperties}>

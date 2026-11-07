@@ -7,11 +7,14 @@ export const CONFIG = {
   // delivery in hours (owner, 2026-10-27): the choices sellers get until an admin changes them (Admin → Settings), each 1 to maxDays × 24
   deliveryHours: { choices: [6, 12, 18, 36], minHours: 1, maxChoices: 8 },
   review: { hours: 48 }, // after delivery; no action means auto-accepted
-  payout: { holdDays: 7, weekday: 0 }, // weekly on Sunday, only earnings accepted at least holdDays ago
+  payout: { holdDays: 7, weekday: 4 }, // weekly on Thursday UTC (0 = Sunday), only earnings accepted at least holdDays ago
   bugFixDays: 7, // after acceptance: the seller fixes bugs, it is not a refund
   // ready-made sales: 30% when the seller's price is under $20, else 22%; custom, extra and trial work 20%
   fees: { saleBps: 2200, saleLowBps: 3000, saleLowBelowCents: 2000, customBps: 2000 },
-  // SellOnBay 2.0 seller plans (owner, 2026-10-27; lib/plans). Commission on the seller's product, work, extra and paid-revision lines; pass-through domain and
+  // The flat fee every seller pays (owner, 2026-11-07): seller 78%, platform 22%, as version 2 of the plan with code 'free' (migration 0074). No monthly price. The listing limit is the largest
+  // the older plans had, so nobody loses room. Fee is fixed on each order or quotation, so older orders keep what they recorded.
+  flatPlan: { commissionBps: 2200, listingLimit: 100 },
+  // Older seller plans, history only now: orders made on them keep their fee, and they are no longer offered (owner, 2026-10-27; lib/plans). Commission on the seller's product, work, extra and paid-revision lines; pass-through domain and
   // hosting lines excluded (O-1, O-2). Yearly = 12 x monthly less yearlyDiscountBps. The old `fees` above stay only for orders made before plans (legacy baseline).
   plans: {
     free: { monthlyCents: 0, yearlyCents: 0, commissionBps: 1500, listingLimit: 5, featured: false },
@@ -65,7 +68,7 @@ export const CONFIG = {
     defaultCustomCents: 10000,
   },
   reserve: { percent: 0, days: 0 }, // a share of seller earnings kept back for some days after the payout hold; OFF until the owner decides (per-seller overrides on the Risk page)
-  sale: { priceMinCents: 500, priceMaxCents: 7000 }, // the price range of what is sold while the shop is opening in small steps; an admin can change it in Settings
+  sale: { priceMinCents: 2000, priceMaxCents: 7000 }, // the price range of what is sold; an admin can raise either end in Settings, but never below the $20 minimum (owner, 2026-11-07)
   risk: {
     holdNewBuyerMinCents: 5000, // a new account's paid order of this much or more waits for an admin's safety check before the seller starts
     // an unusual rise: today is at least `factor` times the average of the days before, and at least minToday
@@ -110,12 +113,14 @@ export const pct = (bps: number) => `${bps / 100}%`;
 export const FEE_SALE_TEXT = `${pct(CONFIG.fees.saleBps)} (${pct(CONFIG.fees.saleLowBps)} under $${CONFIG.fees.saleLowBelowCents / 100})`;
 export const FEE_CUSTOM_TEXT = pct(CONFIG.fees.customBps);
 /*
- * SellOnBay 2.0 (F-1, O-2): commission comes from the seller's plan, on products, custom work, extra work and paid revisions alike. The flat
+ * The flat 78/22 fee (owner, 2026-11-07) replaces the 2.0 plan commission (F-1, O-2), on products, custom work, extra work and paid revisions alike. The older flat
  * fees above (CONFIG.fees, FEE_SALE_TEXT, feeCents) stay only for orders made before plans, which keep the fees recorded on them.
  */
-export const PLAN_FEE_TEXT = `${pct(CONFIG.plans.free.commissionBps)} on Free, ${pct(CONFIG.plans.pro.commissionBps)} on Pro and ${pct(CONFIG.plans.business.commissionBps)} on Business`;
-export const PLAN_KEEP_TEXT = `${pct(10_000 - CONFIG.plans.free.commissionBps)} to ${pct(10_000 - CONFIG.plans.business.commissionBps)}`;
-export const planNetCents = (priceCents: number, commissionBps: number = CONFIG.plans.free.commissionBps) => priceCents - Math.round((priceCents * commissionBps) / 10_000);
+export const PLAN_FEE_TEXT = pct(CONFIG.flatPlan.commissionBps);
+export const PLAN_KEEP_TEXT = pct(10_000 - CONFIG.flatPlan.commissionBps);
+export const planNetCents = (priceCents: number, commissionBps: number = CONFIG.flatPlan.commissionBps) => priceCents - Math.round((priceCents * commissionBps) / 10_000);
+/* The one sentence about when sellers are paid (owner's words, 2026-11-07). */
+export const PAYOUT_TEXT = `Paid every Thursday for earnings accepted at least ${CONFIG.payout.holdDays} days ago`;
 /* What the seller keeps of a sale before plans: "78% (70% under $20)". */
 export const SELLER_KEEP_TEXT = `${pct(10_000 - CONFIG.fees.saleBps)} (${pct(10_000 - CONFIG.fees.saleLowBps)} under $${CONFIG.fees.saleLowBelowCents / 100})`;
 /*

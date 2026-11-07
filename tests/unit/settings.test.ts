@@ -26,10 +26,10 @@ afterEach(async () => {
 });
 
 describe('the standard values', () => {
-  it('start at $5 to $70, a $50 safety check, and the bar off', async () => {
+  it('start at $20 to $70, a $50 safety check, and the bar off', async () => {
     forgetSettings();
     expect(await getSettings()).toEqual({
-      priceMinCents: 500,
+      priceMinCents: 2000,
       priceMaxCents: 7000,
       holdNewBuyerMinCents: 5000,
       earlyAccessOn: false,
@@ -38,7 +38,7 @@ describe('the standard values', () => {
       deliveryHoursOn: true,
       deliveryHourChoices: '6, 12, 18, 36',
     });
-    expect(CONFIG.sale).toEqual({ priceMinCents: 500, priceMaxCents: 7000 });
+    expect(CONFIG.sale).toEqual({ priceMinCents: 2000, priceMaxCents: 7000 });
   });
 });
 
@@ -61,8 +61,8 @@ describe('an admin changes them', () => {
     expect((await setSettings('admin-1', {}, 'Nothing to change really.')).ok).toBe(false);
     expect((await setSettings('admin-1', { priceMinCents: 9000 }, 'Min above the max is wrong.')).ok).toBe(false);
     expect(await setSettings('admin-1', { priceMaxCents: 7000 }, 'Same as it is now.')).toMatchObject({ ok: false, status: 409 });
-    expect((await setSettings('admin-1', { priceMaxCents: 12_000, priceMinCents: 900 }, 'Opening up a little more.')).ok).toBe(true);
-    expect(await getSettings()).toMatchObject({ priceMinCents: 900, priceMaxCents: 12_000 });
+    expect((await setSettings('admin-1', { priceMaxCents: 12_000, priceMinCents: 2500 }, 'Opening up a little more.')).ok).toBe(true);
+    expect(await getSettings()).toMatchObject({ priceMinCents: 2500, priceMaxCents: 12_000 });
     const e = (await auditList(300)).find((x) => x.action === 'settings_changed' && String(x.targetRef).includes('priceMaxCents'));
     expect(e?.detail).toMatchObject({ reason: 'Opening up a little more.', from: { priceMaxCents: 7000 }, to: { priceMaxCents: 12_000 } });
   });

@@ -49,7 +49,7 @@ export default async function SellerDashboard() {
         <div>
           <small>Available for payout</small>
           <b>{money(v?.availableCents ?? 0)}</b>
-          <span className="d">Next payout {v ? shortDay(v.nextPayout) : 'on Sunday'}</span>
+          <span className="d">Next payout {v ? shortDay(v.nextPayout) : 'on Thursday'}</span>
         </div>
         <div>
           <small>Pending (7-day hold)</small>
@@ -90,7 +90,7 @@ export default async function SellerDashboard() {
             </div>
             <span className="chip mint">
               <i />
-              Payout on Sundays
+              Payout on Thursdays
             </span>
           </div>
           {v && v.weekly.some((w) => w.cents > 0) ? (
@@ -476,7 +476,7 @@ export default async function SellerDashboard() {
               <h2>Payouts</h2>
             </div>
           </div>
-          {v && v.payouts.length === 0 && <p className="muted">No payouts yet. Earnings are paid every Sunday, 7 days after the buyer accepts.</p>}
+          {v && v.payouts.length === 0 && <p className="muted">No payouts yet. Earnings are paid every Thursday, 7 days after the buyer accepts.</p>}
           <ul className="lst">
             {v?.payouts.map((p) => (
               <li key={p.id}>

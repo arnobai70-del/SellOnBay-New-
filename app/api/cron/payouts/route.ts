@@ -6,7 +6,7 @@ import { recordRun } from '@/lib/cronRuns';
 
 export const runtime = 'nodejs';
 
-/* The Sunday job: make the week's payout batch. Needs CRON_SECRET in the Authorization header. An admin then downloads the CSV and pays by hand. */
+/* The Thursday job (UTC): make the week's payout batch. Needs CRON_SECRET in the Authorization header. An admin then downloads the CSV and pays by hand. */
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET ?? '';
   const given = (req.headers.get('authorization') ?? '').replace(/^Bearer /, '');

@@ -52,7 +52,7 @@ export async function launchChecks(): Promise<Check[]> {
     c(
       'Scheduled jobs',
       jobsOk,
-      `CRON_SECRET, and a scheduler calling POST /api/cron/orders every 5 to 10 minutes and /api/cron/payouts on Sundays. Orders job last finished: ${when(orders)}${late('orders', orders)}. Payout job last finished: ${when(payouts)}${late('payouts', payouts)}.`,
+      `CRON_SECRET, and a scheduler calling POST /api/cron/orders every 5 to 10 minutes and /api/cron/payouts on Thursdays (UTC). Orders job last finished: ${when(orders)}${late('orders', orders)}. Payout job last finished: ${when(payouts)}${late('payouts', payouts)}.`,
     ),
     c('Abuse hashing salt', derivedSecret('GUARD_SALT') !== null, 'Made from the Supabase service key. Set GUARD_SALT only if you want your own; changing it later forgets blocks.'),
     c(

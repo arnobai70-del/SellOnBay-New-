@@ -94,7 +94,7 @@ function Scene({ n }: { n: number }) {
         <div className="hv-timer evs-money">{money(33.15)}</div>
         <span className="chip mint evs-pop">
           <i />
-          Paid on Sunday
+          Paid on Thursday
         </span>
       </div>
     </div>

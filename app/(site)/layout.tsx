@@ -3,7 +3,6 @@ import { EarlyBar } from '@/components/EarlyBar';
 import { Footer } from '@/components/Footer';
 import { VisitTracker } from '@/components/VisitTracker';
 import { TawkChat } from '@/components/TawkChat';
-import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { navMenu } from '@/lib/seo/navStore';
 import { PageBlocks } from '@/components/PageBlocks';
 import { TopBlocks } from '@/components/TopBlocks';
@@ -39,9 +38,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <VisitTracker />
       </Suspense>
       <TawkChat />
-      <Suspense fallback={null}>
-        <GoogleAnalytics />
-      </Suspense>
     </>
   );
 }

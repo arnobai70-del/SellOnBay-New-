@@ -19,7 +19,7 @@ export function AskSeller({ productKey, signedIn, history }: { productKey: strin
   if (!signedIn)
     return (
       <p className="muted">
-        <Link className="link-u" href={`/login?next=${encodeURIComponent('/product/' + productKey)}`}>
+        <Link className="link-u" href={`/signin?next=${encodeURIComponent('/product/' + productKey)}`}>
           Sign in
         </Link>{' '}
         to ask the seller a question before you buy.

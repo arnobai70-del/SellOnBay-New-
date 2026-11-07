@@ -33,7 +33,12 @@ export const MAINTENANCE_LIMITS = { message: 300, defaultRetrySeconds: 300, maxR
  * Maintenance Manager with the audit log (the way back). Paths are API paths without the /api prefix.
  */
 export const ALWAYS_ON_API: RegExp[] = [/^\/webhooks\//, /^\/paypal\/return$/, /^\/cron\//, /^\/health$/, /^\/admin\/maintenance(\/|$)/];
-const ALWAYS_ON_PAGE: RegExp[] = [/^\/dashboard\/admin\/maintenance(\/|$)/, /^\/dashboard\/admin\/audit(\/|$)/, /^\/(login|auth)(\/|$)/, /^\/maintenance(\/|$)/];
+const ALWAYS_ON_PAGE: RegExp[] = [
+  /^\/dashboard\/admin\/maintenance(\/|$)/,
+  /^\/dashboard\/admin\/audit(\/|$)/,
+  /^\/(login|signin|two-factor|verify-email|forgot-password|auth)(\/|$)/,
+  /^\/maintenance(\/|$)/,
+];
 
 /* API routes (path after /api), most specific first. */
 const API_RULES: [RegExp, ModuleKey][] = [

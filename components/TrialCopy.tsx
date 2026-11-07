@@ -10,7 +10,7 @@ export function TrialCopy({ slug, signedIn }: { slug: string; signedIn: boolean 
   if (!signedIn)
     return (
       <p className="muted">
-        <Link className="link-u" href={`/login?next=${encodeURIComponent('/product/' + slug)}`}>
+        <Link className="link-u" href={`/signin?next=${encodeURIComponent('/product/' + slug)}`}>
           Sign in
         </Link>{' '}
         to try a limited copy before you buy.

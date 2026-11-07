@@ -44,22 +44,22 @@ export async function requireViewer(opts: { path: string; roles?: ViewerRole[]; 
   }
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
-  if (!user) redirect('/login?next=' + encodeURIComponent(opts.path));
+  if (!user) redirect('/signin?next=' + encodeURIComponent(opts.path));
 
   // The profile and the authenticator level are read at the same time (two round trips to the database became one wait).
   const [{ data: p }, { data: aal }] = await Promise.all([sb.from('profiles').select('full_name, role, banned, suspended_until').eq('id', user.id).single(), sb.auth.mfa.getAuthenticatorAssuranceLevel()]);
-  if (!p || cannotAct(p)) redirect('/login?error=' + encodeURIComponent('This account cannot sign in.'));
+  if (!p || cannotAct(p)) redirect('/signin?error=' + encodeURIComponent('This account cannot sign in.'));
   const role = (p.role ?? 'buyer') as ViewerRole;
 
   if (opts.roles && !opts.roles.includes(role)) redirect('/dashboard/' + role);
 
   if (role !== 'buyer') {
-    if (!passedCode(aal)) redirect('/login/mfa?next=' + encodeURIComponent(opts.path));
+    if (!passedCode(aal)) redirect('/two-factor?next=' + encodeURIComponent(opts.path));
   }
   if (mod && closed && role !== 'admin') redirect(maintenancePage(mod));
   let scopes: AdminScope[] = [];
   // O-7: an admin account never works through a social sign-in. If one has a social identity by any route, every admin page is refused.
-  if (role === 'admin' && hasSocialIdentity(user.identities as Identity[] | undefined)) redirect('/login?error=' + encodeURIComponent('Admin accounts sign in with password and authenticator code only. Contact another admin.'));
+  if (role === 'admin' && hasSocialIdentity(user.identities as Identity[] | undefined)) redirect('/signin?error=' + encodeURIComponent('Admin accounts sign in with password and authenticator code only. Contact another admin.'));
   if (role === 'admin') {
     scopes = effectiveScopes((await readAdminProfile(sb, user.id))?.admin_scopes);
     if (opts.scope && !hasScope(scopes, opts.scope)) redirect('/dashboard/admin?denied=1');

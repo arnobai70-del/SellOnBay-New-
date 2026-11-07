@@ -19,6 +19,8 @@ describe('every old public address moves with a 301', () => {
     expect(movedTo('/how-it-works')).toBe('/buyer-protection');
     for (const p of ['terms', 'privacy', 'refunds', 'seller-agreement', 'acceptable-use', 'dmca']) expect(movedTo('/' + p)).toBe('/legal/' + p);
     expect(movedTo('/faq/')).toBe('/help');
+    expect(movedTo('/login')).toBe('/signin');
+    expect(movedTo('/login/mfa')).toBe('/two-factor');
   });
   it('leaves working addresses alone, including the blog pictures existing posts use', () => {
     for (const p of [

@@ -15,11 +15,11 @@ export async function GET(req: NextRequest) {
   const origin = originOf(req); // the address the visitor used, never the server's own 0.0.0.0:3000
   const code = searchParams.get('code');
   const next = safeNext(searchParams.get('next'));
-  if (!code) return NextResponse.redirect(`${origin}/login?error=Sign-in failed. Try again.`);
+  if (!code) return NextResponse.redirect(`${origin}/signin?error=Sign-in failed. Try again.`);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) return NextResponse.redirect(`${origin}/login?error=Sign-in failed. Try again.`);
+  if (error) return NextResponse.redirect(`${origin}/signin?error=Sign-in failed. Try again.`);
 
   const {
     data: { user },
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   );
   if (!guard.ok) {
     await supabase.auth.signOut();
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(guard.message)}`);
+    return NextResponse.redirect(`${origin}/signin?error=${encodeURIComponent(guard.message)}`);
   }
   if (guard.linked) return NextResponse.redirect(`${origin}/account/sign-in?linked=${guard.linked}`);
   return NextResponse.redirect(origin + (next || '/dashboard/' + (profile?.role ?? 'buyer')));

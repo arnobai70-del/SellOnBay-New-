@@ -30,6 +30,9 @@ function routes(dir: string, file: string): string[] {
 const OPEN_PAGES = [
   '/design-preview', // development only: a 404 in production, removed in redesign Phase 7
   '/buyer-protection',
+  '/signin',
+  '/two-factor',
+  '/verify-email',
   '/help',
   '/legal/terms',
   '/legal/privacy',

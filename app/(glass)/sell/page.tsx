@@ -33,7 +33,7 @@ export default async function Sell() {
         <h1>{words.heading}</h1>
         {words.intro && <p className="g-lead">{words.intro}</p>}
         <div className="g-row" style={{ justifyContent: 'flex-start' }}>
-          <Button href="/login">Start selling</Button>
+          <Button href="/signin?mode=signup">Start selling</Button>
           <Button variant="ghost" href="/legal/seller-agreement">
             Seller agreement
           </Button>
@@ -91,7 +91,7 @@ export default async function Sell() {
       <section className="g-sec">
         <GlassCard reveal className="g-row">
           <h2>Ready to open your store?</h2>
-          <Button href="/login">Create a seller account</Button>
+          <Button href="/signin?mode=signup">Create a seller account</Button>
         </GlassCard>
       </section>
       <PageExtras path="/sell" />

@@ -4,6 +4,9 @@
  */
 const EXACT: Record<string, string> = {
   '/browse': '/websites',
+  '/login': '/signin',
+  '/login/mfa': '/two-factor',
+  '/forgot-password': '/signin?mode=forgot',
   '/blog': '/guides',
   '/faq': '/help',
   '/how-it-works': '/buyer-protection',

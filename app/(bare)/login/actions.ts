@@ -10,7 +10,7 @@ import { clientAddress } from '@/lib/clientIp';
 import { maintenanceMessage } from '@/lib/maintenance/service';
 import { SITE_URL } from '@/lib/site';
 
-const back = (msg: string): never => redirect('/login?error=' + encodeURIComponent(msg));
+const back = (msg: string): never => redirect('/signin?error=' + encodeURIComponent(msg));
 /* Turns provider errors into plain sentences. */
 function friendly(msg: string) {
   if (/rate limit|too many/i.test(msg)) return 'Too many emails were sent in a short time. Wait a few minutes and try again.';
@@ -65,7 +65,7 @@ export async function authenticate(formData: FormData) {
   const role = profile?.role ?? 'buyer';
   const dest = next || '/dashboard/' + role;
   // Sellers and admins go straight to the authenticator step so the address bar matches what they see.
-  if (role !== 'buyer' && authenticatorRequired()) redirect('/login/mfa?next=' + encodeURIComponent(dest));
+  if (role !== 'buyer' && authenticatorRequired()) redirect('/two-factor?next=' + encodeURIComponent(dest));
   redirect(dest);
 }
 
@@ -86,5 +86,5 @@ export async function requestReset(formData: FormData) {
   if (!g.ok) return back(g.error);
   // The link is built from our own address, never from request headers someone could set.
   await (await createClient()).auth.resetPasswordForEmail(email, { redirectTo: `${SITE_URL}/auth/callback?next=/reset-password` });
-  redirect('/login?sent=1');
+  redirect('/signin?sent=1');
 }

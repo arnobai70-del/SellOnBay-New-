@@ -1315,3 +1315,91 @@ textarea.g-input {
   color: var(--g-muted);
   font-size: 14px;
 }
+
+/* Sign-in pages: the forms keep their own markup and logic (components/AuthClient.tsx and friends); this gives them the glass look. */
+.g-auth {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0 16px;
+}
+.g-auth .auth,
+.g-auth > div > .auth {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  background: none;
+}
+.g-auth .art,
+.g-auth .auth-art {
+  display: none;
+}
+.g-auth .form {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(43, 66, 80, 0.06);
+  color: var(--g-text);
+}
+.g-auth .muted {
+  color: var(--g-muted);
+}
+.g-auth label {
+  color: var(--g-text-2);
+  font-size: 13px;
+}
+.g-auth .form input:not([type='hidden']):not([type='checkbox']):not([type='radio']) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--g-line-2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--g-text);
+  font: 14px var(--font-inter), system-ui, sans-serif;
+}
+.g-auth .form .btn {
+  min-height: 44px;
+  border-radius: 999px;
+  font: 500 14px var(--font-inter), system-ui, sans-serif;
+}
+.g-auth .form .btn-blue {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--g-mint);
+  color: var(--g-mint-tx);
+}
+.g-auth .form .btn-line {
+  border: 1px solid var(--g-line-2);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--g-text);
+}
+.g-auth .note {
+  border-radius: 12px;
+  background: var(--g-info-bg);
+  color: var(--g-info-tx);
+}
+.g-auth .note.warn {
+  background: var(--g-wait-bg);
+  color: var(--g-wait-tx);
+}
+.g-auth .auth-role {
+  border-color: var(--g-line-2);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--g-text);
+}
+.g-auth .auth-role[aria-checked='true'] {
+  border-color: var(--g-accent);
+  background: var(--g-mint);
+  color: var(--g-mint-tx);
+}
+.g-ui.g-auth a,
+.g-auth a {
+  color: var(--g-mint-tx);
+}

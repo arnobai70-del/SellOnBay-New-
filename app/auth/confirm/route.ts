@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const tokenHash = searchParams.get('token_hash') ?? '';
   const type = searchParams.get('type') ?? '';
-  if (!tokenHash || !TYPES.includes(type as EmailOtpType)) return NextResponse.redirect(`${originOf(req)}/login?error=${encodeURIComponent('That link is not valid. Request a new one.')}`);
+  if (!tokenHash || !TYPES.includes(type as EmailOtpType)) return NextResponse.redirect(`${originOf(req)}/signin?error=${encodeURIComponent('That link is not valid. Request a new one.')}`);
   const next = safeNext(searchParams.get('next'));
   const what = type === 'recovery' ? 'Choose a new password' : 'Confirm my email';
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${esc(what)} · SellOnBay</title></head>
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null);
   const tokenHash = String(form?.get('token_hash') ?? '');
   const type = String(form?.get('type') ?? '') as EmailOtpType;
-  const failed = `${origin}/login?error=${encodeURIComponent('That link has expired or was already used. Request a new one.')}`;
+  const failed = `${origin}/signin?error=${encodeURIComponent('That link has expired or was already used. Request a new one.')}`;
   if (!tokenHash || !TYPES.includes(type)) return NextResponse.redirect(failed, 303);
 
   const supabase = await createClient();

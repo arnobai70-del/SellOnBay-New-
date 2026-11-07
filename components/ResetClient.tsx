@@ -22,7 +22,7 @@ export function ResetClient() {
       setBusy(false);
       // Accounts with an authenticator must enter its code before the password can change; come back here after.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      if (/aal2/i.test(err.message)) return window.location.assign('/login/mfa?next=' + encodeURIComponent('/reset-password'));
+      if (/aal2/i.test(err.message)) return window.location.assign('/two-factor?next=' + encodeURIComponent('/reset-password'));
       return setError(
         /weak|leaked|pwned/i.test(err.message)
           ? 'Choose a stronger password: this one is too common or has appeared in a leak.'

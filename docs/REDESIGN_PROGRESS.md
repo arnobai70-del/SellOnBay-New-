@@ -7,7 +7,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 | 0 Audit | none | Done |
 | 1 Design system and layouts | `redesign/phase-1-design-system` | Done, approved by the owner on 2026-11-07 |
 | 2 Public pages | `redesign/phase-2-public-pages` | Done, waiting for the owner's click-through |
-| 3 Buying flow | `redesign/phase-3-buying-flow` | In progress |
+| 3 Buying flow | `redesign/phase-3-buying-flow` | Done |
 | 4 Buyer dashboard | none yet | Not started |
 | 5 Seller dashboard | none yet | Not started |
 | 6 Admin | none yet | Not started |
@@ -18,7 +18,15 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 Working database: the project in `.env.local` (owner, 2026-11-07).
 
 - Backup taken before the first migration: `backups/2026-11-07-before-redesign.sql` (2.1 MB, all schemas, dump complete) and `backups/storage/` (689 of 689 files, 65 MB). `backups/` is ignored by git.
-- Applied, one at a time, with the tests after each: `0074_flat_plan`, `0075_public_store_and_contact`. The history already had 0001 to 0073, so nothing older was pending.
+- Applied, one at a time, with the tests after each: `0074_flat_plan`, `0075_public_store_and_contact`, `0076_free_beta`, `0077_service_role_grants`. The history already had 0001 to 0073, so nothing older was pending. A dump was taken before 0076 (`backups/2026-11-08-before-0076.sql`) and before the owner's data changes (`backups/2026-11-08-before-owner-data.sql`).
+
+### Data changes made on the owner's written instruction (2026-11-08)
+
+One transaction, each change in `audit_log`:
+
+- All 43 live listings: `owner_type` set to `platform` and `beta_free_ok` to true (`listings_marked_platform_beta`). They now show SellOnBay as the seller and can be requested free.
+- `fashion-store-j9nr`: price $10 to $20 (`listing_price_changed`).
+- The owner's Business subscription `a0a8dbd1-17d7-4166-b05a-22501b3bab1f` ended, with a `subscription_events` row, so the account is on the flat 78/22 plan (`subscription_ended`).
 - 43 live listings and 47 accounts were the same before and after.
 
 ## Phase 2: done
@@ -62,19 +70,31 @@ What to click (`npm run dev`, then `http://localhost:3000`):
 
 ## Questions for the owner (not blocking)
 
-1. Which listings may be requested free during beta? None is marked `beta_free_ok` and none is SellOnBay-owned, so nothing can be requested until some are.
-2. Should the active Business seller (23 listings, 5% fee) move to the flat 22%?
-3. The database password appeared in the chat. Change it once the work is done, and update `.env.local`.
+1. The database password appeared in the chat. Change it once the work is done, and update `.env.local`.
 
 ## Test rows to remove before launch
 
-None yet.
+All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
+
+- Accounts: `buyer1@`, `buyer2@`, `buyer3@`, `seller1@`, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
+- Listing: `test-beta-website-qa` ("[TEST] Beta website"), paused.
+- Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.
 
 ## Placeholders still to fill
 
 `[PAYOUT FEE]`, `[DOMAIN REFUND POLICY]`, `[CONFIRM]` and `[N]` (licences page).
 
-## Phase 3 plan
+## Phase 3: done
+
+Cart in the browser priced by the server, free beta checkout (honest notice, no card or bank form), success page, `$0` order with no ledger row (an `order_events` row instead), sales and buyer emails, admin approve or decline at `/dashboard/admin/beta`, files after approval, feedback after 7 days, a review from the order page, and the sign-in screens at `/signin`, `/two-factor`, `/reset-password`, `/verify-email` with 301s keeping the query. Checked on the real database: the whole flow end to end, ledger unchanged (580 lines before and after), no files before approval, a decline needs a reason, one `main` per page.
+
+Fixed on the way: tables of 0075 and 0076 had no server grants (contact form and beta both failed on the real database; 0077 and a test), a wrong condition hid the cart button, two `main` landmarks on the beta order page, the redirect to `/signin?mode=forgot` lost its query.
+
+Not done: verify-email is the link Supabase sends, not a typed code; the test-card form and demo controls are retired in Phase 7; the admin tab moves into Orders & payments in Phase 6.
+
+What to click: sign in at `/signin` as a buyer, open a website, Add to cart, Go to checkout, send the form; then as admin open `/dashboard/admin/beta` and Approve; back as the buyer open the order from the dashboard and Download files.
+
+## Phase 3 plan (as written before the phase)
 
 1. `/signin`, `/forgot-password`, `/reset-password`, `/verify-email`, `/two-factor` on the glass UI, with 301s from `/login` and `/login/mfa`, keeping every sign-in safety check.
 2. `/cart`, kept in the browser and priced by the server, with the cart link in the top bar.

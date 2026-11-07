@@ -36,6 +36,7 @@ export function AuthClient({
   oauth = [],
   appleExisting = false,
   codeRequired = true,
+  startMode,
 }: {
   live: boolean;
   error?: string;
@@ -47,10 +48,11 @@ export function AuthClient({
   appleExisting?: boolean;
   /* Sellers and admins need the authenticator code (lib/auth/authenticator.ts); the words about it are hidden while it is off. */
   codeRequired?: boolean;
+  startMode?: 'signup' | 'forgot';
 }) {
   const router = useRouter();
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
-  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(sent ? 'forgot' : 'signin');
+  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(sent ? 'forgot' : (startMode ?? 'signin'));
   const [show, setShow] = useState(false);
   const signup = mode === 'signup';
   // The bot check shows only when the server has real Turnstile keys. A token works once, so every send gets a fresh widget.

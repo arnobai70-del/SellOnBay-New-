@@ -3,7 +3,7 @@
  * An admin can add more paths to keep crawlers out of (saved by lib/seo/robotsStore.ts). Pure, so it is tested.
  * Not for removing pages from Google: a blocked page cannot be crawled, so Google never sees its noindex. Use the page's own noindex or archive switch for that.
  */
-export const BASE_DISALLOW = ['/dashboard', '/messages', '/checkout', '/sell/new', '/auth', '/login', '/orders', '/pay', '/account', '/notifications', '/api/'];
+export const BASE_DISALLOW = ['/dashboard', '/messages', '/checkout', '/sell/new', '/auth', '/signin', '/orders', '/pay', '/account', '/notifications', '/api/'];
 export const ROBOTS_EXTRA_MAX = 30;
 
 /* A path to keep crawlers out of: starts with /, plain characters, and not the whole site or a page that must stay crawlable. */

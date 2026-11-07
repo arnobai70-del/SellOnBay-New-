@@ -51,7 +51,12 @@ async function proxyInner(req: NextRequest) {
   // Addresses that moved in the glass redesign answer with a permanent redirect (lib/glass/moved.ts), so rankings carry over.
   if (!legacyPublic() && (req.method === 'GET' || req.method === 'HEAD')) {
     const to = movedTo(req.nextUrl.pathname);
-    if (to) return NextResponse.redirect(new URL(to + req.nextUrl.search, originOf(req)), 301);
+    if (to) {
+      // Keep the visitor's query (for example ?next=), merged with any the new address carries.
+      const dest = new URL(to, originOf(req));
+      req.nextUrl.searchParams.forEach((v, k) => dest.searchParams.has(k) || dest.searchParams.append(k, v));
+      return NextResponse.redirect(dest, 301);
+    }
   }
   // The old public site (shelves, developers, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
   if (!legacyPublic() && isRetired(req.nextUrl.pathname)) {
@@ -118,10 +123,10 @@ async function handle(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const go = (to: string) => NextResponse.redirect(new URL(to, originOf(req)));
 
-  if (!user) return SIGNED_IN.some((p) => path.startsWith(p)) ? go('/login?next=' + encodeURIComponent(path)) : res;
+  if (!user) return SIGNED_IN.some((p) => path.startsWith(p)) ? go('/signin?next=' + encodeURIComponent(path)) : res;
 
   const { data: profile } = await supabase.from('profiles').select('role, banned, suspended_until').eq('id', user.id).single();
-  if (profile && cannotAct(profile)) return go('/login?error=banned');
+  if (profile && cannotAct(profile)) return go('/signin?error=banned');
 
   const role = profile?.role ?? 'buyer';
   if (path.startsWith('/dashboard/admin') && role !== 'admin') return go('/dashboard/' + (role === 'seller' ? 'seller' : 'buyer'));
@@ -129,7 +134,7 @@ async function handle(req: NextRequest) {
 
   if (role !== 'buyer' && STAFF.some((p) => path.startsWith(p))) {
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (!passedCode(aal)) return go('/login/mfa?next=' + encodeURIComponent(path));
+    if (!passedCode(aal)) return go('/two-factor?next=' + encodeURIComponent(path));
   }
   return res;
 }

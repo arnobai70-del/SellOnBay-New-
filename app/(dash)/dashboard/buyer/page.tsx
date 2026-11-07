@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: 'Buyer overview', robots: { index: fa
 export const dynamic = 'force-dynamic';
 
 export default async function BuyerOverview() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer', 'seller'] });
   const v = viewer ? await buyerOverview(viewer.id) : null;
   const first = viewer?.name?.split(' ')[0];
   return (

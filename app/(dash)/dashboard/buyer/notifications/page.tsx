@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Notifications', robots: { index: fal
 export const dynamic = 'force-dynamic';
 
 export default async function BuyerNotifications() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/notifications', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/notifications', roles: ['buyer', 'seller'] });
   const list = viewer ? await notificationsFor(viewer.id, 100) : [];
   const unread = list.filter((n) => !n.read).length;
   return (

@@ -111,6 +111,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0076_free_beta.sql | Owner 2026-11-07: three beta order states, beta requests and feedback; the status check keeps every older value |
 | 0077_service_role_grants.sql | Fix: the server may read and write the tables of 0075 and 0076 |
 | 0078_profile_details.sql | Owner 2026-11-07: country, international phone and company on the profile; only adds |
+| 0079_seller_mode.sql | Owner 2026-11-07: `profiles.can_sell`, bKash added to the payout method check (Bangladesh sellers only, checked by the server), `seller_verifications` (server only) and the private `seller-ids` bucket; only adds |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

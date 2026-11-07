@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /* The buyer's support tickets with SellOnBay (admin-mediated, D-B). */
 export default async function BuyerSupport({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/support', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/support', roles: ['buyer', 'seller'] });
   const { t } = await searchParams;
   const tickets = viewer ? await ticketsOf({ id: viewer.id, role: 'buyer' }) : [];
   const open = tickets.find((x) => x.id === t) ?? null;

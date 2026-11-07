@@ -42,7 +42,7 @@ async function signedIn(): Promise<{ ok: true; id: string; email: string | null;
 export async function buyerOnly(): Promise<Who> {
   const s = await signedIn();
   if (!s.ok) return s;
-  if (!mayBuy(s.role)) return no('Only a buyer account can do this. Seller and admin accounts cannot buy.', 403);
+  if (!mayBuy(s.role)) return no('Admin accounts cannot buy. Use your own account.', 403);
   return { ok: true, id: s.id, name: s.name, email: s.email };
 }
 

@@ -33,14 +33,17 @@ export async function POST(req: Request) {
   if (!(await limit(`payout-details:${user.id}`, 5, 24 * 3_600_000))) return no('You changed your payout details a few times today. Try again tomorrow.', 429);
 
   const body = (await req.json().catch(() => null)) as { method?: unknown; account?: unknown } | null;
-  const c = checkPayoutDetails(body?.method, body?.account);
+  const admin = createAdminClient();
+  const { data: who } = await admin.from('profiles').select('country').eq('id', user.id).single();
+  const c = checkPayoutDetails(body?.method, body?.account, who?.country);
   if (!c.ok) return no(c.error);
 
-  const admin = createAdminClient();
   const { data: before } = await admin.from('seller_profiles').select('payout_method, payout_ref').eq('user_id', user.id).maybeSingle();
   const { error } = before
-    ? await admin.from('seller_profiles').update({ payout_method: c.method, payout_ref: c.account }).eq('user_id', user.id)
-    : await admin.from('seller_profiles').insert({ user_id: user.id, display_name: p.full_name || 'Seller', payout_method: c.method, payout_ref: c.account });
+    ? await admin.from('seller_profiles').update({ payout_method: c.method, payout_ref: c.account, payout_changed_at: new Date().toISOString() }).eq('user_id', user.id)
+    : await admin
+        .from('seller_profiles')
+        .insert({ user_id: user.id, display_name: p.full_name || 'Seller', payout_method: c.method, payout_ref: c.account, payout_changed_at: new Date().toISOString() });
   if (error) return no('Could not save your payout details. Try again.', 500);
   const was = payoutLabel(before?.payout_method, before?.payout_ref);
   const now = payoutLabel(c.method, c.account)!;

@@ -9,7 +9,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 | 2 Public pages | `redesign/phase-2-public-pages` | Done, waiting for the owner's click-through |
 | 3 Buying flow | `redesign/phase-3-buying-flow` | Done |
 | 4 Buyer dashboard | `redesign/phase-4-buyer-dashboard` | Done |
-| 5 Seller dashboard | none yet | Not started |
+| 5 Seller dashboard | `redesign/phase-5-seller-dashboard` | Done |
 | 6 Admin | none yet | Not started |
 | 7 Polish | none yet | Not started |
 
@@ -67,6 +67,10 @@ What to click (`npm run dev`, then `http://localhost:3000`):
 - Legal pages stay reachable and out of search, as the owner set on 2026-10-23.
 - `/login` stays the sign-in address until the sign-in pages move in Phase 3.
 - Saved settings for a category stay under the old `/templates/<slug>` key, so nothing an admin saved is lost.
+- Phase 5: a buyer who switches to selling becomes a `seller` account with `can_sell` (the role field keeps its meaning for every older check), and seller accounts may buy. Admin accounts never buy or sell.
+- Phase 5: `/sell/new` keeps working with the same form, so older links and the demo build do not break; the dashboard links go to `/dashboard/seller/websites/new`.
+- Phase 5: a bKash account is a Bangladesh mobile number (01 then 9 digits, with or without +880).
+- Phase 5: identity verification is asked for before the first payout but does not block listing; Finance approves it in Phase 6.
 
 ## Questions for the owner (not blocking)
 
@@ -76,7 +80,7 @@ What to click (`npm run dev`, then `http://localhost:3000`):
 
 All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
 
-- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `seller1@`, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
+- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `buyer5@` (switched to selling), `seller1@` (an authenticator factor "[TEST] e2e", store name `test-seller-qa`, PayPal payout, country US, ID verifications `e00e774f-d1f6-407b-b13d-97483d7132d8` and `2d3a8f2c-50af-4bd7-956f-9e9f92662f18` with their files in `seller-ids`), `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
 - Listing: `test-beta-website-qa` ("[TEST] Beta website"), paused.
 - Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, `bf3b2ce6-5c47-4821-93b0-f0b894e4943f`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.
 
@@ -117,3 +121,24 @@ Fixed on the way: the country names were built at run time and differ between No
 Not done: sign-in methods and your data still open the older `/account/*` pages (Phase 7); domain renewal, DNS and transfer need a registrar; the design's login alerts, device list and coupon box are not built (no data behind them yet).
 
 What to click: sign in as a buyer, open each item of the menu; on Account & security save a phone like +44 20 7946 0958.
+
+## Phase 5 plan
+
+The ten seller pages on the glass shell: overview, my websites (beta offer per listing, edits, versions, source files), upload (the one listing form with the reviewer's checklist), orders and escrow (every delivery action of the old page), earnings and payouts (bKash only for Bangladesh), identity verification, customization (extra work), disputes and messages, notifications, store and analytics, account. One account buys and sells (`can_sell`); the authenticator code is always required. Migration 0079.
+
+## Phase 5: done
+
+- Seller pages at `/dashboard/seller` and under it: overview, websites, websites/new, orders, payouts, customization, support, notifications, store, account. The old seller page's actions all moved over (deliver, GitHub invite, delivery files, record PDF, repository revocations, drafts, buyer questions, versions, source files).
+- One account buys and sells: a buyer clicks "Switch to selling" on Account & security (`/api/account/sell`, audited, never for admins). The account becomes a seller with `can_sell`, can still open the buyer pages and buy (`mayBuy` allows buyer and seller, never from itself), and the seller pages ask for the authenticator code.
+- `AUTHENTICATOR_OFF` is retired: the code ignores it. `.env.local` still has the line; it does nothing now and can be deleted.
+- Payouts: PayPal, Payoneer, Wise or bank anywhere; bKash only when the profile country is BD (checked by the server). Identity: passport, national ID or driver licence plus country, checked by its bytes, stored in the private `seller-ids` bucket under server-chosen names; there is no route that returns the files.
+- Store: store name (address), headline, about, skills, reply time, available for customization, pause; the chat filter keeps contact details out. Stats: views, people and Buy clicks per listing over 30 days from visitor analytics.
+- Migration 0079 applied after a dump (`backups/2026-11-08-before-0079.sql`).
+
+Checked: 1,098 unit tests (one timeout under load, passed alone), typecheck, lint, build. On the real database: a test buyer switches to selling and is then asked for the code; seller APIs without the code are refused; every seller page at 390 and 1280 for the test seller with a real authenticator code (status, width, one h1 and one main); beta offer on the own listing saves and on someone else's is refused; contact details and reserved store names refused; bKash refused for a US seller; a fake ID file refused, a real picture stored, not readable with the public key.
+
+Fixed on the way: the upload page had two h1 (the form's own); the form now leaves it out inside the dashboard.
+
+Not done: Finance's review of ID documents and approval (Phase 6 admin); old `/dashboard/seller/promote`, `reports` and `revisions` pages keep the old look (Phase 7); the listing form itself keeps its older look inside the glass page (Phase 7); the old seller plan panel is gone from the dashboard because there is one flat plan.
+
+What to click: sign in as a buyer, Account & security, Switch to selling, set up the authenticator; then each seller menu item; on My websites turn "Free during beta" off and on; on Earnings & payouts add a PayPal email.

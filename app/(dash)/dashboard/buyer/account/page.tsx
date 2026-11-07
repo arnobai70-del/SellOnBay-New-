@@ -3,6 +3,7 @@ import { BuyerShell } from '@/components/glass/BuyerShell';
 import { Button } from '@/components/glass/Button';
 import { DetailsForm } from '@/components/glass/DetailsForm';
 import { GlassCard } from '@/components/glass/GlassCard';
+import { SellSwitch } from '@/components/glass/SellerForms';
 import { ProfileForm } from '@/components/ProfileForm';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: 'Account and security', robots: { ind
 export const dynamic = 'force-dynamic';
 
 export default async function BuyerAccount() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/account', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/account', roles: ['buyer', 'seller'] });
   let d = { country: '', phone: '', company: '' };
   if (viewer && supabaseConfigured) {
     // '*' so the page keeps working before migration 0078; only these three fields are shown.
@@ -62,6 +63,25 @@ export default async function BuyerAccount() {
             </Button>
           </div>
         </GlassCard>
+        {viewer && (
+          <GlassCard as="section">
+            <h2>Selling</h2>
+            <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              {viewer.role === 'seller'
+                ? 'Your account sells too. Seller pages ask for your authenticator code.'
+                : 'Sell your own websites from this account and keep buying as before. Seller pages ask you to set up an authenticator code.'}
+            </p>
+            <div style={{ marginTop: 14 }}>
+              {viewer.role === 'seller' ? (
+                <Button variant="ghost" href="/dashboard/seller">
+                  Seller dashboard
+                </Button>
+              ) : (
+                <SellSwitch />
+              )}
+            </div>
+          </GlassCard>
+        )}
       </div>
     </BuyerShell>
   );

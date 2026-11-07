@@ -20,7 +20,7 @@ const TAB_LABEL: Record<OrderTab, string> = { all: 'All', progress: 'In progress
 const method = (o: Order) => (o.payment?.brand === BETA_METHOD ? 'Free (beta)' : o.payment?.brand ? o.payment.brand : '—');
 
 export default async function BuyerOrders({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/orders', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/orders', roles: ['buyer', 'seller'] });
   const { tab: raw } = await searchParams;
   const tab: OrderTab = (ORDER_TABS as readonly string[]).includes(String(raw)) ? (raw as OrderTab) : 'all';
   const orders = viewer ? await buyerOrders(viewer.id) : [];

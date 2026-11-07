@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 /* The websites this buyer can download now. Files come only through the order's own signed link, which the server checks every time. */
 export default async function BuyerWebsites() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/websites', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/websites', roles: ['buyer', 'seller'] });
   const sites = viewer ? await buyerWebsites(await buyerOrders(viewer.id)) : [];
   return (
     <BuyerShell

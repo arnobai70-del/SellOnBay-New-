@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 /* No registrar is connected yet (owner, 2026-11-07): domains are registered by hand, in the buyer's own name, so this page shows what we hold and what is on its way. */
 export default async function BuyerDomains() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/domains', roles: ['buyer'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/domains', roles: ['buyer', 'seller'] });
   const domains = viewer ? await buyerDomains(viewer.id, await buyerOrders(viewer.id)) : [];
   return (
     <BuyerShell viewer={viewer} active="domains" title="Domains" subtitle="Registered in your own name" actions={<Button href="/domains">Find a new domain</Button>}>

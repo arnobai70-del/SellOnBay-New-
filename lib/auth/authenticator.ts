@@ -1,12 +1,12 @@
 /*
- * The one switch for the authenticator code (2FA) that sellers and admins need. On unless AUTHENTICATOR_OFF=1 is set in the server environment,
- * so a missing or mistyped value keeps the code required. Read on every call, never NEXT_PUBLIC: the browser cannot change it.
+ * The authenticator code (2FA) that sellers and admins need. Always on: the temporary AUTHENTICATOR_OFF switch was retired by the owner on 2026-11-07,
+ * and the environment can no longer turn the code off. The env argument stays so older callers and tests keep compiling; it is ignored.
  */
-export function authenticatorRequired(env: Record<string, string | undefined> = process.env): boolean {
-  return env.AUTHENTICATOR_OFF !== '1';
+export function authenticatorRequired(_env: Record<string, string | undefined> = process.env): boolean {
+  return true;
 }
 
-/* Has this session passed the code, or is the code switched off? Takes the result of getAuthenticatorAssuranceLevel(). */
-export function passedCode(aal: { currentLevel?: string | null } | null | undefined, env: Record<string, string | undefined> = process.env): boolean {
-  return !authenticatorRequired(env) || aal?.currentLevel === 'aal2';
+/* Has this session passed the code? Takes the result of getAuthenticatorAssuranceLevel(). */
+export function passedCode(aal: { currentLevel?: string | null } | null | undefined, _env: Record<string, string | undefined> = process.env): boolean {
+  return aal?.currentLevel === 'aal2';
 }

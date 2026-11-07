@@ -20,7 +20,7 @@ export function MaintenanceNotice({ module: key, message, until }: { module: Mod
           <Link className="btn btn-blue" href="/">
             Go to the home page
           </Link>
-          <Link className="btn btn-line" href="/faq">
+          <Link className="btn btn-line" href="/help">
             Help
           </Link>
         </div>

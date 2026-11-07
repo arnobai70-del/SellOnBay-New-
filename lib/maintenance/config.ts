@@ -53,7 +53,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/download(\/|$)/, 'orders'],
   [/^\/reports(\/|$)/, 'orders'], // sales PDFs and receipts kept 24 hours (lib/reports)
   [/^\/(hire|products\/[^/]+\/trial)$/, 'checkout'],
-  [/^\/(notifications|presale|conversations|tickets)(\/|$)/, 'messaging'],
+  [/^\/(notifications|presale|conversations|tickets|contact)(\/|$)/, 'messaging'],
   [/^\/listings(\/|$)/, 'upload'],
   [/^\/seller\/files(\/|$)/, 'upload'], // source-file uploads (lib/files)
   [/^\/seller\/orders\/[^/]+\/delivery$/, 'orders'], // a work order's delivery sent for release (lib/release)
@@ -79,9 +79,9 @@ const PAGE_RULES: [RegExp, ModuleKey][] = [
   [/^\/(checkout|pay)(\/|$)/, 'checkout'],
   [/^\/orders(\/|$)/, 'orders'],
   [/^\/(messages|notifications)(\/|$)/, 'messaging'],
-  [/^\/blog(\/|$)/, 'seo'],
+  [/^\/(blog|guides)(\/|$)/, 'seo'],
   [/^\/(tools|find)(\/|$)/, 'ai'],
-  [/^\/(browse|apps|product|preview|categories|websites|templates|developers|domains|search)(\/|$)/, 'catalog'],
+  [/^\/(browse|apps|product|preview|categories|websites|sellers|templates|developers|domains|search)(\/|$)/, 'catalog'],
 ];
 
 const match = (rules: [RegExp, ModuleKey][], path: string) => rules.find(([re]) => re.test(path))?.[1] ?? null;

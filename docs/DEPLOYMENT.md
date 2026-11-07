@@ -107,6 +107,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0072_app_errors.sql | Owner 2026-11-03: server error counts per kind and hour (fingerprint of route, status and first message line, already blanked by lib/monitor.ts) and log_app_error(), service role only; kept 30 days |
 | 0073_system_db_stats.sql | Owner 2026-11-03: system_db_stats() returns the database size and connection count for the admin system page; read only, service role only |
 | 0074_flat_plan.sql | Owner 2026-11-07: version 2 of the free plan at a flat 22% fee; older plan versions stop being offered, and orders keep the fee they recorded |
+| 0075_public_store_and_contact.sql | Owner 2026-11-07: public seller store fields, listing stack, featured and beta opt-in, contact messages and newsletter tables; only adds |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

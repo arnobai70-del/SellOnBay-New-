@@ -28,15 +28,15 @@ export async function LegalPage({
     ? `Version ${doc.version}, published ${new Date(doc.publishedAt ?? doc.updatedAt).toISOString().slice(0, 10)}.${doc.lawyerReviewed ? '' : ' Not yet reviewed by a lawyer.'}`
     : stamp;
   return (
-    <div className="wrap">
-      <div className="page-head">
+    <>
+      <div className="g-head">
         <h1>{w.heading}</h1>
-        <p className="stamp muted">{shown}</p>
+        <p className="g-tag">{shown}</p>
       </div>
-      <div className="prose" data-page-text={doc ? `legal-v${doc.version}` : w.body ? 'saved' : 'built-in'}>
+      <div className="g-glass g-card g-prose" data-page-text={doc ? `legal-v${doc.version}` : w.body ? 'saved' : 'built-in'}>
         {doc ? <PostBody blocks={parseMarkdown(doc.body)} /> : w.body ? <PostBody blocks={w.body} /> : children}
       </div>
       <PageExtras path={path} />
-    </div>
+    </>
   );
 }

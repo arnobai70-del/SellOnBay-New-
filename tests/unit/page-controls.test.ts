@@ -82,7 +82,7 @@ describe('page publishing and search controls', () => {
   it('will not close a legal page or an unknown page, and says when nothing changed', async () => {
     expect(await setPageControls('admin-1', '/terms', { ...C, status: 'archived' })).toMatchObject({ ok: false, status: 400 });
     expect(await setPageControls('admin-1', '/nope', C)).toMatchObject({ ok: false, status: 404 });
-    expect(await setPageControls('admin-1', '/faq', C)).toMatchObject({ ok: false, status: 409 });
+    expect(await setPageControls('admin-1', '/help', C)).toMatchObject({ ok: false, status: 409 });
   });
 
   it('counts commercial and other pages apart and lists the home page and legal pages, with no ceiling', async () => {
@@ -102,14 +102,17 @@ describe('pages that show what an admin saved', () => {
     const { SEO_PAGES } = await import('@/lib/seo/pageList');
     for (const p of SEO_PAGES) {
       const path = p.path.split('?')[0];
-      const file =
-        path === '/'
-          ? 'app/(site)/page.tsx'
+      const file = ['/terms', '/privacy', '/refunds', '/licenses', '/seller-agreement', '/acceptable-use', '/dmca'].includes(path)
+        ? `app/(glass)/legal${path}/page.tsx`
+        : path === '/'
+          ? 'app/(glass)/page.tsx'
           : path.startsWith('/apps/')
             ? 'app/(site)/apps/[platform]/page.tsx'
             : path.startsWith('/templates/')
-              ? 'app/(site)/templates/[category]/page.tsx'
-              : `app/(site)${path}/page.tsx`;
+              ? 'app/(glass)/websites/category/[category]/page.tsx'
+              : existsSync(`app/(glass)${path}/page.tsx`)
+                ? `app/(glass)${path}/page.tsx`
+                : `app/(site)${path}/page.tsx`;
       expect(existsSync(file), p.path).toBe(true);
       const text = readFileSync(file, 'utf8');
       // Legal pages get it from LegalPage.

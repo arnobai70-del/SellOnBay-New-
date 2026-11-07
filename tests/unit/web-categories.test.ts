@@ -13,9 +13,9 @@ describe('website categories', () => {
   it('still accepts older values and shows them as the new category they belong to', () => {
     expect(isWebCat('Restaurants')).toBe(true);
     expect(isWebCat('Nonsense')).toBe(false);
-    expect(webCatLabel('Stores')).toBe('E-commerce Templates');
-    expect(webCatLabel('Restaurants')).toBe('Industry Website Templates');
-    expect(webCatLabel('Portfolio & Agency Templates')).toBe('Portfolio & Agency Templates');
+    expect(webCatLabel('Stores')).toBe('E-commerce Websites');
+    expect(webCatLabel('Restaurants')).toBe('Industry Websites');
+    expect(webCatLabel('Portfolio & Agency Templates')).toBe('Portfolio & Agency Websites'); // a saved value keeps working and shows the new name
   });
   it('puts every offered category in its own hub', () => {
     for (const h of HUBS) expect(hubOf({ id: 'p', cat: h.name, platform: 'web' }, none)?.slug).toBe(h.slug);

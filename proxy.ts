@@ -9,6 +9,7 @@ import { closedForPath, maintenanceJson, maintenancePageResponse } from './lib/m
 import type { ModuleKey } from './lib/maintenance/config';
 import { crossSiteWrite } from './lib/sameOrigin';
 import { isRetired, isRetiredApi, legacyPublic } from './lib/legacy';
+import { movedTo } from './lib/glass/moved';
 import { savedRedirects } from './lib/seo/redirectRead';
 import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
 import { SITE_URL } from './lib/site';
@@ -47,7 +48,12 @@ async function proxyInner(req: NextRequest) {
   // A module in maintenance (lib/maintenance): its pages show the maintenance notice, its APIs answer 503. The routes check again themselves.
   const closed = await closedForPath(req.nextUrl.pathname);
   if (closed && !(await adminPasses(req, closed.key))) return closed.api ? maintenanceJson(closed.row) : maintenancePageResponse(closed.row);
-  // The old public site (shelves, developers, domains, blog, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
+  // Addresses that moved in the glass redesign answer with a permanent redirect (lib/glass/moved.ts), so rankings carry over.
+  if (!legacyPublic() && (req.method === 'GET' || req.method === 'HEAD')) {
+    const to = movedTo(req.nextUrl.pathname);
+    if (to) return NextResponse.redirect(new URL(to + req.nextUrl.search, originOf(req)), 301);
+  }
+  // The old public site (shelves, developers, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
   if (!legacyPublic() && isRetired(req.nextUrl.pathname)) {
     const headers = { 'x-robots-tag': 'noindex', 'cache-control': 'public, max-age=300' };
     if (isRetiredApi(req.nextUrl.pathname)) return NextResponse.json({ error: 'This is no longer available.' }, { status: 410, headers });

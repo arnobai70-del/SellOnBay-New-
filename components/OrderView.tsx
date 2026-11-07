@@ -342,7 +342,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               <button className="btn btn-gold btn-lg" disabled={busy === 'accept' || !agreed} onClick={() => act('accept')}>
                 {busy === 'accept' ? 'Accepting…' : 'Accept and release payment'}
               </button>
-              <Link className="btn btn-line btn-lg" href="/faq#refunds">
+              <Link className="btn btn-line btn-lg" href="/help#refunds">
                 Something is wrong
               </Link>
             </div>

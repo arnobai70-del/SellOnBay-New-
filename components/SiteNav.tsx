@@ -10,7 +10,6 @@ import { legacyPublic } from '@/lib/legacy';
 import { SHELF_OPTIONS } from '@/lib/storeShelves';
 import { SearchMark } from './SearchMark';
 import { Logo } from './Logo';
-import { ThemeSwitch } from './ThemeSwitch';
 
 /* Which category-bar entry a page belongs to, from the key SiteNavByPath picks. */
 const ENTRY_OF: Record<string, string> = { browse: 'web', find: 'web', domains: 'web', webapp: 'web', how: 'help', apps: 'apps', android: 'apps', ios: 'apps', desktop: 'apps', digital: '' };
@@ -315,7 +314,6 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
           <Link className="btn btn-gold btn-sm mk-acct" href={account}>
             {accountLabel}
           </Link>
-          <ThemeSwitch />
         </div>
       </div>
 

@@ -7,7 +7,7 @@
 export const legacyPublic = () => process.env.NEXT_PUBLIC_LEGACY_PUBLIC === '1';
 
 /* Public addresses that are retired: the address itself and everything below it. Working routes (account, checkout, orders, admin, legal) are never here. */
-export const RETIRED_PAGES = ['/browse', '/apps', '/categories', '/developers', '/domains', '/find', '/blog', '/tools', '/welcome', '/explore', '/websites', '/guest'];
+export const RETIRED_PAGES = ['/browse', '/apps', '/categories', '/developers', '/find', '/tools', '/welcome', '/explore', '/guest'];
 export const RETIRED_API = ['/api/domains', '/api/tools', '/api/developers', '/api/hire'];
 
 const under = (path: string, prefix: string) => path === prefix || path.startsWith(prefix + '/');

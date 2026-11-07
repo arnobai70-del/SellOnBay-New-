@@ -228,7 +228,7 @@ export function CheckoutClient({ p, pkg: asked, domain, newDomainsEnabled = fals
                     </span>
                   </div>
                   <p className="muted" style={{ marginTop: 12, fontSize: 14 }} data-refund>
-                    {DIGITAL_REFUND_SHORT} <Link href="/refunds#digital-products">Refunds</Link>
+                    {DIGITAL_REFUND_SHORT} <Link href="/legal/refunds#digital-products">Refunds</Link>
                   </p>
                 </div>
               ) : (

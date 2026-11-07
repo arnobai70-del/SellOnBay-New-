@@ -10,13 +10,13 @@ import { sitemapPlan } from '@/lib/seo/sitemapPlan';
 
 describe('the five template categories', () => {
   it('are the five approved ones, each with its own words and a listed page', () => {
-    expect(HUBS.map(hubPath)).toEqual(['/', '/templates/saas', '/templates/business', '/templates/portfolio', '/templates/industry']);
+    expect(HUBS.map(hubPath)).toEqual(['/templates/ecommerce', '/templates/saas', '/templates/business', '/templates/portfolio', '/templates/industry']);
     expect(HUBS.map((h) => h.name)).toEqual(HUB_LINKS.map(([, n]) => n));
     expect(HUBS.map((h) => h.slug)).toEqual(HUB_LINKS.map(([s]) => s));
     expect(new Set(HUBS.map((h) => h.title)).size).toBe(5);
     expect(new Set(HUBS.map((h) => h.description)).size).toBe(5);
     for (const h of HUBS) {
-      if (h.slug !== 'ecommerce') expect(SEO_PAGES.map((p) => p.path)).toContain(hubPath(h)); // the E-commerce category is the home page
+      expect(SEO_PAGES.map((p) => p.path)).toContain(hubPath(h));
       expect(h.description.length).toBeGreaterThanOrEqual(50);
       expect(h.description.length).toBeLessThanOrEqual(170);
       expect(h.faq.length).toBeGreaterThan(0);
@@ -25,7 +25,7 @@ describe('the five template categories', () => {
 
   it('are in the top bar as one Templates entry that sends to each page', () => {
     const e = LEGACY_MENU.find((m) => m.key === 'templates')!;
-    expect(e.groups[0].links.map(([, href]) => href)).toEqual(HUBS.map(hubPath));
+    expect(e.groups[0].links.map(([, href]) => href)).toEqual(HUBS.map((h) => `/websites/category/${h.slug}`));
   });
 
   it('place a listing by the admin choice first, then by its own category, and never an example', async () => {

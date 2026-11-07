@@ -1,7 +1,7 @@
 import { BRAND_NAME } from '../brand';
 import { DIGITAL_TOPICS } from '../apps';
 import { HUBS, hubPath } from './hubs';
-import { BUGFIX_DAYS, REVIEW_HOURS, SELLER_KEEP_TEXT } from '../config';
+import { BUGFIX_DAYS, REVIEW_HOURS, PLAN_KEEP_TEXT } from '../config';
 
 /*
  * The public pages whose title and description an admin can change at /dashboard/admin/seo/pages, with the built-in words each page uses
@@ -40,11 +40,10 @@ export const SEO_PAGES: SeoPage[] = [
     path: '/apps/digital',
     name: 'Digital products',
     title: 'Digital products',
-    description: 'Figma kits, no-code templates, plugins, scripts, AI automations, chatbots, prompts and video templates. Files right after payment, money held in escrow until you accept.',
+    description: 'Figma kits, no-code websites, plugins, scripts, AI automations, chatbots, prompts and video websites. Files right after payment, money held in escrow until you accept.',
   },
   // One page per topic of the category bar (AI tools, Audio, Fonts...): the digital shelf narrowed to that topic.
-  // The E-commerce category is the home page, which has its own settings, so it is not listed here.
-  ...HUBS.filter((h) => h.slug !== 'ecommerce').map((h) => ({
+  ...HUBS.map((h) => ({
     path: hubPath(h),
     name: `${h.name} (category)`,
     title: h.title,
@@ -56,13 +55,13 @@ export const SEO_PAGES: SeoPage[] = [
     path: '/categories',
     name: 'All categories',
     title: 'All categories',
-    description: 'Every shelf and category on SellOnBay: websites, apps, AI tools, video, audio, graphics, design templates, photos, 3D, fonts, developers and domains.',
+    description: 'Every shelf and category on SellOnBay: websites, apps, AI tools, video, audio, graphics, design websites, photos, 3D, fonts, developers and domains.',
   },
   {
     path: '/developers',
     name: 'Hire a developer',
     title: 'Hire a developer',
-    description: 'Hire a developer to customise your template, fix a bug or build a feature. Fixed prices, payment held until you accept.',
+    description: 'Hire a developer to customise your website, fix a bug or build a feature. Fixed prices, payment held until you accept.',
   },
   {
     path: '/developers/join',
@@ -77,9 +76,9 @@ export const SEO_PAGES: SeoPage[] = [
   {
     path: '/domains',
     name: 'Domains',
-    title: 'Domain name ideas',
-    description: 'Explore domain name ideas. Live registrar availability, registration and purchase are not yet connected.',
-    words: { heading: 'Find a domain people remember' },
+    title: 'Domains',
+    description: 'Find a domain name for your new website and have it registered in your own name. Availability is checked by hand when you order.',
+    words: { heading: 'Find the perfect domain for your new website.', intro: 'We register it in your own name. You own it, not the seller.' },
   },
   {
     path: '/find',
@@ -89,32 +88,49 @@ export const SEO_PAGES: SeoPage[] = [
     words: { heading: 'Tell us what you do. We pick your site.', intro: 'One click. No sign-up, no long form.' },
   },
   {
-    path: '/how-it-works',
-    name: 'How it works',
-    title: 'How it works',
-    description: 'Pick a site, add your domain, review it, then accept. Your money waits until the site works.',
-    words: { heading: 'Pick a site. Add your domain. Go live.', intro: 'Here is exactly what happens, from your first click to the day the seller gets paid.' },
+    path: '/websites',
+    name: 'Websites',
+    title: 'Full-stack websites',
+    description: 'Browse ready-made full-stack websites with frontend, backend and database. Try the live demo and buy safely with escrow.',
+    words: { heading: 'Explore full-stack websites' },
   },
   {
-    path: '/faq',
-    name: 'Questions and answers',
-    title: 'Questions and answers',
-    description: `Short answers about buying and selling on ${BRAND_NAME}: escrow, delivery times, refunds, disputes, domains and payouts.`,
-    words: { heading: 'Questions people ask', intro: 'Short answers about buying, selling, money and safety.' },
+    path: '/sellers',
+    name: 'Sellers',
+    title: 'Sellers',
+    description: 'Meet the developers who build and sell full-stack websites on SellOnBay. Many also take custom work, paid through escrow.',
+    words: { heading: 'Meet the sellers', intro: 'Developers who build and sell full-stack websites. Many also take custom work.' },
+  },
+  {
+    path: '/buyer-protection',
+    name: 'Buyer protection',
+    title: 'Buyer protection',
+    description: 'Every website order is held in escrow. The seller is paid only after you check the files, or the review ends without a problem.',
+    words: {
+      heading: 'Buy with confidence. Pay only when it works.',
+      intro: 'Every website order is held in escrow. The seller is paid only after you check the files, or the review ends without a problem.',
+    },
+  },
+  {
+    path: '/help',
+    name: 'Help center',
+    title: 'Help center',
+    description: 'Short answers about buying and selling on SellOnBay: escrow, delivery, refunds, disputes, domains and payouts, and how to contact us.',
+    words: { heading: 'How can we help?' },
   },
   {
     path: '/sell',
-    name: 'Sell a site',
-    title: `Sell on ${BRAND_NAME}`,
-    description: `Upload the site you built once and sell it again and again. You keep ${SELLER_KEEP_TEXT} of every sale.`,
-    words: { heading: 'Sell the site you already built.', intro: `Upload it once and deliver it to every buyer. You keep ${SELLER_KEEP_TEXT} of every sale, paid every week.` },
+    name: 'Sell',
+    title: 'Sell your full-stack websites',
+    description: 'Upload your full-stack website once and sell it many times. You keep 78% of every sale, paid every Thursday for accepted earnings.',
+    words: { heading: 'Sell your full-stack websites. Keep 78% of every sale.', intro: 'Upload once, sell many times. We handle checkout, escrow and support.' },
   },
   {
-    path: '/blog',
-    name: 'Blog',
-    title: 'Blog',
-    description: `Guides on choosing, launching and growing a website, from the ${BRAND_NAME} team.`,
-    words: { heading: 'Guides and news', intro: `Guides on choosing, launching and growing a website, from the ${BRAND_NAME} team.` },
+    path: '/guides',
+    name: 'Guides',
+    title: 'Guides',
+    description: 'Practical guides on picking a full-stack website, setting it up, choosing a domain and selling your own work, from the SellOnBay team.',
+    words: { heading: 'Launch your website faster', intro: 'Practical guides on picking a full-stack website, setting it up, choosing a domain and selling your own work.' },
   },
   {
     path: '/tools/site-ideas',
@@ -124,8 +140,15 @@ export const SEO_PAGES: SeoPage[] = [
     words: {
       heading: 'Website ideas and domain names, free',
       intro:
-        'Tell us what your business does in one line. We give you five pages your site should have, ten domain names to try, and ready-made sites that fit. Suggestions currently come from predefined templates, not a live AI model.',
+        'Tell us what your business does in one line. We give you five pages your site should have, ten domain names to try, and ready-made sites that fit. Suggestions currently come from predefined websites, not a live AI model.',
     },
+  },
+  {
+    path: '/licenses',
+    name: 'Licenses',
+    title: 'Website licenses',
+    description: 'What the Standard and Extended licences let you do with a website you buy on SellOnBay, in plain language.',
+    words: { heading: 'Website licenses' },
   },
   {
     path: '/terms',
@@ -178,6 +201,8 @@ export const SEO_PAGES: SeoPage[] = [
   },
 ];
 
+/* The public pages search engines should see, besides the home page, category pages, listings and guides (owner, 2026-11-07). Legal pages stay reachable and out of search. */
+export const INDEXED_PAGES = ['/websites', '/domains', '/sellers', '/sell', '/buyer-protection', '/help', '/guides'];
 export const seoPage = (path: string) => SEO_PAGES.find((p) => p.path === path);
 
 /* Limits for what an admin saves: Google shows about 60 and 160 characters. */

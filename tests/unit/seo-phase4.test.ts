@@ -63,7 +63,7 @@ describe('redirects', () => {
     expect(await addRedirect('admin-1', { from: '/old-page', to: '/browse', code: 301 })).toEqual({ ok: true });
     expect((await listRedirects()).some((r) => r.from === '/old-page')).toBe(true);
     expect(await addRedirect('admin-1', { from: '/old-page', to: '/browse', code: 301 })).toMatchObject({ ok: false, status: 409 });
-    expect(await addRedirect('admin-1', { from: '/faq', to: '/browse', code: 301 })).toMatchObject({ ok: false, status: 400 }); // a live page
+    expect(await addRedirect('admin-1', { from: '/help', to: '/browse', code: 301 })).toMatchObject({ ok: false, status: 400 }); // a live page
     expect(await removeRedirect('admin-1', '/old-page')).toEqual({ ok: true });
     expect(await removeRedirect('admin-1', '/old-page')).toMatchObject({ ok: false, status: 404 });
   });

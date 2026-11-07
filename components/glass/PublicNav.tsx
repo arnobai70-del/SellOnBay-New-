@@ -14,7 +14,7 @@ const isHere = (path: string, href: string) => path === href || path.startsWith(
  */
 export function PublicNav({
   links = PUBLIC_LINKS,
-  account = { label: 'Sign in', href: '/signin' },
+  account = { label: 'Sign in', href: '/login' }, // /signin arrives with the sign-in pages (Phase 3)
   showCart = false,
   cartCount = 0,
 }: {

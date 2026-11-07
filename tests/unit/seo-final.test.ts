@@ -12,8 +12,8 @@ describe('a template category’s own address ending (SEO slug)', () => {
     expect(await setHubSlug('admin-1', 'saas', 'online-saas-templates')).toEqual({ ok: true });
     expect((await hubByEnding('online-saas-templates'))?.slug).toBe('saas');
     expect(await hubByEnding('saas')).toBeNull(); // the built-in ending now only redirects
-    expect(hubPublicPath(eco, await allocation())).toBe('/templates/online-saas-templates');
-    expect((await listRedirects()).find((r) => r.from === '/templates/saas')).toMatchObject({ to: '/templates/online-saas-templates', code: 301 });
+    expect(hubPublicPath(eco, await allocation())).toBe('/websites/category/online-saas-templates');
+    expect((await listRedirects()).find((r) => r.from === '/websites/category/saas')).toMatchObject({ to: '/websites/category/online-saas-templates', code: 301 });
 
     expect(await setHubSlug('admin-1', 'saas', 'online-saas-templates')).toMatchObject({ ok: false, status: 409 });
     expect(await setHubSlug('admin-1', 'business', 'online-saas-templates')).toMatchObject({ ok: false, status: 409 }); // another category’s ending
@@ -24,8 +24,8 @@ describe('a template category’s own address ending (SEO slug)', () => {
 
     expect(await setHubSlug('admin-1', 'saas', '')).toEqual({ ok: true }); // back to the built-in ending
     expect((await hubByEnding('saas'))?.slug).toBe('saas');
-    expect((await listRedirects()).some((r) => r.from === '/templates/saas')).toBe(false);
-    expect((await listRedirects()).find((r) => r.from === '/templates/online-saas-templates')).toMatchObject({ to: '/templates/saas', code: 301 }); // the earlier address still lands on the page
+    expect((await listRedirects()).some((r) => r.from === '/websites/category/saas')).toBe(false);
+    expect((await listRedirects()).find((r) => r.from === '/websites/category/online-saas-templates')).toMatchObject({ to: '/websites/category/saas', code: 301 }); // the earlier address still lands on the page
   });
 });
 
@@ -48,10 +48,10 @@ describe('robots.txt', () => {
 describe('the five categories’ heading and intro', () => {
   it('start from the built-in words and take the admin’s once saved', async () => {
     const path = '/templates/business';
-    expect((await pageWords(path)).heading).toBe('Business and corporate website templates');
+    expect((await pageWords(path)).heading).toBe('Business and corporate websites');
     expect(await setPageWords('admin-1', path, { heading: 'Websites for firms', intro: 'Short and clear.', body: '' })).toEqual({ ok: true });
     expect(await pageWords(path)).toMatchObject({ heading: 'Websites for firms', intro: 'Short and clear.' });
     expect(await setPageWords('admin-1', path, { heading: '', intro: '', body: '' })).toEqual({ ok: true });
-    expect((await pageWords(path)).heading).toBe('Business and corporate website templates');
+    expect((await pageWords(path)).heading).toBe('Business and corporate websites');
   });
 });

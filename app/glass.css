@@ -243,6 +243,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 0;
+  font-size: 14px;
   border-top: 1px solid var(--g-rule);
 }
 .g-li:first-child {

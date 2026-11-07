@@ -8,7 +8,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 | 1 Design system and layouts | `redesign/phase-1-design-system` | Done, approved by the owner on 2026-11-07 |
 | 2 Public pages | `redesign/phase-2-public-pages` | Done, waiting for the owner's click-through |
 | 3 Buying flow | `redesign/phase-3-buying-flow` | Done |
-| 4 Buyer dashboard | none yet | Not started |
+| 4 Buyer dashboard | `redesign/phase-4-buyer-dashboard` | Done |
 | 5 Seller dashboard | none yet | Not started |
 | 6 Admin | none yet | Not started |
 | 7 Polish | none yet | Not started |
@@ -18,7 +18,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 Working database: the project in `.env.local` (owner, 2026-11-07).
 
 - Backup taken before the first migration: `backups/2026-11-07-before-redesign.sql` (2.1 MB, all schemas, dump complete) and `backups/storage/` (689 of 689 files, 65 MB). `backups/` is ignored by git.
-- Applied, one at a time, with the tests after each: `0074_flat_plan`, `0075_public_store_and_contact`, `0076_free_beta`, `0077_service_role_grants`. The history already had 0001 to 0073, so nothing older was pending. A dump was taken before 0076 (`backups/2026-11-08-before-0076.sql`) and before the owner's data changes (`backups/2026-11-08-before-owner-data.sql`).
+- Applied, one at a time, with the tests after each: `0074_flat_plan`, `0075_public_store_and_contact`, `0076_free_beta`, `0077_service_role_grants`, `0078_profile_details`. The history already had 0001 to 0073, so nothing older was pending. A dump was taken before 0076 (`backups/2026-11-08-before-0076.sql`) and before the owner's data changes (`backups/2026-11-08-before-owner-data.sql`).
 
 ### Data changes made on the owner's written instruction (2026-11-08)
 
@@ -76,9 +76,9 @@ What to click (`npm run dev`, then `http://localhost:3000`):
 
 All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
 
-- Accounts: `buyer1@`, `buyer2@`, `buyer3@`, `seller1@`, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
+- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `seller1@`, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
 - Listing: `test-beta-website-qa` ("[TEST] Beta website"), paused.
-- Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.
+- Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, `bf3b2ce6-5c47-4821-93b0-f0b894e4943f`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.
 
 ## Placeholders still to fill
 
@@ -103,3 +103,17 @@ What to click: sign in at `/signin` as a buyer, open a website, Add to cart, Go 
 5. Emails through the queue: to sales@, and to the buyer from support@.
 6. Approve or decline on the admin order page, file access after approval, and the feedback email 7 days later from the scheduled job. The full admin tab comes with Phase 6.
 7. Retire the test-card form and the demo controls (moved to Phase 7, with the old order pages they sit on).
+
+## Phase 4 plan
+
+The seven buyer pages on the glass shell with live menu counts: overview, orders and payments (tabs, receipts), my websites (downloads through the order link), domains (what we hold and what is being registered by hand), support (the existing tickets), notifications, account (name, country, international phone and company for invoices, sign-in methods, your data). Migration 0078 adds the three profile fields.
+
+## Phase 4: done
+
+Overview, orders and payments, my websites, domains, support and disputes, notifications and account on the glass shell, with live menu counts. Account adds country, international phone and company (0078, written by the server for the own row only). Checked on the real database: every page at 390 and 1280 for a test buyer, signed out goes to `/signin?next=`, only the own orders are listed, another buyer's files and order page are refused, a phone without its country code is refused.
+
+Fixed on the way: the country names were built at run time and differ between Node and the browser, which broke hydration on the account page; the list is now fixed.
+
+Not done: sign-in methods and your data still open the older `/account/*` pages (Phase 7); domain renewal, DNS and transfer need a registrar; the design's login alerts, device list and coupon box are not built (no data behind them yet).
+
+What to click: sign in as a buyer, open each item of the menu; on Account & security save a phone like +44 20 7946 0958.

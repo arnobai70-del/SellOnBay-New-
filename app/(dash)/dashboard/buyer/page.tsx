@@ -1,172 +1,87 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { DashShell } from '@/components/DashShell';
-import { StateChip } from '@/components/StateChip';
-import { buyerDashboard } from '@/lib/dashboard';
-import { supabaseConfigured } from '@/lib/supabase/env';
-import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
+import { BuyerShell } from '@/components/glass/BuyerShell';
+import { Button } from '@/components/glass/Button';
+import { DataTable } from '@/components/glass/DataTable';
+import { GlassCard } from '@/components/glass/GlassCard';
+import { Kpi } from '@/components/glass/Kpi';
+import { StatusPill } from '@/components/glass/StatusPill';
+import { buyerOverview } from '@/lib/glass/buyer';
+import { buyerStatus, shortDate, usd } from '@/lib/glass/orderStatus';
+import { plainWords } from '@/lib/glass/words';
+import type { Order } from '@/lib/orders/machine';
+import { orderCode } from '@/lib/payments/rules';
+import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'My orders', robots: { index: false } };
+export const metadata: Metadata = { title: 'Buyer overview', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
-const day = (t?: number) => (t ? new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '');
-
-export default async function BuyerDashboard() {
+export default async function BuyerOverview() {
   const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer'] });
-  const id = await getViewerId();
-  const v = id ? await buyerDashboard(id) : null;
+  const v = viewer ? await buyerOverview(viewer.id) : null;
   const first = viewer?.name?.split(' ')[0];
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="buyer" active="buyer" title={first ? `Welcome back, ${first}` : 'Your orders'}>
-      {!supabaseConfigured && <p className="muted">In demo mode there are no accounts, so there is nothing to list here. Each order is reached from its own link, right after you pay.</p>}
-      {v?.needsReview.map(({ order, hoursLeft }) => (
-        <div className="alert-strip" key={order.id}>
-          <span className="pulse" aria-hidden="true" />
-          <div>
-            <b>{order.title} is ready for your review</b>
-            <span>
-              {order.domain ? `Check it on ${order.domain.name}. ` : 'Check what the seller delivered. '}It is accepted for you in {hoursLeft} {hoursLeft === 1 ? 'hour' : 'hours'}.
-            </span>
-            {/* where the order is, from its own dates: paid and delivered are done, checking is now, the seller is paid after acceptance */}
-            <ol className="buy-steps" aria-label="Where this order is">
-              <li className={order.fundedAt ? 'done' : ''}>Paid into escrow</li>
-              <li className={order.deliveredAt ? 'done' : ''}>Delivered</li>
-              <li className="now" aria-current="step">
-                You check it
-              </li>
-              <li>Seller paid</li>
-            </ol>
+    <BuyerShell viewer={viewer} active="overview" title={first ? `Welcome back, ${first}` : 'Welcome back'} subtitle="Your websites, orders and domains in one place">
+      {v && (
+        <>
+          <div className="g-kpis">
+            <Kpi label="Websites owned" value={v.owned} note={v.owned ? 'Ready to download' : 'None yet'} />
+            <Kpi label="In review" value={v.inReview} note="Waiting on you or on us" />
+            <Kpi label="Domains" value={v.domains.length} note={v.domains.some((d) => d.status === 'requested') ? 'Some being registered' : 'In your own name'} />
+            <Kpi label="Open tickets" value={v.openTickets} note={v.openTickets ? 'We are on it' : 'All quiet'} />
           </div>
-          <Link className="btn btn-gold btn-sm" href={`/orders/${order.id}`}>
-            Review now
-          </Link>
-        </div>
-      ))}
-
-      <div className="strip">
-        <div>
-          <small>Live sites</small>
-          <b>{v?.liveSites ?? 0}</b>
-          <span className="d">Accepted with a domain</span>
-        </div>
-        <div>
-          <small>Orders in progress</small>
-          <b>{v?.inProgress ?? 0}</b>
-          <span className="d" style={{ color: 'var(--amber-tx)' }}>
-            {v?.needsReview.length ? `${v.needsReview.length} need your review` : 'Nothing waiting on you'}
-          </span>
-        </div>
-        <div>
-          <small>Notifications</small>
-          <b>{v ? (v.unread ?? '—') : 0}</b>
-          <span className="muted" style={{ fontSize: '13.5px' }}>
-            <Link href="/notifications">Open them</Link>
-          </span>
-        </div>
-        <div>
-          <small>Total spent</small>
-          <b>{money(v?.totalSpentCents ?? 0)}</b>
-          <span className="muted" style={{ fontSize: '13.5px' }}>
-            Across {v?.orders.filter((o) => !!o.fundedAt).length ?? 0} orders
-          </span>
-        </div>
-      </div>
-
-      <div className="dp" id="orders">
-        <div className="hd">
-          <div>
-            <h2>Orders</h2>
-            <p className="sub">Accept within 48 hours or the order is accepted for you.</p>
+          <div className="g-grid2">
+            <GlassCard as="section">
+              <h2>Latest updates</h2>
+              {v.notes.length ? (
+                v.notes.slice(0, 4).map((n) => (
+                  <div key={n.id} className="g-li">
+                    <span style={{ flex: 1, fontSize: 14 }}>{n.subject}</span>
+                    <span className="g-tag">{shortDate(n.at)}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                  Nothing yet. Order updates show up here.
+                </p>
+              )}
+              <div style={{ marginTop: 12 }}>
+                <Button variant="ghost" size="sm" href="/dashboard/buyer/notifications">
+                  See all
+                </Button>
+              </div>
+            </GlassCard>
+            <GlassCard as="section">
+              <h2>Find your next website</h2>
+              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                Websites are free for early users during the beta.
+              </p>
+              <div style={{ marginTop: 14 }}>
+                <Button href="/websites">Browse websites</Button>
+              </div>
+            </GlassCard>
           </div>
-          <Link className="btn btn-blue btn-sm" href="/">
-            Find another site
-          </Link>
-        </div>
-        {v && v.orders.length === 0 && <p className="muted">No orders yet. When you buy something it shows up here, with its timer and its chat.</p>}
-        {v && v.orders.length > 0 && (
-          <div className="scroll">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th className="num">Price</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {v.orders.map((o) => (
-                  <tr key={o.id}>
-                    <td>
-                      <b>{o.title}</b>
-                      <div className="muted" style={{ fontSize: 14 }}>
-                        {o.domain?.name ?? (o.githubUsername ? `GitHub: ${o.githubUsername}` : `Order ${o.id.slice(0, 8).toUpperCase()}`)}
-                      </div>
-                    </td>
-                    <td>
-                      <StateChip state={o.state} />
-                    </td>
-                    <td className="muted">{day(o.acceptedAt ?? o.deliveredAt ?? o.fundedAt ?? o.createdAt)}</td>
-                    <td className="num">{money(o.priceCents)}</td>
-                    <td>
-                      <Link className="btn btn-line btn-sm" href={o.state === 'awaiting_payment' ? `/pay/${o.id}` : `/orders/${o.id}`}>
-                        {o.state === 'awaiting_payment' ? 'Pay now' : 'Open'}
-                      </Link>{' '}
-                      {o.fundedAt && (
-                        <Link className="btn btn-line btn-sm" href={`/messages/${o.id}`}>
-                          Chat
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {v && v.extras.length > 0 && (
-        <div className="dp" id="extra">
-          <div className="hd">
-            <div>
-              <h2>Extra work waiting for you</h2>
-              <p className="sub">Sellers send these when you ask for more. Nothing starts until you approve and fund it.</p>
+          <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
+            <div className="g-row" style={{ padding: '0 14px 6px' }}>
+              <h2>Recent orders</h2>
+              <Link href="/dashboard/buyer/orders">All orders</Link>
             </div>
-          </div>
-          <ul className="lst">
-            {v.extras.map(({ order, request }) => (
-              <li key={request.id}>
-                <div className="grow">
-                  <b>{request.title}</b>
-                  <small>
-                    {order.title} · {money(request.priceCents)} · +{request.addDays} {request.addDays === 1 ? 'day' : 'days'}
-                  </small>
-                </div>
-                <Link className="btn btn-gold btn-sm" href={`/orders/${order.id}#extra`}>
-                  Approve or decline
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+            <DataTable<Order>
+              caption="Recent orders"
+              rows={v.orders.slice(0, 5)}
+              rowKey={(o) => o.id}
+              empty="No orders yet."
+              columns={[
+                { key: 'id', label: 'Order', cell: (o) => <Link href={`/orders/${o.id}`}>{orderCode(o.id)}</Link> },
+                { key: 'item', label: 'Item', cell: (o) => plainWords(o.title) },
+                { key: 'date', label: 'Date', cell: (o) => shortDate(o.createdAt) },
+                { key: 'amount', label: 'Amount', cell: (o) => usd(o.priceCents) },
+                { key: 'status', label: 'Status', cell: (o) => <StatusPill tone={buyerStatus(o.state).tone}>{buyerStatus(o.state).label}</StatusPill> },
+              ]}
+            />
+          </GlassCard>
+        </>
       )}
-
-      <div className="dp">
-        <div className="hd">
-          <div>
-            <h2>Need something changed?</h2>
-            <p className="sub">Write to SellOnBay in the messages of the order. Anything extra is paid into escrow first, and you approve it before work starts.</p>
-          </div>
-        </div>
-        <p>
-          <Link className="btn btn-line btn-sm" href="/messages">
-            Open my messages
-          </Link>
-        </p>
-      </div>
-    </DashShell>
+    </BuyerShell>
   );
 }

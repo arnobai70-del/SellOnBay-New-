@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SellOnBay Admin — Settings</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#2B4250;background:#EDF3F6;-webkit-font-smoothing:antialiased}
+a{color:#1A5444}a:hover{color:#13453A}
+.page{min-height:100%;padding:16px;box-sizing:border-box;position:relative;overflow:hidden;isolation:isolate;background:radial-gradient(900px 520px at 8% -6%,#D9EDF5 0%,rgba(217,237,245,0) 62%),radial-gradient(820px 520px at 96% 8%,#DCF2E9 0%,rgba(220,242,233,0) 60%),#EDF3F6}
+.page::before,.page::after{content:"";position:absolute;z-index:-1;width:620px;height:620px;border-radius:50%;filter:blur(90px);opacity:.55;pointer-events:none}
+.page::before{top:-160px;left:-140px;background:#CBE6F2;animation:sob-drift1 22s ease-in-out infinite}
+.page::after{top:300px;right:-200px;background:#CFEFE2;animation:sob-drift2 26s ease-in-out infinite}
+.glass{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(43,66,80,.06);border-radius:20px}
+.shell{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;max-width:1440px;margin:0 auto}
+.side{flex:1 1 220px;max-width:250px;padding:18px 12px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
+.col{flex:999 1 640px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.logo{font-weight:600;font-size:17px;color:#2B4250;text-decoration:none;display:flex;align-items:center;gap:10px;padding:2px 10px 10px}
+.dot{width:24px;height:24px;border-radius:8px;background:#CDEBDF;border:1px solid #fff}
+.grp{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#566C78;padding:14px 12px 4px}
+.mi{display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:0 12px;border-radius:12px;color:#3D5563;text-decoration:none;font-size:14px;transition:background .3s,transform .3s}
+.mi:hover{background:rgba(255,255,255,.8);color:#2B4250;transform:translateX(2px)}
+.mi.on{background:#CDEBDF;color:#1A5444;font-weight:500}
+.cnt{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#FBEFD9;color:#6E4B12;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:999px}
+.gsearch{flex:1 1 280px;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;min-height:44px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #DCE7EC}
+.gsearch input{flex:1;min-width:0;border:0;background:transparent;font:14px 'Inter',sans-serif;color:#2B4250;outline:none;min-height:42px}
+kbd{font:11px 'Inter',sans-serif;padding:3px 7px;border-radius:6px;border:1px solid #D3E2E9;background:#fff;color:#566C78}
+.iconbtn{position:relative;width:44px;height:44px;border-radius:50%;border:1px solid #DCE7EC;background:rgba(255,255,255,.75);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#2B4250}
+.iconbtn .b{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:#C2553F;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.me{display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #DCE7EC}
+.av{width:36px;height:36px;border-radius:50%;background:#E6E2F4;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;background:#CDEBDF;color:#1A5444;font:500 14px 'Inter',sans-serif;text-decoration:none;border:1px solid rgba(255,255,255,.9);cursor:pointer;box-sizing:border-box;white-space:nowrap;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,background .3s}
+.btn:hover{background:#BDE3D4;color:#13453A;transform:translateY(-2px);box-shadow:0 10px 24px rgba(63,143,119,.18)}
+.btn.ghost{background:rgba(255,255,255,.72);border:1px solid #D3E2E9;color:#2B4250}
+.btn.warn{background:#F6E3E0;color:#7A2E24}
+.btn.sm{min-height:40px;padding:0 14px;font-size:13px}
+.muted{color:#566C78}
+h1,h2,h3{font-weight:400;margin:0;letter-spacing:-.015em}
+h1{font-size:28px}h2{font-size:19px}
+.tag{font-size:12px;color:#566C78;margin-top:4px}
+.card{padding:22px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{padding:18px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}.kpi:hover{transform:translateY(-4px)}
+.kpi .l{font-size:13px;color:#566C78}.kpi .v{font-size:28px;font-weight:300;margin-top:8px}.kpi .s{font-size:12px;color:#566C78;margin-top:4px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.status{display:inline-flex;align-items:center;min-height:26px;padding:0 10px;border-radius:999px;font-size:12px;white-space:nowrap}
+.st-ok{background:#E2F3EC;color:#1A5444}.st-wait{background:#FBEFD9;color:#6E4B12}.st-bad{background:#F6E3E0;color:#7A2E24}.st-info{background:#DDEAF6;color:#24476B}.st-draft{background:#E8EEF2;color:#3D5563}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;font-size:11px;color:#566C78;padding:12px 14px;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid rgba(220,231,236,.9);vertical-align:middle}
+tbody tr{transition:background .3s}tbody tr:hover{background:rgba(255,255,255,.55)}
+.tbl{overflow-x:auto}
+.seg{display:inline-flex;flex-wrap:wrap;padding:4px;border-radius:999px;background:rgba(255,255,255,.6);border:1px solid #DCE7EC}
+.seg button{min-height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:13px 'Inter',sans-serif;color:#566C78;cursor:pointer;transition:background .35s,color .35s,box-shadow .35s}
+.seg button.on{background:#fff;color:#2B4250;font-weight:500;box-shadow:0 2px 8px rgba(43,66,80,.08)}
+.field label{display:block;font-size:13px;color:#3D5563;margin-bottom:6px}
+.input{width:100%;box-sizing:border-box;min-height:44px;border-radius:12px;border:1px solid #D3E2E9;background:rgba(255,255,255,.85);padding:0 14px;font:14px 'Inter',sans-serif;color:#2B4250;transition:border-color .3s,box-shadow .3s}
+.input:focus{outline:none;border-color:#7FBFA9;box-shadow:0 0 0 4px rgba(127,191,169,.18)}
+textarea.input{padding:12px 14px;min-height:96px;resize:vertical}
+.bar{height:8px;border-radius:999px;background:#E1EAEF;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:#7FBFA9;animation:sob-fill 1.8s cubic-bezier(.2,.8,.2,1) .5s both}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;border:0;background:#D3E2E9;cursor:pointer;flex:none;transition:background .3s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sw.on{background:#5FA88F}.sw.on::after{transform:translateX(20px)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(220,231,236,.9)}
+.li:first-child{border-top:0}
+.chk{display:flex;align-items:center;gap:10px;min-height:36px;font-size:14px;color:#3D5563}
+.chk input{width:18px;height:18px;accent-color:#3F8F77}
+.hidden-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@keyframes sob-rise{from{opacity:0;transform:translateY(24px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes sob-slide{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes sob-drop{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes sob-drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes sob-drift2{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-110px,120px) scale(.95)}}
+@keyframes sob-fill{from{width:0}}
+@keyframes sob-ringfill{from{stroke-dashoffset:314}}
+@keyframes sob-draw{to{stroke-dashoffset:0}}
+@keyframes sob-blink{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes sob-ring{0%,100%{box-shadow:0 0 0 0 rgba(194,85,63,.45)}50%{box-shadow:0 0 0 6px rgba(194,85,63,0)}}
+.glass{animation:sob-rise .9s cubic-bezier(.2,.8,.2,1) both}
+.glass:nth-child(2){animation-delay:.06s}.glass:nth-child(3){animation-delay:.12s}.glass:nth-child(4){animation-delay:.18s}.glass:nth-child(5){animation-delay:.24s}.glass:nth-child(6){animation-delay:.3s}
+.topbar{animation:sob-drop .8s cubic-bezier(.2,.8,.2,1) both}
+.mi{animation:sob-slide .6s cubic-bezier(.2,.8,.2,1) both}
+tbody tr{animation:sob-slide .6s cubic-bezier(.2,.8,.2,1) .3s both}
+.st-wait{animation:sob-blink 2.4s ease-in-out infinite}
+.iconbtn .b{animation:sob-ring 2.2s ease-in-out infinite}
+polyline.draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:sob-draw 2.4s cubic-bezier(.4,0,.2,1) .4s forwards}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.gw{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0;border-top:1px solid rgba(220,231,236,.9)}
+.gw:first-of-type{border-top:0}
+.gico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+
+</style>
+
+<style>html,body{height:100%}input,select,textarea,button{font-family:inherit}</style>
+</head>
+<body>
+
+
+<div class="page">
+<div class="shell">
+<aside class="glass side" aria-label="Admin menu">
+<a class="logo" href="index.html"><span class="dot" aria-hidden="true"></span>SellOnBay <span class="tag" style="margin:0 0 0 2px">Admin</span></a>
+<a class="mi" href="admin.html"><span>Overview</span></a>
+<div class="grp">Operations</div>
+<a class="mi" href="admin-orders.html"><span>Orders &amp; payments</span><span class="cnt" aria-label="4 waiting">4</span></a>
+<a class="mi" href="admin-listings.html"><span>Listing review</span><span class="cnt" aria-label="2 waiting">2</span></a>
+<a class="mi" href="admin-support.html"><span>Disputes &amp; support</span><span class="cnt" aria-label="3 waiting">3</span></a>
+<a class="mi" href="admin-domains.html"><span>Domains</span></a>
+<div class="grp">Money</div>
+<a class="mi" href="admin-finance.html"><span>Finance &amp; payouts</span></a>
+<a class="mi" href="admin-reports.html"><span>Reports</span></a>
+<div class="grp">People</div>
+<a class="mi" href="admin-users.html"><span>Users &amp; roles</span></a>
+<div class="grp">Growth</div>
+<a class="mi" href="admin-marketing.html"><span>Marketing</span></a>
+<div class="grp">System</div>
+<a class="mi" href="admin-security.html"><span>Security &amp; logs</span><span class="cnt" aria-label="1 waiting">1</span></a>
+<a class="mi on" href="admin-settings.html" aria-current="page"><span>Settings</span></a>
+<div style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,255,255,.6);border:1px solid #DCE7EC"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77"></span>All systems normal</div><a href="admin-settings.html#health" class="tag" style="display:block">View system health</a></div>
+</aside>
+<div class="col">
+<header class="glass topbar">
+<div class="gsearch"><label for="gs" class="hidden-label">Search everything</label><svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="#566C78" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="gs" placeholder="Search orders, users, domains, bKash TrxID…"><kbd>Ctrl K</kbd></div>
+<a class="btn" href="admin-orders.html#pos">+ Manual order</a>
+<button class="iconbtn" type="button" aria-label="Notifications, 7 new"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg><span class="b">7</span></button>
+<label for="lang" class="hidden-label">Language</label><select id="lang" class="input" style="width:auto;min-width:110px;border-radius:999px"><option>English</option><option>বাংলা</option></select>
+<div class="me"><span class="av" aria-hidden="true">SA</span><div><div style="font-size:13px;font-weight:500">Super admin</div><div class="tag" style="margin:0">Demo workspace</div></div></div>
+</header>
+<div class="row">
+<div><h1>Settings</h1><div class="tag">Payments, platform rules, website &amp; SEO, dashboard and system health</div></div>
+<button class="btn" type="button" onclick="">Save changes</button>
+</div>
+
+<section class="glass card">
+<div class="row" style="margin-bottom:4px"><h2>Payment gateways</h2><span class="tag" style="margin:0">Turn methods on or off for checkout</span></div>
+
+<div class="gw"><span class="gico" style="background:#DDEAF6" aria-hidden="true">CARD</span><div style="flex:1 1 200px;min-width:0"><b style="font-weight:500">Card payments</b><div class="tag">Visa, Mastercard · automatic confirmation</div></div>
+<label class="hidden-label" for="mCARD">Mode for Card payments</label><select id="mCARD" class="input" style="width:auto;border-radius:999px"><option>Live</option><option>Test</option></select>
+<button class="btn sm ghost" type="button">Keys &amp; account</button>
+<button type="button" class="sw on" onclick="" aria-label="Card payments enabled"></button></div>
+
+<div class="gw"><span class="gico" style="background:#F6E0EA" aria-hidden="true">bK</span><div style="flex:1 1 200px;min-width:0"><b style="font-weight:500">bKash</b><div class="tag">Manual TrxID check · verify in Orders & payments</div></div>
+<label class="hidden-label" for="mbK">Mode for bKash</label><select id="mbK" class="input" style="width:auto;border-radius:999px"><option>Live</option><option>Test</option></select>
+<button class="btn sm ghost" type="button">Keys &amp; account</button>
+<button type="button" class="sw on" onclick="" aria-label="bKash enabled"></button></div>
+
+<div class="gw"><span class="gico" style="background:#DCF0E7" aria-hidden="true">BANK</span><div style="flex:1 1 200px;min-width:0"><b style="font-weight:500">Bank transfer</b><div class="tag">Manual · slip or reference number</div></div>
+<label class="hidden-label" for="mBANK">Mode for Bank transfer</label><select id="mBANK" class="input" style="width:auto;border-radius:999px"><option>Live</option><option>Test</option></select>
+<button class="btn sm ghost" type="button">Keys &amp; account</button>
+<button type="button" class="sw on" onclick="" aria-label="Bank transfer enabled"></button></div>
+
+<div class="gw"><span class="gico" style="background:#F1E8DD" aria-hidden="true">CASH</span><div style="flex:1 1 200px;min-width:0"><b style="font-weight:500">Cash (office)</b><div class="tag">POS only · receipt number</div></div>
+<label class="hidden-label" for="mCASH">Mode for Cash (office)</label><select id="mCASH" class="input" style="width:auto;border-radius:999px"><option>Live</option><option>Test</option></select>
+<button class="btn sm ghost" type="button">Keys &amp; account</button>
+<button type="button" class="sw on" onclick="" aria-label="Cash (office) enabled"></button></div>
+
+</section>
+
+<section class="glass card" style="display:flex;flex-direction:column;gap:14px">
+<h2>Platform rules</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+<div class="field"><label for="cm">Seller share</label><input id="cm" class="input" value="78%"></div>
+<div class="field"><label for="mp">Minimum website price</label><input id="mp" class="input" value="$20"></div>
+<div class="field"><label for="rw">Buyer review window</label><input id="rw" class="input" value="48 hours"></div>
+<div class="field"><label for="pd">Payout day</label><select id="pd" class="input"><option>Thursday</option><option>Monday</option><option>Every day</option></select></div>
+<div class="field"><label for="cp">Coupon discount paid by</label><select id="cp" class="input"><option>[CHOOSE] Platform</option><option>Seller</option><option>Split 50 / 50</option></select></div>
+<div class="field"><label for="mt">Monthly sales target</label><input id="mt" class="input" value="$7,800"></div>
+</div>
+</section>
+
+<section class="glass card" style="display:flex;flex-direction:column;gap:14px">
+<div class="row"><h2>Website &amp; SEO</h2><a class="btn sm ghost" href="index.html">Open home page</a></div>
+<div class="field"><label for="hh">Home headline</label><input id="hh" class="input" value="Buy a website. Get a domain. Or sell your own."></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+<div class="field"><label for="st">SEO title</label><input id="st" class="input" value="SellOnBay · Full-stack websites, domains and a seller marketplace"></div>
+<div class="field"><label for="ga">Google Analytics ID</label><input id="ga" class="input" placeholder="G-XXXXXXXXXX"></div>
+</div>
+<div class="field"><label for="sd">SEO description</label><textarea id="sd" class="input">Buy ready-made full-stack websites with escrow protection, register your domain in your own name, or sell your own websites and keep 78%.</textarea></div>
+<div style="font-size:13px;color:#3D5563">Featured on home: <b style="font-weight:500">8 websites</b> · change them from <a href="admin-listings.html">Listing review</a></div>
+</section>
+
+<section class="glass" style="padding:8px 8px 4px">
+<div class="row" style="padding:14px 14px 4px"><div><h2>Pages &amp; content</h2><div class="tag">Public pages your team can edit without a developer</div></div><button class="btn sm ghost" type="button">+ New help article</button></div>
+<div class="tbl"><table>
+<thead><tr><th>Page</th><th>Type</th><th>Last edited</th><th>Status</th><th><span class="hidden-label">Actions</span></th></tr></thead>
+<tbody>
+<tr><td style="font-weight:500">Terms, privacy, refunds, licenses, seller agreement</td><td>Legal</td><td>Draft</td><td><span class="status st-wait">Needs lawyer review</span></td><td style="text-align:right"><a class="btn sm ghost" href="legal.html">Edit</a></td></tr>
+<tr><td style="font-weight:500">Buyer protection</td><td>Info page</td><td>Nov 7</td><td><span class="status st-ok">Published</span></td><td style="text-align:right"><a class="btn sm ghost" href="buyer-protection.html">Edit</a></td></tr>
+<tr><td style="font-weight:500">Sell on SellOnBay</td><td>Landing page</td><td>Nov 7</td><td><span class="status st-ok">Published</span></td><td style="text-align:right"><a class="btn sm ghost" href="sell.html">Edit</a></td></tr>
+<tr><td style="font-weight:500">Help center · 56 articles</td><td>Help</td><td>Nov 6</td><td><span class="status st-ok">Published</span></td><td style="text-align:right"><a class="btn sm ghost" href="help.html">Manage</a></td></tr>
+<tr><td style="font-weight:500">Guides · 7 posts</td><td>Blog</td><td>Nov 5</td><td><span class="status st-info">2 drafts</span></td><td style="text-align:right"><a class="btn sm ghost" href="guides.html">Manage</a></td></tr>
+<tr><td style="font-weight:500">Maintenance mode</td><td>System</td><td>—</td><td><span class="status st-draft">Off</span></td><td style="text-align:right"><a class="btn sm ghost" href="404.html">Preview</a></td></tr>
+</tbody>
+</table></div>
+</section>
+
+<div class="grid2">
+<section class="glass card" style="display:flex;flex-direction:column;gap:10px">
+<h2>Dashboard &amp; language</h2>
+<div class="field"><label for="dl">Default admin language</label><select id="dl" class="input"><option>English</option><option>বাংলা</option></select></div>
+<div style="font-size:13px;font-weight:500;margin-top:6px">Overview widgets</div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>KPI cards</span><button type="button" class="sw on" onclick="" aria-label="Show KPI cards"></button></div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>Quick access</span><button type="button" class="sw on" onclick="" aria-label="Show Quick access"></button></div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>Sales trend</span><button type="button" class="sw on" onclick="" aria-label="Show Sales trend"></button></div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>Monthly target</span><button type="button" class="sw on" onclick="" aria-label="Show Monthly target"></button></div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>Needs your attention</span><button type="button" class="sw on" onclick="" aria-label="Show Needs your attention"></button></div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>Escrow timers</span><button type="button" class="sw on" onclick="" aria-label="Show Escrow timers"></button></div>
+
+<div class="row" style="font-size:14px;min-height:36px"><span>Seller bulletin</span><button type="button" class="sw" onclick="" aria-label="Show Seller bulletin"></button></div>
+
+</section>
+<section id="health" class="glass card" style="display:flex;flex-direction:column;gap:4px">
+<div class="row" style="margin-bottom:6px"><h2>System health &amp; backup</h2><button class="btn sm" type="button" onclick="">Run backup now</button></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Database</span><span class="muted" style="font-size:13px">Connected · 38 ms</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Application</span><span class="muted" style="font-size:13px">Responding</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Payment gateways</span><span class="muted" style="font-size:13px">Card, bKash online</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#C9962E;flex:none"></span><span style="flex:1">Domain registrar API</span><span class="muted" style="font-size:13px">Slow · 2.4 s</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Email (SMTP)</span><span class="muted" style="font-size:13px">Sending</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">SMS gateway</span><span class="muted" style="font-size:13px">Connected</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Background jobs & scheduler</span><span class="muted" style="font-size:13px">0 failed · runs every minute</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Last backup</span><span class="muted" style="font-size:13px">3 hours ago · daily at 03:00</span></div>
+
+</section>
+</div>
+</div>
+</div>
+</div>
+
+</body>
+</html>

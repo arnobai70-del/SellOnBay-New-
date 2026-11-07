@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SellOnBay — SaaS Dashboard website</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#2B4250;background:#EDF3F6;-webkit-font-smoothing:antialiased}
+a{color:#1A5444}a:hover{color:#13453A}
+.page{min-height:100%;padding-bottom:56px;background:radial-gradient(900px 520px at 8% -6%,#D9EDF5 0%,rgba(217,237,245,0) 62%),radial-gradient(820px 520px at 96% 8%,#DCF2E9 0%,rgba(220,242,233,0) 60%),#EDF3F6}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px;box-sizing:border-box}
+.glass{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(43,66,80,.06);border-radius:22px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 10px 8px 20px;border-radius:999px;margin-top:20px}
+.logo{font-weight:600;font-size:17px;color:#2B4250;text-decoration:none;display:flex;align-items:center;gap:10px}
+.dot{width:24px;height:24px;border-radius:8px;background:#CDEBDF;border:1px solid #fff}
+.navlinks{display:flex;gap:2px;flex-wrap:wrap}
+.navlinks a{color:#3D5563;text-decoration:none;font-size:14px;padding:12px 14px;border-radius:999px}
+.navlinks a:hover{background:rgba(255,255,255,.85);color:#2B4250}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border-radius:999px;background:#CDEBDF;color:#1A5444;font:500 14px 'Inter',sans-serif;text-decoration:none;border:1px solid rgba(255,255,255,.9);cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.btn:hover{background:#BDE3D4;color:#13453A}
+.btn.ghost{background:rgba(255,255,255,.72);border:1px solid #D3E2E9;color:#2B4250}
+.btn.full{width:100%}
+.muted{color:#566C78}
+h1,h2,h3{font-weight:400;margin:0;letter-spacing:-.015em}
+.tag{font-size:12px;color:#566C78;margin-top:4px}
+.ln{display:block;height:6px;border-radius:3px;background:#E1EAEF}
+.ln.s{width:60%}
+.lic{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:56px;padding:10px 16px;border-radius:14px;border:1px solid #D3E2E9;background:rgba(255,255,255,.7);font:14px 'Inter',sans-serif;color:#2B4250;cursor:pointer;text-align:left;box-sizing:border-box}
+.lic.on{border-color:#7FBFA9;background:#E6F5EF}
+.tab{min-height:44px;padding:0 4px;margin-right:24px;border:0;background:transparent;font:15px 'Inter',sans-serif;color:#566C78;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:#2B4250;border-bottom-color:#5FA88F}
+.li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;color:#3D5563}
+.shot{height:96px;border-radius:12px;background:#F7FAFB;border:1px solid #E1EBF0;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.shot.on{border-color:#7FBFA9}
+.avatar{width:48px;height:48px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:15px;color:#2B4250}
+@keyframes sob-rise{from{opacity:0;transform:translateY(28px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes sob-drop{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:none}}
+@keyframes sob-drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes sob-drift2{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-110px,120px) scale(.95)}}
+@keyframes sob-grow{from{transform:scaleY(0)}}
+@keyframes sob-zoom{from{opacity:0;transform:scale(.96);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+@keyframes sob-tab{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page{position:relative;overflow:hidden;isolation:isolate}
+.page::before,.page::after{content:"";position:absolute;z-index:-1;width:620px;height:620px;border-radius:50%;filter:blur(90px);opacity:.6;pointer-events:none}
+.page::before{top:-160px;left:-140px;background:#CBE6F2;animation:sob-drift1 22s ease-in-out infinite}
+.page::after{top:260px;right:-200px;background:#CFEFE2;animation:sob-drift2 26s ease-in-out infinite}
+.glass{animation:sob-rise 1s cubic-bezier(.2,.8,.2,1) both}
+aside .glass:nth-child(2){animation-delay:.15s}aside .glass:nth-child(3){animation-delay:.3s}
+.nav{animation:sob-drop .9s cubic-bezier(.2,.8,.2,1) both}
+.glass > div[style*="height: 420px"]{animation:sob-zoom 1.4s cubic-bezier(.16,1,.3,1) .2s both}
+span[style*="flex: 1; height:"]{transform-origin:bottom;animation:sob-grow 1.2s cubic-bezier(.2,.8,.2,1) .8s both}
+.shot{animation:sob-tab .7s cubic-bezier(.2,.8,.2,1) .5s both;transition:transform .3s,border-color .3s}
+.shot:hover{transform:translateY(-3px)}
+.li{animation:sob-tab .6s cubic-bezier(.2,.8,.2,1) both}
+.lic{transition:transform .3s,background .3s,border-color .3s}.lic:hover{transform:translateY(-2px)}
+.tab{transition:color .3s,border-color .3s}
+.btn{transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,background .3s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(63,143,119,.18)}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<style>html,body{height:100%}input,select,textarea,button{font-family:inherit}</style>
+</head>
+<body>
+
+
+<div class="page">
+<div class="wrap">
+<nav class="glass nav" aria-label="Main">
+<a class="logo" href="index.html"><span class="dot" aria-hidden="true"></span>SellOnBay</a>
+<div class="navlinks"><a class="cur" href="websites.html">Websites</a><a href="domains.html">Domains</a><a href="sellers.html">Sellers</a><a href="sell.html">Sell</a><a href="help.html">Help</a></div>
+<div style="display: flex; gap: 8px; align-items: center"><a class="btn ghost" href="cart.html">Cart · 2</a><a class="btn" href="signin.html">Sign in</a></div>
+</nav>
+
+<div class="muted" style="font-size: 13px; padding: 32px 0 20px"><a href="websites.html" style="color: #566C78">Websites</a> / <a href="websites.html" style="color: #566C78">SaaS</a> / <span style="color: #2B4250">SaaS Dashboard</span></div>
+
+<div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div class="glass" style="padding: 14px">
+<div style="height: 420px; border-radius: 16px; background: #F7FAFB; border: 1px solid #E1EBF0; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 8px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E1EAEF"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #E1EAEF"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #E1EAEF"></span><span style="flex: 1; height: 22px; border-radius: 999px; background: #EDF2F5; margin-left: 10px"></span></div>
+<div style="display: flex; gap: 16px; flex: 1">
+<div style="width: 20%; border-radius: 10px; background: #EAF1F4"></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px"><span style="height: 80px; border-radius: 10px; background: #D3EEE4"></span><span style="height: 80px; border-radius: 10px; background: #E1E2F6"></span><span style="height: 80px; border-radius: 10px; background: #DDEAF6"></span></div>
+<div style="flex: 1; border-radius: 10px; background: #F0F5F7; display: flex; align-items: flex-end; gap: 10px; padding: 16px">
+<span style="flex: 1; height: 40%; border-radius: 6px; background: #D3EEE4"></span><span style="flex: 1; height: 65%; border-radius: 6px; background: #C6E7DA"></span><span style="flex: 1; height: 50%; border-radius: 6px; background: #D3EEE4"></span><span style="flex: 1; height: 80%; border-radius: 6px; background: #BCE2D3"></span><span style="flex: 1; height: 60%; border-radius: 6px; background: #D3EEE4"></span><span style="flex: 1; height: 90%; border-radius: 6px; background: #B3DDCC"></span>
+</div>
+<span class="ln"></span><span class="ln s"></span>
+</div>
+</div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+
+<button class="shot on" type="button" onclick="" aria-label="Screenshot 1"><span class="ln"></span><span style="display: flex; gap: 6px"><span style="width: 24px; height: 18px; border-radius: 4px; background: #D3EEE4"></span><span style="width: 24px; height: 18px; border-radius: 4px; background: #E1E2F6"></span></span><span class="ln s"></span></button>
+
+<button class="shot" type="button" onclick="" aria-label="Screenshot 2"><span class="ln"></span><span style="display: flex; gap: 6px"><span style="width: 24px; height: 18px; border-radius: 4px; background: #D3EEE4"></span><span style="width: 24px; height: 18px; border-radius: 4px; background: #E1E2F6"></span></span><span class="ln s"></span></button>
+
+<button class="shot" type="button" onclick="" aria-label="Screenshot 3"><span class="ln"></span><span style="display: flex; gap: 6px"><span style="width: 24px; height: 18px; border-radius: 4px; background: #D3EEE4"></span><span style="width: 24px; height: 18px; border-radius: 4px; background: #E1E2F6"></span></span><span class="ln s"></span></button>
+
+<button class="shot" type="button" onclick="" aria-label="Screenshot 4"><span class="ln"></span><span style="display: flex; gap: 6px"><span style="width: 24px; height: 18px; border-radius: 4px; background: #D3EEE4"></span><span style="width: 24px; height: 18px; border-radius: 4px; background: #E1E2F6"></span></span><span class="ln s"></span></button>
+
+</div>
+
+<div style="margin-top: 18px; border-bottom: 1px solid #D9E5EB" role="tablist">
+<button class="tab on" type="button" role="tab" onclick="">Overview</button><button class="tab" type="button" role="tab" onclick="">Features</button><button class="tab" type="button" role="tab" onclick="">Reviews</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px; padding-top: 6px">
+<p style="margin: 0; font-size: 16px; line-height: 1.65">A complete full-stack SaaS website: frontend, backend, database and auth, with dashboard, billing and settings already working.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px">
+<div class="li"><span aria-hidden="true">✓</span>14 responsive pages</div>
+<div class="li"><span aria-hidden="true">✓</span>Light and dark themes</div>
+<div class="li"><span aria-hidden="true">✓</span>Supabase auth ready</div>
+<div class="li"><span aria-hidden="true">✓</span>Reusable UI components</div>
+<div class="li"><span aria-hidden="true">✓</span>SEO meta per page</div>
+<div class="li"><span aria-hidden="true">✓</span>Setup guide included</div>
+</div>
+</div>
+
+
+
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 10px">
+<div class="glass" style="padding: 22px"><div style="font-size: 17px; margin-bottom: 10px">What's included</div>
+<div class="li" style="margin-bottom: 8px"><span aria-hidden="true">✓</span>Frontend: 14 Next.js pages and components</div>
+<div class="li" style="margin-bottom: 8px"><span aria-hidden="true">✓</span>Backend: API routes, auth, billing logic</div>
+<div class="li" style="margin-bottom: 8px"><span aria-hidden="true">✓</span>Database: Supabase schema + seed data</div>
+<div class="li"><span aria-hidden="true">✓</span>Setup guide and .env example</div></div>
+<div class="glass" style="padding: 22px"><div style="font-size: 17px; margin-bottom: 10px">To run it you need</div>
+<div class="li" style="margin-bottom: 8px"><span aria-hidden="true">·</span>Node.js 20 or newer</div>
+<div class="li" style="margin-bottom: 8px"><span aria-hidden="true">·</span>A free Supabase project</div>
+<div class="li" style="margin-bottom: 8px"><span aria-hidden="true">·</span>Hosting for Next.js (e.g. Vercel or a VPS)</div>
+<div class="li"><span aria-hidden="true">·</span>A domain (you can add one below)</div></div>
+</div>
+<div class="glass" style="margin-top: 4px; padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border-color: #CFE9DF">
+<div><div style="font-size: 17px">Add a domain and save 15%</div><div class="muted" style="font-size: 14px; margin-top: 4px">yourbrand.com is available · connected to this website for you</div></div>
+<a class="btn" href="cart.html">Add website + domain</a>
+</div>
+<div class="glass" style="margin-top: 4px; padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+<div><div style="font-size: 17px">Need this website customized?</div><div class="muted" style="font-size: 14px; margin-top: 4px">Work directly with the seller, paid through escrow.</div></div>
+<a class="btn" href="seller.html">Request customization</a>
+</div>
+</div>
+
+<aside style="flex: 1 1 320px; max-width: 380px; display: flex; flex-direction: column; gap: 14px">
+<div class="glass" style="padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div><h1 style="font-size: 26px">SaaS Dashboard</h1><div class="muted" style="font-size: 14px; margin-top: 6px">Next.js · TypeScript · Supabase</div></div>
+<div style="font-size: 40px; font-weight: 300">$49</div>
+
+<button class="lic on" type="button" onclick=""><span><span style="display: block; font-weight: 500">Standard</span><span class="tag" style="display: block">One website, one domain</span></span><span>$49</span></button>
+
+<button class="lic" type="button" onclick=""><span><span style="display: block; font-weight: 500">Extended</span><span class="tag" style="display: block">Client projects, up to 5 sites</span></span><span>$119</span></button>
+
+<a class="btn ghost full" href="#">Open live demo</a>
+<a class="btn ghost full" href="cart.html">Add to cart</a>
+<a href="legal.html#license" style="font-size: 13px; text-align: center">Compare licenses</a>
+<a class="btn full" href="checkout.html">Buy with escrow</a>
+<div class="tag" style="text-align: center">One-time purchase · Seller paid after your approval</div>
+</div>
+<div class="glass" style="padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-weight: 500">Buyer protection</div>
+<div class="li"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#1A5444" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path></svg>Payment held in escrow until you approve</div>
+<div class="li"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#1A5444" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>48 hours to review files and setup</div>
+<div class="li"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#1A5444" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"></path></svg>Domain registered in your own name</div>
+</div>
+<div class="glass" style="padding: 18px; display: flex; align-items: center; gap: 14px">
+<span class="avatar" style="background: #E6E2F4" aria-hidden="true">AR</span>
+<div style="flex: 1; min-width: 0"><div style="font-weight: 500">Ayesha Rahman</div><div class="tag">★ 4.8 · 12 websites · replies in ~2h</div></div>
+<a class="btn ghost" href="seller.html" style="padding: 0 16px">Store</a>
+</div>
+</aside>
+</div>
+<footer style="margin-top: 72px; padding: 32px 0 8px; border-top: 1px solid #D9E5EB; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 24px">
+<div><a class="logo" href="index.html"><span class="dot" aria-hidden="true"></span>SellOnBay</a><p class="muted" style="font-size: 13px; margin: 10px 0 0; line-height: 1.6">Full-stack websites and domains, bought safely with escrow.</p></div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px"><b style="font-weight: 500">Marketplace</b><a href="websites.html" style="color: #3D5563; text-decoration: none">Websites</a><a href="domains.html" style="color: #3D5563; text-decoration: none">Domains</a><a href="sellers.html" style="color: #3D5563; text-decoration: none">Sellers</a><a href="guides.html" style="color: #3D5563; text-decoration: none">Guides</a></div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px"><b style="font-weight: 500">Sell</b><a href="sell.html" style="color: #3D5563; text-decoration: none">Sell on SellOnBay</a><a href="legal.html#seller" style="color: #3D5563; text-decoration: none">Seller agreement</a><a href="seller-dashboard.html" style="color: #3D5563; text-decoration: none">Seller dashboard</a></div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px"><b style="font-weight: 500">Help</b><a href="help.html" style="color: #3D5563; text-decoration: none">Help center</a><a href="buyer-protection.html" style="color: #3D5563; text-decoration: none">Buyer protection</a><a href="help.html#contact" style="color: #3D5563; text-decoration: none">Contact us</a></div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px"><b style="font-weight: 500">Legal</b><a href="legal.html#terms" style="color: #3D5563; text-decoration: none">Terms</a><a href="legal.html#privacy" style="color: #3D5563; text-decoration: none">Privacy</a><a href="legal.html#refunds" style="color: #3D5563; text-decoration: none">Refund policy</a><a href="legal.html#license" style="color: #3D5563; text-decoration: none">Licenses</a></div>
+</footer>
+</div>
+</div>
+
+</body>
+</html>

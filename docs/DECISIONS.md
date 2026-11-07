@@ -150,3 +150,40 @@ The handoff is `SELLONBAY_REDESIGN.md`, with the 44 reference pages in `design-r
 - **Environment:** migrations go to a separate dev Supabase project only. Nothing is applied to production without the owner's written ok.
 
 Google Analytics on private pages (Phase 1): once GA runs from the root layout it also sees signed-in pages, and a signed-out order is reachable by its id alone. On those pages GA gets the address with ids replaced by `[id]`, no query string and no hash (`gaPage` in `lib/ga4.ts`).
+
+## Global market, free beta and email (owner, 2026-11-07, after Phase 1)
+
+These replace the earlier answers above wherever they differ, above all the bKash and bank launch. Phases 2 to 7 build them; `docs/REDESIGN_PROGRESS.md` says what has shipped.
+
+**Global market**
+
+- SellOnBay is global, not Bangladesh-only. Copy is English-first and ready for i18n later (no language switcher yet). Times show in the user's timezone, phones use the international format, and profiles and invoices have a country field. No Bangladesh-specific claims, such as bKash as the main method.
+- Prices are in USD.
+- Future live payments: card and wallet through a hosted checkout provider (ideally a merchant of record for global VAT and sales tax), plus the existing PayPal path. bKash and bank transfer are local options shown only where relevant. Cash is for admin POS only. The payment interface is provider-agnostic and card uses hosted fields only. The owner chooses the provider later.
+- Seller payouts: PayPal, Payoneer, Wise or bank transfer worldwide; bKash only for Bangladesh sellers. "Thursday" means Thursday UTC, for earnings accepted at least 7 days ago.
+- Seller verification: government ID (passport, national ID or driver licence) and country. Kept in a private bucket, Finance access only.
+- Legal and privacy: ready for GDPR and CCPA (data export, deletion and cookie consent stay).
+- Security: admin access has no fixed country rule. Allowed countries are a setting. (No "Bangladesh only" rule existed in the code, so nothing had to be removed.)
+
+**Free beta (`PAYMENTS_MODE`)**
+
+- `PAYMENTS_MODE` is `beta_free` or `live`, default `beta_free`, editable only by a Super Admin, recorded in `audit_log`. All real payment code stays behind it and is not deleted.
+- Cart and checkout look the same, but the payment step is an honest notice: "Beta: free in exchange for your feedback. No payment is taken." The buyer gives name, email, country, optional company and "What will you use it for?". No card or bank form, nothing charged.
+- Submitting creates an order with status `beta_requested`, total $0 and method `beta_free`, with no escrow and no seller payout. The owner also asked for a $0 ledger entry, but the ledger refuses amounts of zero in the code, the database function and the table check; that is an open question for the owner.
+- Emails go through the queue: to sales@ a new beta request with the order link; to the buyer from support@ "Request received, we'll review it shortly".
+- Admin Orders & payments has a Beta requests tab: Approve (unlocks files and domain steps, emails the buyer) or Decline (with a reason).
+- 7 days after approval the buyer is emailed a short feedback form. Answers (rating, what worked, what to improve) are stored and shown to admins. Leaving a review is made easy.
+- Only listings marked `beta_free_ok` can be requested: all SellOnBay-owned listings, plus a seller opt-in switch "Offer this website free during beta" on the upload and edit page. Others show "Available after beta".
+- A small site-wide banner says: "SellOnBay is in beta. Websites are free for early users."
+
+**Email**
+
+- Human inboxes stay on Zoho Mail. App email goes through Zoho ZeptoMail by its API, behind the email provider interface, with `ZEPTOMAIL_API_KEY` and `ZEPTOMAIL_HOST`. In development emails are logged to the console instead of sent. Admin Settings has a development-only "send test email" button. Keys are never printed or committed; the owner adds real values.
+- Routing lives in config, never in pages: sales@ new checkout and beta requests; support@ sender for buyer emails, ticket replies, help and contact form; billing@ invoices, receipts, payment and payout questions; business@ partnerships and seller onboarding; report@ abuse, report seller, DMCA and security reports; dev@ system errors, health alerts and failed jobs; administrator@ critical admin and security alerts (all at sellonbay.com). The footer, help and contact page and legal pages use these.
+
+**How the work runs**
+
+- Phases 2 to 7 run without a pause between them. Each has its short plan in `docs/REDESIGN_PROGRESS.md`, its own branch from the previous one (`redesign/phase-N-...`) and small commits.
+- After each phase, build, lint, typecheck, tests and the browser check (360, 390, 768, 1280 px, reduced motion on and off) must pass, and the progress file says what is done, what is not and what to click.
+- Migrations are written and applied only to the dev Supabase project in `.env.local`. Placeholders stay as clear `[PLACEHOLDER]` values and are listed at the end.
+- Stop and ask only for: anything touching production (database, deploy, production environment, push to main); dropping or rewriting tables, columns or existing data; missing or production keys in `.env.local`; a money-rule choice not written here.

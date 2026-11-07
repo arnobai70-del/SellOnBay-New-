@@ -324,9 +324,7 @@ if (!failed) {
     if (
       JSON.stringify(plans) !==
       JSON.stringify([
-        { code: 'free', monthly_cents: 0, yearly_cents: 0, commission_bps: 1500, listing_limit: 5 },
-        { code: 'pro', monthly_cents: 1900, yearly_cents: 19380, commission_bps: 1000, listing_limit: 25 },
-        { code: 'business', monthly_cents: 4900, yearly_cents: 49980, commission_bps: 500, listing_limit: 100 },
+        { code: 'free', monthly_cents: 0, yearly_cents: 0, commission_bps: 2200, listing_limit: 100 }, // the flat plan (0074); older versions are kept but not offered
       ])
     )
       throw new Error('plan seed rows differ: ' + JSON.stringify(plans));

@@ -105,8 +105,8 @@ export async function launchChecks(): Promise<Check[]> {
     c('PayPal is live', paymentProvider().name !== 'paypal' || process.env.PAYPAL_ENV === 'live', 'PAYPAL_ENV is not live, so PayPal runs in sandbox: no real money moves.', 'warn'),
     c(
       'Email',
-      emailProvider().name === 'resend',
-      'Optional. A RESEND_API_KEY turns real email on (the sender defaults to noreply@your domain, which must be verified in Resend; EMAIL_FROM changes it). Configuration is not proof of delivery: send and confirm a staging email.',
+      ['zeptomail', 'resend'].includes(emailProvider().name),
+      'ZEPTOMAIL_API_KEY (and ZEPTOMAIL_HOST) turns real email on, through Zoho ZeptoMail. Until launch only our own and test addresses receive it (EMAIL_ALLOW_ALL=1 lifts that). A RESEND_API_KEY also works (the sender defaults to noreply@your domain, which must be verified in Resend; EMAIL_FROM changes it). Configuration is not proof of delivery: send and confirm a staging email.',
       'warn',
     ),
     c(

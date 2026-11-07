@@ -11,7 +11,9 @@ import { createAdminClient } from './supabase/server';
  * the "early access" bar and the hour choices sellers get for delivery. Every change needs a reason and goes in the audit log. The defaults are in lib/config.ts; a saved value replaces its default.
  * This is how the shop starts small (for example $5 to $70) and opens up later by changing one number.
  */
+export type PaymentsMode = 'beta_free' | 'live';
 export type Settings = {
+  paymentsMode: PaymentsMode;
   priceMinCents: number;
   priceMaxCents: number;
   holdNewBuyerMinCents: number;
@@ -25,6 +27,7 @@ export type Key = keyof Settings;
 export type Result = { ok: true } | { ok: false; status: number; error: string };
 
 export const DEFAULTS: Settings = {
+  paymentsMode: 'beta_free', // free beta: nothing is charged, real payment code stays behind this (owner, 2026-11-07)
   priceMinCents: CONFIG.sale.priceMinCents,
   priceMaxCents: CONFIG.sale.priceMaxCents,
   holdNewBuyerMinCents: CONFIG.risk.holdNewBuyerMinCents,
@@ -35,6 +38,7 @@ export const DEFAULTS: Settings = {
   deliveryHourChoices: hourChoicesText(CONFIG.deliveryHours.choices),
 };
 export const LABEL: Record<Key, string> = {
+  paymentsMode: 'Payments mode',
   priceMinCents: 'Lowest price a product may have',
   priceMaxCents: 'Highest price of a product (with setup help or customisation added)',
   holdNewBuyerMinCents: "A new buyer's paid order of this much waits for a safety check (0 = never)",
@@ -52,6 +56,7 @@ const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinC
 
 /* Checks a whole set of settings. Returns the first problem in plain words, or null. */
 export function problemWith(s: Settings): string | null {
+  if (s.paymentsMode !== 'beta_free' && s.paymentsMode !== 'live') return 'Payments mode must be beta or live.';
   for (const [k, [lo, hi]] of Object.entries(MONEY_BOUNDS) as [keyof typeof MONEY_BOUNDS, [number, number]][]) {
     const v = s[k];
     if (!Number.isInteger(v) || v < lo || v > hi) return `${LABEL[k]}: use whole dollars from $${lo / 100} to $${hi / 100}.`;

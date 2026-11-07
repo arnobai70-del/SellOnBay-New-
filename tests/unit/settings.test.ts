@@ -29,6 +29,7 @@ describe('the standard values', () => {
   it('start at $20 to $70, a $50 safety check, and the bar off', async () => {
     forgetSettings();
     expect(await getSettings()).toEqual({
+      paymentsMode: 'beta_free',
       priceMinCents: 2000,
       priceMaxCents: 7000,
       holdNewBuyerMinCents: 5000,

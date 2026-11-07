@@ -96,7 +96,7 @@ describe('quotation at the listed price, accepted into an order', () => {
       fileVersionId: p.latestVersionId,
     });
     // the ledger splits on the seller gross: seller keeps 6162, SellOnBay 1738 + the 1200 pass-through
-    expect(split(o.lines, o.feeCents, o.sellerGrossCents)).toEqual({ total: 9100, sellerNet: 6162, platform: 2385 });
+    expect(split(o.lines, o.feeCents, o.sellerGrossCents)).toEqual({ total: 9100, sellerNet: 6162, platform: 2938 });
     expect((await getRequest(req.id))!.status).toBe('converted');
     expect((await quoteEvents(quote.id)).map((e) => e.event)).toEqual(['drafted', 'issued', 'accepted']);
     expect((await requestEvents(req.id)).map((e) => e.event)).toEqual(['submitted', 'review', 'quoted', 'converted']);

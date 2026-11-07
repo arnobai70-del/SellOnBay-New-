@@ -11,6 +11,7 @@ const dollars = z.coerce
   .refine((n) => Number.isFinite(n), 'Enter a number')
   .transform((n) => Math.round(n * 100));
 const schema = z.object({
+  paymentsMode: z.enum(['beta_free', 'live']).optional(),
   priceMinCents: dollars.optional(),
   priceMaxCents: dollars.optional(),
   holdNewBuyerMinCents: dollars.optional(),

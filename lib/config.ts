@@ -127,7 +127,9 @@ export const SELLER_KEEP_TEXT = `${pct(10_000 - CONFIG.fees.saleBps)} (${pct(10_
  * Owner, 2026-10-20: lists (home, shelves, cards, compare, finder) show no prices; the price appears on the product page beside
  * Buy and in full at checkout, before anything is paid. Consumer law needs the total before the buyer commits, so never hide it there.
  */
-export const SHOW_LIST_PRICES = false;
+export const SHOW_LIST_PRICES = false; // the glass pages show list prices (owner, 2026-11-07); this switch only serves the old pages until they are gone
+export const BETA_BANNER_TEXT = 'SellOnBay is in beta. Websites are free for early users.';
+export const BETA_NOTICE_TEXT = 'Beta: free in exchange for your feedback. No payment is taken.';
 export const REVIEW_HOURS = CONFIG.review.hours;
 export const PAYOUT_HOLD_DAYS = CONFIG.payout.holdDays;
 export const BUGFIX_DAYS = CONFIG.bugFixDays;

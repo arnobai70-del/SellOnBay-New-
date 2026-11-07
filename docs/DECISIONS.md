@@ -169,7 +169,7 @@ These replace the earlier answers above wherever they differ, above all the bKas
 
 - `PAYMENTS_MODE` is `beta_free` or `live`, default `beta_free`, editable only by a Super Admin, recorded in `audit_log`. All real payment code stays behind it and is not deleted.
 - Cart and checkout look the same, but the payment step is an honest notice: "Beta: free in exchange for your feedback. No payment is taken." The buyer gives name, email, country, optional company and "What will you use it for?". No card or bank form, nothing charged.
-- Submitting creates an order with status `beta_requested`, total $0 and method `beta_free`, with no escrow and no seller payout. The owner also asked for a $0 ledger entry, but the ledger refuses amounts of zero in the code, the database function and the table check; that is an open question for the owner.
+- Submitting creates an order with status `beta_requested`, total $0 and method `beta_free`, with no escrow and no seller payout. It has no ledger row (see below).
 - Emails go through the queue: to sales@ a new beta request with the order link; to the buyer from support@ "Request received, we'll review it shortly".
 - Admin Orders & payments has a Beta requests tab: Approve (unlocks files and domain steps, emails the buyer) or Decline (with a reason).
 - 7 days after approval the buyer is emailed a short feedback form. Answers (rating, what worked, what to improve) are stored and shown to admins. Leaving a review is made easy.
@@ -187,3 +187,15 @@ These replace the earlier answers above wherever they differ, above all the bKas
 - After each phase, build, lint, typecheck, tests and the browser check (360, 390, 768, 1280 px, reduced motion on and off) must pass, and the progress file says what is done, what is not and what to click.
 - Migrations are written and applied only to the dev Supabase project in `.env.local`. Placeholders stay as clear `[PLACEHOLDER]` values and are listed at the end.
 - Stop and ask only for: anything touching production (database, deploy, production environment, push to main); dropping or rewriting tables, columns or existing data; missing or production keys in `.env.local`; a money-rule choice not written here.
+
+**Working database and the open questions (owner, 2026-11-07, later the same day)**
+
+- There is no real customer data, so the existing Supabase project in `.env.local` is the working database for the redesign. This replaces "dev project only" for the database only. Deploying and pushing to main stay forbidden without the owner's word.
+- Before the first migration: a full `pg_dump` with `SUPABASE_DB_URL` (all schemas, including auth and storage metadata) into `backups/<date>-before-redesign.sql`, and every Storage file into `backups/storage/`. `backups/` is ignored by git.
+- The owner's real products and own admin and user accounts are never deleted or edited. Every test row is marked (email ending `@test.sellonbay.dev`, listing title starting with `[TEST]`) and listed in `docs/REDESIGN_PROGRESS.md`, so they can be removed before launch.
+- Pending migrations (0054 to 0073) are applied first, then the new ones, one at a time, with the tests run after each.
+- Emails go only to the owner's own addresses or test addresses; everything else is logged.
+- Beta orders have no ledger row. The record is an `order_events` row (`beta_requested`, $0, `beta_free`). This settles the question above.
+- The platform pays coupon discounts: the seller always gets 78% of the list price. `[PAYOUT FEE]` stays a placeholder.
+- During beta the Extended licence and custom work show "Available after beta". Only Standard licence websites can be requested free. The code stays behind `PAYMENTS_MODE`.
+- Phases 2 to 7 run continuously. Decisions that can be made during the build take the safest option that matches this file and are noted under "Decisions taken during build" in `docs/REDESIGN_PROGRESS.md`. Stop only to deploy, push to main, delete or rewrite existing data, or make a new money rule.

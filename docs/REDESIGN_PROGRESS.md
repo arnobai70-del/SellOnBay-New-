@@ -24,10 +24,12 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 
 ## Blockers
 
-- `.env.local` points at production (`knvxtgzrylvkhyrcezlq`, URL and both keys) and also sets `AUTHENTICATOR_OFF`. Nothing has been run against it.
+- `SUPABASE_DB_URL` is not in `.env.local` and `pg_dump` is not installed, so the backup the owner requires before the first migration cannot be taken yet. No migration has been applied. Code and migration files are written and tested without a database until then.
 
-## Open questions for the owner
+## Decisions taken during build
 
-1. The ledger cannot hold a $0 entry: the code, the database function and the table check all refuse it. Proposed: no ledger row for a beta order, an `order_events` row instead.
-2. Who pays for a coupon discount: platform, seller or split.
-3. During beta, what happens to the Extended licence and custom work, which cannot be paid for yet. Proposed: show "Available after beta".
+- Backup and migrations wait for `SUPABASE_DB_URL`. A copy through the Supabase connector was not used, because it is not a consistent dump and would pull password hashes into the session.
+
+## Test rows to remove before launch
+
+None yet.

@@ -15,7 +15,16 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   return (
     <>
       <SiteNav menu={await navMenu()} />
-      <AuthClient live={supabaseConfigured} error={error} next={next} sent={sent === '1'} botKey={liveSiteKey()} oauth={social.providers} appleExisting={social.appleExisting} codeRequired={authenticatorRequired()} />
+      <AuthClient
+        live={supabaseConfigured}
+        error={error}
+        next={next}
+        sent={sent === '1'}
+        botKey={liveSiteKey()}
+        oauth={social.providers}
+        appleExisting={social.appleExisting}
+        codeRequired={authenticatorRequired()}
+      />
     </>
   );
 }

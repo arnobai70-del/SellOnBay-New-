@@ -72,7 +72,7 @@ describe('cinematic home page', () => {
 
   it('sets html.motion before paint, never with reduced motion', () => {
     expect(layout).toMatch(/<script id="motion-flag">\{'if\(!matchMedia\(`\(prefers-reduced-motion: reduce\)`\)\.matches\)document\.documentElement\.classList\.add\(`motion`\)'\}<\/script>/);
-    expect(layout).not.toContain('GoogleAnalytics'); // GA stays in the (site) layout, untouched
+    expect(layout).toContain('<GoogleAnalytics />'); // loaded from the root layout (owner, 2026-11-07; tests/unit/ga4.test.ts)
   });
 
   it('the hero clip is decorative and never autoplays from the HTML', () => {

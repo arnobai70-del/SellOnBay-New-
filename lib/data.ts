@@ -186,6 +186,7 @@ export type Product = {
   dbId?: string;
   sellerId?: string;
   ownerType?: 'seller' | 'platform'; // SellOnBay's own listings have no seller store
+  betaFreeOk?: boolean; // the seller offers this website free during the beta (lib/beta/rules.ts)
   /* What the seller charges on top for the two paid packages, in dollars. Missing means the default; 0 means the seller does not offer it. */
   setupPrice?: number;
   customPrice?: number;

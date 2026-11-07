@@ -178,7 +178,7 @@ export default async function DesignPreview({ searchParams }: { searchParams: Pr
   return (
     <GlassPage>
       <div className="g-wrap">
-        <PublicNav showCart cartCount={2} />
+        <PublicNav showCart />
         <main id="main" className="g-stack" style={{ paddingTop: 40 }}>
           <div className="g-row">
             <h1 style={{ fontSize: 'clamp(34px, 4.6vw, 48px)', fontWeight: 300 }}>

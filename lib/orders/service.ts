@@ -230,6 +230,43 @@ export async function createOrder(i: NewOrder, now = Date.now()): Promise<Order>
   });
 }
 
+/* A free beta request (lib/beta/service.ts): total $0, no fee and never funded, so it never reaches the ledger. The record is this event. */
+export async function insertBetaOrder(
+  i: Pick<NewOrder, 'title' | 'buyerId' | 'sellerId' | 'productId' | 'productKey' | 'deliveryType' | 'days' | 'hours' | 'licence'> & { meta: Record<string, unknown> },
+  now: number,
+): Promise<Order> {
+  const o: Order = {
+    id: crypto.randomUUID(),
+    kind: 'product',
+    pkg: 'asis',
+    deliveryType: i.deliveryType,
+    state: 'beta_requested',
+    title: i.title,
+    buyerId: i.buyerId,
+    sellerId: i.sellerId ?? null,
+    productId: i.productId ?? null,
+    productKey: i.productKey ?? null,
+    devKey: null,
+    lines: [[i.title, 0]],
+    priceCents: 0,
+    feeCents: 0,
+    refundedCents: 0,
+    currency: 'USD',
+    days: i.days,
+    hours: i.hours,
+    express: false,
+    instant: false,
+    demo: false,
+    licence: i.licence,
+    payment: { ref: 'beta_free', brand: 'beta_free', last4: '' },
+    attempts: 0,
+    createdAt: now,
+  };
+  await (await orderStore()).insert(o, { orderId: o.id, actorId: i.buyerId, event: 'beta_requested', from: null, to: 'beta_requested', meta: i.meta, at: now });
+  await bump('orders', 1, now);
+  return o;
+}
+
 async function insertOrder(i: NewOrder, now: number): Promise<Order> {
   const total = i.lines.reduce((s, l) => s + l[1], 0);
   const o: Order = {

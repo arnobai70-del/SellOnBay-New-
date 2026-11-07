@@ -16,6 +16,8 @@ type Row = {
   id: string;
   slug: string;
   seller_id: string;
+  owner_type?: string | null;
+  beta_free_ok?: boolean | null;
   name: string;
   category: string;
   tagline: string;
@@ -46,7 +48,7 @@ type Row = {
   custom_price_cents: number | null;
 };
 const COLS =
-  'id, slug, seller_id, name, category, tagline, description, includes, theme, price_cents, delivery_days, delivery_hours, demo_url, demo_path, status, created_at, platform, app_stack, app_shots, sample_url, trial_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents';
+  'id, slug, seller_id, owner_type, beta_free_ok, name, category, tagline, description, includes, theme, price_cents, delivery_days, delivery_hours, demo_url, demo_path, status, created_at, platform, app_stack, app_shots, sample_url, trial_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents';
 
 /* Colours for a seller's app when it has no drawn mock-up of its own: one calm accent per category. */
 const ACCENT: Record<string, [string, string, string]> = {
@@ -115,6 +117,8 @@ function toProduct(r: Row, seller: string): Product {
     express: r.express_price_cents ? Math.round(r.express_price_cents / 100) : undefined,
     dbId: r.id,
     sellerId: r.seller_id,
+    ownerType: r.owner_type === 'platform' ? 'platform' : 'seller',
+    betaFreeOk: !!r.beta_free_ok,
     docsUrl: r.docs_url && /^https:\/\//.test(r.docs_url) ? r.docs_url : undefined,
     requirements: r.requirements ?? undefined,
     supportDays: r.support_days ?? 0,

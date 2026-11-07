@@ -82,4 +82,4 @@ None yet.
 4. `/checkout` and `/checkout/success`: in `beta_free` the honest notice and the request form; in `live` the existing paths stay behind the setting.
 5. Emails through the queue: to sales@, and to the buyer from support@.
 6. Approve or decline on the admin order page, file access after approval, and the feedback email 7 days later from the scheduled job. The full admin tab comes with Phase 6.
-7. Retire the test-card form and the demo controls.
+7. Retire the test-card form and the demo controls (moved to Phase 7, with the old order pages they sit on).

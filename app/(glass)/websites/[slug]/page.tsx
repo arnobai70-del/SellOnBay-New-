@@ -8,7 +8,9 @@ import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { JsonLd } from '@/components/JsonLd';
 import { PageExtras } from '@/components/PageExtras';
 import { TrackView } from '@/components/TrackView';
+import { betaEligible } from '@/lib/beta/rules';
 import { BUGFIX_DAYS, REVIEW_HOURS } from '@/lib/config';
+import { examplesBuyable } from '@/lib/examples';
 import { deliveryText } from '@/lib/deliveryTime';
 import { visibleProduct } from '@/lib/catalog';
 import { categoryPath, publicSellers, publicWebsites, websiteCategories, websitePath } from '@/lib/glass/catalog';
@@ -54,6 +56,7 @@ export default async function Website({ params }: Props) {
   const seller = sellers.find((s) => s.websites.some((w) => w.id === p.id));
   const related = sites.filter((x) => x.id !== p.id && hub && cats.of(x)?.slug === hub.slug).slice(0, 3);
   const beta = settings.paymentsMode === 'beta_free';
+  const requestable = p.sellerId ? betaEligible(p) : examplesBuyable();
   return (
     <div style={{ paddingTop: 32 }}>
       <TrackView id={p.id} />
@@ -132,13 +135,19 @@ export default async function Website({ params }: Props) {
             {p.stack && <div className="g-tag">{p.stack}</div>}
             <div style={{ fontSize: 30, fontWeight: 300, marginTop: 10 }}>${p.price}</div>
             <div className="g-tag">Standard licence · one website, one domain · {deliveryText({ days: p.days, hours: p.hours })}</div>
-            {beta && (
+            {beta && requestable && (
               <p style={{ marginTop: 10 }}>
                 <StatusPill tone="info">Free during beta</StatusPill>
               </p>
             )}
             <div className="g-stack" style={{ marginTop: 14, gap: 8 }}>
-              <Button href={`/checkout?id=${encodeURIComponent(p.id)}`}>{beta ? 'Request this website' : 'Buy with escrow'}</Button>
+              {!beta ? (
+                <Button href={`/checkout?id=${encodeURIComponent(p.id)}`}>Buy with escrow</Button>
+              ) : requestable ? (
+                <Button href={`/cart?add=${encodeURIComponent(p.id)}`}>Add to cart</Button>
+              ) : (
+                <Button disabled>Available after beta</Button>
+              )}
               {p.demo && (
                 <Button variant="ghost" href={`/preview/${p.id}`} target="_blank" rel="noopener">
                   Open live demo

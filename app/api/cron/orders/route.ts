@@ -8,6 +8,7 @@ import { releaseDueReserves } from '@/lib/reserve';
 import { beat } from '@/lib/heartbeat';
 import { purgeSystemRecords, recordRun } from '@/lib/cronRuns';
 import { sendQueued } from '@/lib/emailQueue';
+import { runBetaJobs } from '@/lib/beta/service';
 import { dailyReport } from '@/lib/analytics';
 import { fileJobs } from '@/lib/files/service';
 import { expireDue } from '@/lib/requests/service';
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
   // Each run is recorded for the admin system page (lib/cronRuns.ts); a failure is recorded and thrown on as before.
   const done = await recordRun('orders', async () => ({
     moved: await runDueJobs(),
+    beta: await runBetaJobs(),
     domainReminders: await domainReminders(),
     purgedEvents: await purgeSecurityEvents(),
     anomalies: (await checkAnomalies()).length,

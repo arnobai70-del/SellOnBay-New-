@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <GlassPage>
       <div className="g-wrap">
-        <PublicNav />
+        <PublicNav showCart />
         <main id="main" className="g-hero">
           <div className="g-tag">Error 404</div>
           <h1>This page doesn&apos;t exist</h1>

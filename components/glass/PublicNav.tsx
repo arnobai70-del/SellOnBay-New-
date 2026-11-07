@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRef } from 'react';
 import { BRAND_NAME } from '@/lib/brand';
+import { useCart } from '@/lib/glass/cart';
 import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
 import { Button } from './Button';
 
@@ -16,14 +17,13 @@ export function PublicNav({
   links = PUBLIC_LINKS,
   account = { label: 'Sign in', href: '/login' }, // /signin arrives with the sign-in pages (Phase 3)
   showCart = false,
-  cartCount = 0,
 }: {
   links?: NavLink[];
   account?: NavLink;
   showCart?: boolean;
-  cartCount?: number;
 }) {
   const path = usePathname();
+  const cartCount = useCart().length;
   const menu = useRef<HTMLDetailsElement>(null);
   const shut = () => menu.current?.removeAttribute('open');
   const list = links.map((l) => (

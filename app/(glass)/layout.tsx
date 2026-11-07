@@ -15,7 +15,7 @@ export default async function GlassLayout({ children }: { children: React.ReactN
       <GlassPage>
         {paymentsMode === 'beta_free' && <p className="g-banner">{BETA_BANNER_TEXT}</p>}
         <div className="g-wrap">
-          <PublicNav />
+          <PublicNav showCart />
           <main id="main">{children}</main>
           <PublicFooter />
         </div>

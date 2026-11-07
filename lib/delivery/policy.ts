@@ -2,7 +2,8 @@
 
 /* Funded means the buyer's money is in escrow. Before that, and after a cancel or refund, nothing is released. */
 import { FUNDED_STATES } from '../orders/machine';
-export const isFunded = (status: string) => (FUNDED_STATES as readonly string[]).includes(status);
+/* An approved beta request gets its files without any money (owner, 2026-11-07). It is not a funded order anywhere else. */
+export const isFunded = (status: string) => (FUNDED_STATES as readonly string[]).includes(status) || status === 'beta_approved';
 
 /* Optional short delay for new or high-risk buyers. Every switch is off (0) by default. */
 export type ReleaseConfig = { delayMinutes: number; newBuyerDays: number; highPriceCents: number };

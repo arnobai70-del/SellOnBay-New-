@@ -55,6 +55,7 @@ const DASH: Record<Role, { name: string; label: string; initial: string; items: 
     initial: 'U',
     items: [
       { label: 'Overview', href: '/dashboard/admin', icon: 'grid', key: 'admin' },
+      { label: 'Beta requests', href: '/dashboard/admin/beta', icon: 'list', key: 'admin-beta' },
       { label: 'Purchase requests', href: '/dashboard/admin/requests', icon: 'list', key: 'admin-requests' },
       { label: 'Support tickets', href: '/dashboard/admin/support', icon: 'chat', key: 'admin-support' },
       { label: 'Revisions', href: '/dashboard/admin/revisions', icon: 'list', key: 'admin-revisions' },

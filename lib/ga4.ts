@@ -16,6 +16,7 @@ const PRIVATE_AREAS = [
   '/cart',
   '/checkout',
   '/dashboard',
+  '/feedback',
   '/forgot-password',
   '/login',
   '/messages',

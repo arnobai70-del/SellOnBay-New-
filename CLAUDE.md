@@ -181,3 +181,7 @@ The owner wants no Search Console errors. Product structured data appears only o
 ## Light mode and the hero (owner, 2026-11-04)
 
 The home hero's text is centred and its third point reads "Live within a few hours". That line is the owner's wording, not a rule: delivery stays what each listing says (`lib/config.ts`), and other pages still say 1 to 7 days. The public pages are dark by default. The switch after My dashboard (`components/ThemeSwitch.tsx`) sets `<html data-theme="light">`, remembered in this browser and set before paint by the script in `app/layout.tsx`. `app/light.css` turns the `.night` tokens back to light. The hero, the first row of the top bar, the footer and the coloured bands stay dark in both modes, and dashboards stay dark.
+
+## Glass UI redesign (owner, 2026-11-07)
+
+`SELLONBAY_REDESIGN.md` and `design-reference/` replace the current look page by page, one phase per session on its own branch. The owner's answers are in `docs/DECISIONS.md` ("Glass UI redesign") and win over the older rules here as each phase ships; until a page has moved, the older design sections above still describe it. Old and new run side by side: new styles are in `app/glass.css` (every class starts with `g-`, tokens on `.g-ui`), new components in `components/glass/`, menus in `lib/glass/nav.ts`. `/design-preview` shows them and is a 404 in production. Never use production for this work: migrations go to the dev Supabase project only.

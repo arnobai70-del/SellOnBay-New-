@@ -129,3 +129,24 @@ Where the code differs from Blueprint v1.3 sections 5.6 and 5.7, and why:
   and the revision's own release, from private storage, hash-checked, logged like every download.
 - **Allowance:** only the quotation snapshot of the product's approved policy decides what is included. Orders from before quotations have
   no included revisions; their defects are still fixed free. Defects never count.
+
+## Glass UI redesign (owner, 2026-11-07)
+
+The handoff is `SELLONBAY_REDESIGN.md`, with the 44 reference pages in `design-reference/`. These answers were given after the Phase 0 audit. Each one is shipped in a later phase, and until then the code and the older rules above stay in force. Phase 1 changes none of these rules.
+
+- **Buying:** direct checkout for ready-made websites. Quotations stay for the Extended licence and custom work.
+- **Fee:** a new flat plan version, seller 78% and platform 22%. Existing orders keep their recorded fee. Pro and Business are hidden for new sellers.
+- **Payouts:** the 7-day hold stays. The copy is "Paid every Thursday for earnings accepted at least 7 days ago".
+- **Payments:** bKash and bank through the existing Finance check, cash for POS orders only. Card stays hidden until a provider is chosen, and then uses the provider's hosted fields only.
+- **Domains:** "Check availability" and manual registration. No promise of automatic setup until a registrar is connected.
+- **Accounts:** one account may buy and sell, with a `can_sell` flag. The authenticator code is required in seller mode.
+- **Messages:** a shared buyer and seller thread only inside an order. The contact filter stays, but the word "bKash" is allowed in order threads.
+- **Addresses and SEO:** category pages at `/websites/category/[category]`. `/websites`, `/domains` and `/blog` (as `/guides`) reopen, with 301s from every old address, including `/templates`. Google Analytics stays behind cookie consent and loads from the root layout. Offer data stays out of structured data (O-11).
+- **Wording:** "template" is removed from visible text and titles.
+- **Corrections to the design:** payment keys and the GA ID are shown read-only; no "Run backup now"; two-factor cannot be turned off for sellers or admins; hashed addresses only in the security log; no claims we cannot keep (domains in minutes, automatic connection, privacy included, SMS); refund copy includes the 7-day dispute window and the bug-fix guarantee.
+- **To retire:** three.js and JS motion on the home page, the dark and light switch (light only), the test-card form and demo controls, `AUTHENTICATOR_OFF`.
+- **Postponed:** the Bengali switcher and SMS.
+- **Placeholders:** values the owner has not given yet stay as clear `[PLACEHOLDER]` text.
+- **Environment:** migrations go to a separate dev Supabase project only. Nothing is applied to production without the owner's written ok.
+
+Google Analytics on private pages (Phase 1): once GA runs from the root layout it also sees signed-in pages, and a signed-out order is reachable by its id alone. On those pages GA gets the address with ids replaced by `[id]`, no query string and no hash (`gaPage` in `lib/ga4.ts`).

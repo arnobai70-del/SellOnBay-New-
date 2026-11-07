@@ -12,6 +12,7 @@ import { BUGFIX_DAYS, REVIEW_HOURS } from '@/lib/config';
 import { deliveryText } from '@/lib/deliveryTime';
 import { visibleProduct } from '@/lib/catalog';
 import { categoryPath, publicSellers, publicWebsites, websiteCategories, websitePath } from '@/lib/glass/catalog';
+import { publicListing } from '@/lib/glass/words';
 import { ratingOf, reviewsFor } from '@/lib/reviews';
 import { isPublic } from '@/lib/seo/controls';
 import { pageControls } from '@/lib/seo/controlStore';
@@ -30,7 +31,7 @@ async function find(slug: string) {
   if (!found) return null;
   const ctl = await pageControls(listingPath(found.product.id));
   if (found.status === 'live' && !isPublic(listingPath(found.product.id), ctl)) return null;
-  return { ...found, ctl };
+  return { ...found, product: publicListing(found.product), ctl };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

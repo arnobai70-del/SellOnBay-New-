@@ -11,6 +11,7 @@ import { listingPath } from '../seo/listingMeta';
 import { DEFAULT_CONTROLS } from '../seo/controls';
 import { createAdminClient } from '../supabase/server';
 import { supabaseConfigured } from '../supabase/env';
+import { publicListing } from './words';
 
 export const websitePath = (id: string) => `/websites/${id}`;
 export const categoryPath = (slug: string) => `/websites/category/${slug}`;
@@ -21,7 +22,7 @@ export async function publicWebsites(): Promise<Product[]> {
   const ctl = await allControls();
   const real = (await realListings()).filter((p) => platformOf(p) === 'web' && isPublic(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS));
   const list = examplesAllowed() ? [...real, ...(await starterProducts()).filter((p) => platformOf(p) === 'web')] : real;
-  return list.filter((p, i, a) => a.findIndex((q) => q.id === p.id) === i);
+  return list.filter((p, i, a) => a.findIndex((q) => q.id === p.id) === i).map(publicListing);
 }
 
 export async function websiteCategories(): Promise<{ alloc: Allocation; of: (p: Product) => HubCopy | null }> {

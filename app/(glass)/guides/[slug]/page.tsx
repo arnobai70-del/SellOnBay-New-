@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { JsonLd } from '@/components/JsonLd';
 import { PostBody } from '@/components/PostBody';
+import { CleanHtml } from '@/components/glass/CleanHtml';
 import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { adminOnly } from '@/lib/admin/guard';
 import { publicWebsites } from '@/lib/glass/catalog';
@@ -63,7 +64,7 @@ async function GuideHtml({ html }: { html: string }) {
     <>
       {parts.map((part, i) =>
         i % 2 === 0 ? (
-          part.trim() && <div key={i} dangerouslySetInnerHTML={{ __html: part }} />
+          part.trim() && <CleanHtml key={i} html={part} />
         ) : sites.get(part) ? (
           <div key={i} className="g-guide-site">
             <WebsiteCard p={sites.get(part)!} />

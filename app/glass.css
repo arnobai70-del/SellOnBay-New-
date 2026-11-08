@@ -1434,3 +1434,71 @@ textarea.g-input {
     height: 44px;
   }
 }
+
+/* The cookie notice (Phase 7): a glass card at the bottom, above the phone's tab bar area. */
+.g-cookie {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: var(--g-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.g-cookie p {
+  margin: 0;
+  flex: 1 1 280px;
+}
+.g-cookie a {
+  color: var(--g-mint-tx);
+  text-decoration: underline;
+}
+.g-cookie-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Older pages inside the glass frame (app/(site)/layout.tsx, Phase 7): their panels read as glass and the inner page width follows the frame. */
+.g-old .wrap {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+.g-old .panel,
+.g-old .dp {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--g-line);
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--g-text);
+}
+.g-old h1,
+.g-old h2,
+.g-old h3 {
+  color: var(--g-text);
+  letter-spacing: -0.01em;
+}
+.g-old .muted,
+.g-old .sub {
+  color: var(--g-muted);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .g-cookie,
+  .g-old .panel,
+  .g-old .dp {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #fff;
+  }
+}

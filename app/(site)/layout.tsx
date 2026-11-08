@@ -1,18 +1,27 @@
-import { SiteNavByPath } from '@/components/SiteNavByPath';
+import { Suspense } from 'react';
 import { EarlyBar } from '@/components/EarlyBar';
 import { Footer } from '@/components/Footer';
-import { VisitTracker } from '@/components/VisitTracker';
-import { TawkChat } from '@/components/TawkChat';
-import { navMenu } from '@/lib/seo/navStore';
 import { PageBlocks } from '@/components/PageBlocks';
+import { SiteNavByPath } from '@/components/SiteNavByPath';
+import { TawkChat } from '@/components/TawkChat';
 import { TopBlocks } from '@/components/TopBlocks';
+import { VisitTracker } from '@/components/VisitTracker';
+import { GlassPage } from '@/components/glass/GlassPage';
+import { PublicFooter } from '@/components/glass/PublicFooter';
+import { PublicNav } from '@/components/glass/PublicNav';
+import { BETA_BANNER_TEXT } from '@/lib/config';
+import { legacyPublic } from '@/lib/legacy';
 import { realListings } from '@/lib/seo/hubStore';
-import { savedFooter, savedSocial, topBlocks } from '@/lib/site/contentStore';
-import { Suspense } from 'react';
+import { navMenu } from '@/lib/seo/navStore';
+import { getSettings } from '@/lib/settings';
+import { contactRoutes, savedFooter, savedSocial, topBlocks } from '@/lib/site/contentStore';
 
-/* The category bar follows the admin's choices (lib/seo/navStore.ts). The pages stay static: saving refreshes them. */
+/*
+ * The pages still in the (site) group (account, orders, payment, notifications, search, report abuse, maintenance, the listing form) wear the glass
+ * frame since Phase 7: the same top bar, beta banner and footer as the public pages (app/(glass)/layout.tsx). Test servers built with
+ * NEXT_PUBLIC_LEGACY_PUBLIC=1 keep the old dark frame for the older browser tests.
+ */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const menu = await navMenu();
   const tops = await topBlocks();
   const listings = Object.values(tops)
     .flat()
@@ -20,24 +29,47 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     ? await realListings()
     : [];
   const slots = Object.fromEntries(Object.entries(tops).map(([path, blocks]) => [path, <PageBlocks key={path} blocks={blocks} listings={listings} />]));
-  const own = await savedFooter(); // columns built in Admin > Site builder, else the built-in ones
-  const social = await savedSocial(); // social media links from Admin > Site builder (lib/site/social.ts)
-  return (
+  const social = await savedSocial();
+  const tail = (
     <>
-      {/* The public pages are dark: .night carries the dark tokens for the bar, the page and the footer (app/globals.css). */}
-      <div className="night">
-        <EarlyBar />
-        <SiteNavByPath menu={menu} />
-        <main id="main">
-          <TopBlocks slots={slots} />
-          {children}
-        </main>
-        <Footer columns={own?.map((c) => ({ title: c.title, links: c.links.map((l) => [l.label, l.href] as [string, string]) }))} social={social} />
-      </div>
       <Suspense fallback={null}>
         <VisitTracker />
       </Suspense>
       <TawkChat />
+    </>
+  );
+  if (legacyPublic()) {
+    const [menu, own] = await Promise.all([navMenu(), savedFooter()]);
+    return (
+      <>
+        <div className="night">
+          <EarlyBar />
+          <SiteNavByPath menu={menu} />
+          <main id="main">
+            <TopBlocks slots={slots} />
+            {children}
+          </main>
+          <Footer columns={own?.map((c) => ({ title: c.title, links: c.links.map((l) => [l.label, l.href] as [string, string]) }))} social={social} />
+        </div>
+        {tail}
+      </>
+    );
+  }
+  const [{ paymentsMode }, routes] = await Promise.all([getSettings(), contactRoutes()]);
+  return (
+    <>
+      <GlassPage>
+        {paymentsMode === 'beta_free' && <p className="g-banner">{BETA_BANNER_TEXT}</p>}
+        <div className="g-wrap">
+          <PublicNav showCart />
+          <main id="main" className="g-old">
+            <TopBlocks slots={slots} />
+            {children}
+          </main>
+          <PublicFooter routes={routes} social={social} />
+        </div>
+      </GlassPage>
+      {tail}
     </>
   );
 }

@@ -10,7 +10,8 @@ import { StatusPill, type PillTone } from '@/components/glass/StatusPill';
 import { sellerDashboard, type SellerListing } from '@/lib/dashboard';
 import { listFiles } from '@/lib/files/store';
 import { usd } from '@/lib/glass/orderStatus';
-import { sellerListingFlags, storeProfile } from '@/lib/glass/seller';
+import { sellerListingFlags, sellerSales, storeProfile } from '@/lib/glass/seller';
+import { SaleCell } from '@/components/glass/SaleCell';
 import { plainWords } from '@/lib/glass/words';
 import { requireViewer } from '@/lib/supabase/viewer';
 
@@ -31,9 +32,9 @@ const FILE_STATE: Record<string, string> = {
 /* The seller's listings: status, price, the beta offer, edits, new versions, and the private source files buyers receive. */
 export default async function SellerWebsites() {
   const viewer = await requireViewer({ path: '/dashboard/seller/websites', roles: ['seller', 'admin'] });
-  const [v, flags, files, store] = viewer
-    ? await Promise.all([sellerDashboard(viewer.id), sellerListingFlags(viewer.id), listFiles({ uploadedBy: viewer.id }), storeProfile(viewer.id, viewer.name)])
-    : [null, new Map<string, { betaFree: boolean }>(), [], null];
+  const [v, flags, files, store, sales] = viewer
+    ? await Promise.all([sellerDashboard(viewer.id), sellerListingFlags(viewer.id), listFiles({ uploadedBy: viewer.id }), storeProfile(viewer.id, viewer.name), sellerSales(viewer.id)])
+    : [null, new Map<string, { betaFree: boolean }>(), [], null, new Map()];
   const myFiles = files.filter((f) => f.purpose !== 'delivery' && f.purpose !== 'revision').slice(0, 12);
   return (
     <SellerShell
@@ -75,6 +76,7 @@ export default async function SellerWebsites() {
                     return <StatusPill tone={tone}>{label}</StatusPill>;
                   },
                 },
+                { key: 'sale', label: 'Sale', cell: (l) => <SaleCell slug={l.slug} sale={sales.get(l.slug) ?? null} endpoint="/api/seller/listings/sale" /> },
                 { key: 'beta', label: 'Free during beta', cell: (l) => <BetaSwitch slug={l.slug} name={plainWords(l.name)} on={!!flags.get(l.slug)?.betaFree} /> },
                 {
                   key: 'actions',

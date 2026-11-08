@@ -1,4 +1,5 @@
 import 'server-only';
+import { priceDisplays } from '../prices/service';
 import { platformOf } from '../apps';
 import type { Product } from '../data';
 import { examplesAllowed } from '../exampleMode';
@@ -22,7 +23,12 @@ export async function publicWebsites(): Promise<Product[]> {
   const ctl = await allControls();
   const real = (await realListings()).filter((p) => platformOf(p) === 'web' && isPublic(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS));
   const list = examplesAllowed() ? [...real, ...(await starterProducts()).filter((p) => platformOf(p) === 'web')] : real;
-  return list.filter((p, i, a) => a.findIndex((q) => q.id === p.id) === i).map(publicListing);
+  const shown = list.filter((p, i, a) => a.findIndex((q) => q.id === p.id) === i).map(publicListing);
+  const prices = await priceDisplays(shown).catch(() => new Map()); // launch prices and sales (lib/prices)
+  return shown.map((p) => {
+    const d = p.dbId ? prices.get(p.dbId) : undefined;
+    return d?.badge ? { ...p, sale: { wasCents: d.wasCents, badge: d.badge, note: d.note } } : p;
+  });
 }
 
 export async function websiteCategories(): Promise<{ alloc: Allocation; of: (p: Product) => HubCopy | null }> {

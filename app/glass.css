@@ -1810,3 +1810,26 @@ textarea.g-input {
   border-radius: 12px;
   background: #fff;
 }
+
+/* Prices with a real launch price or sale (owner, 2026-11-08). */
+.g-price {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.g-price-was {
+  color: var(--g-muted);
+  font-size: 0.85em;
+}
+.g-price-badge {
+  font-size: 11px;
+}
+.g-price-note {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: var(--g-muted);
+}
+.g-price-big .g-price-note {
+  font-size: 13px;
+}

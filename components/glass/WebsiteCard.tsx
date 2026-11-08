@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PriceTag } from './PriceTag';
 import type { Product } from '@/lib/data';
 import { GlassCard } from './GlassCard';
 
@@ -28,7 +29,9 @@ export function WebsiteCard({ p, reveal = false }: { p: Product; reveal?: boolea
               {p.reviews > 0 ? ` · ★ ${p.rating.toFixed(1)}` : ''}
             </div>
           </div>
-          <div className="g-site-p">${p.price}</div>
+          <div className="g-site-p">
+            <PriceTag p={p} />
+          </div>
         </div>
       </Link>
     </GlassCard>

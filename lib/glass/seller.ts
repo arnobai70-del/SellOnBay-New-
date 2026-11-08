@@ -97,3 +97,11 @@ export async function sellerStats(slugs: string[], now = Date.now()) {
 }
 
 export const sellerNotes = (userId: string) => notificationsFor(userId, 100);
+
+/* Each listing's planned or running sale, by slug (owner, 2026-11-08). */
+export async function sellerSales(userId: string) {
+  if (!supabaseConfigured) return new Map();
+  const { data } = await createAdminClient().from('products').select('id, slug').eq('seller_id', userId).neq('status', 'draft').limit(200);
+  const { openSalesBySlug } = await import('../prices/service');
+  return openSalesBySlug((data ?? []) as { id: string; slug: string }[]);
+}

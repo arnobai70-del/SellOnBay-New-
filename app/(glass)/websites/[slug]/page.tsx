@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PriceTag } from '@/components/glass/PriceTag';
 import { pageCopy } from '@/lib/content/copy';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -135,7 +136,9 @@ export default async function Website({ params }: Props) {
           <GlassCard as="section" rise={false}>
             <h1>{p.name}</h1>
             {p.stack && <div className="g-tag">{p.stack}</div>}
-            <div style={{ fontSize: 30, fontWeight: 300, marginTop: 10 }}>${p.price}</div>
+            <div style={{ fontSize: 30, fontWeight: 300, marginTop: 10 }}>
+              <PriceTag p={sites.find((x) => x.id === p.id) ?? p} big />
+            </div>
             <div className="g-tag">Standard licence · one website, one domain · {deliveryText({ days: p.days, hours: p.hours })}</div>
             {beta && requestable && (
               <p style={{ marginTop: 10 }}>

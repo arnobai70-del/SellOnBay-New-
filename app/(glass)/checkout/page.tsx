@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { priceDisplays } from '@/lib/prices/service';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BuyersOnly } from '@/components/BuyersOnly';
@@ -74,6 +75,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
 
   const found = await Promise.all(want.map((w) => productRecord(w)));
   const items = found.flatMap((f) => (f && f.status === 'live' && (f.product.sellerId ? betaEligible(f.product) : examplesBuyable()) ? [publicListing(f.product)] : []));
+  const prices = await priceDisplays(items).catch(() => new Map()); // a running launch price or sale, shown for information in the beta
   let email = '';
   if (supabaseConfigured) {
     const {
@@ -117,6 +119,11 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
                   <span className="g-tag" style={{ display: 'block' }}>
                     Standard licence
                   </span>
+                  {i.dbId && prices.get(i.dbId)?.note && (
+                    <span className="g-tag" style={{ display: 'block' }}>
+                      {prices.get(i.dbId)!.note}
+                    </span>
+                  )}
                 </span>
                 <s className="g-muted">${i.price}</s>
               </div>

@@ -1,4 +1,5 @@
 import { passedCode } from '@/lib/auth/authenticator';
+import { priceLockedBySale, SALE_LOCK_TEXT } from '@/lib/prices/service';
 import { NextResponse } from 'next/server';
 import { type ThemeKey } from '@/lib/data';
 import { WEB_CATS, isWebCat } from '@/lib/webCategories';
@@ -330,6 +331,10 @@ export async function POST(req: Request) {
     }
   }
 
+  if (editing) {
+    const locked = await priceLockedBySale(editing.id); // a sale sets the price for its days (lib/prices)
+    if (locked !== null && price * 100 !== locked) return fail(SALE_LOCK_TEXT, 409);
+  }
   const admin = createAdminClient();
   let productId = '',
     slug = '';

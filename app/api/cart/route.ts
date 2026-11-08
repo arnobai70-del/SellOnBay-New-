@@ -5,6 +5,7 @@ import { productRecord } from '@/lib/catalog';
 import { examplesBuyable } from '@/lib/examples';
 import { publicListing } from '@/lib/glass/words';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { priceDisplays } from '@/lib/prices/service';
 import { getSettings } from '@/lib/settings';
 import { readJson } from '@/lib/validate';
 
@@ -19,10 +20,22 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const { paymentsMode } = await getSettings();
   const found = await Promise.all(body.data.ids.map((id) => productRecord(id)));
+  const prices = await priceDisplays(found.flatMap((f) => (f ? [f.product] : []))).catch(() => new Map()); // a running launch price or sale (lib/prices)
   const items = found.flatMap((f) => {
     if (!f || f.status !== 'live') return [];
     const p = publicListing(f.product);
-    return [{ id: p.id, name: p.name, seller: p.seller, priceCents: Math.round(p.price * 100), requestable: paymentsMode !== 'beta_free' || (p.sellerId ? betaEligible(p) : examplesBuyable()) }];
+    const d = p.dbId ? prices.get(p.dbId) : undefined;
+    return [
+      {
+        id: p.id,
+        name: p.name,
+        seller: p.seller,
+        priceCents: Math.round(p.price * 100),
+        wasCents: d?.wasCents ?? null,
+        priceNote: d?.note ?? null,
+        requestable: paymentsMode !== 'beta_free' || (p.sellerId ? betaEligible(p) : examplesBuyable()),
+      },
+    ];
   });
   return NextResponse.json({ items, beta: paymentsMode === 'beta_free' });
 }

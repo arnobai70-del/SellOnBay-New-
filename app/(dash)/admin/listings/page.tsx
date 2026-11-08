@@ -1,4 +1,8 @@
 import type { Metadata } from 'next';
+import { SaleCell } from '@/components/glass/SaleCell';
+import { historyOf, openSalesBySlug } from '@/lib/prices/service';
+import { supabaseConfigured } from '@/lib/supabase/env';
+import { createAdminClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { ListingReviewCard } from '@/components/ListingReviewCard';
 import { AdminShell } from '@/components/glass/AdminShell';
@@ -26,6 +30,19 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
   const raw = (await searchParams).status ?? '';
   const status = FILTERS.includes(raw) ? raw : '';
   const [queue, rows] = await Promise.all([listingQueue(), allListings(status)]);
+  // Each listing's sale and price history (owner, 2026-11-08), so an admin can spot a raised price before a "sale".
+  const { data: idRows } = supabaseConfigured
+    ? await createAdminClient()
+        .from('products')
+        .select('id, slug')
+        .in(
+          'slug',
+          rows.map((r) => r.slug),
+        )
+    : { data: [] };
+  const ids = (idRows ?? []) as { id: string; slug: string }[];
+  const [sales, history] = await Promise.all([openSalesBySlug(ids), historyOf(ids.map((r) => r.id))]);
+  const historyOfSlug = (slug: string) => history.get(ids.find((r) => r.slug === slug)?.id ?? '') ?? [];
   return (
     <AdminShell viewer={viewer} active="listings" title="Listing review" subtitle="Check the live demo, the files, the database schema, the setup guide, the price and that nothing is copied.">
       <GlassCard as="section">
@@ -58,6 +75,27 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
             { key: 'seller', label: 'Seller', cell: (l) => l.seller },
             { key: 'price', label: 'Price', cell: (l) => usd(l.priceCents) },
             { key: 'date', label: 'Added', cell: (l) => shortDate(l.createdAt) },
+            { key: 'sale', label: 'Sale', cell: (l) => <SaleCell slug={l.slug} sale={sales.get(l.slug) ?? null} endpoint="/api/admin/listings/sale" /> },
+            {
+              key: 'history',
+              label: 'Price history',
+              cell: (l) => {
+                const h = historyOfSlug(l.slug);
+                return h.length ? (
+                  <details>
+                    <summary>{h.length} prices</summary>
+                    {[...h].reverse().map((x) => (
+                      <div key={x.from} className="g-tag">
+                        {usd(x.priceCents)} from {shortDate(x.from)}
+                        {x.to ? ` to ${shortDate(x.to)}` : ' (now)'}
+                      </div>
+                    ))}
+                  </details>
+                ) : (
+                  '-'
+                );
+              },
+            },
             {
               key: 'status',
               label: 'Status',

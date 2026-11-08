@@ -5,7 +5,7 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { StatusPill } from '@/components/glass/StatusPill';
 import { addToCart, removeFromCart, useCart } from '@/lib/glass/cart';
 
-export type CartItem = { id: string; name: string; seller: string; priceCents: number; requestable: boolean };
+export type CartItem = { id: string; name: string; seller: string; priceCents: number; wasCents?: number | null; priceNote?: string | null; requestable: boolean };
 const money = (c: number) => `$${(c / 100).toFixed(2)}`;
 
 /* Names and prices come from the server. Only websites that can be requested go on to checkout. */
@@ -58,7 +58,19 @@ export function CartClient({ add }: { add?: string }) {
               )}
             </div>
             <div className="g-row">
-              <span style={{ fontWeight: 500 }}>{money(i.priceCents)}</span>
+              <span style={{ fontWeight: 500, textAlign: 'right' }}>
+                {i.wasCents ? (
+                  <s className="g-price-was" style={{ marginRight: 6 }}>
+                    {money(i.wasCents)}
+                  </s>
+                ) : null}
+                {money(i.priceCents)}
+                {i.priceNote && (
+                  <span className="g-price-note" style={{ display: 'block' }}>
+                    {i.priceNote}
+                  </span>
+                )}
+              </span>
               <Button variant="ghost" size="sm" onClick={() => removeFromCart(i.id)} aria-label={`Remove ${i.name}`}>
                 Remove
               </Button>

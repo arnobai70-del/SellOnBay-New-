@@ -1,4 +1,5 @@
 import 'server-only';
+import { priceLockedBySale, SALE_LOCK_TEXT } from '../prices/service';
 import { revalidatePath } from 'next/cache';
 import { CONFIG } from '../config';
 import { BUCKET } from '../demoStore';
@@ -74,6 +75,7 @@ export async function adminEditProduct(adminId: string | null, slug: string, inp
   if (!c.ok) return { ok: false, status: 400, error: c.error };
   const same = (Object.keys(c.row) as (keyof typeof c.row)[]).every((k) => JSON.stringify(c.row[k]) === JSON.stringify((before as Record<string, unknown>)[k] ?? null));
   if (same) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (c.row.price_cents !== undefined && c.row.price_cents !== before.price_cents && (await priceLockedBySale(before.id)) !== null) return { ok: false, status: 409, error: SALE_LOCK_TEXT };
   // Buyers who paid already download the file behind the files link: it cannot be swapped under them (a digital product gets a new version instead).
   if (c.row.code_url !== undefined && c.row.code_url !== before.code_url) {
     const { count } = await createAdminClient()

@@ -184,6 +184,8 @@ export type Product = {
   docsUrl?: string;
   /* A seller's listing in the database: its row id and its seller. Starter listings have neither. */
   dbId?: string;
+  /* A running launch price or sale (lib/prices): set on public lists and pages; never a manual struck-through number. */
+  sale?: { wasCents?: number; badge?: 'Sale' | 'Launch'; note?: string };
   sellerId?: string;
   ownerType?: 'seller' | 'platform'; // SellOnBay's own listings have no seller store
   betaFreeOk?: boolean; // the seller offers this website free during the beta (lib/beta/rules.ts)

@@ -71,6 +71,15 @@ export default async function AdminSettings() {
           </div>
         </GlassCard>
         <GlassCard as="section">
+          <h2>Maintenance</h2>
+          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+            Close the whole site, one area or one page, now or on a schedule.
+          </p>
+          <p style={{ marginTop: 10 }}>
+            <Link href="/admin/settings/maintenance">Open Maintenance</Link>
+          </p>
+        </GlassCard>
+        <GlassCard as="section">
           <h2>Contact & social</h2>
           <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
             The contact addresses, and the social links in the footer, Help and Sell.

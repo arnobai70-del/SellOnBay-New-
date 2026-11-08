@@ -26,7 +26,7 @@ const schema = z.object({
 
 /* A message from someone who is not signed in. Bot traps first, then the bot check and a limit per address; saved, then emailed to the inbox for its topic. */
 export async function POST(req: Request) {
-  const closed = await maintenanceFor('messaging');
+  const closed = await maintenanceFor('help');
   if (closed) return closed;
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;

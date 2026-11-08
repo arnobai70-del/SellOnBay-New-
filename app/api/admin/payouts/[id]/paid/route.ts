@@ -10,7 +10,7 @@ const schema = z.object({ reference: z.string().max(200) });
 
 /* The admin sent the money and says so, with the transfer reference. Moves the ledger and the orders. Only once. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('payouts'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const a = await adminOnly('finance');
   if (!a.ok) return a.res;

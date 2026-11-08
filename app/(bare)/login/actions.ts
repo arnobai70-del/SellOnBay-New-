@@ -38,7 +38,7 @@ export async function authenticate(formData: FormData) {
 
   if (signup && !name) return back('Enter your name.');
   // Sign-in stays open during auth maintenance (nobody is locked out); new accounts wait.
-  const closed = signup ? await maintenanceMessage('auth') : null;
+  const closed = signup ? ((await maintenanceMessage('signup')) ?? (await maintenanceMessage('auth'))) : null; // sign-up has its own switch (2026-11-08)
   if (closed) return back(closed);
   if (!(await passesBotCheck(formData))) return back(BOT_FAILED);
   const g = await guard(signup ? 'signup' : 'login', null, { email });

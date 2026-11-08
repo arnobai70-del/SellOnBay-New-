@@ -17,7 +17,7 @@ const no = (error: string, status = 400) => NextResponse.json({ error }, { statu
  * refused, every change is in the audit log, and the seller is told by notification and email, so a stolen session cannot quietly redirect payouts.
  */
 export async function POST(req: Request) {
-  const closed = await maintenanceFor('seller'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('payouts'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   if (!supabaseConfigured) return no('Payout details need an account. There are none in demo mode.', 404);
   const sb = await createClient();

@@ -29,6 +29,7 @@ function routes(dir: string, file: string): string[] {
 /* Pages that stay open whatever is in maintenance: the home page, information and policy pages, and redirects. */
 const OPEN_PAGES = [
   '/design-preview', // development only: a 404 in production, removed in redesign Phase 7
+  '/admin/settings/maintenance', // the way back when the admin area is closed (2026-11-08)
   '/buyer-protection',
   '/signin',
   '/two-factor',
@@ -63,8 +64,30 @@ const OPEN_PAGES = [
 ];
 
 describe('module registry', () => {
-  it('has the thirteen modules the owner listed', () => {
-    expect(MODULE_KEYS).toEqual(['auth', 'visitor', 'buyer', 'seller', 'admin', 'catalog', 'upload', 'checkout', 'orders', 'messaging', 'seo', 'ai', 'disputes']);
+  it('has the thirteen modules the owner listed, and the eight added on 2026-11-08', () => {
+    expect(MODULE_KEYS).toEqual([
+      'auth',
+      'visitor',
+      'buyer',
+      'seller',
+      'admin',
+      'catalog',
+      'upload',
+      'checkout',
+      'orders',
+      'messaging',
+      'seo',
+      'ai',
+      'disputes',
+      'site',
+      'cart',
+      'payouts',
+      'domains',
+      'guides',
+      'help',
+      'signup',
+      'search',
+    ]);
     expect(isModuleKey('seller')).toBe(true);
     expect(isModuleKey('toString')).toBe(false);
   });

@@ -13,7 +13,7 @@ const schema = z.object({ ids: z.array(z.string().min(1).max(200)).max(5) });
 
 /* What a cart holds, read fresh from the server: names and prices never come from the browser. Listings that are gone are simply not returned. */
 export async function POST(req: Request) {
-  const closed = await maintenanceFor('checkout');
+  const closed = await maintenanceFor('cart');
   if (closed) return closed;
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;

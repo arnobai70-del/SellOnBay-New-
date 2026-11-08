@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 /* Make this week's payout batch now (the Thursday job does the same). Shows who was left out and why. */
 export async function POST() {
-  const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('payouts'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const a = await adminOnly('finance');
   if (!a.ok) return a.res;

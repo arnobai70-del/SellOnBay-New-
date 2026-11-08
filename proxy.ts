@@ -6,6 +6,8 @@ import { sessionCookieOptions } from '@/lib/supabase/cookieOptions';
 import { supabaseAnonKey, supabaseConfigured, supabaseUrl } from '@/lib/supabase/env';
 import { cannotAct } from './lib/accounts';
 import { closedForPath, maintenanceJson, maintenancePageResponse } from './lib/maintenance/guard';
+import { allowedIp } from './lib/maintenance/state';
+import { clientAddress } from './lib/clientIp';
 import type { ModuleKey } from './lib/maintenance/config';
 import { crossSiteWrite } from './lib/sameOrigin';
 import { isRetired, isRetiredApi, legacyPublic } from './lib/legacy';
@@ -47,7 +49,8 @@ async function proxyInner(req: NextRequest) {
     return NextResponse.json({ error: 'Not allowed from another site.' }, { status: 403 });
   // A module in maintenance (lib/maintenance): its pages show the maintenance notice, its APIs answer 503. The routes check again themselves.
   const closed = await closedForPath(req.nextUrl.pathname);
-  if (closed && !(await adminPasses(req, closed.key))) return closed.api ? maintenanceJson(closed.row) : maintenancePageResponse(closed.row);
+  if (closed && !(await allowedIp(clientAddress(req.headers))) && !(closed.module && (await adminPasses(req, closed.module))))
+    return closed.api ? maintenanceJson(closed.closure) : maintenancePageResponse(closed.closure);
   // Addresses that moved in the glass redesign answer with a permanent redirect (lib/glass/moved.ts), so rankings carry over.
   if (!legacyPublic() && (req.method === 'GET' || req.method === 'HEAD')) {
     const to = movedTo(req.nextUrl.pathname);

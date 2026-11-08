@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
  * a GET could be fired by a link or an image on another page. Payout details are the sellers' own and stay admin-only.
  */
 export async function POST(req: Request) {
-  const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('payouts'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const a = await adminOnly('finance');
   if (!a.ok) return a.res;

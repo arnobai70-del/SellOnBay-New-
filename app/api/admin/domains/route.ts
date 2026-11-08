@@ -25,7 +25,7 @@ const schema = z.object({
  * admin records it here: the domain then shows in the buyer's dashboard. Support or Super Admin; audited. The buyer is always the order's buyer.
  */
 export async function POST(req: Request) {
-  const closed = await maintenanceFor('admin');
+  const closed = await maintenanceFor('domains');
   if (closed) return closed;
   const a = await adminOnly('support');
   if (!a.ok) return a.res;

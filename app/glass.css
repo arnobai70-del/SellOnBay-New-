@@ -1613,3 +1613,7 @@ textarea.g-input {
 .g-search .g-sx .g-input:focus {
   outline: none;
 }
+.g-banner-warn {
+  background: var(--g-wait-bg);
+  color: var(--g-wait-tx);
+}

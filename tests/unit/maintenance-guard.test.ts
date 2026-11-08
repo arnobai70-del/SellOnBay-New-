@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { moduleOfApi } from '@/lib/maintenance/config';
-import { closedForPath, maintenanceJson, maintenancePageResponse } from '@/lib/maintenance/guard';
+import { closedForPath, maintenanceJson, maintenancePageResponse, fromModule } from '@/lib/maintenance/guard';
 import { closedRow, forgetRows, isActive, memoryRows, retryAfterSeconds, shownMessage, type ModuleRow } from '@/lib/maintenance/state';
 
 const NOW = Date.parse('2026-10-20T12:00:00Z');
@@ -25,7 +25,7 @@ describe('maintenance state', () => {
   });
 
   it('answers an API with 503, Retry-After and the message', async () => {
-    const r = maintenanceJson(row({ message: 'Back at noon', endAt: NOW + 600_000 }), NOW);
+    const r = maintenanceJson(fromModule(row({ message: 'Back at noon', endAt: NOW + 600_000 })), NOW);
     expect(r.status).toBe(503);
     expect(r.headers.get('retry-after')).toBe('600');
     expect(r.headers.get('cache-control')).toBe('no-store');
@@ -42,7 +42,8 @@ describe('maintenance state', () => {
     expect(await closedRow('seller', NOW)).not.toBeNull();
     expect(await closedRow('buyer', NOW)).toBeNull();
     expect((await closedForPath('/dashboard/seller', NOW))?.api).toBe(false);
-    expect((await closedForPath('/api/seller/payout', NOW))?.api).toBe(true);
+    expect((await closedForPath('/api/seller/store', NOW))?.api).toBe(true);
+    expect(await closedForPath('/api/seller/payout', NOW)).toBeNull(); // payouts have their own module since 2026-11-08
     expect(await closedForPath('/dashboard/buyer', NOW)).toBeNull();
     expect(await closedForPath('/browse', NOW)).toBeNull();
     expect(await closedForPath('/api/webhooks/payment', NOW)).toBeNull();
@@ -85,7 +86,7 @@ describe('every API route checks maintenance for itself', () => {
 describe('the page notice the proxy answers (found in the browser suite: a rewrite lost its 503)', () => {
   it('is a real 503 with Retry-After and noindex, and never treats the message as HTML', async () => {
     const row: ModuleRow = { key: 'seller', enabled: true, message: '<script>alert(1)</script> Back at 14:00.', startAt: null, endAt: Date.now() + 600_000, updatedBy: null, updatedAt: 0 };
-    const res = maintenancePageResponse(row);
+    const res = maintenancePageResponse(fromModule(row));
     expect(res.status).toBe(503);
     expect(Number(res.headers.get('retry-after'))).toBeGreaterThan(500);
     expect(res.headers.get('x-robots-tag')).toBe('noindex');

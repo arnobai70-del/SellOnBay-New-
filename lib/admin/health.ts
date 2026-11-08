@@ -12,6 +12,9 @@ import { supabaseConfigured } from '../supabase/env';
 import { adminClientAvailable, createAdminClient } from '../supabase/server';
 import { criticals, HOST_NOTE, hostKind, levelOfAge, levelOfCount, levelOfDays, levelOfPct, pctOf, type HostKind, type Metric } from './healthCore';
 import { systemSnapshot } from './system';
+import { MODULES } from '../maintenance/config';
+import { moduleStates, pageStates } from '../maintenance/service';
+import { upcomingMaintenance } from '../maintenance/state';
 import { samples } from '../timing';
 import { p95 } from '../timingCore';
 
@@ -128,6 +131,8 @@ async function measure(now: number): Promise<Health> {
     machine(kind),
   ]);
   const api = p95(samples(), now);
+  const [mStates, pStates, soon] = await Promise.all([moduleStates(now), pageStates(now), upcomingMaintenance(now)]);
+  const closed = [...mStates.modules.filter((m) => m.active).map((m) => MODULES[m.key].label), ...pStates.filter((p) => p.active).map((p) => p.path)];
   const dbLimit = planMb('DB_PLAN_MB', 500);
   const stLimit = planMb('STORAGE_PLAN_MB', 1024);
   const dbPct = pctOf(snap.database.sizeMb, dbLimit);
@@ -145,6 +150,13 @@ async function measure(now: number): Promise<Health> {
       level: apiLevel(api.p95),
       value: api.p95 === null ? `Not enough requests yet (${api.count})` : `${api.p95} ms over ${api.count} requests`,
       note: 'Timed on this server copy, sampled. Normal under 800 ms, a warning from 800 ms, critical over 900 ms (80% and 90% of a 1-second target).',
+    },
+    {
+      key: 'maintenance',
+      label: 'Maintenance',
+      level: closed.length ? 'warn' : 'ok',
+      value: closed.length ? `Closed now: ${closed.join(', ')}` : 'Everything open',
+      note: soon.length ? `Planned: ${soon.map((s) => `${s.label} at ${new Date(s.startAt).toISOString().slice(11, 16)} UTC`).join(', ')}` : undefined,
     },
     { key: 'errors', label: 'Errors in 24 hours', level: levelOfCount(day, 100), value: day === null ? 'Not known' : String(day) },
     {

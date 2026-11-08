@@ -7,6 +7,7 @@ import { TawkChat } from '@/components/TawkChat';
 import { TopBlocks } from '@/components/TopBlocks';
 import { VisitTracker } from '@/components/VisitTracker';
 import { GlassPage } from '@/components/glass/GlassPage';
+import { MaintenanceBanner } from '@/components/glass/MaintenanceBanner';
 import { PublicFooter } from '@/components/glass/PublicFooter';
 import { PublicNav } from '@/components/glass/PublicNav';
 import { BETA_BANNER_TEXT } from '@/lib/config';
@@ -60,6 +61,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       <GlassPage>
         {paymentsMode === 'beta_free' && <p className="g-banner">{BETA_BANNER_TEXT}</p>}
+        <MaintenanceBanner />
         <div className="g-wrap">
           <PublicNav showCart />
           <main id="main" className="g-old">

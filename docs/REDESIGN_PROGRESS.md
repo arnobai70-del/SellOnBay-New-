@@ -11,7 +11,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 | 4 Buyer dashboard | `redesign/phase-4-buyer-dashboard` | Done |
 | 5 Seller dashboard | `redesign/phase-5-seller-dashboard` | Done |
 | 6 Admin | `redesign/phase-6-admin` | Done |
-| 7 Polish | none yet | Not started |
+| 7 Polish | `redesign/phase-7-polish`, then `redesign/phase-6c-search-cms-prices` | Done, except the deletions in `docs/CLEANUP.md` (waiting for the owner's ok) |
 
 ## Database
 
@@ -193,3 +193,12 @@ Checked: 1,177 unit tests, typecheck, lint, build, the migration check with `pg_
 Not done: drafts of the top bar and footer show in the preview only after publishing (the layout cannot see the preview flag); the 404 page has no draft preview. `/admin/listings` was slow from this machine (many round trips to a slow database link); its ids are now read in parallel and the final check rebuilds it.
 
 Test rows added: guide `0caf8f3d-7e4e-4d6d-b6b1-158e9161f27c` ("[TEST] Guide check", unpublished) with its revision; sale `e93cba1f-1a41-4d27-a837-070f7a451f43` on `test-beta-website-qa` (stopped) and its price history rows; the home page's CMS document (version 2 is the built-in words); `module_maintenance` row for search (open).
+
+## Phase 7: done, deletions waiting for the owner
+
+- The pages still in the older group (account, orders, payment, notifications, search, report abuse, maintenance, the listing form) wear the glass frame: the same top bar, beta banner and footer; their inner panels read as glass. The cookie notice is glass. Search shows names without the removed word.
+- The test-card form is retired for real orders: `ENABLE_TEST_CHECKOUT` no longer lets test cards fund a real order, and the demo controls never show on an order not made in demo mode (before, an order for one of SellOnBay's own listings would have shown them; the server already refused the action).
+- `glass.css` is loaded from the root layout (every class starts with `g-`), because the root 404 page did not get it through the deep import and showed unstyled and 597 pixels wide on phones.
+- Cleanup: `docs/CLEANUP.md` lists 41 unused files (3.0 MB, mostly the old heroes, the cinematic home and its two videos), the retired old public site as a choice, `/design-preview`, what is kept on purpose, and the test data. Nothing is deleted until the owner says ok.
+
+The one full check: every public page (16), every buyer page (7), every seller page (10) and every admin page (19) at 360, 390, 768 and 1280 pixels, and again at 390 with reduced motion, on a production build against the real database: status, no sideways scroll, one h1, one main, no removed word on public pages, nothing left invisible with reduced motion. 916 passed. Failed and fixed: the 404 page at 360 and 390 (the stylesheet above), rerun alone and passing. Not a defect: two invisible file pickers laid over the picture and zip drop areas of the upload form.

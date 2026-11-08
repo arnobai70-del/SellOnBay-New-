@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Button } from '@/components/glass/Button';
 import { Field } from '@/components/glass/Field';
 import { GlassCard } from '@/components/glass/GlassCard';
+import { SearchBox } from '@/components/glass/SearchBox';
+import { rankWebsites } from '@/lib/glass/search';
 import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { PageExtras } from '@/components/PageExtras';
 import { browse, browseHref, readQuery, SORTS, SORT_LABEL } from '@/lib/glass/browse';
@@ -16,20 +18,15 @@ export const generateMetadata = () => pageMetadata('/websites', { alternates: { 
 export default async function Websites({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const q = readQuery(await searchParams, CATEGORY_SLUGS);
   const [sites, cats, words] = await Promise.all([publicWebsites(), websiteCategories(), pageWords('/websites')]);
-  const r = browse(sites, q, (p) => cats.of(p)?.slug ?? null);
+  const r = browse(sites, q, (p) => cats.of(p)?.slug ?? null, q.q ? await rankWebsites(q.q) : undefined);
   const hub = HUBS.find((h) => h.slug === q.category);
   return (
     <>
       <div className="g-head">
         <h1>{words.heading}</h1>
-        <form className="g-glass g-search" action="/websites" method="get" role="search">
-          <label className="g-sr" htmlFor="q">
-            Search websites
-          </label>
-          <input id="q" name="q" defaultValue={q.q} placeholder="Search full-stack websites" />
-          {q.category && <input type="hidden" name="category" value={q.category} />}
-          <Button type="submit">Search</Button>
-        </form>
+        <div className="g-glass g-search">
+          <SearchBox action="/websites" label="Search websites" placeholder="Search full-stack websites" defaultValue={q.q} hidden={q.category ? { category: q.category } : {}} />
+        </div>
       </div>
       <div className="g-layout">
         <GlassCard as="aside" rise={false} aria-label="Filters">

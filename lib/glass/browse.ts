@@ -61,11 +61,19 @@ const COMPARE: Record<Sort, (a: BrowseItem, b: BrowseItem) => number> = {
   'price-desc': (a, b) => b.price - a.price,
 };
 
-/* `inCategory` says which category a listing is in, so the caller's mapping stays the only one. */
-export function browse<T extends BrowseItem>(list: readonly T[], q: BrowseQuery, inCategory: (p: T) => string | null): { items: T[]; total: number; pages: number; page: number } {
+/*
+ * `inCategory` says which category a listing is in, so the caller's mapping stays the only one. `ranked` is the smart search's score by id
+ * (lib/glass/search.ts: partial words and typos); without it every word must appear, as before.
+ */
+export function browse<T extends BrowseItem>(
+  list: readonly T[],
+  q: BrowseQuery,
+  inCategory: (p: T) => string | null,
+  ranked?: ReadonlyMap<string, number>,
+): { items: T[]; total: number; pages: number; page: number } {
   const words = q.q.toLowerCase().split(/\s+/).filter(Boolean);
   const scored = list
-    .map((p) => ({ p, s: words.length ? score(p, words) : 0 }))
+    .map((p) => ({ p, s: !words.length ? 0 : ranked ? (ranked.get(p.id) ?? null) : score(p, words) }))
     .filter((x): x is { p: T; s: number } => x.s !== null)
     .filter(({ p }) => (!q.category || inCategory(p) === q.category) && (q.min === null || p.price >= q.min) && (q.max === null || p.price <= q.max) && (!q.rated || (p.reviews > 0 && p.rating >= 4)));
   scored.sort((a, b) => b.s - a.s || COMPARE[q.sort](a.p, b.p) || a.p.id.localeCompare(b.p.id));

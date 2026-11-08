@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/glass/Button';
 import { GlassCard } from '@/components/glass/GlassCard';
+import { SearchBox } from '@/components/glass/SearchBox';
 import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { JsonLd } from '@/components/JsonLd';
 import { PageExtras } from '@/components/PageExtras';
@@ -91,13 +92,9 @@ export default async function Home() {
         <p className="g-lead">
           One place for your online business: ready-made full-stack websites with escrow protection, domains in your own name, and a marketplace where developers keep {PLAN_KEEP_TEXT} of every sale.
         </p>
-        <form className="g-glass g-search" action="/websites" method="get" role="search" data-track="hero-search">
-          <label className="g-sr" htmlFor="home-q">
-            Search websites
-          </label>
-          <input id="home-q" name="q" placeholder="Search full-stack websites" />
-          <Button type="submit">Search</Button>
-        </form>
+        <div className="g-glass g-search">
+          <SearchBox action="/websites" label="Search websites" placeholder="Search full-stack websites" track="hero-search" />
+        </div>
         <div className="g-chips">
           {HUBS.map((h) => (
             <Link key={h.slug} className="g-chip" href={categoryPath(h.slug)}>

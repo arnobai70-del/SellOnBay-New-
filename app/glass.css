@@ -1502,3 +1502,114 @@ textarea.g-input {
     background: #fff;
   }
 }
+
+/* Smart search box and its dropdown (owner, 2026-11-08). */
+.g-sx {
+  position: relative;
+  width: 100%;
+}
+.g-sx form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.g-sx .g-input {
+  flex: 1;
+  min-width: 0;
+}
+.g-sx-compact .g-btn {
+  display: none;
+}
+.g-sx-pop {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  text-align: left;
+}
+.g-sx-pop ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.g-sx-h {
+  padding: 8px 10px 4px;
+  font-size: 12px;
+  color: var(--g-muted);
+}
+.g-sx-pop li a {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--g-text);
+  text-decoration: none;
+}
+.g-sx-pop li.on a,
+.g-sx-pop li a:hover {
+  background: var(--g-mint);
+}
+.g-sx-t mark {
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--g-accent);
+  text-underline-offset: 2px;
+}
+.g-sx-s {
+  font-size: 12px;
+  color: var(--g-muted);
+}
+.g-sx-all {
+  border-top: 1px solid var(--g-line);
+  margin-top: 6px !important;
+  padding-top: 6px !important;
+}
+.g-sx-none {
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.g-sx-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--g-mint-tx);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+@media (pointer: coarse) {
+  .g-sx-pop li a {
+    min-height: 44px;
+    justify-content: center;
+  }
+}
+.g-nav-search {
+  flex: 1 1 200px;
+  max-width: 280px;
+  margin: 0 8px;
+}
+@media (max-width: 1100px) {
+  .g-nav-search {
+    display: none;
+  }
+}
+.g-nav-sheet .g-sx {
+  margin-bottom: 8px;
+}
+.g-search .g-sx .g-input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.g-search .g-sx .g-input:focus {
+  outline: none;
+}

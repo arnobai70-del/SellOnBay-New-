@@ -1,9 +1,10 @@
 // Runs every migration in order against an in-process Postgres (PGlite) with small stand-ins for Supabase (auth, storage, cron, roles).
 // Catches SQL mistakes and clashes between migrations without touching any real database. Usage: node scripts/check-migrations.mjs
 import { PGlite } from '@electric-sql/pglite';
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 import { forPglite, migrationFiles, STAND_INS } from './lib/pgliteSupabase.mjs';
 
-const db = new PGlite();
+const db = new PGlite({ extensions: { pg_trgm } });
 
 await db.exec(STAND_INS);
 

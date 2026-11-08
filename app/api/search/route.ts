@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { clientAddress } from '@/lib/clientIp';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { limit } from '@/lib/rateLimit';
+import { smartSearch } from '@/lib/glass/search';
+import { legacyPublic } from '@/lib/legacy';
 import { siteSearch } from '@/lib/siteSearch';
 import { MAX_QUERY } from '@/lib/siteSearchCore';
 
@@ -13,6 +15,8 @@ export async function GET(req: Request) {
   if (closed) return closed;
   const q = (new URL(req.url).searchParams.get('q') ?? '').slice(0, MAX_QUERY);
   if (!(await limit(`search:${clientAddress(req.headers)}`, 90, 60_000))) return NextResponse.json({ error: 'Too many searches. Wait a moment.' }, { status: 429 });
+  // The glass site: grouped smart search (lib/glass/search.ts). Test servers on the old public site keep the old answer.
+  if (!legacyPublic()) return NextResponse.json(await smartSearch(q, 5), { headers: { 'cache-control': 'no-store' } });
   const hits = await siteSearch(q, 4);
   return NextResponse.json({ q, hits: hits.map(({ score: _s, ...h }) => h) }, { headers: { 'cache-control': 'no-store' } });
 }

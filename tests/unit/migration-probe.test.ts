@@ -1,4 +1,5 @@
 import { PGlite } from '@electric-sql/pglite';
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error plain JavaScript module without types
 import { classify, objectsOf, probeSql, statements } from '../../scripts/lib/migrationProbe.mjs';
@@ -13,7 +14,7 @@ const files: { file: string; sql: string }[] = migrationFiles();
 
 /* A database with the first `upTo` migrations applied, probed with the full plan, as production would be. */
 async function probeAfter(upTo: string, plan: unknown, tweak = '') {
-  const db = new PGlite();
+  const db = new PGlite({ extensions: { pg_trgm } });
   await db.exec(STAND_INS);
   for (const f of files.filter((x) => x.file.slice(0, 4) <= upTo)) await db.exec(forPglite(f.sql));
   if (tweak) await db.exec(tweak);

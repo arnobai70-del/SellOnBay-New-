@@ -13,6 +13,7 @@ export const STAND_INS = `
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
   create schema storage; create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint);
+  create schema extensions; -- Supabase keeps extensions such as pg_trgm here (0081)
   create schema cron; create table cron.job (jobid serial, jobname text);
   create function cron.unschedule(j int) returns boolean language sql as $$ select true $$;
   create function cron.schedule(a text, b text, c text) returns int language sql as $$ select 1 $$;

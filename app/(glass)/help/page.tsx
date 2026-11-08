@@ -4,6 +4,7 @@ import { PageExtras } from '@/components/PageExtras';
 import { liveSiteKey } from '@/lib/bot/turnstile';
 import { publishedFaq } from '@/lib/cms/docStore';
 import { SocialRow } from '@/components/glass/SocialRow';
+import { helpAnchor } from '@/lib/searchCore';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 import { faqToShow } from '@/lib/faq';
 import { pageMetadata } from '@/lib/seo/pageMeta';
@@ -26,7 +27,7 @@ export default async function Help() {
           <GlassCard key={g.title} as="section" rise={false}>
             <h2>{g.title}</h2>
             {g.items.map((f) => (
-              <details key={f.q} className="g-li" style={{ display: 'block' }}>
+              <details key={f.q} id={helpAnchor(f.q)} className="g-li" style={{ display: 'block' }}>
                 <summary style={{ cursor: 'pointer', fontSize: 15, minHeight: 28 }}>{f.q}</summary>
                 <p className="g-muted" style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6 }}>
                   {f.a}

@@ -6,6 +6,7 @@ import { BRAND_NAME } from '@/lib/brand';
 import { useCart } from '@/lib/glass/cart';
 import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
 import { Button } from './Button';
+import { SearchBox } from './SearchBox';
 
 const isHere = (path: string, href: string) => path === href || path.startsWith(href + '/');
 
@@ -43,12 +44,16 @@ export function PublicNav({
         {BRAND_NAME}
       </Link>
       <div className="g-nav-links">{list}</div>
+      <div className="g-nav-search">
+        <SearchBox compact placeholder="Search" />
+      </div>
       <div className="g-nav-acts">
         <span className="g-nav-acts g-nav-acts-wide">{cart}</span>
         <Button href={account.href}>{account.label}</Button>
         <details className="g-nav-menu" ref={menu}>
           <summary>Menu</summary>
           <div className="g-nav-sheet">
+            <SearchBox />
             {list}
             {showCart && (
               <Link className="g-nav-link" href="/cart" onClick={shut} data-track="cart">

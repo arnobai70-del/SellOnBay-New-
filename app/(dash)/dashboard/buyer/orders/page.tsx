@@ -55,29 +55,29 @@ export default async function BuyerOrders({ searchParams }: { searchParams: Prom
               align: 'right',
               cell: (o) =>
                 o.fundedAt ? (
-                  <a className="g-btn g-btn-ghost g-btn-sm" href={`/api/orders/${o.id}/receipt`}>
+                  <a className="btn ghost sm" href={`/api/orders/${o.id}/receipt`}>
                     Receipt PDF
                   </a>
                 ) : (
-                  <span className="g-tag">No payment</span>
+                  <span className="tag">No payment</span>
                 ),
             },
           ]}
         />
       </GlassCard>
-      <div className="g-grid2">
+      <div className="grid2">
         <GlassCard as="section">
           <h2>How paying works</h2>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>During the beta</span>Websites are free, no payment is taken
           </div>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>Escrow</span>The seller is paid only after you approve, or after the review ends
           </div>
         </GlassCard>
         <GlassCard as="section">
           <h2>Refunds</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Something wrong? Open a ticket from <Link href="/dashboard/buyer/support">Support &amp; disputes</Link> while the order is in review. See the{' '}
             <Link href="/legal/refunds">refund policy</Link>.
           </p>

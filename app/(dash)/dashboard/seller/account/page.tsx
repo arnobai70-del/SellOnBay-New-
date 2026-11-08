@@ -20,7 +20,7 @@ export default async function SellerAccount() {
   }
   return (
     <SellerShell viewer={viewer} active="account" title="Account & security" subtitle="Your details, the authenticator code and your data">
-      <div className="g-grid2">
+      <div className="grid2">
         <GlassCard as="section">
           <h2>Your name</h2>
           <div style={{ marginTop: 12 }}>
@@ -29,7 +29,7 @@ export default async function SellerAccount() {
         </GlassCard>
         <GlassCard as="section">
           <h2>Country and contact details</h2>
-          <p className="g-tag" style={{ marginTop: 4 }}>
+          <p className="tag" style={{ marginTop: 4 }}>
             Your country decides which payout methods you can use. Buyers never see your phone or email.
           </p>
           <div style={{ marginTop: 12 }}>
@@ -38,10 +38,10 @@ export default async function SellerAccount() {
         </GlassCard>
         <GlassCard as="section">
           <h2>Sign-in safety</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Seller pages always ask for your authenticator code, so a password alone never reaches your listings or payouts.
           </p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
+          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
             <Button variant="ghost" href="/account/sign-in">
               Sign-in methods
             </Button>
@@ -52,10 +52,10 @@ export default async function SellerAccount() {
         </GlassCard>
         <GlassCard as="section">
           <h2>Buying</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Your account can buy too. Your purchases are on the buyer dashboard.
           </p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
+          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
             <Button variant="ghost" href="/dashboard/buyer">
               Buyer dashboard
             </Button>

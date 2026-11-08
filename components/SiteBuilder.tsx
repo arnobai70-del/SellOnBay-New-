@@ -20,16 +20,16 @@ const change = <T,>(list: T[], i: number, patch: Partial<T>) => list.map((x, k) 
 
 function Row({ onUp, onDown, onDelete, children }: { onUp: () => void; onDown: () => void; onDelete: () => void; children: React.ReactNode }) {
   return (
-    <div className="adm-card" style={{ display: 'grid', gap: 8 }}>
+    <div className="sob-item" style={{ display: 'grid', gap: 8 }}>
       {children}
-      <div className="adm-btns">
-        <button className="btn btn-line btn-sm" type="button" onClick={onUp} aria-label="Move up">
+      <div className="sob-acts">
+        <button className="btn ghost sm" type="button" onClick={onUp} aria-label="Move up">
           Up
         </button>
-        <button className="btn btn-line btn-sm" type="button" onClick={onDown} aria-label="Move down">
+        <button className="btn ghost sm" type="button" onClick={onDown} aria-label="Move down">
           Down
         </button>
-        <button className="btn btn-line btn-sm" type="button" onClick={onDelete}>
+        <button className="btn ghost sm" type="button" onClick={onDelete}>
           Delete
         </button>
       </div>
@@ -57,7 +57,7 @@ function useSave() {
 
 const Status = ({ msg }: { msg: Msg }) =>
   msg ? (
-    <p className={msg.ok ? 'ok' : 'err'} role="status">
+    <p className={msg.ok ? 'ok' : 'sob-err'} role="status">
       {msg.text}
     </p>
   ) : null;
@@ -68,7 +68,7 @@ export function MenuBuilder({ initial, custom }: { initial: MenuItem[]; custom: 
   const { busy, msg, run } = useSave();
   const setChild = (i: number, children: Link[]) => setItems(change(items, i, { children }));
   return (
-    <div className="adm-form">
+    <div className="sob-form">
       <p className="muted">
         {custom ? 'This menu is saved by you and replaces the built-in one.' : 'This is the built-in menu. Change it and save to use your own.'} Up to {LIMITS.menuItems} items; an item with sub-links
         opens a panel.
@@ -89,36 +89,36 @@ export function MenuBuilder({ initial, custom }: { initial: MenuItem[]; custom: 
               <div key={k} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto auto', gap: 6, marginTop: 6 }}>
                 <input aria-label="Sub-link name" value={c.label} maxLength={LIMITS.label} onChange={(e) => setChild(i, change(m.children, k, { label: e.target.value }))} />
                 <input aria-label="Sub-link address" value={c.href} onChange={(e) => setChild(i, change(m.children, k, { href: e.target.value }))} />
-                <button className="btn btn-line btn-sm" type="button" onClick={() => setChild(i, move(m.children, k, -1))} aria-label="Move sub-link up">
+                <button className="btn ghost sm" type="button" onClick={() => setChild(i, move(m.children, k, -1))} aria-label="Move sub-link up">
                   Up
                 </button>
-                <button className="btn btn-line btn-sm" type="button" onClick={() => setChild(i, move(m.children, k, 1))} aria-label="Move sub-link down">
+                <button className="btn ghost sm" type="button" onClick={() => setChild(i, move(m.children, k, 1))} aria-label="Move sub-link down">
                   Down
                 </button>
-                <button className="btn btn-line btn-sm" type="button" onClick={() => setChild(i, without(m.children, k))}>
+                <button className="btn ghost sm" type="button" onClick={() => setChild(i, without(m.children, k))}>
                   Delete
                 </button>
               </div>
             ))}
             {m.children.length < LIMITS.children && (
-              <button className="btn btn-line btn-sm" type="button" style={{ marginTop: 8 }} onClick={() => setChild(i, [...m.children, { label: '', href: '/' }])}>
+              <button className="btn ghost sm" type="button" style={{ marginTop: 8 }} onClick={() => setChild(i, [...m.children, { label: '', href: '/' }])}>
                 Add a sub-link
               </button>
             )}
           </details>
         </Row>
       ))}
-      <div className="adm-btns">
+      <div className="sob-acts">
         {items.length < LIMITS.menuItems && (
-          <button className="btn btn-line" type="button" onClick={() => setItems([...items, { label: '', href: '/', children: [] }])}>
+          <button className="btn ghost" type="button" onClick={() => setItems([...items, { label: '', href: '/', children: [] }])}>
             Add a menu item
           </button>
         )}
-        <button className="btn btn-dark" type="button" disabled={busy} onClick={() => run({ kind: 'menu', value: items }, 'Menu saved. It shows on every page.')}>
+        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'menu', value: items }, 'Menu saved. It shows on every page.')}>
           Save menu
         </button>
         {custom && (
-          <button className="btn btn-line" type="button" disabled={busy} onClick={() => run({ kind: 'menu', reset: true }, 'The built-in menu is back.')}>
+          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'menu', reset: true }, 'The built-in menu is back.')}>
             Show the built-in menu again
           </button>
         )}
@@ -134,7 +134,7 @@ export function FooterBuilder({ initial, custom }: { initial: FooterColumn[]; cu
   const { busy, msg, run } = useSave();
   const setLinks = (i: number, links: Link[]) => setCols(change(cols, i, { links }));
   return (
-    <div className="adm-form">
+    <div className="sob-form">
       <p className="muted">
         {custom ? 'These columns are saved by you and replace the built-in ones.' : 'These are the built-in columns. Change them and save to use your own.'} Up to {LIMITS.footerColumns} columns of{' '}
         {LIMITS.footerLinks} links. The legal line at the bottom always stays.
@@ -149,35 +149,35 @@ export function FooterBuilder({ initial, custom }: { initial: FooterColumn[]; cu
             <div key={k} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto auto', gap: 6 }}>
               <input aria-label="Link name" value={l.label} maxLength={LIMITS.label} onChange={(e) => setLinks(i, change(c.links, k, { label: e.target.value }))} />
               <input aria-label="Link address" value={l.href} onChange={(e) => setLinks(i, change(c.links, k, { href: e.target.value }))} />
-              <button className="btn btn-line btn-sm" type="button" onClick={() => setLinks(i, move(c.links, k, -1))} aria-label="Move link up">
+              <button className="btn ghost sm" type="button" onClick={() => setLinks(i, move(c.links, k, -1))} aria-label="Move link up">
                 Up
               </button>
-              <button className="btn btn-line btn-sm" type="button" onClick={() => setLinks(i, move(c.links, k, 1))} aria-label="Move link down">
+              <button className="btn ghost sm" type="button" onClick={() => setLinks(i, move(c.links, k, 1))} aria-label="Move link down">
                 Down
               </button>
-              <button className="btn btn-line btn-sm" type="button" onClick={() => setLinks(i, without(c.links, k))}>
+              <button className="btn ghost sm" type="button" onClick={() => setLinks(i, without(c.links, k))}>
                 Delete
               </button>
             </div>
           ))}
           {c.links.length < LIMITS.footerLinks && (
-            <button className="btn btn-line btn-sm" type="button" style={{ justifySelf: 'start' }} onClick={() => setLinks(i, [...c.links, { label: '', href: '/' }])}>
+            <button className="btn ghost sm" type="button" style={{ justifySelf: 'start' }} onClick={() => setLinks(i, [...c.links, { label: '', href: '/' }])}>
               Add a link
             </button>
           )}
         </Row>
       ))}
-      <div className="adm-btns">
+      <div className="sob-acts">
         {cols.length < LIMITS.footerColumns && (
-          <button className="btn btn-line" type="button" onClick={() => setCols([...cols, { title: '', links: [{ label: '', href: '/' }] }])}>
+          <button className="btn ghost" type="button" onClick={() => setCols([...cols, { title: '', links: [{ label: '', href: '/' }] }])}>
             Add a column
           </button>
         )}
-        <button className="btn btn-dark" type="button" disabled={busy} onClick={() => run({ kind: 'footer', value: cols }, 'Footer saved. It shows on every page.')}>
+        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'footer', value: cols }, 'Footer saved. It shows on every page.')}>
           Save footer
         </button>
         {custom && (
-          <button className="btn btn-line" type="button" disabled={busy} onClick={() => run({ kind: 'footer', reset: true }, 'The built-in footer is back.')}>
+          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'footer', reset: true }, 'The built-in footer is back.')}>
             Show the built-in footer again
           </button>
         )}
@@ -227,7 +227,7 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
     else alert(j?.error ?? 'The picture could not be uploaded.');
   }
   return (
-    <div className="adm-form">
+    <div className="sob-form">
       <p className="muted">
         Blocks set to &ldquo;Top of the page&rdquo; show above everything. The others show in the area under the page, in this order: &ldquo;before&rdquo; ones first, then the page&rsquo;s own extra
         text and questions, then the &ldquo;after&rdquo; ones. Up to {LIMITS.blocks} blocks.
@@ -295,13 +295,13 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
                 <div key={k} style={{ display: 'grid', gap: 4 }}>
                   <input aria-label="Question" value={it.q} maxLength={200} placeholder="Question" onChange={(e) => set(i, { items: change(b.items, k, { q: e.target.value }) })} />
                   <textarea aria-label="Answer" rows={2} value={it.a} maxLength={1200} placeholder="Answer" onChange={(e) => set(i, { items: change(b.items, k, { a: e.target.value }) })} />
-                  <button className="btn btn-line btn-sm" type="button" style={{ justifySelf: 'start' }} onClick={() => set(i, { items: without(b.items, k) })}>
+                  <button className="btn ghost sm" type="button" style={{ justifySelf: 'start' }} onClick={() => set(i, { items: without(b.items, k) })}>
                     Delete this question
                   </button>
                 </div>
               ))}
               {b.items.length < LIMITS.faq && (
-                <button className="btn btn-line btn-sm" type="button" style={{ justifySelf: 'start' }} onClick={() => set(i, { items: [...b.items, { q: '', a: '' }] })}>
+                <button className="btn ghost sm" type="button" style={{ justifySelf: 'start' }} onClick={() => set(i, { items: [...b.items, { q: '', a: '' }] })}>
                   Add a question
                 </button>
               )}
@@ -309,7 +309,7 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
           )}
         </Row>
       ))}
-      <div className="adm-btns">
+      <div className="sob-acts">
         {blocks.length < LIMITS.blocks && (
           <>
             <select aria-label="Kind of block" value={add} onChange={(e) => setAdd(e.target.value as Block['type'])}>
@@ -319,16 +319,16 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
                 </option>
               ))}
             </select>
-            <button className="btn btn-line" type="button" onClick={() => setBlocks([...blocks, blank(add)])}>
+            <button className="btn ghost" type="button" onClick={() => setBlocks([...blocks, blank(add)])}>
               Add a block
             </button>
           </>
         )}
-        <button className="btn btn-dark" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, value: blocks }, 'Saved. The page shows these blocks now.')}>
+        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, value: blocks }, 'Saved. The page shows these blocks now.')}>
           Save blocks
         </button>
         {initial.length > 0 && (
-          <button className="btn btn-line" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, reset: true }, 'All blocks of this page were removed.')}>
+          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, reset: true }, 'All blocks of this page were removed.')}>
             Remove all blocks
           </button>
         )}
@@ -349,7 +349,7 @@ export function SectionsBuilder({ keys, initial }: { keys: [string, string][]; i
   const { busy, msg, run } = useSave();
   const label = (k: string) => keys.find(([x]) => x === k)?.[1] ?? k;
   return (
-    <div className="adm-form">
+    <div className="sob-form">
       <p className="muted">
         The sections of the home page, in the order they show. Hide one to take it off the page, move it to change the order. The top banner holds the page&rsquo;s heading, so it always stays.
       </p>
@@ -362,22 +362,22 @@ export function SectionsBuilder({ keys, initial }: { keys: [string, string][]; i
         >
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <b>{label(k)}</b>
-            {hidden.includes(k) && <span className="chip rose">Hidden</span>}
-            {SECTIONS_LOCKED.includes(k) && <span className="chip">Always shown</span>}
+            {hidden.includes(k) && <span className="status st-bad">Hidden</span>}
+            {SECTIONS_LOCKED.includes(k) && <span className="status">Always shown</span>}
           </div>
           <small>{SECTIONS_LOCKED.includes(k) ? 'The Delete button is not used for this section.' : 'The Delete button here hides the section, or shows it again.'}</small>
         </Row>
       ))}
-      <div className="adm-btns">
+      <div className="sob-acts">
         <button
-          className="btn btn-dark"
+          className="btn"
           type="button"
           disabled={busy}
           onClick={() => run({ kind: 'sections', value: { order, hidden: hidden.filter((k) => !SECTIONS_LOCKED.includes(k)) } }, 'Saved. The home page uses this order now.')}
         >
           Save sections
         </button>
-        <button className="btn btn-line" type="button" disabled={busy} onClick={() => run({ kind: 'sections', reset: true }, 'The built-in order is back.')}>
+        <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'sections', reset: true }, 'The built-in order is back.')}>
           Back to the built-in order
         </button>
       </div>

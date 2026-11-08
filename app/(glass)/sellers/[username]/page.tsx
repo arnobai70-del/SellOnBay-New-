@@ -25,23 +25,23 @@ export default async function SellerStore({ params }: Props) {
     <div style={{ paddingTop: 40 }}>
       <GlassCard as="section" rise={false}>
         <h1>{s.name}</h1>
-        {s.headline && <div className="g-tag">{s.headline}</div>}
-        <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
+        {s.headline && <div className="tag">{s.headline}</div>}
+        <div className="row" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
           {s.verified && <StatusPill tone="ok">Verified seller</StatusPill>}
           {s.customAvailable && <StatusPill tone="info">Available for customization</StatusPill>}
         </div>
-        <p className="g-muted" style={{ marginTop: 12, fontSize: 14 }}>
+        <p className="muted" style={{ marginTop: 12, fontSize: 14 }}>
           {s.websites.length} {s.websites.length === 1 ? 'website' : 'websites'} · {s.sold} sold
           {s.reviews > 0 ? ` · ★ ${s.rating.toFixed(1)} from ${s.reviews} verified ${s.reviews === 1 ? 'buyer' : 'buyers'}` : ''}
           {s.joined ? ` · member since ${new Date(s.joined).getUTCFullYear()}` : ''}
         </p>
         {s.about && (
-          <p className="g-muted" style={{ marginTop: 12, fontSize: 15, lineHeight: 1.6 }}>
+          <p className="muted" style={{ marginTop: 12, fontSize: 15, lineHeight: 1.6 }}>
             {s.about}
           </p>
         )}
         {s.skills.length > 0 && (
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
+          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
             {s.skills.map((x) => (
               <StatusPill key={x} tone="draft">
                 {x}
@@ -66,7 +66,7 @@ export default async function SellerStore({ params }: Props) {
       <section className="g-sec">
         <GlassCard>
           <h2>Request customization</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             {paymentsMode === 'beta_free' ? 'Paid custom work is available after beta.' : 'Paid through escrow, like a website. Ask from any website of this seller.'}
           </p>
         </GlassCard>

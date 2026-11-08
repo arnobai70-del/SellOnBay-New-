@@ -94,7 +94,7 @@ async function mailSales(r: BetaRequest, title: string, now: number): Promise<vo
     from: senderFrom(routes.support),
     replyTo: r.email,
     subject: `New beta request: ${title}`.slice(0, 150),
-    text: `${r.name} (${r.email}, ${r.country}${r.company ? `, ${r.company}` : ''}) asked for ${title}.\n\nWill use it for: ${r.useFor}\n${r.domain ? `Domain: ${r.domain}\n` : ''}\nReview it: ${SITE_URL}/dashboard/admin/beta`,
+    text: `${r.name} (${r.email}, ${r.country}${r.company ? `, ${r.company}` : ''}) asked for ${title}.\n\nWill use it for: ${r.useFor}\n${r.domain ? `Domain: ${r.domain}\n` : ''}\nReview it: ${SITE_URL}/admin/orders/beta`,
     idempotencyKey: `beta-sales/${r.orderId}`,
   });
   if (await pg())

@@ -11,7 +11,7 @@ import { PAGE_SEO_GOOD } from './pageList';
 
 /*
  * Search words for a listing's own page (/product/<id>). Built automatically from the listing (name, category, shelf, description),
- * and an admin can replace them at /dashboard/admin/seo/listings (saved like any page, under "seo:page:/product/<id>").
+ * and an admin can replace them at /admin/seo/listings (saved like any page, under "seo:page:/product/<id>").
  */
 export const listingPath = (id: string) => `/product/${id}`;
 

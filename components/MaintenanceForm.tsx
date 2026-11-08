@@ -80,11 +80,11 @@ export function MaintenanceForm({
           <input id={id('end')} type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
         </span>
       </div>
-      <button className="btn btn-dark btn-sm" type="submit" disabled={busy}>
+      <button className="btn sm" type="submit" disabled={busy}>
         {busy ? 'Saving…' : 'Save'}
       </button>
       {msg && (
-        <p className={msg.ok ? 'adm-ok' : 'form-err'} role={msg.ok ? 'status' : 'alert'}>
+        <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>
           {msg.text}
         </p>
       )}

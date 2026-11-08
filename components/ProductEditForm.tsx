@@ -92,7 +92,7 @@ export function ProductEditForm({
 
   return (
     <>
-      <form className="adm-form" onSubmit={save}>
+      <form className="sob-form" onSubmit={save}>
         {text('name', 'Name', '3 to 60 characters.', 60)}
         {field(
           'pe-category',
@@ -180,8 +180,8 @@ export function ProductEditForm({
             )}
           </>
         )}
-        <div className="adm-btns">
-          <button className="btn btn-dark btn-sm" type="submit" disabled={busy}>
+        <div className="sob-acts">
+          <button className="btn sm" type="submit" disabled={busy}>
             {busy ? 'One moment...' : 'Save the listing'}
           </button>
         </div>
@@ -189,7 +189,7 @@ export function ProductEditForm({
 
       <h3>Pictures</h3>
       {
-        <div className="adm-form">
+        <div className="sob-form">
           <small>
             {isApp ? 'App screenshots' : 'Site pictures'} ({shots.length} of {maxShots}). PNG, JPEG or WebP up to 4 MB.{!isApp && ' The first one is the cover on the list.'}
           </small>
@@ -198,7 +198,7 @@ export function ProductEditForm({
               <div key={n} style={{ width: 120 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/demo/${v.slug}/${n}`} alt="" style={{ width: '100%', borderRadius: 8 }} loading="lazy" />
-                <button className="btn btn-line btn-sm" type="button" disabled={busy} onClick={() => post(JSON.stringify({ slug: v.slug, removeShot: n }), true, 'Picture removed.')}>
+                <button className="btn ghost sm" type="button" disabled={busy} onClick={() => post(JSON.stringify({ slug: v.slug, removeShot: n }), true, 'Picture removed.')}>
                   Remove
                 </button>
               </div>
@@ -213,7 +213,7 @@ export function ProductEditForm({
         </div>
       }
       {msg && (
-        <p className={msg.ok ? 'ok' : 'err'} role="status">
+        <p className={msg.ok ? 'ok' : 'sob-err'} role="status">
           {msg.text}
         </p>
       )}

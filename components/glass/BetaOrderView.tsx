@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Button } from './Button';
 import { Field } from './Field';
 import { GlassCard } from './GlassCard';
-import { GlassPage } from './GlassPage';
 import { StatusPill } from './StatusPill';
 
 type Props = { id: string; title: string; state: 'beta_requested' | 'beta_approved' | 'beta_declined'; reason?: string; domain?: string; reviewed: boolean; feedbackDone: boolean };
@@ -25,11 +24,11 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
     } else setNote(data.error ?? 'Could not get your files. Please try again.');
   };
   return (
-    <GlassPage>
-      <div className="g-wrap g-stack" style={{ paddingTop: 40, paddingBottom: 40 }}>
+    <>
+      <div className="wrap sob-stack" style={{ paddingTop: 40, paddingBottom: 40 }}>
         <div>
           <h1>{title}</h1>
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
+          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
             <StatusPill tone={state === 'beta_approved' ? 'ok' : state === 'beta_declined' ? 'bad' : 'wait'}>
               {state === 'beta_approved' ? 'Approved' : state === 'beta_declined' ? 'Declined' : 'Waiting for review'}
             </StatusPill>
@@ -39,7 +38,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
         {state === 'beta_requested' && (
           <GlassCard rise={false}>
             <h2>We&apos;re reviewing your request</h2>
-            <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+            <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
               We&apos;ll email you when it has been reviewed.
             </p>
           </GlassCard>
@@ -48,7 +47,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
           <GlassCard rise={false}>
             <h2>We could not approve this request</h2>
             {reason && (
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {reason}
               </p>
             )}
@@ -58,7 +57,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
           <>
             <GlassCard rise={false}>
               <h2>Your files</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 Each link works for 24 hours, and you can ask for a new one.
               </p>
               <div style={{ marginTop: 14 }}>
@@ -67,14 +66,14 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                 </Button>
               </div>
               {note && (
-                <p className="g-tag" role="status" style={{ marginTop: 10 }}>
+                <p className="tag" role="status" style={{ marginTop: 10 }}>
                   {note}
                 </p>
               )}
             </GlassCard>
             <GlassCard rise={false}>
               <h2>Your domain</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {domain
                   ? `You asked for ${domain}. We check it by hand and register it in your own name, then email you the next step.`
                   : 'Use a domain you already own, or find one on our domains page.'}
@@ -83,12 +82,12 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
             <GlassCard rise={false}>
               <h2>Your review</h2>
               {done ? (
-                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }} role="status">
+                <p className="muted" style={{ marginTop: 8, fontSize: 14 }} role="status">
                   Thanks for your review.
                 </p>
               ) : (
                 <form
-                  className="g-stack"
+                  className="sob-stack"
                   style={{ marginTop: 10 }}
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -103,8 +102,8 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                   }}
                 >
                   <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
-                    <legend className="g-field-l">Your rating</legend>
-                    <div className="g-row" style={{ justifyContent: 'flex-start' }}>
+                    <legend className="sob-label">Your rating</legend>
+                    <div className="row" style={{ justifyContent: 'flex-start' }}>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <label key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, fontSize: 14 }}>
                           <input type="radio" name="rating" value={n} required style={{ width: 18, height: 18 }} /> {n}
@@ -122,10 +121,10 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
               )}
             </GlassCard>
             {!feedbackDone && (
-              <GlassCard rise={false} className="g-row">
+              <GlassCard rise={false} className="row">
                 <div>
                   <h2>Tell us how it went</h2>
-                  <div className="g-tag">Two minutes, and only our team reads it.</div>
+                  <div className="tag">Two minutes, and only our team reads it.</div>
                 </div>
                 <Button variant="ghost" href={`/feedback/${id}`}>
                   Give feedback
@@ -140,6 +139,6 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
           </Button>
         </div>
       </div>
-    </GlassPage>
+    </>
   );
 }

@@ -51,7 +51,7 @@ export default async function SellerOrders() {
                   cell: ({ order: o }) => (
                     <>
                       <b>{plainWords(o.title)}</b>
-                      {o.express && <div className="g-tag">Express</div>}
+                      {o.express && <div className="tag">Express</div>}
                     </>
                   ),
                 },
@@ -63,11 +63,11 @@ export default async function SellerOrders() {
                   label: 'Actions',
                   hideLabel: true,
                   cell: ({ order: o }) => (
-                    <div className="g-stack" style={{ gap: 6 }}>
+                    <div className="sob-stack" style={{ gap: 6 }}>
                       <Link href={`/messages/${o.id}`}>Open chat</Link>
                       {/* A quotation order's delivery is sent for release and released by SellOnBay; the seller never marks it delivered. */}
-                      {o.quotationId && o.state === 'funded' && <span className="g-tag">Waiting for SellOnBay to authorise the work.</span>}
-                      {o.quotationId && o.state === 'release_pending' && <span className="g-tag">Sent. Waiting for SellOnBay to release it.</span>}
+                      {o.quotationId && o.state === 'funded' && <span className="tag">Waiting for SellOnBay to authorise the work.</span>}
+                      {o.quotationId && o.state === 'release_pending' && <span className="tag">Sent. Waiting for SellOnBay to release it.</span>}
                       {o.quotationId && ['in_delivery', 'overdue', 'fix_requested'].includes(o.state) && (
                         <DeliveryForm
                           orderId={o.id}
@@ -102,9 +102,9 @@ export default async function SellerOrders() {
           {v.revocations.length > 0 && (
             <GlassCard as="section" data-revocations>
               <h2>Remove access to a repository</h2>
-              <p className="g-tag">These orders were refunded or cancelled after you sent the GitHub invite. Remove the buyer from your private repository, then tell us.</p>
+              <p className="tag">These orders were refunded or cancelled after you sent the GitHub invite. Remove the buyer from your private repository, then tell us.</p>
               {v.revocations.map((c) => (
-                <div key={c.orderId} className="g-li">
+                <div key={c.orderId} className="li">
                   <span style={{ flex: 1 }}>
                     {plainWords(c.title)} · remove GitHub user {c.github || 'the buyer'}
                   </span>

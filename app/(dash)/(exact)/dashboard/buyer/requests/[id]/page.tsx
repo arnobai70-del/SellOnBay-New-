@@ -29,11 +29,11 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
   const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'chip'];
   return (
     <DashShell name={viewer.name} signedIn role="buyer" active="buyer-requests" title={title} viewerRole={viewer.role}>
-      <div className="dp" data-request={r.id}>
-        <div className="hd">
+      <div className="glass card sob-sec" data-request={r.id}>
+        <div className="row sob-hd">
           <div>
             <h2>{title}</h2>
-            <p className="sub">
+            <p className="tag">
               <span className={chip}>
                 <i />
                 {word}
@@ -42,7 +42,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
             </p>
           </div>
         </div>
-        <dl className="kv">
+        <dl className="sob-kv">
           <dt>How you will use it</dt>
           <dd>{r.intendedUse}</dd>
           {r.requirements && (
@@ -54,7 +54,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
         </dl>
         {r.status === 'needs_info' && <ActionButton endpoint={`/api/requests/${r.id}`} body={{ action: 'answer' }} label="Answer SellOnBay" note={{ label: 'Your answer', required: true, rows: 4 }} />}
         {r.kind === 'custom_dev' && r.verifiedRequirements && (
-          <div className="dp" style={{ marginTop: 16 }} data-requirements>
+          <div className="glass card sob-sec" style={{ marginTop: 16 }} data-requirements>
             <h3>Requirements written down by SellOnBay</h3>
             <p style={{ whiteSpace: 'pre-wrap' }}>{r.verifiedRequirements}</p>
             {r.requirementsConfirmedAt ? (
@@ -74,11 +74,11 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
       </div>
 
       {q && (
-        <div className="dp" data-quote={q.id}>
-          <div className="hd">
+        <div className="glass card sob-sec" data-quote={q.id}>
+          <div className="row sob-hd">
             <div>
               <h2>Quotation, version {q.version}</h2>
-              <p className="sub">
+              <p className="tag">
                 {QUOTE_WORDS[q.status]}
                 {q.status === 'issued' && q.validUntil ? ` · valid until ${day(q.validUntil)}` : ''}
               </p>
@@ -106,7 +106,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
               </tr>
             </tfoot>
           </table>
-          <dl className="kv" style={{ marginTop: 16 }}>
+          <dl className="sob-kv" style={{ marginTop: 16 }}>
             <dt>Licence</dt>
             <dd>
               {TIER_TEXT[q.terms.licenceTier].label}. {TIER_TEXT[q.terms.licenceTier].terms} <small className="muted">(text version {q.terms.licenceTextVersion})</small>
@@ -130,7 +130,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
             )}
           </dl>
           {q.status === 'issued' && q.validUntil && stillValid(q.validUntil) && (
-            <div className="act-row" style={{ marginTop: 16 }}>
+            <div className="sob-acts" style={{ marginTop: 16 }}>
               <ActionButton
                 endpoint={`/api/quotations/${q.id}`}
                 body={{ action: 'accept' }}
@@ -143,7 +143,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
           )}
           {q.status === 'accepted' && q.orderId && (
             <p style={{ marginTop: 16 }}>
-              <Link className="btn btn-blue btn-sm" href={`/orders/${q.orderId}`}>
+              <Link className="btn sm" href={`/orders/${q.orderId}`}>
                 Open your order
               </Link>
             </p>
@@ -153,8 +153,8 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
 
       <ConversationPanel type="request" id={r.id} me="buyer" />
 
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>What happened</h2>
           </div>

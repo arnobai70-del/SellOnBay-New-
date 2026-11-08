@@ -134,7 +134,8 @@ describe('admin pages', () => {
     for (const f of walk('app/(dash)/admin').filter((f) => f.endsWith('page.tsx'))) {
       const s = src(f);
       expect(s, f).toMatch(/roles: \['admin'\]/);
-      if (!f.endsWith(path.join('admin', 'page.tsx'))) expect(s, f).toMatch(/scope: /);
+      // The overview and the top bar's search (it shows each part only to the permissions that may see it) are open to every admin.
+      if (!f.endsWith(path.join('admin', 'page.tsx')) && !f.endsWith(path.join('admin', 'search', 'page.tsx'))) expect(s, f).toMatch(/scope: /);
     }
   });
   it('ID documents: Finance only, audited on every opening, 5-minute link', () => {

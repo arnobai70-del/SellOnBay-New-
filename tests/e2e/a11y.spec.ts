@@ -28,11 +28,11 @@ const PAGES: [string, string][] = [
   ['FAQ', '/faq'],
   ['how it works', '/how-it-works'],
   ['admin dashboard', '/dashboard/admin'],
-  ['admin purchase requests', '/dashboard/admin/requests'],
-  ['admin support', '/dashboard/admin/support'],
-  ['admin releases', '/dashboard/admin/releases'],
-  ['admin CMS', '/dashboard/admin/cms'],
-  ['admin revisions', '/dashboard/admin/revisions'],
+  ['admin purchase requests', '/admin/orders/requests'],
+  ['admin support', '/admin/support/tickets'],
+  ['admin releases', '/admin/orders/releases'],
+  ['admin CMS', '/admin/content/cms'],
+  ['admin revisions', '/admin/orders/revisions'],
   ['seller dashboard', '/dashboard/seller'],
   ['seller revisions', '/dashboard/seller/revisions'],
   ['buyer dashboard', '/dashboard/buyer'],
@@ -104,7 +104,7 @@ test.describe('keyboard and focus', () => {
     }
   });
   test('every control on the main forms has an accessible name', async ({ page }) => {
-    for (const path of ['/login', '/dashboard/buyer/support', '/dashboard/admin/cms']) {
+    for (const path of ['/login', '/dashboard/buyer/support', '/admin/content/cms']) {
       await page.goto(BASE + path);
       const unnamed = await page.$$eval('input:not([type=hidden]), select, textarea, button', (els) =>
         els

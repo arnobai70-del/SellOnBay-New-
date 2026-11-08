@@ -99,7 +99,7 @@ export function AuthClient({
               ? 'Two minutes and you can pick a site or list your own.'
               : 'Sign in to see your orders and messages.'}
         </p>
-        {!signup && next?.startsWith('/dashboard/admin') && (
+        {!signup && (next?.startsWith('/admin') || next?.startsWith('/dashboard/admin')) && (
           <div className="note" style={{ marginTop: 16 }}>
             <span>
               You are opening the <b>admin area</b>. {codeRequired ? 'Sign in, then enter the code from your authenticator app.' : 'Sign in to continue.'}

@@ -18,12 +18,12 @@ function Rows({ list }: { list: Metric[] }) {
   return (
     <>
       {list.map((m) => (
-        <div key={m.key} className="g-li" style={{ flexWrap: 'wrap' }}>
+        <div key={m.key} className="li" style={{ flexWrap: 'wrap' }}>
           <span style={{ flex: 1, minWidth: 160 }}>{m.label}</span>
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{m.value}</span>
           <StatusPill tone={TONE[m.level]}>{WORD[m.level]}</StatusPill>
           {m.note && (
-            <span className="g-tag" style={{ flexBasis: '100%' }}>
+            <span className="tag" style={{ flexBasis: '100%' }}>
               {m.note}
             </span>
           )}
@@ -56,7 +56,7 @@ export default async function ServerHealth() {
         <p>
           <StatusPill tone={TONE[worst]}>{worst === 'ok' ? 'All normal' : worst === 'warn' ? 'Something needs a look' : 'Something is critical'}</StatusPill>
         </p>
-        <p className="g-tag" style={{ marginTop: 8 }}>
+        <p className="tag" style={{ marginTop: 8 }}>
           Under 80% normal, 80 to 90% warning, over 90% critical. A critical figure emails dev@ at most once an hour.
         </p>
       </GlassCard>
@@ -65,7 +65,7 @@ export default async function ServerHealth() {
         {h.machine.length ? (
           <Rows list={h.machine} />
         ) : (
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             {h.hostNote}
           </p>
         )}
@@ -75,7 +75,7 @@ export default async function ServerHealth() {
         <Rows list={h.metrics} />
       </GlassCard>
       <p>
-        <Link href="/dashboard/admin/system">Services, build, database and error details</Link>
+        <Link href="/admin/system/details">Services, build, database and error details</Link>
       </p>
     </AdminShell>
   );

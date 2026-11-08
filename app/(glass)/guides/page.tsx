@@ -24,7 +24,7 @@ export default async function Guides() {
             <GlassCard key={p.id} as="article" lift>
               <Link href={`/guides/${p.slug}`} style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}>
                 <h2>{p.title}</h2>
-                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                   {p.excerpt || descriptionOf(p)}
                 </p>
               </Link>

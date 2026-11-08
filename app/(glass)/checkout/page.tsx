@@ -91,7 +91,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
         </div>
         <GlassCard>
           <h2>Nothing to request yet</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Add a website that is free during beta to your cart first. <Link href="/websites">Browse websites</Link>
           </p>
         </GlassCard>
@@ -109,26 +109,26 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
             <BetaForm ids={items.map((i) => i.id)} name={viewer?.name ?? ''} email={email} />
           </div>
         </GlassCard>
-        <div className="g-stack g-sticky">
+        <div className="sob-stack g-sticky">
           <GlassCard as="section" rise={false}>
             <h2>Your request</h2>
             {items.map((i) => (
-              <div key={i.id} className="g-li">
+              <div key={i.id} className="li">
                 <span style={{ flex: 1, fontSize: 14 }}>
                   {i.name}
-                  <span className="g-tag" style={{ display: 'block' }}>
+                  <span className="tag" style={{ display: 'block' }}>
                     Standard licence
                   </span>
                   {i.dbId && prices.get(i.dbId)?.note && (
-                    <span className="g-tag" style={{ display: 'block' }}>
+                    <span className="tag" style={{ display: 'block' }}>
                       {prices.get(i.dbId)!.note}
                     </span>
                   )}
                 </span>
-                <s className="g-muted">${i.price}</s>
+                <s className="muted">${i.price}</s>
               </div>
             ))}
-            <div className="g-li">
+            <div className="li">
               <b style={{ flex: 1, fontWeight: 500 }}>Total</b>
               <b style={{ fontWeight: 500 }}>$0.00</b>
             </div>

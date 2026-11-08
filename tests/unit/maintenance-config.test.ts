@@ -55,8 +55,8 @@ const OPEN_PAGES = [
   '/dmca',
   '/report-abuse',
   '/dashboard',
-  '/dashboard/admin/audit',
-  '/dashboard/admin/maintenance',
+  '/admin/security/audit',
+  '/admin/settings/maintenance/modules',
   '/maintenance/x',
   '/login',
   '/login/mfa',
@@ -107,8 +107,8 @@ describe('module registry', () => {
 
   it('never closes payment webhooks, scheduled jobs, the health check or the way back', () => {
     for (const p of ['/api/webhooks/payment', '/api/cron/orders', '/api/cron/payouts', '/api/health', '/api/admin/maintenance']) expect(moduleOfApi(p)).toBeNull();
-    expect(moduleOfPage('/dashboard/admin/maintenance')).toBeNull();
-    expect(moduleOfPage('/dashboard/admin/audit')).toBeNull();
+    expect(moduleOfPage('/admin/settings/maintenance/modules')).toBeNull();
+    expect(moduleOfPage('/admin/security/audit')).toBeNull();
     expect(moduleOfPage('/login')).toBeNull(); // nobody, admins included, is locked out
     expect(moduleOfPage('/reset-password')).toBe('auth');
   });
@@ -124,7 +124,7 @@ describe('module registry', () => {
     expect(moduleOfApi('/api/hire')).toBe('checkout');
     expect(moduleOfPage('/product/x')).toBe('catalog');
     // SEO maintenance: only the blog and the SEO screens
-    expect(moduleOfPage('/dashboard/admin/seo/pages/edit')).toBe('seo');
+    expect(moduleOfPage('/admin/seo/pages/edit')).toBe('seo');
     expect(moduleOfApi('/api/admin/seo/pages')).toBe('seo');
     expect(moduleOfPage('/apps/digital')).toBe('catalog');
     // upload maintenance: listing changes close, existing products stay

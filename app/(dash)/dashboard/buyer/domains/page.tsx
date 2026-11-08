@@ -17,10 +17,10 @@ export default async function BuyerDomains() {
     <BuyerShell viewer={viewer} active="domains" title="Domains" subtitle="Registered in your own name" actions={<Button href="/domains">Find a new domain</Button>}>
       {domains.length ? (
         domains.map((d) => (
-          <GlassCard key={d.name} as="section" className="g-row">
+          <GlassCard key={d.name} as="section" className="row">
             <div>
               <h2>{d.name}</h2>
-              <div className="g-tag">
+              <div className="tag">
                 {d.site ? `For ${d.site}` : 'Not connected to a website yet'}
                 {d.expires ? ` · renews ${d.expires}` : ''}
               </div>
@@ -31,7 +31,7 @@ export default async function BuyerDomains() {
       ) : (
         <GlassCard>
           <h2>No domains yet</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Ask for a domain when you request a website, or use one you already own.
           </p>
         </GlassCard>

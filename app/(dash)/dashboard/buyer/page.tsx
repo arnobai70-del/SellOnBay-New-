@@ -24,24 +24,24 @@ export default async function BuyerOverview() {
     <BuyerShell viewer={viewer} active="overview" title={first ? `Welcome back, ${first}` : 'Welcome back'} subtitle="Your websites, orders and domains in one place">
       {v && (
         <>
-          <div className="g-kpis">
+          <div className="kpis">
             <Kpi label="Websites owned" value={v.owned} note={v.owned ? 'Ready to download' : 'None yet'} />
             <Kpi label="In review" value={v.inReview} note="Waiting on you or on us" />
             <Kpi label="Domains" value={v.domains.length} note={v.domains.some((d) => d.status === 'requested') ? 'Some being registered' : 'In your own name'} />
             <Kpi label="Open tickets" value={v.openTickets} note={v.openTickets ? 'We are on it' : 'All quiet'} />
           </div>
-          <div className="g-grid2">
+          <div className="grid2">
             <GlassCard as="section">
               <h2>Latest updates</h2>
               {v.notes.length ? (
                 v.notes.slice(0, 4).map((n) => (
-                  <div key={n.id} className="g-li">
+                  <div key={n.id} className="li">
                     <span style={{ flex: 1, fontSize: 14 }}>{n.subject}</span>
-                    <span className="g-tag">{shortDate(n.at)}</span>
+                    <span className="tag">{shortDate(n.at)}</span>
                   </div>
                 ))
               ) : (
-                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                   Nothing yet. Order updates show up here.
                 </p>
               )}
@@ -53,7 +53,7 @@ export default async function BuyerOverview() {
             </GlassCard>
             <GlassCard as="section">
               <h2>Find your next website</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 Websites are free for early users during the beta.
               </p>
               <div style={{ marginTop: 14 }}>
@@ -62,7 +62,7 @@ export default async function BuyerOverview() {
             </GlassCard>
           </div>
           <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
-            <div className="g-row" style={{ padding: '0 14px 6px' }}>
+            <div className="row" style={{ padding: '0 14px 6px' }}>
               <h2>Recent orders</h2>
               <Link href="/dashboard/buyer/orders">All orders</Link>
             </div>

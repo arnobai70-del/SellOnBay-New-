@@ -96,11 +96,11 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
       </div>
       {open ? (
         <form onSubmit={send} className="chat2-form">
-          <label className="sr-only" htmlFor={`chat-${orderId}`}>
+          <label className="hidden-label" htmlFor={`chat-${orderId}`}>
             Your message
           </label>
           <textarea id={`chat-${orderId}`} rows={2} value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} placeholder="Write a message" />
-          <button className="btn btn-blue btn-sm" type="submit" disabled={busy || !text.trim()}>
+          <button className="btn sm" type="submit" disabled={busy || !text.trim()}>
             {busy ? 'Sending...' : 'Send'}
           </button>
         </form>
@@ -108,7 +108,7 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
         <p className="muted">This chat is read only. Write to SellOnBay in Messages with SellOnBay instead.</p>
       )}
       {err && (
-        <p className="form-err" role="alert">
+        <p className="sob-err" role="alert">
           {err}
         </p>
       )}

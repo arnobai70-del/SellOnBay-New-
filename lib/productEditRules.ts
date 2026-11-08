@@ -6,7 +6,7 @@ import { CONFIG } from './config';
 import { MAX_HOURS, daysFor, expressHelps, validHours } from './deliveryTime';
 
 /*
- * What an admin may change on a seller's listing (/dashboard/admin/seo/product): the words, category, price, delivery time, links and the prices of
+ * What an admin may change on a seller's listing (/admin/seo/product): the words, category, price, delivery time, links and the prices of
  * the extras. The same limits as the seller's own form, so an admin cannot put a listing in a state the form would refuse. Never the private code
  * link, the licence or who owns it. Pure, so it is tested; the saving is lib/admin/productEdit.ts.
  */

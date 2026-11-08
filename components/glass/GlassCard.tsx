@@ -1,17 +1,18 @@
 type Props = {
   as?: 'div' | 'section' | 'article' | 'aside';
-  /* The card's inner padding; turn it off for a table that runs to the edge. */
+  /* The card's inner padding (.card); off for a table that runs to the edge. */
   pad?: boolean;
-  /* The rise-in with blur. Turn it off for anything that holds the page's main headline or picture. */
+  /* Kept for callers; the design's .glass always rises in. */
   rise?: boolean;
-  /* Hover lift and sheen, for cards that are links. */
+  /* Kept for callers; hover lift lives on the design's own classes. */
   lift?: boolean;
-  /* Reveal on scroll instead of rising in. */
+  /* Reveal on scroll (the design's .reveal). */
   reveal?: boolean;
 } & React.HTMLAttributes<HTMLElement>;
 
-export function GlassCard({ as: Tag = 'div', pad = true, rise = true, lift = false, reveal = false, className = '', children, ...rest }: Props) {
-  const cls = ['g-glass', pad && 'g-card', reveal ? 'g-reveal' : rise && 'g-rise', lift && 'g-lift', className].filter(Boolean).join(' ');
+/* The design's glass card: <section class="glass card">. */
+export function GlassCard({ as: Tag = 'div', pad = true, rise: _rise, lift: _lift, reveal = false, className = '', children, ...rest }: Props) {
+  const cls = ['glass', pad && 'card', reveal && 'reveal', className].filter(Boolean).join(' ');
   return (
     <Tag className={cls} {...rest}>
       {children}

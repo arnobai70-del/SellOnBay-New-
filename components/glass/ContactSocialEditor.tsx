@@ -57,11 +57,11 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
     if (!error) router.refresh();
   };
   return (
-    <div className="g-stack">
-      <section className="g-glass g-card">
+    <div className="sob-stack">
+      <section className="glass card">
         <h2>Contact addresses</h2>
-        <p className="g-tag">Each must end with @{BRAND_DOMAIN}. Email routing uses them at once.</p>
-        <div className="g-grid2" style={{ marginTop: 10 }}>
+        <p className="tag">Each must end with @{BRAND_DOMAIN}. Email routing uses them at once.</p>
+        <div className="grid2" style={{ marginTop: 10 }}>
           {(Object.keys(LABEL) as (keyof ContactRoutes)[]).map((k) => (
             <Field key={k} label={LABEL[k]} type="email" value={mail[k]} onChange={(e) => setMail({ ...mail, [k]: e.target.value.trim().toLowerCase() })} />
           ))}
@@ -73,14 +73,14 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
         </div>
       </section>
 
-      <section className="g-glass g-card">
+      <section className="glass card">
         <h2>Social links</h2>
-        <p className="g-tag">Drag a row, or use the arrows, to change the order. Each address must be https on that network&apos;s own site.</p>
-        <ol className="g-stack" style={{ listStyle: 'none', padding: 0, marginTop: 10 }}>
+        <p className="tag">Drag a row, or use the arrows, to change the order. Each address must be https on that network&apos;s own site.</p>
+        <ol className="sob-stack" style={{ listStyle: 'none', padding: 0, marginTop: 10 }}>
           {rows.map((r, i) => (
             <li
               key={r.network}
-              className="g-li"
+              className="li"
               draggable
               onDragStart={() => setDrag(i)}
               onDragOver={(e) => e.preventDefault()}
@@ -95,7 +95,7 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
               </span>
               <b style={{ width: 90 }}>{NETWORKS[r.network].label}</b>
               <input
-                className="g-input"
+                className="input"
                 style={{ flex: '1 1 220px', minWidth: 0 }}
                 aria-label={`${NETWORKS[r.network].label} address`}
                 value={r.url}
@@ -103,17 +103,17 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
                 onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, url: e.target.value.trim() } : x)))}
               />
               <Switch label={`Show ${NETWORKS[r.network].label}`} checked={r.enabled} onChange={(on) => setRows(rows.map((x, j) => (j === i ? { ...x, enabled: on } : x)))} />
-              <button type="button" className="g-btn g-btn-ghost g-btn-sm" aria-label={`Move ${NETWORKS[r.network].label} up`} onClick={() => move(i, i - 1)} disabled={i === 0}>
+              <button type="button" className="btn ghost sm" aria-label={`Move ${NETWORKS[r.network].label} up`} onClick={() => move(i, i - 1)} disabled={i === 0}>
                 ↑
               </button>
-              <button type="button" className="g-btn g-btn-ghost g-btn-sm" aria-label={`Move ${NETWORKS[r.network].label} down`} onClick={() => move(i, i + 1)} disabled={i === rows.length - 1}>
+              <button type="button" className="btn ghost sm" aria-label={`Move ${NETWORKS[r.network].label} down`} onClick={() => move(i, i + 1)} disabled={i === rows.length - 1}>
                 ↓
               </button>
-              <button type="button" className="g-btn g-btn-ghost g-btn-sm" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
+              <button type="button" className="btn ghost sm" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
                 Remove
               </button>
               {!problems[i].ok && r.url && (
-                <span className="g-field-e" style={{ flexBasis: '100%' }}>
+                <span className="sob-err" style={{ flexBasis: '100%' }}>
                   {(problems[i] as { error: string }).error}
                 </span>
               )}
@@ -121,11 +121,11 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
           ))}
         </ol>
         {free.length > 0 && (
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
-            <label className="g-sr" htmlFor="add-network">
+          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
+            <label className="hidden-label" htmlFor="add-network">
               Network to add
             </label>
-            <select id="add-network" className="g-input" style={{ maxWidth: 200 }} value={add} onChange={(e) => setAdd(e.target.value as Network)}>
+            <select id="add-network" className="input" style={{ maxWidth: 200 }} value={add} onChange={(e) => setAdd(e.target.value as Network)}>
               <option value="">Choose a network</option>
               {free.map((n) => (
                 <option key={n} value={n}>
@@ -148,12 +148,12 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
           </div>
         )}
         <div style={{ marginTop: 14 }}>
-          <span className="g-tag">Footer preview</span>
-          <div className="g-glass" style={{ padding: 12, borderRadius: 12, marginTop: 6 }}>
+          <span className="tag">Footer preview</span>
+          <div className="glass" style={{ padding: 12, borderRadius: 12, marginTop: 6 }}>
             {rows.some((r, i) => r.enabled && problems[i].ok) ? (
               <SocialRow links={rows.filter((r, i) => problems[i].ok).map((r) => ({ network: r.network, url: r.url, ...(r.enabled ? {} : { enabled: false as const }) }))} label="Preview" />
             ) : (
-              <span className="g-tag">No links are shown: the row is hidden.</span>
+              <span className="tag">No links are shown: the row is hidden.</span>
             )}
           </div>
         </div>
@@ -164,7 +164,7 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
         </div>
       </section>
       {msg && (
-        <p role={msg.ok ? 'status' : 'alert'} className={msg.ok ? 'g-tag' : 'g-field-e'}>
+        <p role={msg.ok ? 'status' : 'alert'} className={msg.ok ? 'tag' : 'sob-err'}>
           {msg.text}
         </p>
       )}

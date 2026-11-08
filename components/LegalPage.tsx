@@ -9,7 +9,7 @@ import { parseMarkdown } from '@/lib/markdown';
 /*
  * A policy page: heading, a stamp, then the text. Which text shows, first match wins:
  *   1. the published version of its legal document (Admin > Legal documents, lib/legal; versioned, published by a Super Admin)
- *   2. the text an admin wrote at /dashboard/admin/seo/pages
+ *   2. the text an admin wrote at /admin/seo/pages
  *   3. the built-in text (children)
  */
 export async function LegalPage({
@@ -31,9 +31,9 @@ export async function LegalPage({
     <>
       <div className="g-head">
         <h1>{w.heading}</h1>
-        <p className="g-tag">{shown}</p>
+        <p className="tag">{shown}</p>
       </div>
-      <div className="g-glass g-card g-prose" data-page-text={doc ? `legal-v${doc.version}` : w.body ? 'saved' : 'built-in'}>
+      <div className="glass card sob-prose" data-page-text={doc ? `legal-v${doc.version}` : w.body ? 'saved' : 'built-in'}>
         {doc ? <PostBody blocks={parseMarkdown(doc.body)} /> : w.body ? <PostBody blocks={w.body} /> : children}
       </div>
       <PageExtras path={path} />

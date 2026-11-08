@@ -25,11 +25,11 @@ export default async function Promote() {
   const mine = me ? await promotionsOf(me) : [];
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller-promote" title="Promote a product">
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>Promote a product</h2>
-            <p className="sub">
+            <p className="tag">
               Run an ad for one of your live listings on your own {AD_PLATFORMS.meta.label} or {AD_PLATFORMS.google.label} account. The platform bills you directly; SellOnBay never charges for ads and
               never shares buyer data. SellOnBay checks the words first; the platform&apos;s own review still applies.
             </p>
@@ -65,20 +65,20 @@ export default async function Promote() {
         )}
       </div>
       {mine.length > 0 && (
-        <div className="dp">
-          <div className="hd">
+        <div className="glass card sob-sec">
+          <div className="row sob-hd">
             <div>
               <h2>Your promotions</h2>
             </div>
           </div>
-          <ul className="list">
+          <ul className="sob-list">
             {mine.map((p) => (
               <li key={p.id}>
-                <div className="grow">
+                <div className="sob-grow">
                   <b>{p.headline}</b> · {p.productName} · {AD_PLATFORMS[p.platform].label} · {usd(p.dailyBudgetCents)} a day for {p.days} days · {p.status.replace('_', ' ')}
                   {p.reviewNote && <p className="muted">SellOnBay: {p.reviewNote}</p>}
                 </div>
-                <div className="act-row">
+                <div className="sob-acts">
                   {p.status === 'draft' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'submit', id: p.id }} fields={[]} submit="Send for review" />}
                   {p.status === 'rejected' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'edit', id: p.id }} fields={[]} submit="Back to draft" tone="line" />}
                   {p.status === 'approved' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'start', id: p.id }} fields={[]} submit="Start" />}

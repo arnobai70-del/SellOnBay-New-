@@ -1,7 +1,7 @@
 import { PAGE_SEO_GOOD } from './pageList';
 
 /*
- * The automatic SEO check (/dashboard/admin/seo/check): for every page and listing, what Google is given and what could be better.
+ * The automatic SEO check (/admin/seo/check): for every page and listing, what Google is given and what could be better.
  * Pure, so a test can run it; lib/seo/report.ts gathers the rows.
  */
 export type SeoRow = { path: string; name: string; kind: 'page' | 'topic' | 'listing'; title: string; description: string; changed: boolean };

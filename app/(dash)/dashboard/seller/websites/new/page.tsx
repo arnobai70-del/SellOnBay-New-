@@ -36,7 +36,7 @@ export default async function UploadWebsite({ searchParams }: { searchParams: Pr
     <SellerShell viewer={viewer} active="websites" title={edit ? 'Edit your website' : 'Upload a website'} subtitle="A person checks every listing before it goes live.">
       <GlassCard as="aside" aria-label="Reviewer checklist">
         <h2>Reviewer checklist</h2>
-        <p className="g-tag">We check these before your website goes live</p>
+        <p className="tag">We check these before your website goes live</p>
         <ul className="g-checks" style={{ marginTop: 10, paddingLeft: 18, fontSize: 14, lineHeight: 1.8 }}>
           {checks.map((c) => (
             <li key={c}>{c}</li>

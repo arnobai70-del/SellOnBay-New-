@@ -18,7 +18,7 @@ describe('page titles and descriptions an admin can change', () => {
     const walk = (d: string) => readdirSync(d).forEach((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : n === 'page.tsx' && files.push(join(d, n))));
     walk('app');
     const used = files.flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/pageMetadata\('([^']+)'/g)].map((m) => m[1]));
-    expect(used.length).toBeGreaterThan(15);
+    expect(used.length).toBeGreaterThan(10);
     for (const u of used) expect(paths).toContain(u);
   });
 
@@ -38,11 +38,11 @@ describe('page titles and descriptions an admin can change', () => {
   });
 
   it('keeps a page’s own extras and refuses bad input', async () => {
-    const m = await pageMetadata('/tools/site-ideas', { alternates: { canonical: '/tools/site-ideas' } });
-    expect(m).toMatchObject({ title: 'Free website idea and domain name generator', alternates: { canonical: '/tools/site-ideas' } });
+    const m = await pageMetadata('/help', { alternates: { canonical: '/help' } });
+    expect(m).toMatchObject({ title: 'Help center', alternates: { canonical: '/help' } });
     expect(await setPageSeo('admin-1', '/dashboard/admin', { title: 'x', description: '' })).toMatchObject({ ok: false, status: 404 });
-    expect(await setPageSeo('admin-1', '/browse', { title: 'x'.repeat(71), description: '' })).toMatchObject({ ok: false, status: 400 });
-    expect(await setPageSeo('admin-1', '/browse', { title: 'Sites <b>', description: '' })).toMatchObject({ ok: false, status: 400 });
-    expect(await setPageSeo('admin-1', '/browse', { title: '', description: '' })).toMatchObject({ ok: false, status: 409 });
+    expect(await setPageSeo('admin-1', '/sellers', { title: 'x'.repeat(71), description: '' })).toMatchObject({ ok: false, status: 400 });
+    expect(await setPageSeo('admin-1', '/sellers', { title: 'Sites <b>', description: '' })).toMatchObject({ ok: false, status: 400 });
+    expect(await setPageSeo('admin-1', '/sellers', { title: '', description: '' })).toMatchObject({ ok: false, status: 409 });
   });
 });

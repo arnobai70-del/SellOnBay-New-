@@ -30,33 +30,33 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
     router.refresh();
   }
   return (
-    <div className="adm-form">
+    <div className="sob-form">
       {list.map((x, i) => (
-        <div className="adm-card" key={x.key}>
-          <label className="adm-check">
+        <div className="sob-item" key={x.key}>
+          <label className="chk">
             <input type="checkbox" checked={!off.includes(x.key)} disabled={x.locked} onChange={(e) => setOff((p) => (e.target.checked ? p.filter((k) => k !== x.key) : [...p, x.key]))} />
             <span>
               {x.label}
               {x.locked ? ' (always shown)' : ''}
             </span>
           </label>
-          <div className="adm-btns">
-            <button className="btn btn-line btn-sm" type="button" onClick={() => move(i, -1)} disabled={i === 0}>
+          <div className="sob-acts">
+            <button className="btn ghost sm" type="button" onClick={() => move(i, -1)} disabled={i === 0}>
               Move up
             </button>
-            <button className="btn btn-line btn-sm" type="button" onClick={() => move(i, 1)} disabled={i === list.length - 1}>
+            <button className="btn ghost sm" type="button" onClick={() => move(i, 1)} disabled={i === list.length - 1}>
               Move down
             </button>
           </div>
         </div>
       ))}
-      <div className="adm-btns">
-        <button className="btn btn-dark btn-sm" type="button" disabled={busy} onClick={save}>
+      <div className="sob-acts">
+        <button className="btn sm" type="button" disabled={busy} onClick={save}>
           {busy ? 'One moment...' : 'Save the top bar'}
         </button>
       </div>
       {msg && (
-        <p className={msg.ok ? 'ok' : 'err'} role="status">
+        <p className={msg.ok ? 'ok' : 'sob-err'} role="status">
           {msg.text}
         </p>
       )}

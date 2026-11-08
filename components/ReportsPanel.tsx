@@ -10,16 +10,16 @@ const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T'
  * Sales PDF exports (lib/reports) for the admin Finance page and the seller dashboard: the filter form and the person's own recent files.
  * Files are deleted after 24 hours; the log of what was exported stays.
  */
-export async function ReportsPanel({ me, scope }: { me: string; scope: 'admin' | 'seller' }) {
+export async function ReportsPanel({ me, scope, bare = false }: { me: string; scope: 'admin' | 'seller'; bare?: boolean }) {
   const on = await isFlagOn('reports.sales_pdf');
   const mine = await exportsBy(me);
   const { from: monthAgo, to: today } = defaultRange();
   return (
-    <div className="dp" data-reports={scope}>
-      <div className="hd">
+    <div className={bare ? undefined : 'glass card sob-sec'} style={bare ? { marginTop: 14 } : undefined} data-reports={scope}>
+      <div className="row sob-hd">
         <div>
           <h2>{scope === 'seller' ? 'Your sales as PDF' : 'Sales report (PDF)'}</h2>
-          <p className="sub">
+          <p className="tag">
             Figures are what each order recorded (price, commission and the seller&apos;s share), never today&apos;s prices. At most {CONFIG.reports.maxRowsPerPdf.toLocaleString('en-US')} sales per
             file; more are split into numbered parts. Files are deleted after {CONFIG.reports.pdfKeepHours} hours.
             {scope === 'seller' ? ' Buyer names and contact details are never included.' : ''}
@@ -57,16 +57,16 @@ export async function ReportsPanel({ me, scope }: { me: string; scope: 'admin' |
         />
       )}
       {mine.length > 0 && (
-        <ul className="list" data-exports>
+        <ul className="sob-list" data-exports>
           {mine.map((e) => (
             <li key={e.id}>
-              <div className="grow">
+              <div className="sob-grow">
                 {e.scope === 'buyer' ? 'Receipt' : `Part ${e.part} of ${e.parts}`} · {e.rowCount} {e.rowCount === 1 ? 'row' : 'rows'} · made {when(e.createdAt)}
               </div>
               {fileGone(e) ? (
                 <small className="muted">Deleted after {CONFIG.reports.pdfKeepHours} hours</small>
               ) : (
-                <a className="btn btn-line btn-sm" href={`/api/reports/${e.id}`}>
+                <a className="btn ghost sm" href={`/api/reports/${e.id}`}>
                   Download
                 </a>
               )}

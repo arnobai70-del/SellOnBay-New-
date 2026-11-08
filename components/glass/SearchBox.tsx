@@ -151,12 +151,12 @@ export function SearchBox({
           } else if (typed) saveRecent(typed);
         }}
       >
-        <label className="g-sr" htmlFor={`${id}-q`}>
+        <label className="hidden-label" htmlFor={`${id}-q`}>
           {label}
         </label>
         <input
           id={`${id}-q`}
-          className="g-input"
+          className="input"
           name="q"
           type="search"
           autoComplete="off"
@@ -194,12 +194,12 @@ export function SearchBox({
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-        <button className="g-btn g-btn-sm" type="submit">
+        <button className="btn sm" type="submit">
           Search
         </button>
       </form>
       {open && all.length > 0 && (
-        <div className="g-sx-pop g-glass" id={`${id}-list`} role="listbox" aria-label="Search suggestions">
+        <div className="g-sx-pop glass" id={`${id}-list`} role="listbox" aria-label="Search suggestions">
           {shown && !shown.total && (
             <div className="g-sx-none">
               <p>No results for &ldquo;{typed}&rdquo;.</p>

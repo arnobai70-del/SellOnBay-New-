@@ -29,16 +29,16 @@ export default async function SellerStore() {
     >
       {v && store && (
         <>
-          <div className="g-kpis">
+          <div className="kpis">
             <Kpi label="Listing views (30 days)" value={total.views} note={`${total.people} different people`} />
             <Kpi label="Buy clicks (30 days)" value={total.buys} note={total.people ? `${Math.round((total.buys / total.people) * 100)}% of visitors` : 'No visitors yet'} />
             <Kpi label="Live listings" value={v.listings.filter((l) => l.status === 'live').length} note={`${v.listings.length} in all`} />
             <Kpi label="Rating" value={v.health.rating ?? '-'} note={v.health.ratingCount ? `${v.health.ratingCount} reviews` : 'No reviews yet'} />
           </div>
-          <div className="g-grid2">
+          <div className="grid2">
             <GlassCard as="section">
               <h2>Store profile</h2>
-              <p className="g-tag">Keep emails, phone numbers and outside links out: buyers talk to you inside an order.</p>
+              <p className="tag">Keep emails, phone numbers and outside links out: buyers talk to you inside an order.</p>
               <div style={{ marginTop: 12 }}>
                 <StoreForm
                   initial={{

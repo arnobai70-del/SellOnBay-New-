@@ -60,6 +60,9 @@ export type RoleMenu = {
   /* The main action in the top bar. */
   cta: NavLink;
   notifications: string;
+  /* The design file of the role's dashboard (design-reference/), and where the top bar's search goes. */
+  file: string;
+  search: { action: string; placeholder: string };
 };
 
 export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
@@ -68,6 +71,8 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
     home: '/dashboard/buyer',
     cta: { label: 'Browse websites', href: '/websites' },
     notifications: '/dashboard/buyer/notifications',
+    file: 'buyer',
+    search: { action: '/dashboard/buyer/orders', placeholder: 'Search your orders, websites, domains…' },
     groups: [
       { items: [{ key: 'overview', label: 'Overview', href: '/dashboard/buyer' }] },
       {
@@ -93,6 +98,8 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
     home: '/dashboard/seller',
     cta: { label: '+ Upload website', href: '/dashboard/seller/websites/new' },
     notifications: '/dashboard/seller/notifications',
+    file: 'seller-dashboard',
+    search: { action: '/dashboard/seller/websites', placeholder: 'Search your websites, orders, buyers…' },
     groups: [
       { items: [{ key: 'overview', label: 'Overview', href: '/dashboard/seller' }] },
       {
@@ -120,6 +127,8 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
     home: '/admin',
     cta: { label: '+ Manual order', href: '/admin/orders#pos' },
     notifications: '/notifications',
+    file: 'admin',
+    search: { action: '/admin/search', placeholder: 'Search orders, users, listings…' },
     groups: [
       { items: [{ key: 'overview', label: 'Overview', href: '/admin' }] },
       {

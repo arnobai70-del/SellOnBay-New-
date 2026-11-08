@@ -131,7 +131,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
     setD(next);
     setMsg({ ok: true, text: status === 'published' ? 'Saved and published.' : 'Saved as a draft.' });
-    if (!post) router.replace(`/dashboard/admin/seo/post?id=${j.id}`);
+    if (!post) router.replace(`/admin/seo/post?id=${j.id}`);
     else router.refresh();
   }
 
@@ -140,7 +140,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     setBusy(true);
     const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: post.id }) });
     setBusy(false);
-    if (r.ok) router.replace('/dashboard/admin/seo');
+    if (r.ok) router.replace('/admin/seo');
     else setMsg({ ok: false, text: 'Could not delete the post.' });
   }
 
@@ -237,34 +237,34 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
             </>
           ) : (
             <div className="pe-preview post">
-              <div className="prose">{d.body.trim() ? <PostBody blocks={parseMarkdown(d.body)} /> : <p className="muted">Nothing written yet.</p>}</div>
+              <div className="sob-prose">{d.body.trim() ? <PostBody blocks={parseMarkdown(d.body)} /> : <p className="muted">Nothing written yet.</p>}</div>
             </div>
           )}
         </div>
-        <label className="adm-check">
+        <label className="chk">
           <input type="checkbox" checked={d.noindex} onChange={(e) => set('noindex', e.target.checked)} />
           <span>Keep this post out of Google (noindex)</span>
         </label>
-        <div className="adm-btns">
-          <button className="btn btn-dark btn-sm" type="button" disabled={busy} onClick={() => save('published')}>
+        <div className="sob-acts">
+          <button className="btn sm" type="button" disabled={busy} onClick={() => save('published')}>
             {d.status === 'published' ? 'Save changes' : 'Publish'}
           </button>
-          <button className="btn btn-line btn-sm" type="button" disabled={busy} onClick={() => save('draft')}>
+          <button className="btn ghost sm" type="button" disabled={busy} onClick={() => save('draft')}>
             {d.status === 'published' ? 'Unpublish (back to draft)' : 'Save draft'}
           </button>
           {post && d.status === 'published' && (
-            <a className="btn btn-line btn-sm" href={`/blog/${d.slug}`} target="_blank" rel="noopener">
+            <a className="btn ghost sm" href={`/blog/${d.slug}`} target="_blank" rel="noopener">
               View post
             </a>
           )}
           {post && (
-            <button className="btn btn-line btn-sm" type="button" disabled={busy} onClick={remove}>
+            <button className="btn ghost sm" type="button" disabled={busy} onClick={remove}>
               Delete
             </button>
           )}
         </div>
         {msg && (
-          <p className={msg.ok ? 'adm-ok' : 'form-err'} role={msg.ok ? 'status' : 'alert'}>
+          <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>
             {msg.text}
           </p>
         )}
@@ -284,7 +284,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
             ))}
           </ul>
         ) : (
-          <p className="adm-ok">Looks good.</p>
+          <p className="sob-ok">Looks good.</p>
         )}
       </aside>
     </div>

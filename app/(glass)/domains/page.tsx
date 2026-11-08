@@ -25,14 +25,14 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
       <div className="g-head">
         <h1>{copy.t('head', 'heading', words.heading)}</h1>
         {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
-        <form className="g-glass g-search" action="/domains" method="get" role="search">
-          <label className="g-sr" htmlFor="domain-q">
+        <form className="glass g-search" action="/domains" method="get" role="search">
+          <label className="hidden-label" htmlFor="domain-q">
             Search a domain
           </label>
           <input id="domain-q" name="q" defaultValue={name} placeholder="yourbrand" />
           <Button type="submit">Check availability</Button>
         </form>
-        <p className="g-tag">
+        <p className="tag">
           {TLDS.slice(0, 5)
             .map(([t, p]) => `${t} $${p}`)
             .join(' · ')}{' '}
@@ -42,18 +42,18 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
       {name && (
         <section aria-label="Results">
           <h2>Endings for &ldquo;{name}&rdquo;</h2>
-          <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
             {registrarLive() ? 'Live results.' : 'We check availability by hand when you order, and tell you before anything is registered.'}
           </p>
           <div className="g-grid3" style={{ marginTop: 14 }}>
             {ALL_TLDS.map(([tld, price]) => (
-              <GlassCard key={tld} as="article" className="g-row">
+              <GlassCard key={tld} as="article" className="row">
                 <div>
                   <b style={{ fontWeight: 500 }}>
                     {name}
                     {tld}
                   </b>
-                  <div className="g-tag">${price} first year</div>
+                  <div className="tag">${price} first year</div>
                 </div>
                 <StatusPill tone="draft">Checked on order</StatusPill>
               </GlassCard>
@@ -71,7 +71,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
           ].map(([t, d]) => (
             <GlassCard key={t} reveal>
               <h3>{t}</h3>
-              <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
                 {d}
               </p>
             </GlassCard>
@@ -81,15 +81,15 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
       <section className="g-sec">
         <GlassCard>
           <h2>Domain questions</h2>
-          <div className="g-li" style={{ display: 'block' }}>
+          <div className="li" style={{ display: 'block' }}>
             <b style={{ fontWeight: 500, fontSize: 14 }}>Can I use a domain I already own?</b>
-            <p className="g-muted" style={{ marginTop: 4, fontSize: 14 }}>
+            <p className="muted" style={{ marginTop: 4, fontSize: 14 }}>
               Yes. Use it with any website you buy here.
             </p>
           </div>
-          <div className="g-li" style={{ display: 'block' }}>
+          <div className="li" style={{ display: 'block' }}>
             <b style={{ fontWeight: 500, fontSize: 14 }}>Is the domain refunded if I reject the website?</b>
-            <p className="g-muted" style={{ marginTop: 4, fontSize: 14 }}>
+            <p className="muted" style={{ marginTop: 4, fontSize: 14 }}>
               {DOMAIN_REFUND_TEXT} The domain stays yours even if you reject the website.
             </p>
           </div>

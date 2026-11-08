@@ -4,7 +4,7 @@ import { orderStore } from '../orders/store';
 import { createAdminClient } from '../supabase/server';
 
 /*
- * Search settings an admin can change at /dashboard/admin/seo without a deploy: the home page's title and description in Google, and the
+ * Search settings an admin can change at /admin/seo without a deploy: the home page's title and description in Google, and the
  * verification codes Google Search Console and Bing Webmaster Tools ask for. Kept in `app_settings` under keys starting with "seo:".
  * Empty means "use the built-in words".
  */

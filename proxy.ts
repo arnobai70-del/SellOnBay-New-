@@ -10,7 +10,7 @@ import { allowedIp } from './lib/maintenance/state';
 import { clientAddress } from './lib/clientIp';
 import type { ModuleKey } from './lib/maintenance/config';
 import { crossSiteWrite } from './lib/sameOrigin';
-import { isRetired, isRetiredApi, legacyPublic } from './lib/legacy';
+import { isRetired, isRetiredApi } from './lib/legacy';
 import { movedTo } from './lib/glass/moved';
 import { savedRedirects } from './lib/seo/redirectRead';
 import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
@@ -52,7 +52,7 @@ async function proxyInner(req: NextRequest) {
   if (closed && !(await allowedIp(clientAddress(req.headers))) && !(closed.module && (await adminPasses(req, closed.module))))
     return closed.api ? maintenanceJson(closed.closure) : maintenancePageResponse(closed.closure);
   // Addresses that moved in the glass redesign answer with a permanent redirect (lib/glass/moved.ts), so rankings carry over.
-  if (!legacyPublic() && (req.method === 'GET' || req.method === 'HEAD')) {
+  if (req.method === 'GET' || req.method === 'HEAD') {
     const to = movedTo(req.nextUrl.pathname);
     if (to) {
       // Keep the visitor's query (for example ?next=), merged with any the new address carries.
@@ -62,7 +62,7 @@ async function proxyInner(req: NextRequest) {
     }
   }
   // The old public site (shelves, developers, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
-  if (!legacyPublic() && isRetired(req.nextUrl.pathname)) {
+  if (isRetired(req.nextUrl.pathname)) {
     const headers = { 'x-robots-tag': 'noindex', 'cache-control': 'public, max-age=300' };
     if (isRetiredApi(req.nextUrl.pathname)) return NextResponse.json({ error: 'This is no longer available.' }, { status: 410, headers });
     if (req.method === 'GET' || req.method === 'HEAD')

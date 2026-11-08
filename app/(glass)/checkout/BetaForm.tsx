@@ -14,7 +14,7 @@ export function BetaForm({ ids, name, email }: { ids: string[]; name: string; em
   const [error, setError] = useState('');
   return (
     <form
-      className="g-stack"
+      className="sob-stack"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -31,7 +31,7 @@ export function BetaForm({ ids, name, email }: { ids: string[]; name: string; em
         setError(data.error ?? 'Could not send your request. Please try again.');
       }}
     >
-      <p className="g-pill g-pill-info" style={{ whiteSpace: 'normal', padding: '10px 14px', borderRadius: 14, fontSize: 14 }}>
+      <p className="status g-pill-info" style={{ whiteSpace: 'normal', padding: '10px 14px', borderRadius: 14, fontSize: 14 }}>
         {BETA_NOTICE_TEXT}
       </p>
       <Field label="Full name" name="name" required maxLength={100} defaultValue={name} autoComplete="name" />

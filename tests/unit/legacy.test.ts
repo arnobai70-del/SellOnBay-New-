@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isRetired, isRetiredApi, legacyPublic } from '@/lib/legacy';
+import { isRetired, isRetiredApi } from '@/lib/legacy';
 import { publicationGate, sitemapPlan } from '@/lib/seo/sitemapPlan';
 
 describe('the retired public site', () => {
@@ -49,7 +49,6 @@ describe('the retired public site', () => {
       expect(isRetired(p), p).toBe(false);
     expect(isRetiredApi('/api/domains')).toBe(true);
     expect(isRetiredApi('/browse')).toBe(false);
-    expect(legacyPublic()).toBe(false);
   });
 });
 

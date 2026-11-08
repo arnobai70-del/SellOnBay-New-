@@ -60,8 +60,8 @@ export default async function SellerWebsites() {
                   cell: (l) => (
                     <>
                       <b>{plainWords(l.name)}</b>
-                      {l.reviewNote && <div className="g-tag">Reviewer note: {l.reviewNote}</div>}
-                      {l.digital && l.versions.length > 0 && <div className="g-tag">Versions: {l.versions.map((x) => `${x.version} (${x.status.replace('_', ' ')})`).join(', ')}</div>}
+                      {l.reviewNote && <div className="tag">Reviewer note: {l.reviewNote}</div>}
+                      {l.digital && l.versions.length > 0 && <div className="tag">Versions: {l.versions.map((x) => `${x.version} (${x.status.replace('_', ' ')})`).join(', ')}</div>}
                     </>
                   ),
                 },
@@ -83,7 +83,7 @@ export default async function SellerWebsites() {
                   label: 'Actions',
                   hideLabel: true,
                   cell: (l) => (
-                    <div className="g-row" style={{ justifyContent: 'flex-start', gap: 8 }}>
+                    <div className="row" style={{ justifyContent: 'flex-start', gap: 8 }}>
                       <Button variant="ghost" size="sm" href={`/dashboard/seller/websites/new?edit=${encodeURIComponent(l.slug)}`} aria-label={`Edit ${plainWords(l.name)}`}>
                         Edit
                       </Button>
@@ -113,7 +113,7 @@ export default async function SellerWebsites() {
           </GlassCard>
           <GlassCard as="section" id="files">
             <h2>Source files</h2>
-            <p className="g-tag">
+            <p className="tag">
               Buyers get exactly the file SellOnBay approved, from private storage, only after the order is funded or approved. A change is a new upload and a new version; an approved file never
               changes.
             </p>
@@ -121,16 +121,16 @@ export default async function SellerWebsites() {
               <SourceUpload listings={v.listings.filter((l) => l.status !== 'rejected').map((l) => ({ slug: l.slug, name: plainWords(l.name) }))} />
             </div>
             {myFiles.map((f) => (
-              <div key={f.id} className="g-li" style={{ alignItems: 'flex-start' }}>
+              <div key={f.id} className="li" style={{ alignItems: 'flex-start' }}>
                 <span style={{ flex: 1 }}>
                   {f.originalName}
                   {((f.checks as { problems?: string[] }).problems ?? []).slice(0, 2).map((p, i) => (
-                    <span key={i} className="g-tag" style={{ display: 'block' }}>
+                    <span key={i} className="tag" style={{ display: 'block' }}>
                       {p}
                     </span>
                   ))}
                 </span>
-                <span className="g-tag">
+                <span className="tag">
                   {FILE_STATE[f.state] ?? f.state}
                   {f.reviewNote ? ` · ${f.reviewNote}` : ''}
                 </span>

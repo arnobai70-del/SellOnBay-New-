@@ -19,6 +19,44 @@ const EXACT: Record<string, string> = {
 };
 /* The old /websites/<category> pages. Anything else under /websites is a product. */
 const OLD_CATEGORY_PAGES = ['ecommerce', 'saas', 'business', 'portfolio', 'industry', 'stores', 'landing-pages', 'portfolios', 'restaurants', 'tools', 'health', 'real-estate'];
+/* The old admin tools (owner, 2026-11-09): each one moved under its area of the glass admin. Longest first. */
+const ADMIN: [string, string][] = [
+  ['analytics/countries', 'visitors/countries'],
+  ['analytics/report', 'visitors/report'],
+  ['payments-review', 'orders/payments'],
+  ['site/history', 'content/site/history'],
+  ['cms/preview', 'content/cms/preview'],
+  ['maintenance', 'settings/maintenance/modules'],
+  ['promotions', 'marketing/promotions'],
+  ['analytics', 'visitors/details'],
+  ['revisions', 'orders/revisions'],
+  ['disputes', 'support/disputes'],
+  ['listings', 'listings/all'],
+  ['releases', 'orders/releases'],
+  ['requests', 'orders/requests'],
+  ['security', 'security/blocks'],
+  ['settings', 'settings/platform'],
+  ['versions', 'listings/versions'],
+  ['payouts', 'finance/payouts'],
+  ['reports', 'reports/sales'],
+  ['sellers', 'users/sellers'],
+  ['support', 'support/tickets'],
+  ['launch', 'settings/launch'],
+  ['system', 'system/details'],
+  ['orders', 'orders'],
+  ['abuse', 'support/abuse'],
+  ['audit', 'security/audit'],
+  ['files', 'listings/files'],
+  ['flags', 'settings/flags'],
+  ['legal', 'settings/legal'],
+  ['users', 'users/accounts'],
+  ['beta', 'orders/beta'],
+  ['repo', 'listings/repo'],
+  ['risk', 'security/risk'],
+  ['site', 'content/site'],
+  ['cms', 'content/cms'],
+  ['seo', 'seo'],
+];
 const SEGMENT = /^[A-Za-z0-9._~-]+$/;
 
 export function movedTo(pathname: string): string | null {
@@ -26,6 +64,12 @@ export function movedTo(pathname: string): string | null {
   if (EXACT[path]) return EXACT[path];
   const parts = path.split('/').filter(Boolean);
   if (!parts.every((p) => SEGMENT.test(p))) return null;
+  if (parts[0] === 'dashboard' && parts[1] === 'admin') {
+    const rest = parts.slice(2).join('/');
+    if (!rest) return '/admin';
+    const hit = ADMIN.find(([from]) => rest === from || rest.startsWith(from + '/'));
+    return hit ? '/admin/' + hit[1] + rest.slice(hit[0].length) : '/admin';
+  }
   if (parts[0] === 'templates') {
     if (parts.length === 1) return '/websites';
     if (parts.length === 2) return `/websites/category/${parts[1]}`;

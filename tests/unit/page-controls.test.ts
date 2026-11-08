@@ -59,24 +59,24 @@ describe('page publishing and search controls', () => {
 
   it('saves, applies to metadata and the sitemap, audits, and restores', async () => {
     const base = (await sitemapPlan()).length;
-    expect((await sitemapPlan()).some((e) => e.path === '/find')).toBe(true);
+    expect((await sitemapPlan()).some((e) => e.path === '/sellers')).toBe(true);
 
-    expect(await setPageControls('admin-1', '/find', { ...C, status: 'archived' })).toEqual({ ok: true });
-    await expect(pageMetadata('/find')).rejects.toThrow(); // a real 404, not a hidden page
-    expect((await sitemapPlan()).some((e) => e.path === '/find')).toBe(false);
+    expect(await setPageControls('admin-1', '/sellers', { ...C, status: 'archived' })).toEqual({ ok: true });
+    await expect(pageMetadata('/sellers')).rejects.toThrow(); // a real 404, not a hidden page
+    expect((await sitemapPlan()).some((e) => e.path === '/sellers')).toBe(false);
     expect((await sitemapPlan()).length).toBe(base - 1);
-    expect((await auditList(20)).some((e) => e.action === 'seo_controls_changed' && e.targetRef === '/find')).toBe(true);
+    expect((await auditList(20)).some((e) => e.action === 'seo_controls_changed' && e.targetRef === '/sellers')).toBe(true);
 
-    expect(await setPageControls('admin-1', '/find', { ...C, canonical: 'https://sellonbay.com/find', ogImage: '/og/find.png', index: false })).toEqual({ ok: true });
-    const m = await pageMetadata('/find');
+    expect(await setPageControls('admin-1', '/sellers', { ...C, canonical: 'https://sellonbay.com/find', ogImage: '/og/find.png', index: false })).toEqual({ ok: true });
+    const m = await pageMetadata('/sellers');
     expect(m.alternates?.canonical).toBe('https://sellonbay.com/find');
     expect(m.robots).toEqual({ index: false, follow: true });
     expect(m.openGraph).toMatchObject({ images: ['/og/find.png'] });
-    expect((await sitemapPlan()).some((e) => e.path === '/find')).toBe(false);
+    expect((await sitemapPlan()).some((e) => e.path === '/sellers')).toBe(false);
 
-    expect(await setPageControls('admin-1', '/find', C)).toEqual({ ok: true });
-    expect(await pageControls('/find')).toEqual(C);
-    expect((await sitemapPlan()).some((e) => e.path === '/find')).toBe(true);
+    expect(await setPageControls('admin-1', '/sellers', C)).toEqual({ ok: true });
+    expect(await pageControls('/sellers')).toEqual(C);
+    expect((await sitemapPlan()).some((e) => e.path === '/sellers')).toBe(true);
   });
 
   it('will not close a legal page or an unknown page, and says when nothing changed', async () => {
@@ -90,7 +90,7 @@ describe('page publishing and search controls', () => {
     const n = sitemapCounts(plan);
     expect(n.total).toBe(n.primary + n.additional);
     expect(plan.some((e) => e.kind === 'home')).toBe(true);
-    for (const p of ['/privacy', '/terms', '/refunds']) expect(plan.some((e) => e.path === p)).toBe(true);
+    for (const p of ['/websites', '/sellers', '/help']) expect(plan.some((e) => e.path === p)).toBe(true); // legal pages are noindex and stay out (owner)
     for (const e of plan) expect(e.url).toMatch(/^https?:\/\//);
     expect(plan.some((e) => /\/(checkout|dashboard|orders|pay|login|account|api)/.test(e.path))).toBe(false);
   });

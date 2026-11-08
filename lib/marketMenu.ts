@@ -2,7 +2,6 @@ import { APP_CATS, DIGITAL_TOPICS, shelfHref, shelfLabel, type Platform } from '
 import { CATS } from './data';
 import { REVIEW_HOURS } from './config';
 import { AREAS } from './developers';
-import { legacyPublic } from './legacy';
 import { HUB_LINKS, hubLinkHref } from './seo/hubLinks';
 
 /*
@@ -169,4 +168,4 @@ export const menuLinks = (m: MenuEntry[] = MARKET_MENU): MenuLink[] =>
 
 /* The public bar: exactly the five template categories, each a plain link (the first is the home page). The older bar stays above for a test server that keeps the old site. */
 export const HUB_MENU: MenuEntry[] = HUB_LINKS.map(([slug, name]) => ({ key: slug, label: name, href: hubLinkHref(slug), groups: [] }));
-export const MARKET_MENU: MenuEntry[] = legacyPublic() ? LEGACY_MENU : HUB_MENU;
+export const MARKET_MENU: MenuEntry[] = HUB_MENU;

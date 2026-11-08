@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import './market.css';
 import './glass.css'; // every class starts with g-; loaded here so the root 404 page gets it too (a deep import is not collected there)
 import { Suspense } from 'react';
 import { CookieNotice } from '@/components/CookieNotice';

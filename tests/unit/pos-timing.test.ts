@@ -22,7 +22,8 @@ describe('cash at a point of sale (owner, 2026-11-08)', () => {
     expect(s).toMatch(/paymentsMode !== 'live'\) return fail\(409/);
     expect(s.indexOf("auditStrict(adminId, 'cash_received'")).toBeLessThan(s.indexOf('.insert(order'));
     expect(s).toMatch(/startsWith|MANUAL_REF\}cash:/);
-    expect(src('app/(dash)/admin/orders/page.tsx')).toMatch(/settings\.paymentsMode === 'live' && \(\s*<GlassCard as="section" id="pos">/);
+    expect(src('app/(dash)/admin/orders/page.tsx')).toMatch(/<PosForm\s+open=\{settings\.paymentsMode === 'live'\}/);
+    expect(src('components/glass/PosForm.tsx')).toMatch(/disabled=\{!open \|\| busy/);
     expect(src('components/glass/AdminShell.tsx')).toMatch(/hideCta=\{settings\.paymentsMode === 'beta_free'\}/);
   });
 });

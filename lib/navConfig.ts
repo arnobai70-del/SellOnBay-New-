@@ -1,7 +1,7 @@
 import type { MenuEntry } from './marketMenu';
 
 /*
- * Which category-bar entries show, and in what order (set by an admin at /dashboard/admin/seo/navigation). Pure and small enough for the top bar.
+ * Which category-bar entries show, and in what order (set by an admin at /admin/seo/navigation). Pure and small enough for the top bar.
  * An entry is only hidden, never deleted: its pages still work and it comes back when shown again. Help can never be hidden.
  */
 export type NavConfig = { hidden: string[]; order: string[] };

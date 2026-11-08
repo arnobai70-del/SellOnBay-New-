@@ -26,7 +26,7 @@ export default async function Websites({ searchParams }: { searchParams: Promise
     <>
       <div className="g-head">
         <h1>{copy.t('head', 'heading', words.heading)}</h1>
-        <div className="g-glass g-search">
+        <div className="glass g-search">
           <SearchBox action="/websites" label="Search websites" placeholder="Search full-stack websites" defaultValue={q.q} hidden={q.category ? { category: q.category } : {}} />
         </div>
       </div>
@@ -43,7 +43,7 @@ export default async function Websites({ searchParams }: { searchParams: Promise
               </Link>
             ))}
           </nav>
-          <form className="g-stack" action="/websites" method="get" style={{ marginTop: 16 }}>
+          <form className="sob-stack" action="/websites" method="get" style={{ marginTop: 16 }}>
             {q.q && <input type="hidden" name="q" value={q.q} />}
             {q.category && <input type="hidden" name="category" value={q.category} />}
             <Field label="Lowest price ($)" name="min" inputMode="decimal" defaultValue={q.min ?? ''} />
@@ -64,7 +64,7 @@ export default async function Websites({ searchParams }: { searchParams: Promise
           </form>
         </GlassCard>
         <section aria-label="Websites">
-          <p className="g-muted" style={{ fontSize: 14, marginBottom: 12 }} role="status">
+          <p className="muted" style={{ fontSize: 14, marginBottom: 12 }} role="status">
             {r.total} {r.total === 1 ? 'website' : 'websites'} · {hub ? hub.name.replace(/ Websites$/, '') : 'All websites'}
           </p>
           {r.items.length ? (
@@ -76,7 +76,7 @@ export default async function Websites({ searchParams }: { searchParams: Promise
           ) : (
             <GlassCard>
               <h2>Nothing matches yet</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 Try fewer filters, or see every website.
               </p>
               <div style={{ marginTop: 14 }}>

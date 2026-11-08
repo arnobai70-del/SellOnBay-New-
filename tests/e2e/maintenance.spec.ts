@@ -61,7 +61,7 @@ test.describe('module maintenance (demo mode)', () => {
   });
 
   test('the Maintenance Manager closes and reopens a module, shows its state and history, and fits a phone', async ({ page }) => {
-    await page.goto(`${DEMO}/dashboard/admin/maintenance`);
+    await page.goto(`${DEMO}/admin/settings/maintenance/modules`);
     await expect(page.getByRole('heading', { name: 'Every part of the site is open' })).toBeVisible();
     const card = page.locator('#module-ai');
     await card.getByLabel('Under maintenance').check();
@@ -83,7 +83,7 @@ test.describe('module maintenance (demo mode)', () => {
     expect((await page.request.get(`${DEMO}/tools/site-ideas`)).status()).toBe(200);
 
     await page.setViewportSize({ width: 360, height: 800 });
-    await page.goto(`${DEMO}/dashboard/admin/maintenance`);
+    await page.goto(`${DEMO}/admin/settings/maintenance/modules`);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
   });
 });

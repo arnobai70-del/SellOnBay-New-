@@ -27,11 +27,11 @@ export default async function OrderChatPage({ params, searchParams }: { params: 
   const signedIn = supabaseConfigured && !!me;
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role={shell} active="messages" title="Messages">
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>{o.title}</h2>
-            <p className="sub">
+            <p className="tag">
               You are the {role}. Order {o.id.slice(0, 8).toUpperCase()}. {role === 'buyer' ? <Link href={`/orders/${o.id}`}>Open the order</Link> : null}
             </p>
           </div>

@@ -52,7 +52,7 @@ test.describe('disputes through the API', () => {
     expect(v.dispute.status).toBe('decided');
     expect(v.events.map((e: Ev) => e.event)).toEqual(expect.arrayContaining(['dispute_opened', 'dispute_decided']));
     expect((await post(request, `/api/admin/disputes/${did}/decide`, { decision: 'refund_full' })).status()).toBe(409); // decided once
-    const audit = await (await request.get(`${DEMO}/dashboard/admin/audit`)).text();
+    const audit = await (await request.get(`${DEMO}/admin/security/audit`)).text();
     expect(audit).toContain('dispute refund partial');
   });
   test('a full refund sends the order to refunded', async ({ request }) => {
@@ -79,11 +79,11 @@ test.describe('admin pages (demo mode)', () => {
   test('every admin page opens and says what it is for', async ({ page }) => {
     for (const [path, heading] of [
       ['/dashboard/admin', 'New listings'],
-      ['/dashboard/admin/disputes', 'Open disputes'],
-      ['/dashboard/admin/payouts', 'Weekly payouts'],
-      ['/dashboard/admin/users', 'Accounts'],
-      ['/dashboard/admin/abuse', 'Open reports'],
-      ['/dashboard/admin/audit', 'What admins did'],
+      ['/admin/support/disputes', 'Open disputes'],
+      ['/admin/finance/payouts', 'Weekly payouts'],
+      ['/admin/users/accounts', 'Accounts'],
+      ['/admin/support/abuse', 'Open reports'],
+      ['/admin/security/audit', 'What admins did'],
       ['/notifications', 'Notifications'],
     ] as const) {
       const r = await page.goto(`${DEMO}${path}`);
@@ -94,7 +94,7 @@ test.describe('admin pages (demo mode)', () => {
   test('an open dispute shows in the queue with its evidence and a decision form', async ({ page }) => {
     const id = await delivered(page.request);
     await post(page.request, `/api/demo/orders/${id}/dispute`, { reason: 'not_as_described', detail: GOOD });
-    await page.goto(`${DEMO}/dashboard/admin/disputes`);
+    await page.goto(`${DEMO}/admin/support/disputes`);
     await expect(page.getByRole('heading', { name: /Not as described/ }).first()).toBeVisible();
     await expect(page.getByText(GOOD).first()).toBeVisible();
     await page.getByRole('button', { name: 'Decide' }).first().click();
@@ -128,7 +128,7 @@ test.describe('abuse reports (demo mode)', () => {
       .first()
       .click();
     await expect(page.getByText('Report received')).toBeVisible();
-    await page.goto(`${DEMO}/dashboard/admin/abuse`);
+    await page.goto(`${DEMO}/admin/support/abuse`);
     const card = page.locator('.adm-card', { hasText: site });
     await expect(card).toBeVisible();
     await expect(card.getByText('1 different reporter')).toBeVisible();
@@ -162,7 +162,7 @@ test.describe('who may call what (real server)', () => {
     }
   });
   test('the admin pages send a signed-out visitor to sign in', async ({ page }) => {
-    await page.goto(`${REAL}/dashboard/admin/payouts`);
+    await page.goto(`${REAL}/admin/finance/payouts`);
     await expect(page).toHaveURL(/\/login/);
   });
   test('a signed-out visitor cannot report a problem on, or add evidence to, somebody else', async ({ request }) => {
@@ -190,7 +190,7 @@ test.describe('settings in demo mode (no accounts, so the admin routes are open 
 });
 
 test('the launch check lists what the live server still needs, without showing any key', async ({ page }) => {
-  await page.goto(`${DEMO}/dashboard/admin/launch`);
+  await page.goto(`${DEMO}/admin/settings/launch`);
   const box = page.locator('[data-launch]');
   await expect(box).toContainText('Payments');
   await expect(box).toContainText('Known gap');

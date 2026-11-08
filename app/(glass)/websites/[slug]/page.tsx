@@ -63,7 +63,7 @@ export default async function Website({ params }: Props) {
   return (
     <div style={{ paddingTop: 32 }}>
       <TrackView id={p.id} />
-      <nav aria-label="Breadcrumb" className="g-tag" style={{ marginBottom: 12 }}>
+      <nav aria-label="Breadcrumb" className="tag" style={{ marginBottom: 12 }}>
         <Link href="/websites">Websites</Link>
         {hub && (
           <>
@@ -75,7 +75,7 @@ export default async function Website({ params }: Props) {
         {p.name}
       </nav>
       <div className="g-layout-buy">
-        <div className="g-stack" style={{ minWidth: 0 }}>
+        <div className="sob-stack" style={{ minWidth: 0 }}>
           <GlassCard pad={false} rise={false} style={{ padding: 12 }}>
             <div className="g-thumb g-preview">
               {p.shots?.[0] ? (
@@ -93,7 +93,7 @@ export default async function Website({ params }: Props) {
           </GlassCard>
           <GlassCard as="section" rise={false}>
             <h2>About this website</h2>
-            <p className="g-muted" style={{ marginTop: 8, fontSize: 15, lineHeight: 1.65 }}>
+            <p className="muted" style={{ marginTop: 8, fontSize: 15, lineHeight: 1.65 }}>
               {p.desc}
             </p>
             {p.inc.length > 0 && (
@@ -111,41 +111,41 @@ export default async function Website({ params }: Props) {
             <h2>Reviews</h2>
             {reviews.length ? (
               <>
-                <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+                <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
                   ★ {rating.avg.toFixed(1)} from {rating.count} verified {rating.count === 1 ? 'buyer' : 'buyers'}
                 </p>
                 {reviews.slice(0, 5).map((r) => (
-                  <div key={r.orderId} className="g-li" style={{ display: 'block' }}>
+                  <div key={r.orderId} className="li" style={{ display: 'block' }}>
                     <div style={{ fontSize: 14, fontWeight: 500 }}>
-                      {'★'.repeat(r.rating)} <span className="g-muted">{r.who}</span>
+                      {'★'.repeat(r.rating)} <span className="muted">{r.who}</span>
                     </div>
-                    <p className="g-muted" style={{ marginTop: 4, fontSize: 14 }}>
+                    <p className="muted" style={{ marginTop: 4, fontSize: 14 }}>
                       {r.body}
                     </p>
                   </div>
                 ))}
               </>
             ) : (
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 No reviews yet. Only buyers who received this website can review it.
               </p>
             )}
           </GlassCard>
         </div>
-        <div className="g-stack g-sticky">
+        <div className="sob-stack g-sticky">
           <GlassCard as="section" rise={false}>
             <h1>{p.name}</h1>
-            {p.stack && <div className="g-tag">{p.stack}</div>}
+            {p.stack && <div className="tag">{p.stack}</div>}
             <div style={{ fontSize: 30, fontWeight: 300, marginTop: 10 }}>
               <PriceTag p={sites.find((x) => x.id === p.id) ?? p} big />
             </div>
-            <div className="g-tag">Standard licence · one website, one domain · {deliveryText({ days: p.days, hours: p.hours })}</div>
+            <div className="tag">Standard licence · one website, one domain · {deliveryText({ days: p.days, hours: p.hours })}</div>
             {beta && requestable && (
               <p style={{ marginTop: 10 }}>
                 <StatusPill tone="info">Free during beta</StatusPill>
               </p>
             )}
-            <div className="g-stack" style={{ marginTop: 14, gap: 8 }}>
+            <div className="sob-stack" style={{ marginTop: 14, gap: 8 }}>
               {!beta ? (
                 <Button href={`/checkout?id=${encodeURIComponent(p.id)}`}>Buy with escrow</Button>
               ) : requestable ? (
@@ -159,7 +159,7 @@ export default async function Website({ params }: Props) {
                 </Button>
               )}
             </div>
-            <p className="g-tag" style={{ marginTop: 10 }}>
+            <p className="tag" style={{ marginTop: 10 }}>
               Extended licence and customization: {beta ? 'available after beta' : 'ask for a quotation'}. <Link href="/legal/licenses">Compare licences</Link>
             </p>
           </GlassCard>
@@ -173,10 +173,10 @@ export default async function Website({ params }: Props) {
             </ul>
           </GlassCard>
           {seller && (
-            <GlassCard as="section" rise={false} className="g-row">
+            <GlassCard as="section" rise={false} className="row">
               <div>
                 <h3>{seller.name}</h3>
-                <div className="g-tag">
+                <div className="tag">
                   {seller.reviews > 0 ? `★ ${seller.rating.toFixed(1)} · ` : ''}
                   {seller.websites.length} {seller.websites.length === 1 ? 'website' : 'websites'}
                 </div>

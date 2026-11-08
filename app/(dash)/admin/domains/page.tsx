@@ -2,9 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AdminForm } from '@/components/AdminForm';
 import { AdminShell } from '@/components/glass/AdminShell';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { StatusPill } from '@/components/glass/StatusPill';
 import { betaRequests } from '@/lib/beta/service';
+import { CONFIG, DAY_MS } from '@/lib/config';
+import { ALL_TLDS, registrarLive } from '@/lib/domains';
+import { profileNames } from '@/lib/glass/admin';
+import { plainWords } from '@/lib/glass/words';
+import type { Order } from '@/lib/orders/machine';
+import { getOrder } from '@/lib/orders/service';
 import { orderCode } from '@/lib/payments/rules';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
@@ -13,12 +17,26 @@ import { requireViewer } from '@/lib/supabase/viewer';
 export const metadata: Metadata = { title: 'Domains', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
+const TABS = [
+  ['all', 'All'],
+  ['expiring', 'Expiring'],
+  ['pending', 'Pending'],
+  ['transfers', 'Transfers'],
+] as const;
+type Row = { name: string; orderId: string | null; expires: number | null; ref: string | null; pending: boolean; asked?: { name: string; country: string; decided: boolean } };
+const month = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+
 /*
- * No registrar is connected (owner, 2026-11-07: "Check availability" and manual registration). Domains buyers asked for are listed here; after
- * registering one at the registrar in the buyer's own name, record it so it shows in their dashboard.
+ * design-reference/admin-domains.html. No registrar is connected (owner, 2026-11-07): a domain a buyer asked for is registered by hand at the
+ * registrar, in the buyer's own name, and recorded here (/api/admin/domains) so it shows in the buyer's dashboard. Prices per extension come
+ * from lib/domains.ts; reminders from lib/config.ts.
  */
-export default async function AdminDomains() {
+export default async function AdminDomains({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
   const viewer = await requireViewer({ path: '/admin/domains', roles: ['admin'], scope: 'support' });
+  const sp = await searchParams;
+  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'all';
+  const q = (sp.q ?? '').trim().toLowerCase();
+  const now = Date.now();
   const [requests, held] = await Promise.all([
     betaRequests(),
     supabaseConfigured ? createAdminClient().from('domains').select('name, order_id, expires_at, registrar_ref').order('created_at', { ascending: false }).limit(200) : Promise.resolve({ data: [] }),
@@ -26,51 +44,212 @@ export default async function AdminDomains() {
   const recorded = (held.data ?? []) as { name: string; order_id: string | null; expires_at: string | null; registrar_ref: string | null }[];
   const names = new Set(recorded.map((d) => d.name));
   const asked = requests.filter((r) => r.domain && !r.declineReason && !names.has(r.domain.toLowerCase()));
+  const all: Row[] = [
+    ...asked.map((r) => ({ name: r.domain!, orderId: r.orderId, expires: null, ref: null, pending: true, asked: { name: r.name, country: r.country, decided: !!r.decidedAt } })),
+    ...recorded.map((d) => ({ name: d.name, orderId: d.order_id, expires: d.expires_at ? Date.parse(d.expires_at) : null, ref: d.registrar_ref, pending: false })),
+  ];
+  const orders = new Map<string, Order | null>(await Promise.all([...new Set(all.map((r) => r.orderId).filter((x): x is string => !!x))].map(async (id) => [id, await getOrder(id)] as const)));
+  const people = await profileNames([...orders.values()].map((o) => o?.buyerId));
+  const owner = (r: Row) => r.asked?.name ?? people.get(orders.get(r.orderId ?? '')?.buyerId ?? '') ?? '—';
+  const expiring = (r: Row) => !r.pending && r.expires !== null && r.expires - now < 30 * DAY_MS;
+  const rows = all
+    .filter((r) => (tab === 'expiring' ? expiring(r) : tab === 'pending' ? r.pending : tab === 'transfers' ? false : true))
+    .filter((r) => !q || r.name.toLowerCase().includes(q) || owner(r).toLowerCase().includes(q));
+  const active = recorded.length;
+  const soon = all.filter(expiring);
   return (
-    <AdminShell viewer={viewer} active="domains" title="Domains" subtitle="Registered by hand, always in the buyer's own name. No registrar is connected yet.">
-      <GlassCard as="section">
-        <h2>Asked for, not recorded yet ({asked.length})</h2>
-        {asked.length ? (
-          asked.map((r) => (
-            <div key={r.orderId} className="g-li" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: 6 }}>
-              <span>
-                <b>{r.domain}</b> · for {r.name} ({r.country}) · order <Link href={`/dashboard/admin/orders/${r.orderId}`}>{orderCode(r.orderId)}</Link>{' '}
-                {r.decidedAt ? <StatusPill tone="ok">Approved</StatusPill> : <StatusPill tone="wait">Request waiting</StatusPill>}
-              </span>
-              <AdminForm
-                endpoint="/api/admin/domains"
-                openLabel="Record as registered"
-                submit="Record the domain"
-                tone="line"
-                fixed={{ orderId: r.orderId, name: r.domain }}
-                fields={[
-                  { name: 'expiresAt', label: 'Expires on (YYYY-MM-DD)', kind: 'text', required: true },
-                  { name: 'registrarRef', label: 'Registrar reference (optional)', kind: 'text' },
-                ]}
-              />
-            </div>
-          ))
-        ) : (
-          <p className="g-muted" style={{ marginTop: 8 }}>
-            Nothing waiting.
-          </p>
-        )}
-      </GlassCard>
-      <GlassCard as="section">
-        <h2>Recorded domains ({recorded.length})</h2>
-        {recorded.length ? (
-          recorded.map((d) => (
-            <div key={d.name} className="g-li">
-              <span style={{ flex: 1 }}>{d.name}</span>
-              <span className="g-tag">{d.expires_at ? `Expires ${d.expires_at}` : 'No expiry recorded'}</span>
-            </div>
-          ))
-        ) : (
-          <p className="g-muted" style={{ marginTop: 8 }}>
-            None yet.
-          </p>
-        )}
-      </GlassCard>
+    <AdminShell viewer={viewer} active="domains" file="admin-domains" title="Domains" head={false}>
+      <div className="row">
+        <div>
+          <h1>Domains</h1>
+          <div className="tag">Registrations, renewals and prices · every domain is registered in the buyer&apos;s name</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn ghost" type="button" disabled title="No registrar is connected yet">
+            Sync with registrar
+          </button>
+          <Link className="btn" href="/admin/domains?tab=pending" prefetch={false}>
+            + Register for a buyer
+          </Link>
+        </div>
+      </div>
+      <div className="kpis">
+        <div className="glass kpi">
+          <div className="l">Active domains</div>
+          <div className="v">{active}</div>
+          <div className="s">{recorded.filter((d) => d.order_id).length} linked to a website</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Expiring in 30 days</div>
+          <div className="v">{soon.length}</div>
+          <div className="s">{soon.filter((r) => r.expires! - now < 7 * DAY_MS).length} this week</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Pending registration</div>
+          <div className="v">{asked.length}</div>
+          <div className="s">Register by hand, then record</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Domain income</div>
+          <div className="v">$0</div>
+          <div className="s">{registrarLive() ? 'This month' : 'No registrar yet'}</div>
+        </div>
+      </div>
+      <section className="glass" style={{ padding: '8px 8px 4px' }}>
+        <div className="row" style={{ padding: '14px 14px 8px' }}>
+          <div className="seg" role="tablist" aria-label="Domain status">
+            {TABS.map(([k, l]) => (
+              <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={k === 'all' ? '/admin/domains' : `/admin/domains?tab=${k}`} prefetch={false}>
+                {l}
+              </Link>
+            ))}
+          </div>
+          <form action="/admin/domains" method="get" role="search" style={{ maxWidth: 260, width: '100%' }}>
+            {tab !== 'all' && <input type="hidden" name="tab" value={tab} />}
+            <label htmlFor="df" className="hidden-label">
+              Search domains
+            </label>
+            <input id="df" name="q" defaultValue={sp.q ?? ''} className="input" placeholder="Search domain or owner" style={{ maxWidth: 260, borderRadius: 999 }} />
+          </form>
+        </div>
+        <div className="tbl">
+          <table>
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th>Owner (registrant)</th>
+                <th>Linked website</th>
+                <th>Expires</th>
+                <th>Auto-renew</th>
+                <th>Status</th>
+                <th>
+                  <span className="hidden-label">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length ? (
+                rows.map((r) => {
+                  const o = orders.get(r.orderId ?? '');
+                  const days = r.expires !== null ? Math.ceil((r.expires - now) / DAY_MS) : null;
+                  return (
+                    <tr key={r.name}>
+                      <td style={{ fontWeight: 500 }}>{r.name}</td>
+                      <td>
+                        {owner(r)}
+                        {r.asked && <div className="tag">{r.asked.country}</div>}
+                      </td>
+                      <td>
+                        {o ? (
+                          <Link href={`/admin/orders/${o.id}`} prefetch={false}>
+                            {plainWords(o.title)}
+                          </Link>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>{r.pending ? '—' : days === null ? 'Not recorded' : days <= 30 ? `in ${days} days` : month(r.expires!)}</td>
+                      <td>
+                        <span className="tag" style={{ margin: 0 }}>
+                          By hand
+                        </span>
+                      </td>
+                      <td>
+                        {r.pending ? (
+                          <span className="status st-info">{r.asked?.decided ? 'Pending' : 'Request waiting'}</span>
+                        ) : expiring(r) ? (
+                          <span className="status st-wait">Expiring</span>
+                        ) : (
+                          <span className="status st-ok">Active</span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        {r.pending ? (
+                          <AdminForm
+                            endpoint="/api/admin/domains"
+                            openLabel="Record as registered"
+                            submit="Record the domain"
+                            tone="line"
+                            fixed={{ orderId: r.orderId, name: r.name }}
+                            fields={[
+                              { name: 'expiresAt', label: 'Expires on (YYYY-MM-DD)', kind: 'text', required: true },
+                              { name: 'registrarRef', label: 'Registrar reference (optional)', kind: 'text' },
+                            ]}
+                          />
+                        ) : (
+                          <span className="tag" style={{ margin: 0 }}>
+                            {r.ref ? `Ref ${r.ref}` : r.orderId ? orderCode(r.orderId) : ''}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    {tab === 'transfers' ? 'No transfers: domains are registered by hand.' : 'No domains here.'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="grid2">
+        <section className="glass" style={{ padding: '8px 8px 4px' }}>
+          <div className="row" style={{ padding: '14px 14px 4px' }}>
+            <h2>Prices per extension</h2>
+            <span className="tag" style={{ margin: 0 }}>
+              Set in the code (lib/domains.ts)
+            </span>
+          </div>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Extension</th>
+                  <th>Your cost</th>
+                  <th>Sell price</th>
+                  <th>Renewal</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ALL_TLDS.map(([tld, price]) => (
+                  <tr key={tld}>
+                    <td style={{ fontWeight: 500 }}>{tld}</td>
+                    <td className="muted">—</td>
+                    <td>${price.toFixed(2)}</td>
+                    <td className="muted">—</td>
+                    <td className="muted">—</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2>Renewal reminders</h2>
+          <div className="row">
+            <span style={{ fontSize: 14 }}>Email buyer {CONFIG.domain.reminderDays.join(', ')} days before expiry</span>
+            <span className="status st-ok">On</span>
+          </div>
+          <div className="row">
+            <span style={{ fontSize: 14 }}>Privacy protection on by default</span>
+            <span className="status st-draft">At the registrar</span>
+          </div>
+          <div className="field">
+            <label htmlFor="rg">Registrar account</label>
+            <select id="rg" className="input" disabled>
+              <option>Not connected</option>
+            </select>
+          </div>
+          <div className="tag" style={{ margin: 0 }}>
+            {registrarLive() ? 'Registrar connected.' : 'No registrar is connected yet: register at the registrar in the buyer’s name, then record it above.'}
+          </div>
+        </section>
+      </div>
     </AdminShell>
   );
 }

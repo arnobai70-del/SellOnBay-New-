@@ -72,11 +72,11 @@ export function DeliveryForm({
   }
 
   return (
-    <div className="act-step" data-delivery-form={revisionId ? 'revision' : 'delivery'}>
+    <div className="sob-form" data-delivery-form={revisionId ? 'revision' : 'delivery'}>
       <label htmlFor={`df-file-${revisionId ?? orderId}`}>Delivery files (.zip, checked before release)</label>
-      <div className="act-row">
+      <div className="sob-acts">
         <input id={`df-file-${revisionId ?? orderId}`} type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <button type="button" className="btn btn-line btn-sm" disabled={!file || !!busy} onClick={upload}>
+        <button type="button" className="btn ghost sm" disabled={!file || !!busy} onClick={upload}>
           Upload for checking
         </button>
       </div>
@@ -96,11 +96,11 @@ export function DeliveryForm({
       )}
       <label htmlFor={`df-note-${revisionId ?? orderId}`}>What you delivered (for SellOnBay; for example the address of the live site)</label>
       <textarea id={`df-note-${revisionId ?? orderId}`} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
-      <button type="button" className="btn btn-blue btn-sm" disabled={!!busy || note.trim().length < 10} onClick={send}>
+      <button type="button" className="btn sm" disabled={!!busy || note.trim().length < 10} onClick={send}>
         {busy || 'Send for release'}
       </button>
       {msg && (
-        <p className={msg.ok ? 'note' : 'note warn'} role={msg.ok ? 'status' : 'alert'}>
+        <p className={msg.ok ? 'sob-note-box' : 'sob-note-box warn'} role={msg.ok ? 'status' : 'alert'}>
           <span>{msg.text}</span>
         </p>
       )}

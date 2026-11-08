@@ -69,7 +69,7 @@ describe('a beta request (made-up example listing, no database)', () => {
     expect(await (await ledgerStore()).lines(`pay:${r.value.id}`)).toEqual([]);
     const sales = fakeEmail.sent.find((m) => m.to === 'sales@sellonbay.com');
     expect(sales?.subject).toContain('New beta request');
-    expect(sales?.text).toContain('/dashboard/admin/beta');
+    expect(sales?.text).toContain('/admin/orders/beta');
     expect((await notificationsFor(b)).some((x) => x.kind === 'beta_requested')).toBe(true);
   });
 

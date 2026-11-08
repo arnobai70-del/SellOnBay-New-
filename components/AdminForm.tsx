@@ -45,7 +45,7 @@ export function AdminForm({
 
   if (!shown)
     return (
-      <button className={'btn btn-' + (tone === 'line' ? 'line' : tone) + ' btn-sm'} type="button" onClick={() => setShown(true)}>
+      <button className={tone === 'line' ? 'btn sm ghost' : 'btn sm'} type="button" onClick={() => setShown(true)}>
         {openLabel ?? submit}
       </button>
     );
@@ -68,13 +68,13 @@ export function AdminForm({
   }
 
   return (
-    <form className="adm-form" onSubmit={send}>
+    <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 10 }}>
       {fields.map((f) => {
         if (f.showWhen && v[f.showWhen.field] !== f.showWhen.equals) return null;
         const id = `${endpoint}-${f.name}`;
         const set = (x: string | boolean) => setV((p) => ({ ...p, [f.name]: x }));
         return f.kind === 'checkbox' ? (
-          <label key={f.name} className="adm-check">
+          <label key={f.name} className="chk" style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 14 }}>
             <input type="checkbox" checked={!!v[f.name]} onChange={(e) => set(e.target.checked)} />
             <span>{f.label}</span>
           </label>
@@ -82,9 +82,9 @@ export function AdminForm({
           <div className="field" key={f.name}>
             <label htmlFor={id}>{f.label}</label>
             {f.kind === 'textarea' ? (
-              <textarea id={id} rows={2} value={String(v[f.name])} onChange={(e) => set(e.target.value)} required={f.required} maxLength={f.max ?? 600} />
+              <textarea id={id} className="input" rows={2} value={String(v[f.name])} onChange={(e) => set(e.target.value)} required={f.required} maxLength={f.max ?? 600} />
             ) : f.kind === 'select' ? (
-              <select id={id} value={String(v[f.name])} onChange={(e) => set(e.target.value)}>
+              <select id={id} className="input" value={String(v[f.name])} onChange={(e) => set(e.target.value)}>
                 {f.options?.map(([val, label]) => (
                   <option key={val} value={val}>
                     {label}
@@ -94,6 +94,7 @@ export function AdminForm({
             ) : (
               <input
                 id={id}
+                className="input"
                 type={f.kind === 'dollars' ? 'number' : 'text'}
                 step={f.kind === 'dollars' ? '0.01' : undefined}
                 min={f.kind === 'dollars' ? '0.01' : undefined}
@@ -104,26 +105,26 @@ export function AdminForm({
               />
             )}
             {(f.hint || f.max) && (
-              <small>
+              <div className="tag">
                 {f.hint}
                 {f.max ? `${f.hint ? ' ' : ''}${String(v[f.name]).length} / ${f.max}` : ''}
-              </small>
+              </div>
             )}
           </div>
         );
       })}
-      <div className="adm-btns">
-        <button className={'btn btn-' + (tone === 'line' ? 'line' : tone) + ' btn-sm'} type="submit" disabled={busy}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button className={tone === 'line' ? 'btn sm ghost' : 'btn sm'} type="submit" disabled={busy}>
           {busy ? 'One moment...' : submit}
         </button>
         {!open && (
-          <button className="btn btn-line btn-sm" type="button" onClick={() => setShown(false)}>
+          <button className="btn sm ghost" type="button" onClick={() => setShown(false)}>
             Cancel
           </button>
         )}
       </div>
       {msg && (
-        <p className={msg.ok ? 'adm-ok' : 'form-err'} role={msg.ok ? 'status' : 'alert'}>
+        <p className="tag" style={{ color: msg.ok ? '#1A5444' : '#7A2E24' }} role={msg.ok ? 'status' : 'alert'}>
           {msg.text}
         </p>
       )}

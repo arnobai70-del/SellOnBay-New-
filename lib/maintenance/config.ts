@@ -43,8 +43,7 @@ export const MAINTENANCE_LIMITS = { message: 300, defaultRetrySeconds: 300, maxR
  */
 export const ALWAYS_ON_API: RegExp[] = [/^\/webhooks\//, /^\/paypal\/return$/, /^\/cron\//, /^\/health$/, /^\/admin\/maintenance(\/|$)/];
 const ALWAYS_ON_PAGE: RegExp[] = [
-  /^\/dashboard\/admin\/maintenance(\/|$)/,
-  /^\/dashboard\/admin\/audit(\/|$)/,
+  /^\/admin\/security\/audit(\/|$)/, // the audit log (the old tools moved under /admin, owner 2026-11-09)
   /^\/admin\/settings\/maintenance(\/|$)/, // the glass Maintenance page (owner, 2026-11-08): the way back
   /^\/(login|signin|two-factor|verify-email|forgot-password|auth)(\/|$)/,
   /^\/maintenance(\/|$)/,
@@ -87,10 +86,9 @@ const API_RULES: [RegExp, ModuleKey][] = [
 
 /* Pages, most specific first. Pages in no module (home, how it works, FAQ, policies, sell landing page) are always open. */
 const PAGE_RULES: [RegExp, ModuleKey][] = [
-  [/^\/dashboard\/admin\/seo(\/|$)/, 'seo'],
-  [/^\/dashboard\/admin\/disputes(\/|$)/, 'disputes'],
-  [/^\/dashboard\/admin\/payouts(\/|$)/, 'payouts'],
-  [/^\/dashboard\/admin(\/|$)/, 'admin'],
+  [/^\/admin\/seo(\/|$)/, 'seo'],
+  [/^\/admin\/support\/disputes(\/|$)/, 'disputes'],
+  [/^\/admin\/finance\/payouts(\/|$)/, 'payouts'],
   [/^\/admin(\/|$)/, 'admin'], // the glass admin (Phase 6)
   [/^\/dashboard\/buyer(\/|$)/, 'buyer'],
   [/^\/dashboard\/seller\/payouts(\/|$)/, 'payouts'],

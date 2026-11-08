@@ -90,13 +90,13 @@ export default async function GuidePage(props: Params) {
           Preview: this guide is {p.status}. Only admins can see it.
         </p>
       )}
-      <nav className="g-tag" aria-label="Breadcrumb">
+      <nav className="tag" aria-label="Breadcrumb">
         <Link href="/">Home</Link> / <Link href="/guides">Guides</Link>
       </nav>
       <article className="post">
         <div className="g-head">
           <h1>{p.title}</h1>
-          <p className="g-tag">
+          <p className="tag">
             <time dateTime={published.toISOString()}>{published.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
             {p.author ? ` · ${p.author}` : ''}
             {p.bodyHtml ? ` · ${readingMinutes(p.bodyHtml)} min read` : ''}
@@ -107,9 +107,9 @@ export default async function GuidePage(props: Params) {
           // eslint-disable-next-line @next/next/no-img-element -- covers are ours (/blog/media) or any https address the admin gives
           <img className="post-cover" src={p.coverUrl} alt={p.coverAlt} loading="eager" decoding="async" />
         )}
-        <div className="g-prose">
+        <div className="sob-prose">
           {p.bodyHtml ? <GuideHtml html={p.bodyHtml} /> : <PostBody blocks={parseMarkdown(p.body)} />}
-          {p.tags.length > 0 && <p className="g-tag">Tags: {p.tags.join(', ')}</p>}
+          {p.tags.length > 0 && <p className="tag">Tags: {p.tags.join(', ')}</p>}
           <p>
             <Link href="/guides">More guides</Link>
           </p>

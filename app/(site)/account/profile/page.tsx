@@ -26,7 +26,7 @@ export default async function YourProfile() {
       else name = data?.full_name ?? '';
     }
   }
-  const home = viewer?.role === 'seller' ? '/dashboard/seller' : viewer?.role === 'admin' ? '/dashboard/admin' : '/dashboard/buyer';
+  const home = viewer?.role === 'seller' ? '/dashboard/seller' : viewer?.role === 'admin' ? '/admin' : '/dashboard/buyer';
   return (
     <div className="wrap">
       <div className="page-head">

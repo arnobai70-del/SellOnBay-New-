@@ -18,18 +18,18 @@ export default async function SellerNotifications() {
       <GlassCard as="section">
         {list.length ? (
           list.map((n) => (
-            <div key={n.id} className="g-li" style={{ alignItems: 'flex-start' }}>
+            <div key={n.id} className="li" style={{ alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: n.read ? 400 : 500 }}>{n.subject}</div>
-                <div className="g-tag">{n.text}</div>
+                <div className="tag">{n.text}</div>
               </div>
-              <span className="g-tag" style={{ whiteSpace: 'nowrap' }}>
+              <span className="tag" style={{ whiteSpace: 'nowrap' }}>
                 {shortDate(n.at)}
               </span>
             </div>
           ))
         ) : (
-          <p className="g-muted" style={{ fontSize: 14 }}>
+          <p className="muted" style={{ fontSize: 14 }}>
             Nothing yet. New orders, questions from buyers and payout news show up here.
           </p>
         )}

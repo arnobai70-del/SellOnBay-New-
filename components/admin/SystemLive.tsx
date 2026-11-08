@@ -43,7 +43,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
   const peak = Math.max(1, ...(s.errors?.counts.byHour ?? [0]));
   return (
     <>
-      <div className="dp sys-head">
+      <div className="glass card sob-sec sys-head">
         <span className={`sys-chip ${s.overall}`}>
           <i />
           {OVERALL[s.overall]}
@@ -67,9 +67,9 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
       </div>
 
       <div className="sys-two">
-        <div className="dp">
+        <div className="glass card sob-sec">
           <h2>This app</h2>
-          <p className="sub">The site&apos;s own process. Shared hosting does not show the host&apos;s CPU, load or disk, so they are not listed.</p>
+          <p className="tag">The site&apos;s own process. Shared hosting does not show the host&apos;s CPU, load or disk, so they are not listed.</p>
           <dl className="sys-dl">
             <dt>Memory in use</dt>
             <dd>{s.app.rssMb} MB</dd>
@@ -85,7 +85,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             <dd>{s.build.builtAt ? when(Date.parse(s.build.builtAt)) : 'Not recorded'}</dd>
           </dl>
         </div>
-        <div className="dp">
+        <div className="glass card sob-sec">
           <h2>Database</h2>
           <dl className="sys-dl">
             <dt>Answers in</dt>
@@ -117,10 +117,10 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         </div>
       </div>
 
-      <div className="dp">
+      <div className="glass card sob-sec">
         <h2>Errors</h2>
         {!s.errors ? (
-          <p className="sub">Not recorded yet: apply migration 0072.</p>
+          <p className="tag">Not recorded yet: apply migration 0072.</p>
         ) : (
           <>
             <div className="sys-nums">
@@ -140,8 +140,8 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
               ))}
             </div>
             {s.errors.kinds.length > 0 && (
-              <div className="adm-table-wrap">
-                <table className="adm-table">
+              <div className="tbl">
+                <table className="">
                   <thead>
                     <tr>
                       <th>Where</th>
@@ -169,16 +169,16 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         )}
       </div>
 
-      <div className="dp">
+      <div className="glass card sob-sec">
         <h2>Scheduled jobs</h2>
-        <ul className="lst">
+        <ul className="sob-list">
           {s.jobs.map((j) => (
             <li key={j.job}>
-              <div className="grow">
+              <div className="sob-grow">
                 <b>{j.job === 'orders' ? 'Orders (every few minutes)' : 'Payouts (weekly)'}</b>
                 <small>Last good run {ago(j.lastGoodAt, s.at)}</small>
               </div>
-              <span className={`chip ${j.stale ? 'st-pink' : j.lastGoodAt ? 'st-mint' : 'st-plain'}`}>
+              <span className={`status ${j.stale ? 'st-bad' : j.lastGoodAt ? 'st-ok' : 'st-draft'}`}>
                 <i />
                 {j.stale ? 'Stopped' : j.lastGoodAt ? 'On time' : 'Not run yet'}
               </span>
@@ -186,10 +186,10 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           ))}
         </ul>
         {s.runs === null ? (
-          <p className="sub">Run history is not recorded yet: apply migration 0071.</p>
+          <p className="tag">Run history is not recorded yet: apply migration 0071.</p>
         ) : s.runs.length > 0 ? (
-          <div className="adm-table-wrap">
-            <table className="adm-table">
+          <div className="tbl">
+            <table className="">
               <thead>
                 <tr>
                   <th>Job</th>
@@ -211,11 +211,11 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             </table>
           </div>
         ) : (
-          <p className="sub">No runs recorded yet.</p>
+          <p className="tag">No runs recorded yet.</p>
         )}
       </div>
 
-      <div className="dp">
+      <div className="glass card sob-sec">
         <h2>Domain and safety</h2>
         <dl className="sys-dl">
           <dt>Certificate</dt>

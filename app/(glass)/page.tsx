@@ -51,17 +51,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
     pillars: (
       <section className="g-sec" key="pillars">
         <h2>{c.t('pillars', 'heading')}</h2>
-        <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+        <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
           {c.t('pillars', 'intro')}
         </p>
         <div className="g-grid3" style={{ marginTop: 18 }}>
           {['1', '2', '3'].map((n) => (
             <GlassCard key={n} as="article" reveal>
-              <div className="g-tag">
+              <div className="tag">
                 0{n} · {c.t('pillars', `p${n}who`)}
               </div>
               <h3 style={{ fontSize: 20, marginTop: 8 }}>{c.t('pillars', `p${n}title`)}</h3>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {c.t('pillars', `p${n}text`)}
               </p>
               <ul className="g-list">
@@ -81,7 +81,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
     ),
     featured: (
       <section className="g-sec" key="featured">
-        <div className="g-row">
+        <div className="row">
           <h2>{c.t('featured', 'heading')}</h2>
           <Button variant="ghost" size="sm" href="/websites">
             {c.t('featured', 'all')}
@@ -94,7 +94,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             ))}
           </div>
         ) : (
-          <p className="g-muted" style={{ marginTop: 18 }}>
+          <p className="muted" style={{ marginTop: 18 }}>
             {c.t('featured', 'empty')}
           </p>
         )}
@@ -103,16 +103,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
     domains: (
       <section className="g-sec" key="domains">
         <GlassCard reveal>
-          <div className="g-tag">{c.t('domains', 'tag')}</div>
+          <div className="tag">{c.t('domains', 'tag')}</div>
           <h2 style={{ marginTop: 8 }}>{c.t('domains', 'heading')}</h2>
-          <form className="g-row" action="/domains" method="get" style={{ marginTop: 14, justifyContent: 'flex-start' }} data-track="domains">
-            <label className="g-sr" htmlFor="home-domain">
+          <form className="row" action="/domains" method="get" style={{ marginTop: 14, justifyContent: 'flex-start' }} data-track="domains">
+            <label className="hidden-label" htmlFor="home-domain">
               Search a domain
             </label>
-            <input id="home-domain" className="g-input" name="q" placeholder={c.t('domains', 'hint')} style={{ flex: '1 1 220px', width: 'auto' }} />
+            <input id="home-domain" className="input" name="q" placeholder={c.t('domains', 'hint')} style={{ flex: '1 1 220px', width: 'auto' }} />
             <Button type="submit">{c.t('domains', 'button')}</Button>
           </form>
-          <p className="g-tag">
+          <p className="tag">
             {TLDS.slice(0, 4)
               .map(([t, price]) => `${t} $${price}`)
               .join(' · ')}
@@ -122,7 +122,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
     ),
     how: (
       <section className="g-sec" key="how">
-        <div className="g-row">
+        <div className="row">
           <h2>{c.t('how', 'heading')}</h2>
           <Button variant="ghost" size="sm" href="/buyer-protection">
             {c.t('how', 'link')}
@@ -133,7 +133,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             <GlassCard key={i} reveal>
               <span className="g-step-n">{i}</span>
               <h3>{c.t('how', `s${i}t`)}</h3>
-              <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
                 {c.t('how', `s${i}d`)}
               </p>
             </GlassCard>
@@ -144,7 +144,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
     sellers:
       sellers.length > 0 ? (
         <section className="g-sec" key="sellers">
-          <div className="g-row">
+          <div className="row">
             <h2>{c.t('sellers', 'heading')}</h2>
             <Button variant="ghost" size="sm" href="/sellers">
               {c.t('sellers', 'all')}
@@ -152,10 +152,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           </div>
           <div className="g-grid3" style={{ marginTop: 18 }}>
             {sellers.slice(0, 4).map((s) => (
-              <GlassCard key={s.key} reveal className="g-row">
+              <GlassCard key={s.key} reveal className="row">
                 <div>
                   <h3>{s.name}</h3>
-                  <div className="g-tag">
+                  <div className="tag">
                     {s.websites.length} {s.websites.length === 1 ? 'website' : 'websites'}
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       <section className="g-sec" key="sell">
         <GlassCard reveal>
           <h2>{c.t('sell', 'heading')}</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             {c.t('sell', 'text')}
           </p>
           <div style={{ marginTop: 14 }}>
@@ -197,7 +197,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           </span>
         </h1>
         <p className="g-lead">{c.t('hero', 'lead')}</p>
-        <div className="g-glass g-search">
+        <div className="glass g-search">
           <SearchBox action="/websites" label="Search websites" placeholder={c.t('hero', 'search')} track="hero-search" />
         </div>
         <div className="g-chips">

@@ -64,8 +64,8 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
   if (status === 'none') return null;
   if (status !== 'ready')
     return (
-      <div className="dp conv" data-conversation={`${type}:${id}`}>
-        <div className="hd">
+      <div className="glass card sob-sec conv" data-conversation={`${type}:${id}`}>
+        <div className="row sob-hd">
           <div>
             <h2>{heading}</h2>
           </div>
@@ -75,9 +75,9 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
             Loading messages…
           </p>
         ) : (
-          <p className="note warn" role="alert">
+          <p className="sob-note-box warn" role="alert">
             <span>Could not load your messages just now.</span>{' '}
-            <button type="button" className="btn btn-line btn-sm" onClick={() => void load()}>
+            <button type="button" className="btn ghost sm" onClick={() => void load()}>
               Try again
             </button>
           </p>
@@ -87,11 +87,11 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
   const shown = messages.filter((m) => m.channel === tab);
   const who = (m: Msg) => (m.senderRole === me ? MINE[me] : m.senderRole === 'admin' ? 'SellOnBay' : m.senderRole === 'buyer' ? 'Buyer' : 'Seller');
   return (
-    <div className="dp conv" data-conversation={`${type}:${id}`}>
-      <div className="hd">
+    <div className="glass card sob-sec conv" data-conversation={`${type}:${id}`}>
+      <div className="row sob-hd">
         <div>
           <h2>{heading}</h2>
-          {me !== 'admin' && <p className="sub">SellOnBay handles every message. Please keep contact details and payments on SellOnBay.</p>}
+          {me !== 'admin' && <p className="tag">SellOnBay handles every message. Please keep contact details and payments on SellOnBay.</p>}
         </div>
       </div>
       {channels.length > 1 && (
@@ -114,7 +114,7 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
         ))}
       </ul>
       <form onSubmit={send} className="conv-form">
-        <label htmlFor={`cv-${type}-${id}`} className="sr">
+        <label htmlFor={`cv-${type}-${id}`} className="hidden-label">
           Your message
         </label>
         <textarea
@@ -125,11 +125,11 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
           onChange={(e) => setText(e.target.value)}
           placeholder={tab === 'internal' ? 'Only admins see this.' : 'Write your message'}
         />
-        <button className="btn btn-blue btn-sm" type="submit" disabled={busy || !text.trim()}>
+        <button className="btn sm" type="submit" disabled={busy || !text.trim()}>
           {busy ? 'Sending...' : 'Send'}
         </button>
         {error && (
-          <p className="note warn" role="alert">
+          <p className="sob-note-box warn" role="alert">
             <span>{error}</span>
           </p>
         )}

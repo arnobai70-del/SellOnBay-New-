@@ -22,7 +22,7 @@ export default async function BuyerAccount() {
   }
   return (
     <BuyerShell viewer={viewer} active="account" title="Account & security" subtitle="Profile, details for invoices, sign-in safety and your data">
-      <div className="g-grid2">
+      <div className="grid2">
         <GlassCard as="section">
           <h2>Your name</h2>
           <div style={{ marginTop: 12 }}>
@@ -31,7 +31,7 @@ export default async function BuyerAccount() {
         </GlassCard>
         <GlassCard as="section">
           <h2>Details for invoices and domains</h2>
-          <p className="g-tag" style={{ marginTop: 4 }}>
+          <p className="tag" style={{ marginTop: 4 }}>
             Domains are registered with these details. Sellers never see your phone or email.
           </p>
           <div style={{ marginTop: 12 }}>
@@ -40,10 +40,10 @@ export default async function BuyerAccount() {
         </GlassCard>
         <GlassCard as="section">
           <h2>Sign-in safety</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Change your password, or link another way to sign in.
           </p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
+          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
             <Button variant="ghost" href="/account/sign-in">
               Sign-in methods
             </Button>
@@ -54,7 +54,7 @@ export default async function BuyerAccount() {
         </GlassCard>
         <GlassCard as="section">
           <h2>Your data</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Download a copy of your data, or ask us to delete your account.
           </p>
           <div style={{ marginTop: 14 }}>
@@ -66,7 +66,7 @@ export default async function BuyerAccount() {
         {viewer && (
           <GlassCard as="section">
             <h2>Selling</h2>
-            <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+            <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
               {viewer.role === 'seller'
                 ? 'Your account sells too. Seller pages ask for your authenticator code.'
                 : 'Sell your own websites from this account and keep buying as before. Seller pages ask you to set up an authenticator code.'}

@@ -11,21 +11,21 @@ import { PUBLIC_LINKS } from '@/lib/glass/nav';
 export default async function NotFound() {
   const [c, nav, foot] = await Promise.all([pageCopy('not-found'), pageCopy('nav'), pageCopy('footer')]);
   return (
-    <GlassPage>
-      <div className="g-wrap">
+    <GlassPage file="404">
+      <div className="wrap">
         <PublicNav showCart links={PUBLIC_LINKS.map((l) => ({ ...l, label: nav.t('links', l.href.slice(1), l.label) }))} />
         <main id="main" className="g-hero">
-          <div className="g-tag">Error 404</div>
+          <div className="tag">Error 404</div>
           <h1>{c.t('main', 'heading')}</h1>
           <p className="g-lead">{c.t('main', 'text')}</p>
-          <form className="g-glass g-search" action="/websites" method="get" role="search">
-            <label className="g-sr" htmlFor="nf-q">
+          <form className="glass g-search" action="/websites" method="get" role="search">
+            <label className="hidden-label" htmlFor="nf-q">
               Search websites
             </label>
             <input id="nf-q" name="q" placeholder="Search websites" />
             <Button type="submit">Search</Button>
           </form>
-          <GlassCard rise={false} className="g-row">
+          <GlassCard rise={false} className="row">
             <Link href="/">Home</Link>
             <Link href="/websites">Browse websites</Link>
             <Link href="/help">Help center</Link>

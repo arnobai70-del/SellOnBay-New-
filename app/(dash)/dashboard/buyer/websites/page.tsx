@@ -29,17 +29,17 @@ export default async function BuyerWebsites() {
       {sites.length ? (
         sites.map((s) => (
           <GlassCard key={s.order.id} as="section">
-            <div className="g-row">
+            <div className="row">
               <div>
                 <h2>{s.title}</h2>
-                <div className="g-tag">
+                <div className="tag">
                   by {s.seller}
                   {s.stack ? ` · ${s.stack}` : ''} · Standard licence
                 </div>
               </div>
               <StatusPill tone={buyerStatus(s.order.state).tone}>{buyerStatus(s.order.state).label}</StatusPill>
             </div>
-            <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
+            <div className="row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
               <Button href={`/orders/${s.order.id}`}>Download files</Button>
               {s.docsUrl && (
                 <Button variant="ghost" href={s.docsUrl} target="_blank" rel="noopener noreferrer nofollow">
@@ -58,7 +58,7 @@ export default async function BuyerWebsites() {
       ) : (
         <GlassCard>
           <h2>No websites yet</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Websites you get show up here, ready to download.
           </p>
           <div style={{ marginTop: 14 }}>

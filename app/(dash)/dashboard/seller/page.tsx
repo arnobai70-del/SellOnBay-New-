@@ -45,7 +45,7 @@ export default async function SellerOverview() {
     >
       {v && data && (
         <>
-          <div className="g-kpis">
+          <div className="kpis">
             <Kpi label="Available" value={usd(v.availableCents)} note={`Next payout ${shortDay(v.nextPayout)}`} />
             <Kpi label="On hold (7 days)" value={usd(v.pendingCents)} note="After the buyer accepts" />
             <Kpi label="In escrow" value={usd(v.escrowCents)} note={`${v.toDeliver.length} to deliver`} />
@@ -57,11 +57,11 @@ export default async function SellerOverview() {
               {v.debtCents > 0 && <p>You owe {usd(v.debtCents)} after a refund or dispute fee. It is taken from your next earnings.</p>}
             </GlassCard>
           )}
-          <div className="g-grid2">
+          <div className="grid2">
             <GlassCard as="section">
               <h2>{todo.length ? 'Get ready to sell' : 'You are set up'}</h2>
               {steps.map((s) => (
-                <div key={s.label} className="g-li">
+                <div key={s.label} className="li">
                   <span style={{ flex: 1 }}>{s.done ? s.label : <Link href={s.href}>{s.label}</Link>}</span>
                   <StatusPill tone={s.done ? 'ok' : 'wait'}>{s.done ? 'Done' : 'To do'}</StatusPill>
                 </div>
@@ -69,46 +69,46 @@ export default async function SellerOverview() {
             </GlassCard>
             <GlassCard as="section">
               <h2>Earnings per week</h2>
-              <p className="g-tag">Accepted orders, after the platform fee</p>
+              <p className="tag">Accepted orders, after the platform fee</p>
               {v.weekly.some((w) => w.cents > 0) ? (
                 <Bars label="Weekly earnings" prefix="$" data={v.weekly.map((w) => [shortDay(w.week), Math.round(w.cents / 100)] as [string, number])} />
               ) : (
-                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                   Nothing earned yet. Your first accepted order shows up here.
                 </p>
               )}
             </GlassCard>
           </div>
-          <div className="g-grid2">
+          <div className="grid2">
             <GlassCard as="section">
-              <div className="g-row">
+              <div className="row">
                 <h2>Orders to deliver</h2>
                 <Link href="/dashboard/seller/orders">All orders</Link>
               </div>
               {v.toDeliver.length ? (
                 v.toDeliver.slice(0, 5).map(({ order: o, earnCents }) => (
-                  <div key={o.id} className="g-li">
+                  <div key={o.id} className="li">
                     <span style={{ flex: 1 }}>{plainWords(o.title)}</span>
-                    <span className="g-tag">{usd(earnCents)}</span>
+                    <span className="tag">{usd(earnCents)}</span>
                   </div>
                 ))
               ) : (
-                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                   Nothing to deliver right now.
                 </p>
               )}
             </GlassCard>
             <GlassCard as="section">
               <h2>Account health</h2>
-              <div className="g-li">
+              <div className="li">
                 <span style={{ flex: 1 }}>On-time delivery</span>
                 <b>{v.health.onTime === null ? 'No deliveries yet' : `${Math.round(v.health.onTime * 100)}%`}</b>
               </div>
-              <div className="g-li">
+              <div className="li">
                 <span style={{ flex: 1 }}>Average rating</span>
                 <b>{v.health.rating ? `${v.health.rating} (${v.health.ratingCount})` : 'No reviews yet'}</b>
               </div>
-              <div className="g-li">
+              <div className="li">
                 <span style={{ flex: 1 }}>Orders with a dispute</span>
                 <b>{v.health.disputeRate === null ? 'No orders yet' : `${Math.round(v.health.disputeRate * 1000) / 10}%`}</b>
               </div>
@@ -117,9 +117,9 @@ export default async function SellerOverview() {
           {data.drafts.length > 0 && (
             <GlassCard as="section" data-drafts>
               <h2>Your drafts</h2>
-              <p className="g-tag">Saved but not sent for review. Buyers cannot see them.</p>
+              <p className="tag">Saved but not sent for review. Buyers cannot see them.</p>
               {data.drafts.map((d) => (
-                <div key={d.slug} className="g-li">
+                <div key={d.slug} className="li">
                   <span style={{ flex: 1 }}>{d.name}</span>
                   <Button variant="ghost" size="sm" href={`/dashboard/seller/websites/new?draft=${encodeURIComponent(d.slug)}`}>
                     Continue
@@ -131,12 +131,12 @@ export default async function SellerOverview() {
           {data.questions.length > 0 && (
             <GlassCard as="section" data-questions>
               <h2>Questions from buyers</h2>
-              <p className="g-tag">Answer fast: buyers who get an answer are more likely to buy.</p>
+              <p className="tag">Answer fast: buyers who get an answer are more likely to buy.</p>
               {data.questions.map((q) => (
-                <div key={q.id} className="g-li" style={{ alignItems: 'flex-start', flexDirection: 'column' }}>
+                <div key={q.id} className="li" style={{ alignItems: 'flex-start', flexDirection: 'column' }}>
                   <b>{q.product_key}</b>
-                  <span className="g-muted">{q.body}</span>
-                  {q.reply ? <span className="g-tag">You replied: {q.reply}</span> : <ReplyForm id={q.id} />}
+                  <span className="muted">{q.body}</span>
+                  {q.reply ? <span className="tag">You replied: {q.reply}</span> : <ReplyForm id={q.id} />}
                 </div>
               ))}
             </GlassCard>

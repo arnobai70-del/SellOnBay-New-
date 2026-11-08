@@ -1,0 +1,124 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { AdminForm } from '@/components/AdminForm';
+import { DashShell } from '@/components/DashShell';
+import { BUILT_IN_STEPS } from '@/lib/howSteps';
+import { TEMPLATES, type NotificationKind } from '@/emails/templates';
+import { docScopes, faqToText, howToText, isDocName, isEmailDoc, type DocName, type EmailDoc, type FaqDoc, type HowDoc } from '@/lib/cms/docs';
+import { draftOf, publishedOf } from '@/lib/cms/docStore';
+import { FAQ_GROUPS } from '@/lib/faq';
+import { requireViewer } from '@/lib/supabase/viewer';
+
+export const metadata: Metadata = { title: 'Content', robots: { index: false } };
+export const dynamic = 'force-dynamic';
+
+const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+const KINDS = Object.keys(TEMPLATES) as NotificationKind[];
+/* The built-in email words with every value shown as its placeholder, as a starting point for a template. */
+function builtInEmail(kind: NotificationKind): EmailDoc {
+  try {
+    const p = new Proxy({}, { get: (_t, k) => (typeof k === 'string' ? `{{${k}}}` : undefined) });
+    return TEMPLATES[kind](p as never);
+  } catch {
+    return { subject: kind.replace(/_/g, ' '), text: '' };
+  }
+}
+
+/*
+ * Admin > Content (lib/cms): the FAQ, the How it works steps and the notification emails. Draft, preview, then another admin (or a Super
+ * Admin) publishes; email templates are published by a Super Admin. Every publish is kept in Site history and can be put back.
+ */
+export default async function Cms({ searchParams }: { searchParams: Promise<{ doc?: string }> }) {
+  const viewer = await requireViewer({ path: '/admin/content/cms', roles: ['admin'], scope: 'content' });
+  const q = (await searchParams).doc ?? 'faq';
+  const doc: DocName = isDocName(q) && (!isEmailDoc(q) || KINDS.includes(q.slice(6) as NotificationKind)) ? q : 'faq';
+  const draft = await draftOf(doc);
+  const pub = await publishedOf(doc, true);
+  const me = viewer?.id ?? null;
+  const scopes = viewer?.scopes ?? ['super'];
+  const mayPublish = scopes.includes('super') || (docScopes(doc).publish !== 'super' && draft?.editedBy !== me);
+  const current = (draft?.data ?? pub?.data ?? null) as unknown;
+  const text =
+    doc === 'faq'
+      ? faqToText((current as FaqDoc | null) ?? { groups: FAQ_GROUPS })
+      : doc === 'how_it_works'
+        ? howToText((current as HowDoc | null) ?? BUILT_IN_STEPS)
+        : ((current as EmailDoc | null)?.text ?? builtInEmail(doc.slice(6) as NotificationKind).text);
+  const subject = isEmailDoc(doc) ? ((current as EmailDoc | null)?.subject ?? builtInEmail(doc.slice(6) as NotificationKind).subject) : '';
+  const label = doc === 'faq' ? 'FAQ' : doc === 'how_it_works' ? 'How it works' : `Email: ${doc.slice(6).replace(/_/g, ' ')}`;
+  return (
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-cms" title="Content">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
+          <div>
+            <h2>Content</h2>
+            <p className="tag">
+              Save a draft, preview it, then another admin publishes it (a Super Admin may publish their own). Email templates are published by a Super Admin. Until something is published, the
+              built-in text shows. Every publish is kept in <Link href="/admin/content/site/history">Site history</Link>.
+            </p>
+          </div>
+        </div>
+        <div className="sob-acts" style={{ flexWrap: 'wrap' }}>
+          <Link className={'btn sm' + (doc === 'faq' ? '' : ' ghost')} href="/admin/content/cms?doc=faq">
+            FAQ
+          </Link>
+          <Link className={'btn sm' + (doc === 'how_it_works' ? '' : ' ghost')} href="/admin/content/cms?doc=how_it_works">
+            How it works
+          </Link>
+        </div>
+        <details style={{ marginTop: 12 }} open={isEmailDoc(doc)}>
+          <summary>Email templates ({KINDS.length})</summary>
+          <div className="sob-acts" style={{ flexWrap: 'wrap', marginTop: 8 }}>
+            {KINDS.map((k) => (
+              <Link key={k} className={'btn sm' + (doc === `email:${k}` ? '' : ' ghost')} href={`/admin/content/cms?doc=email:${k}`}>
+                {k.replace(/_/g, ' ')}
+              </Link>
+            ))}
+          </div>
+        </details>
+      </div>
+
+      <div className="glass card sob-sec" data-cms-doc={doc}>
+        <div className="row sob-hd">
+          <div>
+            <h2>{label}</h2>
+            <p className="tag">
+              {pub ? `Published version ${pub.version}, ${when(pub.publishedAt)}.` : 'Nothing published: the built-in text shows.'}{' '}
+              {draft ? `Draft saved ${when(draft.editedAt)}${draft.editedBy === me ? ' by you' : ''}.` : 'No draft.'}
+            </p>
+          </div>
+        </div>
+        <p className="muted">
+          {doc === 'faq'
+            ? 'Write "# Group title" to start a group, then "Q: question" and "A: answer" lines. Plain text only.'
+            : doc === 'how_it_works'
+              ? 'Two sections, "Buyers" and "Sellers", each with exactly three lines: "Title | what happens".'
+              : 'Plain text. Values from the notification go in as {{name}}, for example {{title}} or {{note}}; an unknown name stays empty.'}
+        </p>
+        <AdminForm
+          endpoint="/api/admin/cms/docs"
+          fixed={{ action: 'save', doc }}
+          open
+          submit="Save draft"
+          fields={[
+            ...(isEmailDoc(doc) ? [{ name: 'subject', label: 'Subject', kind: 'text' as const, required: true, value: subject, max: 150 }] : []),
+            { name: 'text', label: 'Text', kind: 'textarea' as const, required: true, value: text, max: isEmailDoc(doc) ? 4000 : 30_000 },
+          ]}
+        />
+        {draft && (
+          <div className="sob-acts" style={{ marginTop: 12 }}>
+            <Link className="btn ghost sm" href={`/admin/content/cms/preview?doc=${encodeURIComponent(doc)}`}>
+              Preview the draft
+            </Link>
+            {mayPublish ? (
+              <AdminForm endpoint="/api/admin/cms/docs" fixed={{ action: 'publish', doc }} fields={[]} submit="Publish the draft" tone="dark" />
+            ) : (
+              <small className="muted">{docScopes(doc).publish === 'super' ? 'A Super Admin publishes email templates.' : 'Another admin checks and publishes your draft.'}</small>
+            )}
+            <AdminForm endpoint="/api/admin/cms/docs" fixed={{ action: 'discard', doc }} fields={[]} submit="Discard the draft" tone="line" />
+          </div>
+        )}
+      </div>
+    </DashShell>
+  );
+}

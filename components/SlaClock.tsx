@@ -20,7 +20,7 @@ export function SlaClock({ dueAt, slaHours }: { dueAt: number; slaHours: number 
   const h = Math.floor(Math.abs(left) / 3_600_000),
     m = Math.floor((Math.abs(left) % 3_600_000) / 60_000);
   return (
-    <span className={state === 'overdue' ? 'chip rose' : state === 'due_soon' ? 'chip amber' : 'chip mint'} data-sla={state} title={`Target ${local}`}>
+    <span className={state === 'overdue' ? 'status st-bad' : state === 'due_soon' ? 'status st-wait' : 'status st-ok'} data-sla={state} title={`Target ${local}`}>
       <i />
       {left <= 0 ? `Overdue by ${h} h ${m} min` : `${h} h ${m} min left`} · due {local}
     </span>

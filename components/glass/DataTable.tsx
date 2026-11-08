@@ -24,16 +24,21 @@ export function DataTable<T>({
   rowKey: (row: T) => string;
   empty?: React.ReactNode;
 }) {
-  if (!rows.length) return <p className="g-table-empty">{empty}</p>;
+  if (!rows.length)
+    return (
+      <p className="muted" style={{ fontSize: 14, padding: '12px 14px' }}>
+        {empty}
+      </p>
+    );
   return (
-    <div className="g-tbl">
-      <table className="g-table" role="table">
-        <caption className="g-sr">{caption}</caption>
+    <div className="tbl">
+      <table role="table">
+        <caption className="hidden-label">{caption}</caption>
         <thead role="rowgroup">
           <tr role="row">
             {columns.map((c) => (
-              <th key={c.key} scope="col" role="columnheader" className={c.align === 'right' ? 'g-right' : undefined}>
-                {c.hideLabel ? <span className="g-sr">{c.label}</span> : c.label}
+              <th key={c.key} scope="col" role="columnheader" style={c.align === 'right' ? { textAlign: 'right' } : undefined}>
+                {c.hideLabel ? <span className="hidden-label">{c.label}</span> : c.label}
               </th>
             ))}
           </tr>
@@ -42,7 +47,7 @@ export function DataTable<T>({
           {rows.map((r) => (
             <tr key={rowKey(r)} role="row">
               {columns.map((c) => (
-                <td key={c.key} role="cell" data-label={c.hideLabel ? '' : c.label} className={c.align === 'right' ? 'g-right' : undefined}>
+                <td key={c.key} role="cell" data-label={c.hideLabel ? '' : c.label} style={c.align === 'right' ? { textAlign: 'right' } : undefined}>
                   {c.cell(r)}
                 </td>
               ))}

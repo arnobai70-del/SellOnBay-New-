@@ -33,14 +33,14 @@ export default async function BuyerProtection() {
             <GlassCard key={t}>
               <span className="g-step-n">{i + 1}</span>
               <h3>{t}</h3>
-              <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
                 {d}
               </p>
             </GlassCard>
           ))}
         </div>
       </section>
-      <section className="g-sec g-grid2">
+      <section className="g-sec grid2">
         <GlassCard reveal>
           <h2>What&apos;s covered</h2>
           <ul className="g-list">
@@ -52,7 +52,7 @@ export default async function BuyerProtection() {
               ✓ A dispute for a serious problem for {BUGFIX_DAYS} days after you accept, and a {BUGFIX_DAYS}-day bug-fix guarantee
             </li>
           </ul>
-          <p className="g-tag" style={{ marginTop: 10 }}>
+          <p className="tag" style={{ marginTop: 10 }}>
             Exact rules: <Link href="/legal/refunds">Refund policy</Link>
           </p>
         </GlassCard>
@@ -69,7 +69,7 @@ export default async function BuyerProtection() {
       <section className="g-sec">
         <GlassCard reveal>
           <h2>If something goes wrong</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Open a ticket from your dashboard. The seller gets a deadline to fix it, and our support team steps in if you can&apos;t agree. Your money stays in escrow the whole time.
           </p>
           <div style={{ marginTop: 14 }}>
@@ -87,9 +87,9 @@ export default async function BuyerProtection() {
             ['Do I pay extra for escrow?', 'No. It is included in every website order.'],
             ['Who owns the domain?', "You do. It is registered in your name, never the seller's."],
           ].map(([q, a]) => (
-            <div key={q} className="g-li" style={{ display: 'block' }}>
+            <div key={q} className="li" style={{ display: 'block' }}>
               <b style={{ fontWeight: 500, fontSize: 14 }}>{q}</b>
-              <p className="g-muted" style={{ marginTop: 4, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 4, fontSize: 14 }}>
                 {a}
               </p>
             </div>

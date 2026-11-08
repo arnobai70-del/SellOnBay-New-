@@ -30,7 +30,7 @@ export function CartClient({ add }: { add?: string }) {
       live = false;
     };
   }, [key]);
-  if (!loaded) return <p className="g-muted">Loading your cart.</p>;
+  if (!loaded) return <p className="muted">Loading your cart.</p>;
   const { items, beta } = loaded;
   const ready = items.filter((i) => i.requestable);
   const total = ready.reduce((s, i) => s + i.priceCents, 0);
@@ -45,19 +45,19 @@ export function CartClient({ add }: { add?: string }) {
     );
   return (
     <div className="g-layout-buy">
-      <div className="g-stack" style={{ minWidth: 0 }}>
+      <div className="sob-stack" style={{ minWidth: 0 }}>
         {items.map((i) => (
-          <GlassCard key={i.id} as="article" rise={false} className="g-row">
+          <GlassCard key={i.id} as="article" rise={false} className="row">
             <div style={{ minWidth: 0 }}>
               <h2>{i.name}</h2>
-              <div className="g-tag">Standard licence · by {i.seller}</div>
+              <div className="tag">Standard licence · by {i.seller}</div>
               {!i.requestable && (
                 <p style={{ marginTop: 8 }}>
                   <StatusPill tone="draft">Available after beta</StatusPill>
                 </p>
               )}
             </div>
-            <div className="g-row">
+            <div className="row">
               <span style={{ fontWeight: 500, textAlign: 'right' }}>
                 {i.wasCents ? (
                   <s className="g-price-was" style={{ marginRight: 6 }}>
@@ -80,16 +80,16 @@ export function CartClient({ add }: { add?: string }) {
       </div>
       <GlassCard as="section" rise={false} className="g-sticky">
         <h2>Summary</h2>
-        <div className="g-li" style={{ marginTop: 10 }}>
+        <div className="li" style={{ marginTop: 10 }}>
           <span style={{ flex: 1, fontSize: 14 }}>Subtotal</span>
           {money(total)}
         </div>
         {beta && (
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>Free during beta</span>−{money(total)}
           </div>
         )}
-        <div className="g-li">
+        <div className="li">
           <b style={{ flex: 1, fontWeight: 500 }}>Total</b>
           <b style={{ fontWeight: 500 }}>{money(beta ? 0 : total)}</b>
         </div>
@@ -105,7 +105,7 @@ export function CartClient({ add }: { add?: string }) {
           )}
         </div>
         {beta && (
-          <p className="g-tag" style={{ marginTop: 10 }}>
+          <p className="tag" style={{ marginTop: 10 }}>
             Beta: free in exchange for your feedback. No payment is taken.
           </p>
         )}

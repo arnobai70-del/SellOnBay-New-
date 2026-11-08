@@ -15,14 +15,14 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
     return (
       <div role="status">
         <h2>Message sent</h2>
-        <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+        <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
           Thanks. We will answer by email.
         </p>
       </div>
     );
   return (
     <form
-      className="g-stack"
+      className="sob-stack"
       onSubmit={async (e) => {
         e.preventDefault();
         setState('sending');

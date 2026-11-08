@@ -29,19 +29,19 @@ export default async function SellerPayouts() {
     <SellerShell viewer={viewer} active="payouts" title="Earnings & payouts" subtitle={`You keep ${PLAN_KEEP_TEXT} of the list price; the platform fee is ${PLAN_FEE_TEXT}. ${PAYOUT_TEXT}`}>
       {v && store && ver && (
         <>
-          <div className="g-kpis">
+          <div className="kpis">
             <Kpi label="Available" value={usd(v.availableCents)} note={`Next payout ${shortDay(v.nextPayout)}`} />
             <Kpi label="On hold (7 days)" value={usd(v.pendingCents)} note="Accepted, waiting out the hold" />
             <Kpi label="In escrow" value={usd(v.escrowCents)} note="Not accepted yet" />
             <Kpi label="Owed back" value={usd(v.debtCents)} note={v.debtCents ? 'Taken from your next earnings' : 'Nothing owed'} />
           </div>
-          <div className="g-grid2">
+          <div className="grid2">
             <GlassCard as="section">
               <h2>Where we send your earnings</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {store.payoutLabel ?? 'Not set yet. Add it so your weekly payouts can be sent.'}
               </p>
-              <p className="g-tag">
+              <p className="tag">
                 PayPal, Payoneer, Wise or a bank transfer anywhere.{store.country === 'BD' ? ' bKash is open to you because your country is Bangladesh.' : ''} We email you whenever this changes.
               </p>
               <div style={{ marginTop: 12 }}>
@@ -63,7 +63,7 @@ export default async function SellerPayouts() {
                 />
               </div>
               {!store.country && (
-                <p className="g-tag" style={{ marginTop: 8 }}>
+                <p className="tag" style={{ marginTop: 8 }}>
                   Add your country in <Link href="/dashboard/seller/account">Account</Link> first.
                 </p>
               )}
@@ -87,7 +87,7 @@ export default async function SellerPayouts() {
                       <StatusPill tone="bad">Not accepted</StatusPill> {ver.note ?? 'Please send a clearer picture.'}
                     </p>
                   )}
-                  <p className="g-tag" style={{ marginTop: 8 }}>
+                  <p className="tag" style={{ marginTop: 8 }}>
                     Needed before your first payout. A passport, national ID card or driver licence. Only our finance team sees it, and it is never shown to buyers.
                   </p>
                   <div style={{ marginTop: 12 }}>

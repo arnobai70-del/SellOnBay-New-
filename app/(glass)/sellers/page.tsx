@@ -22,8 +22,8 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
       <div className="g-head">
         <h1>{copy.t('head', 'heading', words.heading)}</h1>
         {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
-        <form className="g-glass g-search" action="/sellers" method="get" role="search">
-          <label className="g-sr" htmlFor="seller-q">
+        <form className="glass g-search" action="/sellers" method="get" role="search">
+          <label className="hidden-label" htmlFor="seller-q">
             Search sellers
           </label>
           <input id="seller-q" name="q" defaultValue={q} placeholder="Search by name or skill" />
@@ -40,13 +40,13 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
           {list.map((s) => (
             <GlassCard key={s.key} as="article">
               <h2>{s.name}</h2>
-              {s.headline && <div className="g-tag">{s.headline}</div>}
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 13 }}>
+              {s.headline && <div className="tag">{s.headline}</div>}
+              <p className="muted" style={{ marginTop: 8, fontSize: 13 }}>
                 {s.reviews > 0 ? `★ ${s.rating.toFixed(1)} (${s.reviews}) · ` : ''}
                 {s.websites.length} {s.websites.length === 1 ? 'website' : 'websites'}
                 {s.replyTime ? ` · ${s.replyTime}` : ''}
               </p>
-              <div className="g-row" style={{ marginTop: 12 }}>
+              <div className="row" style={{ marginTop: 12 }}>
                 <StatusPill tone={s.customAvailable ? 'ok' : 'draft'}>{s.customAvailable ? 'Available for custom work' : 'Not taking custom work'}</StatusPill>
                 <Button variant="ghost" size="sm" href={`/sellers/${s.handle}`}>
                   View store
@@ -58,16 +58,16 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
       ) : (
         <GlassCard>
           <h2>No sellers match</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Sellers appear here once they have a live website.
           </p>
         </GlassCard>
       )}
       <section className="g-sec">
-        <GlassCard className="g-row">
+        <GlassCard className="row">
           <div>
             <h2>Build websites? Sell them here.</h2>
-            <div className="g-tag">Keep {PLAN_KEEP_TEXT} of every sale</div>
+            <div className="tag">Keep {PLAN_KEEP_TEXT} of every sale</div>
           </div>
           <Button href="/sell">Become a seller</Button>
         </GlassCard>

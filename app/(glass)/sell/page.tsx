@@ -36,7 +36,7 @@ export default async function Sell() {
       <div className="g-head">
         <h1>{copy.t('head', 'heading', words.heading)}</h1>
         {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
-        <div className="g-row" style={{ justifyContent: 'flex-start' }}>
+        <div className="row" style={{ justifyContent: 'flex-start' }}>
           <Button href="/signin?mode=signup" data-track="start-selling">
             {copy.t('cta', 'start')}
           </Button>
@@ -53,14 +53,14 @@ export default async function Sell() {
             <GlassCard key={t} reveal>
               <span className="g-step-n">{i + 1}</span>
               <h3>{t}</h3>
-              <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
                 {d}
               </p>
             </GlassCard>
           ))}
         </div>
       </section>
-      <section className="g-sec g-grid2">
+      <section className="g-sec grid2">
         <GlassCard reveal>
           <h2>What we check before going live</h2>
           <ul className="g-list">
@@ -71,34 +71,34 @@ export default async function Sell() {
         </GlassCard>
         <GlassCard reveal>
           <h2>Fees, simply</h2>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>Listing a website</span>Free
           </div>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>Your share of each sale</span>
             {PLAN_KEEP_TEXT}
           </div>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>SellOnBay share</span>
             {PLAN_FEE_TEXT}
           </div>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>Custom work through SellOnBay</span>
             {PLAN_KEEP_TEXT} to you
           </div>
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1, fontSize: 14 }}>Payout fee</span>None from SellOnBay
           </div>
-          <p className="g-tag" style={{ marginTop: 10 }}>
+          <p className="tag" style={{ marginTop: 10 }}>
             {PAYOUT_FEE_TEXT}
           </p>
-          <p className="g-tag" style={{ marginTop: 10 }}>
+          <p className="tag" style={{ marginTop: 10 }}>
             {PAYOUT_TEXT}, after the buyer&apos;s {REVIEW_HOURS}-hour review. By PayPal, Payoneer, Wise or bank transfer worldwide.
           </p>
         </GlassCard>
       </section>
       <section className="g-sec">
-        <GlassCard reveal className="g-row">
+        <GlassCard reveal className="row">
           <h2>{copy.t('cta', 'ready')}</h2>
           <Button href="/signin?mode=signup" data-track="start-selling">
             {copy.t('cta', 'create')}

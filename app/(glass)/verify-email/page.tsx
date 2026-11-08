@@ -10,7 +10,7 @@ export default function VerifyEmail() {
     <div className="g-head" style={{ alignItems: 'center', textAlign: 'center' }}>
       <h1>Check your inbox</h1>
       <GlassCard rise={false} style={{ maxWidth: 480 }}>
-        <p className="g-muted" style={{ fontSize: 14 }}>
+        <p className="muted" style={{ fontSize: 14 }}>
           We sent you a link to verify your email. Verifying protects your orders and domains. It can take a minute, and it may be in your spam folder.
         </p>
         <div style={{ marginTop: 14 }}>

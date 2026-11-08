@@ -17,14 +17,14 @@ export function Earnings() {
   return (
     <GlassCard as="section" rise={false} aria-label="Earnings calculator">
       <h2>Earnings calculator</h2>
-      <div className="g-grid2" style={{ marginTop: 14 }}>
+      <div className="grid2" style={{ marginTop: 14 }}>
         <Field label="Your website price (USD)" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} hint={`From $${min}`} />
         <Field label="Sales per month" inputMode="numeric" value={sales} onChange={(e) => setSales(e.target.value)} />
       </div>
       <div style={{ marginTop: 14 }} aria-live="polite">
-        <div className="g-tag">You earn per month</div>
+        <div className="tag">You earn per month</div>
         <div style={{ fontSize: 32, fontWeight: 300 }}>{money(each * n)}</div>
-        <div className="g-tag">
+        <div className="tag">
           {money(each)} per sale · {PLAN_KEEP_TEXT} share · before any fee your bank or payout provider charges
         </div>
       </div>

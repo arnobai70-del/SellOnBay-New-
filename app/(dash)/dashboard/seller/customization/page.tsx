@@ -28,11 +28,11 @@ export default async function SellerCustomization() {
         <>
           <GlassCard as="section">
             <h2>How it works</h2>
-            <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+            <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
               Open an order and send an extra work request with a title, a price from {usd(x.minCents)} to {usd(x.maxCents)} and {x.minDays} to {x.maxDays} more days. Only before you deliver. Start
               when it shows Funded.
             </p>
-            <p className="g-tag" style={{ marginTop: 8 }}>
+            <p className="tag" style={{ marginTop: 8 }}>
               Your store {store.customAvailable ? 'shows' : 'does not show'} &ldquo;Available for customization&rdquo;. <Link href="/dashboard/seller/store">Change it</Link>
             </p>
           </GlassCard>

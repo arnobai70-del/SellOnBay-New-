@@ -24,7 +24,7 @@ export function WebsiteCard({ p, reveal = false }: { p: Product; reveal?: boolea
         <div className="g-site-m">
           <div style={{ minWidth: 0 }}>
             <h3>{p.name}</h3>
-            <div className="g-tag">
+            <div className="tag">
               {p.stack ? `${p.stack} · ` : ''}by {p.seller}
               {p.reviews > 0 ? ` · ★ ${p.rating.toFixed(1)}` : ''}
             </div>

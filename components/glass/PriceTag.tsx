@@ -15,7 +15,7 @@ export function PriceTag({ p, big = false }: { p: Pick<Product, 'price' | 'sale'
         </s>
       )}
       <span>${p.price}</span>
-      {p.sale?.badge && <span className="g-pill g-pill-ok g-price-badge">{p.sale.badge}</span>}
+      {p.sale?.badge && <span className="status st-ok g-price-badge">{p.sale.badge}</span>}
       {p.sale?.note && <span className="g-price-note">{p.sale.note}</span>}
     </span>
   );

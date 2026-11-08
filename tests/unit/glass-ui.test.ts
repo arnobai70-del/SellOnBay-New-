@@ -77,11 +77,11 @@ describe('glass UI', () => {
     expect(sources).not.toMatch(/\bSMS\b|বাংলা|within minutes|privacy included|auto-connect/i);
   });
 
-  it('has the menus of the design: 5 public links, 4 footer columns, 7 buyer, 9 seller and 13 admin pages (11 of the design, plus Visitors and Server health, owner 2026-11-08)', () => {
+  it('has the menus of the design: 5 public links, 4 footer columns, 7 buyer, 9 seller and 15 admin pages (11 of the design, plus Visitors, Server health, Guides and Pages, owner 2026-11-08)', () => {
     expect(PUBLIC_LINKS.map((l) => l.label)).toEqual(['Websites', 'Domains', 'Sellers', 'Sell', 'Help']);
     expect(FOOTER_COLUMNS.map((c) => c.title)).toEqual(['Marketplace', 'Sell', 'Help', 'Legal']); // plus the Contact column from lib/emailRouting.ts
     const count = (r: keyof typeof ROLE_MENUS) => ROLE_MENUS[r].groups.flatMap((g) => g.items).length;
-    expect([count('buyer'), count('seller'), count('admin')]).toEqual([7, 9, 13]);
+    expect([count('buyer'), count('seller'), count('admin')]).toEqual([7, 9, 15]);
   });
 
   it('gives every item in a menu its own key and address', () => {

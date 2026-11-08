@@ -141,6 +141,13 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
       { name: 'People', items: [{ key: 'users', label: 'Users & roles', href: '/admin/users' }] },
       { name: 'Growth', items: [{ key: 'marketing', label: 'Marketing', href: '/admin/marketing' }] },
       {
+        name: 'Content',
+        items: [
+          { key: 'guides', label: 'Guides', href: '/admin/content/guides' },
+          { key: 'pages', label: 'Pages', href: '/admin/content/pages' },
+        ],
+      },
+      {
         name: 'System',
         items: [
           { key: 'visitors', label: 'Visitors', href: '/admin/visitors' },

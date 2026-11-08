@@ -27,8 +27,18 @@ export const mediaReady = () => supabaseConfigured && Boolean(process.env.SUPABA
 export const typeOfName = (name: string) => TYPES[name.slice(name.lastIndexOf('.') + 1)];
 
 export async function saveBlogImage(bytes: Uint8Array): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
-  const ext = sniff(bytes);
+  let ext = sniff(bytes);
   if (!ext) return { ok: false, error: 'Use a PNG, JPEG, WebP or GIF picture.' };
+  // Optimised (owner, 2026-11-08): at most 1,600 pixels wide, re-encoded as WebP, metadata (location, camera) dropped. A GIF stays as it is, so it keeps moving.
+  if (ext !== 'gif') {
+    try {
+      const { default: sharp } = await import('sharp');
+      bytes = new Uint8Array(await sharp(bytes).rotate().resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer());
+      ext = 'webp';
+    } catch {
+      return { ok: false, error: 'Could not read the picture.' };
+    }
+  }
   const name = `${randomUUID()}.${ext}`;
   const { error } = await createAdminClient().storage.from(BUCKET).upload(`${DIR}/${name}`, bytes, { contentType: TYPES[ext], upsert: false });
   if (error) return { ok: false, error: 'Could not store the picture.' };

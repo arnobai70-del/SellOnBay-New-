@@ -115,6 +115,7 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0080_admin_visitors_health.sql | Owner 2026-11-08: the cookieless daily `page_counts` (page and country only, server only), `system_storage_bytes()` for Server health, and the Dev admin scope added to the scope check; only adds |
 | 0081_smart_search.sql | Owner 2026-11-08: `pg_trgm` in the extensions schema, trigram and full-text indexes on products and seller names, `search_listings` and `search_sellers` (server only); only adds |
 | 0082_maintenance_pages.sql | Owner 2026-11-08: `banner_minutes` on module maintenance and the `page_maintenance` table for single pages (server only); only adds |
+| 0083_guides_editor.sql | Owner 2026-11-08: the guides editor's fields on `posts` (HTML and JSON body, category, tags, author, OG image, canonical, `publish_at`), scheduled and unpublished states, covers from our storage, and `post_revisions` (server only) |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

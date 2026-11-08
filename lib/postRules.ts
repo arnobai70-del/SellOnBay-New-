@@ -11,13 +11,26 @@ export type Post = {
   body: string;
   coverUrl: string;
   coverAlt: string;
-  status: 'draft' | 'published';
+  status: 'draft' | 'scheduled' | 'published' | 'unpublished';
   noindex: boolean;
   publishedAt?: number;
   createdAt: number;
   updatedAt: number;
+  // The guides editor (owner, 2026-11-08; migration 0083). Older posts have Markdown in `body` and no HTML.
+  bodyHtml: string;
+  bodyJson: unknown;
+  category: string;
+  tags: string[];
+  author: string;
+  ogImage: string;
+  canonical: string;
+  publishAt?: number;
 };
-export type PostInput = Omit<Post, 'id' | 'publishedAt' | 'createdAt' | 'updatedAt'>;
+type EditorKeys = 'bodyHtml' | 'bodyJson' | 'category' | 'tags' | 'author' | 'ogImage' | 'canonical' | 'publishAt';
+export type PostInput = Omit<Post, 'id' | 'publishedAt' | 'createdAt' | 'updatedAt' | EditorKeys> & Partial<Pick<Post, EditorKeys>>;
+/* Is a post on the site now? Published, or scheduled and its time has come. */
+export const isLive = (p: Pick<Post, 'status' | 'publishAt'>, now = Date.now()) => p.status === 'published' || (p.status === 'scheduled' && p.publishAt !== undefined && p.publishAt <= now);
+const PICTURE = /^(https:\/\/\S+|\/blog\/media\/[A-Za-z0-9._-]{1,120})$/;
 /* What search engines show. Google cuts titles at about 60 characters and descriptions at about 160. */
 export const LIMITS = { title: 120, metaTitle: 70, metaDescription: 170, excerpt: 300, body: 50_000, slug: 80, coverAlt: 150 } as const;
 export const GOOD = { metaTitle: 60, metaDescription: 160, minDescription: 70, minWords: 300 } as const;
@@ -40,10 +53,17 @@ export function postProblem(p: PostInput): string | null {
   if (p.metaDescription.length > LIMITS.metaDescription) return `Keep the meta description under ${LIMITS.metaDescription} characters (about ${GOOD.metaDescription} show in Google).`;
   if (p.excerpt.length > LIMITS.excerpt) return `Keep the short summary under ${LIMITS.excerpt} characters.`;
   if (p.body.length > LIMITS.body) return 'The post is too long.';
-  if (p.coverUrl && (!/^https:\/\/\S+$/.test(p.coverUrl) || p.coverUrl.length > 500)) return 'The cover picture must be an https:// address.';
+  if (p.coverUrl && (!PICTURE.test(p.coverUrl) || p.coverUrl.length > 500)) return 'The cover picture must be uploaded here or be an https:// address.';
+  if (p.ogImage && (!PICTURE.test(p.ogImage) || p.ogImage.length > 500)) return 'The share picture must be uploaded here or be an https:// address.';
+  if (p.canonical && (!/^https:\/\/\S+$/.test(p.canonical) || p.canonical.length > 500)) return 'The canonical address must start with https://.';
+  if ((p.category ?? '').length > 60) return 'Keep the category under 60 characters.';
+  if ((p.author ?? '').length > 80) return "Keep the author's name under 80 characters.";
+  if ((p.tags ?? []).length > 12 || (p.tags ?? []).some((t) => !t.trim() || t.length > 30)) return 'Use up to 12 tags of up to 30 characters.';
+  if ((p.bodyHtml ?? '').length > 400_000) return 'The guide is too long.';
+  if (p.status === 'scheduled' && !p.publishAt) return 'Choose when to publish it.';
   if (p.coverUrl && !p.coverAlt.trim()) return 'Describe the cover picture in a few words (alt text), for search engines and screen readers.';
   if (p.coverAlt.length > LIMITS.coverAlt) return `Keep the picture description under ${LIMITS.coverAlt} characters.`;
-  if (p.status === 'published' && !p.body.trim()) return 'Write the post before publishing it.';
+  if ((p.status === 'published' || p.status === 'scheduled') && !p.body.trim() && !(p.bodyHtml ?? '').replace(/<[^>]+>/g, '').trim()) return 'Write the post before publishing it.';
   return null;
 }
 

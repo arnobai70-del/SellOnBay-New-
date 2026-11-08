@@ -48,7 +48,10 @@ export function SellForm({
   commissionBps = CONFIG.plans.free.commissionBps,
   planName = 'Free',
   tagsEnabled = false,
+  embedded = false,
 }: {
+  /* Inside the seller dashboard, whose shell already has the page's h1 (one h1 per page). */
+  embedded?: boolean;
   live: boolean;
   trialEnabled?: boolean;
   sampleEnabled?: boolean;
@@ -404,10 +407,12 @@ export function SellForm({
 
   return (
     <div className="wrap" data-sell>
-      <div className="page-head">
-        <h1>{editSlug ? 'Edit your listing' : 'List a site'}</h1>
-        <p>Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.</p>
-      </div>
+      {!embedded && (
+        <div className="page-head">
+          <h1>{editSlug ? 'Edit your listing' : 'List a site'}</h1>
+          <p>Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.</p>
+        </div>
+      )}
       <div className="checkout" style={{ paddingTop: 16 }}>
         {done ? (
           <div className="panel">

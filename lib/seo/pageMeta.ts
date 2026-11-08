@@ -14,7 +14,7 @@ import { isPublic } from './controls';
 import { pageControls } from './controlStore';
 import { listingPage } from './listingMeta';
 import { adminMayPreview } from './preview';
-import { pageSeoProblem, seoPage, type PageSeo } from './pageList';
+import { pageSeoProblem, seoPage, type PageSeo, INDEXED_PAGES } from './pageList';
 
 /*
  * Title and description an admin saved for a public page (/dashboard/admin/seo/pages), kept in `app_settings` under "seo:page:<path>".
@@ -81,7 +81,7 @@ export async function pageMetadata(path: string, extra: Metadata = {}): Promise<
   const out = applyControls(path, base, { ...ctl, ogTitle: ctl.ogTitle || (ctl.ogImage || ctl.ogDescription ? title : ''), ogDescription: ctl.ogDescription });
   if (preview) return { ...out, robots: { index: false, follow: false } };
   // Outside the five categories (legal pages, help, the seller page) a page stays reachable but is not offered to search engines.
-  return !legacyPublic() && !isHubPath(path) ? { ...out, robots: { index: false, follow: true } } : out;
+  return !legacyPublic() && !isHubPath(path) && !INDEXED_PAGES.includes(path) ? { ...out, robots: { index: false, follow: true } } : out;
 }
 
 export async function setPageSeo(adminId: string | null, path: string, v: PageSeo): Promise<{ ok: true } | { ok: false; status: number; error: string }> {

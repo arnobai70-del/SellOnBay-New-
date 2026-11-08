@@ -11,7 +11,9 @@ import { createAdminClient } from './supabase/server';
  * the "early access" bar and the hour choices sellers get for delivery. Every change needs a reason and goes in the audit log. The defaults are in lib/config.ts; a saved value replaces its default.
  * This is how the shop starts small (for example $5 to $70) and opens up later by changing one number.
  */
+export type PaymentsMode = 'beta_free' | 'live';
 export type Settings = {
+  paymentsMode: PaymentsMode;
   priceMinCents: number;
   priceMaxCents: number;
   holdNewBuyerMinCents: number;
@@ -20,11 +22,13 @@ export type Settings = {
   showExamples: boolean;
   deliveryHoursOn: boolean;
   deliveryHourChoices: string;
+  allowedCountries: string; // comma-separated ISO codes buyers may request from; empty = everywhere (owner, 2026-11-07)
 };
 export type Key = keyof Settings;
 export type Result = { ok: true } | { ok: false; status: number; error: string };
 
 export const DEFAULTS: Settings = {
+  paymentsMode: 'beta_free', // free beta: nothing is charged, real payment code stays behind this (owner, 2026-11-07)
   priceMinCents: CONFIG.sale.priceMinCents,
   priceMaxCents: CONFIG.sale.priceMaxCents,
   holdNewBuyerMinCents: CONFIG.risk.holdNewBuyerMinCents,
@@ -33,8 +37,10 @@ export const DEFAULTS: Settings = {
   showExamples: true,
   deliveryHoursOn: true,
   deliveryHourChoices: hourChoicesText(CONFIG.deliveryHours.choices),
+  allowedCountries: '',
 };
 export const LABEL: Record<Key, string> = {
+  paymentsMode: 'Payments mode',
   priceMinCents: 'Lowest price a product may have',
   priceMaxCents: 'Highest price of a product (with setup help or customisation added)',
   holdNewBuyerMinCents: "A new buyer's paid order of this much waits for a safety check (0 = never)",
@@ -43,15 +49,17 @@ export const LABEL: Record<Key, string> = {
   showExamples: 'Show the example listings (made-up products that show how the shop works; they cannot be bought)',
   deliveryHoursOn: 'Sellers may promise delivery in hours',
   deliveryHourChoices: 'The hour choices sellers get, like 6, 12, 18',
+  allowedCountries: 'Countries buyers may order from, as two-letter codes like US, GB, DE (empty = everywhere)',
 };
 const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinCents', [number, number]> = {
-  priceMinCents: [100, 100_000],
+  priceMinCents: [CONFIG.sale.priceMinCents, 100_000], // never below the $20 minimum (owner, 2026-11-07)
   priceMaxCents: [500, 1_000_000],
   holdNewBuyerMinCents: [0, 1_000_000],
 };
 
 /* Checks a whole set of settings. Returns the first problem in plain words, or null. */
 export function problemWith(s: Settings): string | null {
+  if (s.paymentsMode !== 'beta_free' && s.paymentsMode !== 'live') return 'Payments mode must be beta or live.';
   for (const [k, [lo, hi]] of Object.entries(MONEY_BOUNDS) as [keyof typeof MONEY_BOUNDS, [number, number]][]) {
     const v = s[k];
     if (!Number.isInteger(v) || v < lo || v > hi) return `${LABEL[k]}: use whole dollars from $${lo / 100} to $${hi / 100}.`;
@@ -64,6 +72,8 @@ export function problemWith(s: Settings): string | null {
   const h = typeof s.deliveryHourChoices === 'string' ? parseHourChoices(s.deliveryHourChoices) : { ok: false as const, error: 'The hour choices are a list of numbers.' };
   if (!h.ok) return h.error;
   if (s.deliveryHoursOn && !h.hours.length) return 'Give at least one hour choice, or turn delivery in hours off.';
+  if (typeof s.allowedCountries !== 'string' || !/^\s*([A-Z]{2}\s*(,\s*[A-Z]{2}\s*)*)?$/.test(s.allowedCountries))
+    return 'Write the countries as two-letter codes separated by commas, like US, GB, DE.';
   return null;
 }
 
@@ -71,6 +81,15 @@ export function problemWith(s: Settings): string | null {
 export const allowedHours = (s: Settings): number[] => {
   const h = s.deliveryHoursOn ? parseHourChoices(s.deliveryHourChoices) : null;
   return h?.ok ? h.hours : [];
+};
+
+/* May a buyer from this country order? Empty list: everywhere. */
+export const countryAllowed = (s: Settings, country: string) => {
+  const list = s.allowedCountries
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean);
+  return !list.length || list.includes(country.toUpperCase());
 };
 
 /* The standard words of the bar, with the price range worked out from the settings. */
@@ -97,6 +116,7 @@ async function load(): Promise<Settings> {
     ? Object.fromEntries(((await createAdminClient().from('app_settings').select('key, value')).data ?? []).map((r) => [r.key, r.value]))
     : mem.saved;
   for (const k of Object.keys(DEFAULTS) as Key[]) if (k in saved && typeof saved[k] === typeof DEFAULTS[k]) (out as Record<string, unknown>)[k] = saved[k];
+  out.priceMinCents = Math.max(out.priceMinCents, CONFIG.sale.priceMinCents); // an older saved minimum cannot undercut the $20 rule, and the rest of the saved set still counts
   const result = problemWith(out) ? { ...DEFAULTS } : out; // a bad saved set never takes the shop down
   // The made-up examples are gone from a live site whatever is saved (lib/exampleMode.ts).
   return examplesAllowed() ? result : { ...result, showExamples: false };

@@ -1,12 +1,13 @@
 'use client';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { installGtag } from '@/lib/ga4';
+import { gaPage, gaReferrer, installGtag } from '@/lib/ga4';
 
 /*
- * Google Analytics 4 on the public pages, ONLY after the visitor chose "Accept analytics" in the cookie notice (stored in this browser as lb-cookies = "all"),
+ * Google Analytics 4 on every page (mounted in the root layout), ONLY after the visitor chose "Accept analytics" in the cookie notice (stored in this browser as lb-cookies = "all"),
  * and never for a browser that sends Global Privacy Control or Do Not Track. Until then nothing is loaded and no Google cookie is set.
  * The id is public (it is in the page source of every site that uses it); NEXT_PUBLIC_GA_ID replaces it, and "off" turns it off.
+ * Google only gets cleaned addresses (gaPage): on a private page no ids, no query string and no real title.
  */
 const ID = process.env.NEXT_PUBLIC_GA_ID ?? 'G-FEK9C0CM04';
 const VALID = /^G-[A-Z0-9]{6,14}$/;
@@ -47,6 +48,9 @@ export function GoogleAnalytics() {
     if (!on || document.getElementById('ga-script')) return;
     const w = window as GaWindow;
     installGtag(w); // pushes `arguments`, as gtag.js requires (lib/ga4.ts)
+    // Before anything else: gtag.js reads the real address and referrer for itself unless it is told these first.
+    const here = gaPage(window.location.pathname, window.location.search);
+    w.gtag!('set', { page_location: window.location.origin + here.path, page_referrer: gaReferrer(document.referrer, window.location.origin), ...(here.title ? { page_title: here.title } : {}) });
     w.gtag!('js', new Date());
     w.gtag!('config', ID, { send_page_view: false, anonymize_ip: true }); // page views are sent below, once per page, so a move between pages counts
     const s = document.createElement('script');
@@ -59,8 +63,25 @@ export function GoogleAnalytics() {
   // One page view per page the visitor opens.
   useEffect(() => {
     if (!on) return;
-    (window as GaWindow).gtag?.('event', 'page_view', { page_path: path + (search ? '?' + search : ''), page_location: window.location.href, page_title: document.title });
+    const gtag = (window as GaWindow).gtag;
+    const page = gaPage(path, search);
+    const fields = { page_location: window.location.origin + page.path, page_title: page.title ?? document.title };
+    gtag?.('set', fields); // so anything gtag.js sends by itself on this page uses the cleaned address too
+    gtag?.('event', 'page_view', { page_path: page.path, ...fields });
   }, [on, path, search]);
+
+  // Clicks on marked sections (data-track="<section>", owner 2026-11-08): only after consent, only the section name, never text, ids or addresses.
+  useEffect(() => {
+    if (!on) return;
+    const click = (e: MouseEvent) => {
+      const el = (e.target as Element | null)?.closest?.('[data-track]');
+      const section = el?.getAttribute('data-track') ?? '';
+      if (!/^[a-z0-9-]{1,40}$/.test(section)) return;
+      (window as GaWindow).gtag?.('event', 'section_click', { section });
+    };
+    document.addEventListener('click', click, { capture: true, passive: true });
+    return () => document.removeEventListener('click', click, { capture: true });
+  }, [on]);
 
   return null;
 }

@@ -69,7 +69,7 @@ describe('quotation at the listed price, accepted into an order', () => {
       { label: 'Setup help', cents: 3000, kind: 'package' },
       { label: 'Domain mybakery.com (1 year)', cents: 1200, kind: 'domain', passThroughVerified: true },
     ]);
-    expect(quote).toMatchObject({ priceOverride: false, totalCents: 9100, sellerGrossCents: 7900, feeCents: 1185, passThroughCents: 1200, commissionBps: 1500 });
+    expect(quote).toMatchObject({ priceOverride: false, totalCents: 9100, sellerGrossCents: 7900, feeCents: 1738, passThroughCents: 1200, commissionBps: 2200 });
     const issued = await issueQuote('admin-1', quote.id, now);
     expect(issued.ok && issued.value).toMatchObject({ status: 'issued', validUntil: now + 7 * DAY_MS });
     expect((await getRequest(req.id))!.status).toBe('quoted');
@@ -83,7 +83,7 @@ describe('quotation at the listed price, accepted into an order', () => {
     expect(o).toMatchObject({
       state: 'awaiting_payment',
       priceCents: 9100,
-      feeCents: 1185,
+      feeCents: 1738,
       sellerGrossCents: 7900,
       quotationId: quote.id,
       sellerId: p.sellerId,
@@ -95,8 +95,8 @@ describe('quotation at the listed price, accepted into an order', () => {
       updateDays: 90,
       fileVersionId: p.latestVersionId,
     });
-    // the ledger splits on the seller gross: seller keeps 6715, SellOnBay 1185 + the 1200 pass-through
-    expect(split(o.lines, o.feeCents, o.sellerGrossCents)).toEqual({ total: 9100, sellerNet: 6715, platform: 2385 });
+    // the ledger splits on the seller gross: seller keeps 6162, SellOnBay 1738 + the 1200 pass-through
+    expect(split(o.lines, o.feeCents, o.sellerGrossCents)).toEqual({ total: 9100, sellerNet: 6162, platform: 2938 });
     expect((await getRequest(req.id))!.status).toBe('converted');
     expect((await quoteEvents(quote.id)).map((e) => e.event)).toEqual(['drafted', 'issued', 'accepted']);
     expect((await requestEvents(req.id)).map((e) => e.event)).toEqual(['submitted', 'review', 'quoted', 'converted']);

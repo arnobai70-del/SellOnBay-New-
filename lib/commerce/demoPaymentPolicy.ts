@@ -5,14 +5,12 @@ import type { Order } from '../orders/machine';
  * on the live site. Only built-in example product orders may use the demo
  * payment flow by default.
  *
- * ENABLE_TEST_CHECKOUT=1 extends the test gateway to real orders too, for
- * pre-launch testing before a real payment provider is connected. Remove or
- * unset this before opening the market to the public.
+ * The test-card form is retired for real orders (owner, 2026-11-07, Phase 7): the old ENABLE_TEST_CHECKOUT switch, which let test
+ * cards fund real orders, is ignored. Only the made-up example orders of a demo or test server can still use it.
  */
 export function canUseDemoPayment(order: Pick<Order, 'demo' | 'kind' | 'sellerId' | 'productId' | 'devKey'> & { quotationId?: string }): boolean {
   // SellOnBay 2.0: an order made from a quotation is a real purchase. It is paid by a verified method and reconciled; never by test cards,
-  // whatever ENABLE_TEST_CHECKOUT says.
+  // and ENABLE_TEST_CHECKOUT no longer changes that (retired, Phase 7).
   if (order.quotationId) return false;
-  if (process.env.ENABLE_TEST_CHECKOUT === '1') return true;
   return order.demo === true && order.kind === 'product' && !order.sellerId && !order.productId && !order.devKey;
 }

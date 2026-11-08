@@ -36,26 +36,26 @@ const LEGACY_COLUMNS: Column[] = [
       ['Sell on SellOnBay', '/sell'],
       ['Become a developer', '/developers/join'],
       ['Seller dashboard', '/dashboard/seller'],
-      ['Seller agreement', '/seller-agreement'],
+      ['Seller agreement', '/legal/seller-agreement'],
     ],
   },
   {
     title: 'Help',
     links: [
-      ['How it works', '/how-it-works'],
-      ['Questions and answers', '/faq'],
+      ['How it works', '/buyer-protection'],
+      ['Help center', '/help'],
       ['Messages', '/messages'],
-      ['Refunds', '/refunds'],
+      ['Refunds', '/legal/refunds'],
       ['Report abuse', '/report-abuse'],
-      ['Copyright complaints', '/dmca'],
+      ['Copyright complaints', '/legal/dmca'],
     ],
   },
   {
     title: 'Company',
     links: [
       ['About SellOnBay', '/welcome'],
-      ['Blog', '/blog'],
-      ['Acceptable use', '/acceptable-use'],
+      ['Guides', '/guides'],
+      ['Acceptable use', '/legal/acceptable-use'],
     ],
   },
 ];
@@ -68,29 +68,29 @@ const HUB_COLUMNS: Column[] = [
     links: [
       ['Sell on SellOnBay', '/sell'],
       ['Seller dashboard', '/dashboard/seller'],
-      ['Seller agreement', '/seller-agreement'],
+      ['Seller agreement', '/legal/seller-agreement'],
     ],
   },
   {
     title: 'Help',
     links: [
-      ['How it works', '/how-it-works'],
-      ['Questions and answers', '/faq'],
+      ['How it works', '/buyer-protection'],
+      ['Help center', '/help'],
       ['Messages', '/messages'],
-      ['Refunds', '/refunds'],
+      ['Refunds', '/legal/refunds'],
       ['Report abuse', '/report-abuse'],
-      ['Copyright complaints', '/dmca'],
+      ['Copyright complaints', '/legal/dmca'],
     ],
   },
-  { title: 'Company', links: [['Acceptable use', '/acceptable-use']] },
+  { title: 'Company', links: [['Acceptable use', '/legal/acceptable-use']] },
 ];
 const COLUMNS = legacyPublic() ? LEGACY_COLUMNS : HUB_COLUMNS;
 /* The built-in columns, as the Site builder starts from them. */
 export const FOOTER_COLUMNS = COLUMNS;
 
 const LEGAL: [label: string, href: string][] = [
-  ['Terms of service', '/terms'],
-  ['Privacy policy', '/privacy'],
+  ['Terms of service', '/legal/terms'],
+  ['Privacy policy', '/legal/privacy'],
   ['Your data', '/account/privacy'],
 ];
 

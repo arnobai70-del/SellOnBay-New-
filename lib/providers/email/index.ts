@@ -1,7 +1,10 @@
 /* Real delivery is explicitly opt-in. Missing credentials must not pretend to send. */
 import { ResendEmailProvider, emailSender, resendConfigured } from './resend';
+import { ZeptoMailProvider, zeptoConfigured, zeptoHost, zeptoToken } from './zeptomail';
 import { demoMode } from '../../demoMode';
-export type Mail = { to: string; subject: string; text: string; idempotencyKey?: string };
+import { emailAllowed, emailSenderFor, maskEmail, senderFrom } from '../../emailRouting';
+/* `from` and `replyTo` are addresses from lib/emailRouting.ts; without `from` the sender is support@. */
+export type Mail = { to: string; subject: string; text: string; idempotencyKey?: string; from?: string; replyTo?: string };
 export interface EmailProvider {
   readonly name: string;
   send(mail: Mail): Promise<void>;
@@ -23,12 +26,45 @@ const unavailable: EmailProvider = {
     throw new Error('Email provider is not configured.');
   },
 };
-/** Resend is available only after the owner explicitly enables it with valid env settings. */
+/* The support address an admin saved (Admin › Settings › Contact & social), else the default. Never fails a send. */
+async function savedSupportSender(): Promise<string> {
+  try {
+    const { contactRoutes } = await import('../../site/contentStore');
+    return senderFrom((await contactRoutes()).support);
+  } catch {
+    return emailSenderFor('support');
+  }
+}
+
+/* Until launch only our own and test addresses get real email. Anything else is logged, without its words, and counts as handled so the queue does not retry it. */
+export const heldEmail = (real: EmailProvider, env: Record<string, string | undefined> = process.env): EmailProvider => ({
+  name: real.name,
+  async send(mail) {
+    if (emailAllowed(mail.to, env)) return real.send(mail.from ? mail : { ...mail, from: await savedSupportSender() });
+    console.info(JSON.stringify({ event: 'email_held', to: maskEmail(mail.to), subject: mail.subject }));
+  },
+});
+
+/* In development nothing is sent: each email is written to the console, and kept like the fake provider's. */
+const consoleProvider: EmailProvider = {
+  name: 'console',
+  async send(mail) {
+    console.info(`[email] to ${mail.to} from ${mail.from ?? emailSenderFor()}: ${mail.subject}\n${mail.text}`);
+    await fake.send(mail);
+  },
+};
+
+/** ZeptoMail is the real provider (owner, 2026-11-07); Resend stays available only if it is asked for by name. */
 export const emailProvider = (): EmailProvider => {
+  if (process.env.NODE_ENV === 'development') return consoleProvider;
+  if (process.env.EMAIL_PROVIDER === 'zeptomail' || (!process.env.EMAIL_PROVIDER && zeptoConfigured())) {
+    if (!zeptoConfigured()) return unavailable;
+    return heldEmail(new ZeptoMailProvider(zeptoToken(process.env.ZEPTOMAIL_API_KEY), zeptoHost(), emailSenderFor()));
+  }
   // A Resend key alone turns real email on (EMAIL_PROVIDER=resend still works; fake or anything else keeps it off).
   if (process.env.EMAIL_PROVIDER === 'resend' || (!process.env.EMAIL_PROVIDER && process.env.RESEND_API_KEY)) {
     if (!resendConfigured()) return unavailable;
-    return new ResendEmailProvider(process.env.RESEND_API_KEY!.trim(), emailSender());
+    return heldEmail(new ResendEmailProvider(process.env.RESEND_API_KEY!.trim(), emailSender()));
   }
   // Real production must not silently pretend to deliver email.
   if (process.env.EMAIL_PROVIDER && process.env.EMAIL_PROVIDER !== 'fake') return unavailable;

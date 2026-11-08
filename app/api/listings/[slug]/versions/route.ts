@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { cannotAct } from '@/lib/accounts';
@@ -23,7 +24,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const { data: me } = await sb.from('profiles').select('banned, suspended_until').eq('id', user.id).single();
   if (!me || cannotAct(me)) return no('This account cannot do that.', 403);
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return no('Enter your authenticator code first.', 403);
+  if (!passedCode(aal)) return no('Enter your authenticator code first.', 403);
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await publishVersion(user.id, slug, body.data);

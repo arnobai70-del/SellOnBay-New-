@@ -5,13 +5,14 @@
 // history.json: the rows of `select version, name from supabase_migrations.schema_migrations`; probe.json: the probe's rows (JSON arrays).
 import fs from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 import { classify, fingerprintSql, probePlan, probeSql, withHashes } from './lib/migrationProbe.mjs';
 import { forPglite, migrationFiles, STAND_INS } from './lib/pgliteSupabase.mjs';
 
 /* The probe plan with the fingerprints every migration leaves behind. */
 export async function expectedPlan(files = migrationFiles()) {
   const plan = probePlan(files);
-  const db = new PGlite();
+  const db = new PGlite({ extensions: { pg_trgm } });
   await db.exec(STAND_INS);
   for (const { sql } of files) await db.exec(forPglite(sql));
   const q = fingerprintSql(plan);

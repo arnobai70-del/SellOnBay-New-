@@ -25,7 +25,7 @@ describe('dashboard helpers', () => {
     expect(b.reduce((s, x) => s + x.cents, 0)).toBe(800);
     expect(b[0].week < b[3].week).toBe(true);
   });
-  it('next payout is the Sunday after this payout week', () => {
+  it('next payout is the Thursday after this payout week', () => {
     const now = Date.parse('2026-10-08T12:00:00Z');
     expect(Date.parse(nextPayoutDay(now) + 'T00:00:00Z') - Date.parse(weekStartOf(now) + 'T00:00:00Z')).toBe(7 * DAY_MS);
   });

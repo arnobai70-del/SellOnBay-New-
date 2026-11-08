@@ -7,7 +7,8 @@ import { legacyPublic } from '../legacy';
 import { allHubViews, allocation, hubProductPath, hubPublicPath, realListings } from './hubStore';
 import { HUBS, hubPath, isHubPath } from './hubs';
 import { listingPath } from './listingMeta';
-import { SEO_PAGES } from './pageList';
+import { INDEXED_PAGES, SEO_PAGES } from './pageList';
+import { platformOf } from '../apps';
 import { categoryPages } from './pages';
 
 /*
@@ -54,33 +55,42 @@ export const sitemapCounts = (plan: SitemapEntry[]) => ({
 });
 
 /*
- * The public sitemap: the home page (E-commerce Templates), the four other category pages and up to four real products in each of the five categories,
- * 25 addresses when everything is ready. A category page is listed only when it shows its four products; a product only when published and allowed in search.
- * Nothing is invented to reach 25: the gate below says what is missing. (With NEXT_PUBLIC_LEGACY_PUBLIC=1 the older, larger sitemap is built.)
+ * The public sitemap: the home page, the public pages, category pages with enough real listings, every live website and the guides (owner, 2026-11-07). Nothing is invented; the gate says what is missing.
+ * (With NEXT_PUBLIC_LEGACY_PUBLIC=1 the older, larger sitemap is built.)
  */
 export const PRIMARY_TARGET = 25;
 export const PER_CATEGORY = 4;
+const MIN_FOR_CATEGORY = 3; // a thinner category page stays out of search
 
 export type Gate = { target: number; ready: number; complete: boolean; categories: { slug: string; name: string; have: number; need: number; categoryPage: boolean }[] };
 
 async function primary(): Promise<{ entries: SitemapEntry[]; gate: Gate }> {
   const ctl = await allControls();
   const alloc = await allocation();
-  const e = (path: string, kind: SitemapEntry['kind']): SitemapEntry => ({ url: SITE_URL + path, path, group: 'primary', kind, changeFrequency: 'weekly' });
+  const e = (path: string, kind: SitemapEntry['kind'], extra: Partial<SitemapEntry> = {}): SitemapEntry => ({
+    url: SITE_URL + path,
+    path,
+    group: kind === 'category' || kind === 'product' ? 'primary' : 'additional',
+    kind,
+    changeFrequency: 'weekly',
+    ...extra,
+  });
   const entries: SitemapEntry[] = [];
-  const home = inSitemap('/', ctl['/'] ?? DEFAULT_CONTROLS);
-  if (home) entries.push(e('/', 'home'));
+  if (inSitemap('/', ctl['/'] ?? DEFAULT_CONTROLS)) entries.push(e('/', 'home'));
+  for (const path of INDEXED_PAGES) if (inSitemap(path, ctl[path] ?? DEFAULT_CONTROLS)) entries.push(e(path, 'page'));
   const categories: Gate['categories'] = [];
   for (const v of await allHubViews()) {
-    const products = v.products.slice(0, PER_CATEGORY).filter((p) => inSitemap(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS));
-    const isHome = v.hub.slug === 'ecommerce';
-    const pageOk = !isHome && products.length === PER_CATEGORY && inSitemap(hubPath(v.hub), ctl[hubPath(v.hub)] ?? DEFAULT_CONTROLS);
+    const products = v.products.filter((p) => inSitemap(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS));
+    const pageOk = products.length >= MIN_FOR_CATEGORY && inSitemap(hubPath(v.hub), ctl[hubPath(v.hub)] ?? DEFAULT_CONTROLS);
     if (pageOk) entries.push(e(hubPublicPath(v.hub, alloc), 'category'));
-    for (const p of products) entries.push(e(hubProductPath(v.hub, alloc, p.id), 'product'));
-    categories.push({ slug: v.hub.slug, name: v.hub.name, have: products.length, need: PER_CATEGORY, categoryPage: isHome ? home : pageOk });
+    categories.push({ slug: v.hub.slug, name: v.hub.name, have: products.length, need: MIN_FOR_CATEGORY, categoryPage: pageOk });
   }
-  const out = entries.filter((x, i, a) => a.findIndex((r) => r.url === x.url) === i);
-  return { entries: out, gate: { target: PRIMARY_TARGET, ready: out.length, complete: out.length === PRIMARY_TARGET, categories } };
+  // Every live website, whichever category it is in.
+  for (const p of await realListings()) if (platformOf(p) === 'web' && inSitemap(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS)) entries.push(e(`/websites/${p.id}`, 'product'));
+  for (const p of (await publishedPosts(1000)).filter((q) => !q.noindex)) entries.push(e(`/guides/${p.slug}`, 'post', { lastModified: new Date(p.updatedAt), changeFrequency: 'monthly' }));
+  const out = entries.filter((x, n, a) => a.findIndex((r) => r.url === x.url) === n);
+  const ready = out.filter((x) => x.group === 'primary').length;
+  return { entries: out, gate: { target: PRIMARY_TARGET, ready, complete: ready >= PRIMARY_TARGET, categories } };
 }
 
 export const publicationGate = async (): Promise<Gate> => (await primary()).gate;

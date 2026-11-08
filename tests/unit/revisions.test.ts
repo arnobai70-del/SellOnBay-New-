@@ -143,7 +143,7 @@ describe('revisions on a released order', () => {
     });
     if (!d.ok) throw new Error(d.error);
     expect(d.value).toMatchObject({ ownerType: 'seller', sellerId });
-    expect(d.value.feeCents).toBe(1500); // Free plan: 15% on a paid revision line (O-2)
+    expect(d.value.feeCents).toBe(2200); // the flat 22% on a paid revision line
     await issueQuote('admin-1', d.value.id);
     await superDecision('super-1', d.value.id, 'approve', 'Paid change agreed.');
     const a = await acceptQuote(buyer, d.value.id);
@@ -167,7 +167,7 @@ describe('custom development assignment (Blueprint 5.7)', () => {
     await buyerRequestAction(b, r.value.id, 'confirm_requirements');
     const d = await draftQuote('admin-1', r.value.id, { lines: [{ label: 'Build', cents: 50_000, kind: 'custom' }], terms: { deliveryDays: 10 }, overrideReason: 'Custom job.' });
     if (!d.ok) throw new Error(d.error);
-    expect(d.value).toMatchObject({ ownerType: 'seller', sellerId: dev, feeCents: 7500 });
+    expect(d.value).toMatchObject({ ownerType: 'seller', sellerId: dev, feeCents: 11000 });
     expect(await adminRequestAction('admin-1', r.value.id, 'assign', { sellerId: null })).toMatchObject({ ok: false, status: 409 }); // open quotation
     expect(await adminRequestAction('admin-1', r.value.id, 'assign', {})).toMatchObject({ ok: false });
   });

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SellOnBay — Checkout</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#2B4250;background:#EDF3F6;-webkit-font-smoothing:antialiased}
+a{color:#1A5444}a:hover{color:#13453A}
+.page{min-height:100%;padding-bottom:56px;background:radial-gradient(900px 520px at 8% -6%,#D9EDF5 0%,rgba(217,237,245,0) 62%),radial-gradient(820px 520px at 96% 8%,#DCF2E9 0%,rgba(220,242,233,0) 60%),#EDF3F6}
+.wrap{max-width:1100px;margin:0 auto;padding:0 32px;box-sizing:border-box}
+.glass{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(43,66,80,.06);border-radius:22px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 10px 8px 20px;border-radius:999px;margin-top:20px}
+.logo{font-weight:600;font-size:17px;color:#2B4250;text-decoration:none;display:flex;align-items:center;gap:10px}
+.dot{width:24px;height:24px;border-radius:8px;background:#CDEBDF;border:1px solid #fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border-radius:999px;background:#CDEBDF;color:#1A5444;font:500 14px 'Inter',sans-serif;text-decoration:none;border:1px solid rgba(255,255,255,.9);cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.btn:hover{background:#BDE3D4;color:#13453A}
+.btn.ghost{background:rgba(255,255,255,.72);border:1px solid #D3E2E9;color:#2B4250}
+.muted{color:#566C78}
+h1,h2,h3{font-weight:400;margin:0;letter-spacing:-.015em}
+.tag{font-size:12px;color:#566C78}
+.field label{display:block;font-size:13px;color:#3D5563;margin-bottom:6px}
+.input{width:100%;box-sizing:border-box;min-height:46px;border-radius:12px;border:1px solid #D3E2E9;background:rgba(255,255,255,.85);padding:0 14px;font:14px 'Inter',sans-serif;color:#2B4250}
+.pay{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:72px;padding:14px 16px;border-radius:14px;border:1px solid #D3E2E9;background:rgba(255,255,255,.7);font:14px 'Inter',sans-serif;color:#2B4250;cursor:pointer;text-align:left;box-sizing:border-box}
+.pay.on{border-color:#7FBFA9;background:#E6F5EF}
+.step{display:flex;align-items:center;gap:10px;font-size:14px;color:#566C78}
+.step b{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:500;font-size:13px;background:rgba(255,255,255,.8);border:1px solid #D3E2E9}
+.step.on{color:#2B4250}.step.on b{background:#CDEBDF;border-color:#CDEBDF;color:#1A5444}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.tl{display:flex;gap:12px;font-size:14px;line-height:1.45}
+.tl i{width:10px;height:10px;border-radius:50%;background:#7FBFA9;flex:none;margin-top:5px}
+@keyframes sob-rise{from{opacity:0;transform:translateY(28px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes sob-drop{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:none}}
+@keyframes sob-drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes sob-drift2{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-110px,120px) scale(.95)}}
+@keyframes sob-pulse{0%,100%{box-shadow:0 0 0 0 rgba(127,191,169,.45)}50%{box-shadow:0 0 0 7px rgba(127,191,169,0)}}
+@keyframes sob-slide{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+.page{position:relative;overflow:hidden;isolation:isolate}
+.page::before,.page::after{content:"";position:absolute;z-index:-1;width:620px;height:620px;border-radius:50%;filter:blur(90px);opacity:.6;pointer-events:none}
+.page::before{top:-160px;left:-140px;background:#CBE6F2;animation:sob-drift1 22s ease-in-out infinite}
+.page::after{top:260px;right:-200px;background:#CFEFE2;animation:sob-drift2 26s ease-in-out infinite}
+.glass{animation:sob-rise 1s cubic-bezier(.2,.8,.2,1) both}
+.glass:nth-child(2){animation-delay:.12s}.glass:nth-child(3){animation-delay:.24s}
+.nav{animation:sob-drop .9s cubic-bezier(.2,.8,.2,1) both}
+.step.on b{animation:sob-pulse 2.4s ease-in-out infinite}
+.tl{animation:sob-slide .7s cubic-bezier(.2,.8,.2,1) both}
+.tl:nth-child(2){animation-delay:.5s}.tl:nth-child(3){animation-delay:.65s}.tl:nth-child(4){animation-delay:.8s}.tl:nth-child(5){animation-delay:.95s}
+.tl i{animation:sob-pulse 2.6s ease-in-out infinite}
+.pay{transition:transform .3s,background .3s,border-color .3s}.pay:hover{transform:translateY(-2px)}
+.input{transition:border-color .3s,box-shadow .3s}.input:focus{outline:none;border-color:#7FBFA9;box-shadow:0 0 0 4px rgba(127,191,169,.18)}
+.btn{transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,background .3s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(63,143,119,.18)}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<style>html,body{height:100%}input,select,textarea,button{font-family:inherit}</style>
+</head>
+<body>
+
+
+<div class="page">
+<div class="wrap">
+<nav class="glass nav" aria-label="Main">
+<a class="logo" href="index.html"><span class="dot" aria-hidden="true"></span>SellOnBay</a>
+<div style="display: flex; gap: 22px; flex-wrap: wrap; padding-right: 10px">
+<span class="step on"><b>1</b>Details</span><span class="step on"><b>2</b>Payment</span><span class="step"><b>3</b>Review</span>
+</div>
+</nav>
+
+<h1 style="font-size: 36px; font-weight: 300; padding: 48px 0 24px">Checkout</h1>
+
+<div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+<form style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+<div class="glass" style="padding: 26px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="font-size: 20px">Your details</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px">
+<div class="field"><label for="n">Full name</label><input id="n" class="input" placeholder="Your name"></div>
+<div class="field"><label for="e">Email</label><input id="e" class="input" type="email" placeholder="you@example.com"></div>
+</div>
+</div>
+
+<div class="glass" style="padding: 26px; display: flex; flex-direction: column; gap: 14px">
+<div><h2 style="font-size: 20px">Domain</h2><div class="muted" style="font-size: 14px; margin-top: 6px">Registered in your own name. You own it, not the seller.</div></div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<label for="d" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Domain name</label>
+<input id="d" class="input" placeholder="yourbrand.com" style="flex: 1 1 240px">
+<button class="btn ghost" type="button">Check</button>
+</div>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px; color: #3D5563; min-height: 40px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #3F8F77">I already have a domain</label>
+</div>
+
+<div class="glass" style="padding: 26px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="font-size: 20px">Payment method</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px">
+
+<button class="pay on" type="button" onclick=""><span style="font-weight: 500">Card</span><span class="tag">Visa, Mastercard</span></button>
+
+<button class="pay" type="button" onclick=""><span style="font-weight: 500">bKash</span><span class="tag">Manual verification</span></button>
+
+<button class="pay" type="button" onclick=""><span style="font-weight: 500">Bank transfer</span><span class="tag">Manual verification</span></button>
+
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px">
+<div class="field" style="grid-column: 1 / -1"><label for="c">Card number</label><input id="c" class="input" placeholder="1234 1234 1234 1234"></div>
+<div class="field"><label for="x">Expiry</label><input id="x" class="input" placeholder="MM / YY"></div>
+<div class="field"><label for="v">CVC</label><input id="v" class="input" placeholder="CVC"></div>
+</div>
+
+
+</div>
+</form>
+
+<aside style="flex: 1 1 300px; max-width: 380px; display: flex; flex-direction: column; gap: 16px">
+<div class="glass" style="padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 14px; align-items: center">
+<span style="width: 72px; height: 54px; border-radius: 10px; background: #F7FAFB; border: 1px solid #E1EBF0; display: flex; gap: 4px; padding: 8px; box-sizing: border-box" aria-hidden="true"><span style="width: 14px; border-radius: 3px; background: #EAF1F4"></span><span style="flex: 1; border-radius: 3px; background: #D3EEE4"></span></span>
+<div><div style="font-weight: 500">SaaS Dashboard</div><div class="tag">Standard license · by Ayesha</div></div>
+</div>
+<div style="border-top: 1px solid #DEE8ED; padding-top: 14px; display: flex; flex-direction: column; gap: 10px">
+<div class="row"><span class="muted">Website</span><span>$49.00</span></div>
+<div class="row"><span class="muted">Domain (1 year)</span><span>[DOMAIN PRICE]</span></div>
+<div class="row"><span class="muted">Escrow protection</span><span>Included</span></div>
+<div style="display: flex; gap: 8px"><label for="cpn" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Coupon code</label><input id="cpn" class="input" placeholder="Coupon code" value="BUNDLE15"><button class="btn ghost" type="button">Apply</button></div>
+<div class="row"><span class="muted">Coupon BUNDLE15</span><span style="color: #1A5444">−15% on bundle</span></div>
+</div>
+<div class="row" style="border-top: 1px solid #DEE8ED; padding-top: 14px; font-size: 18px"><span>Total</span><span style="font-weight: 500">$49.00 + domain</span></div>
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: #3D5563; line-height: 1.5"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #3F8F77; margin-top: 1px; flex: none"><span>I agree to the <a href="legal.html#terms">Terms</a>, <a href="legal.html#refunds">Refund policy</a> and <a href="legal.html#license">License</a></span></label>
+<a class="btn" href="order-success.html" style="width: 100%">Pay into escrow</a>
+<a href="cart.html" style="font-size: 13px; text-align: center">Back to cart</a>
+</div>
+<div class="glass" style="padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-weight: 500">What happens next</div>
+<div class="tl"><i></i><span>Payment is held by SellOnBay</span></div>
+<div class="tl"><i style="background: #A9D4C5"></i><span>You get the files and the domain setup</span></div>
+<div class="tl"><i style="background: #CDE6DD"></i><span>48 hours to review, ask for fixes or a refund</span></div>
+<div class="tl"><i style="background: #DCEBE5"></i><span>You approve, then the seller is paid</span></div>
+</div>
+</aside>
+</div>
+</div>
+</div>
+
+</body>
+</html>

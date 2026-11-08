@@ -6,6 +6,8 @@ import { createAdminClient } from '../supabase/server';
 import { settingsTableReady } from '../seo/pageMeta';
 import { seoPage } from '../seo/pageList';
 import { cleanSocial, type SocialLink } from './social';
+import { checkContact, mergeContact, type ContactRoutes } from './contact';
+import { cleanCoupons, type Coupon } from '../marketing/coupons';
 import { cleanBlocks, cleanFooter, cleanMenu, cleanSections, HOME_SECTIONS, type Block, type FooterColumn, type MenuItem, type SectionsConfig } from './content';
 
 /*
@@ -39,13 +41,13 @@ async function read(key: string, now = Date.now()): Promise<unknown> {
 async function write(adminId: string | null, key: string, value: unknown | null, what: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   cache.delete(key);
   const before = await read(key, 0);
-  if (JSON.stringify(before) === JSON.stringify(value)) return { ok: false, status: 409, error: 'Nothing changed.' };
+  const blank = (x: unknown) => x === null || (Array.isArray(x) && x.length === 0); // a reset row holds []
+  if (JSON.stringify(before) === JSON.stringify(value) || (blank(before) && blank(value))) return { ok: false, status: 409, error: 'Nothing changed.' };
   if (await settingsTableReady()) {
     const db = createAdminClient();
-    const { error } =
-      value === null
-        ? await db.from('app_settings').delete().eq('key', key)
-        : await db.from('app_settings').upsert({ key, value, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
+    // A reset saves an empty list instead of deleting the row: the server may not delete app_settings rows (migration 0040), and every reader
+    // treats an empty list as "nothing saved", so the built-in menu, footer, sections or blocks show again (owner, 2026-11-08).
+    const { error } = await db.from('app_settings').upsert({ key, value: value ?? [], changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
     if (error) return { ok: false, status: 500, error: 'Could not save.' };
   } else if (value === null) mem.delete(key);
   else mem.set(key, value);
@@ -86,8 +88,8 @@ export async function pagesWithBlocks(): Promise<string[]> {
   const out = new Set<string>([...mem.keys()].filter((k) => k.startsWith(BLOCKS)).map((k) => k.slice(BLOCKS.length)));
   try {
     if (await settingsTableReady()) {
-      const { data } = await createAdminClient().from('app_settings').select('key').like('key', `${BLOCKS}%`);
-      for (const r of data ?? []) out.add(String(r.key).slice(BLOCKS.length));
+      const { data } = await createAdminClient().from('app_settings').select('key, value').like('key', `${BLOCKS}%`);
+      for (const r of data ?? []) if (!(Array.isArray(r.value) && r.value.length === 0)) out.add(String(r.key).slice(BLOCKS.length)); // a reset page has []
     }
   } catch {
     // the list is only a help
@@ -160,4 +162,23 @@ export async function saveSite(adminId: string | null, kind: Kind | 'blocks' | '
   }
   const f = cleanFooter(value);
   return write(adminId, KEY.footer, f.length ? f : null, 'site_footer_changed');
+}
+
+/* The contact addresses (owner, 2026-11-08), saved over the defaults in lib/emailRouting.ts. A database problem falls back to the defaults. */
+export async function contactRoutes(now?: number): Promise<ContactRoutes> {
+  return mergeContact(await read('site:contact', now));
+}
+export async function saveContact(adminId: string | null, value: unknown) {
+  const c = checkContact(value);
+  if (!c.ok) return { ok: false as const, status: 400, error: c.error };
+  // An empty object, not a delete: the server may not delete app_settings rows (migration 0040), and {} reads as the defaults.
+  return write(adminId, 'site:contact', c.value, 'contact_addresses_changed');
+}
+
+/* Coupons (Admin › Marketing; lib/marketing/coupons.ts). Saving replaces the whole list. */
+export async function savedCoupons(now?: number): Promise<Coupon[]> {
+  return cleanCoupons(await read('marketing:coupons', now));
+}
+export async function saveCoupons(adminId: string | null, list: Coupon[]) {
+  return write(adminId, 'marketing:coupons', list, 'coupons_changed'); // [] rather than a delete (no delete right on app_settings, migration 0040)
 }

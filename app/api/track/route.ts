@@ -4,6 +4,7 @@ import { record, visitorOf } from '@/lib/analytics';
 import { recordCountry } from '@/lib/countryAnalytics';
 import { clientAddress } from '@/lib/clientIp';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { countPage } from '@/lib/pageCounts';
 
 export const runtime = 'nodejs';
 
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
   } catch {
     return none();
   }
+  if ('p' in body) await countPage(body.p, req.headers); // the cookieless daily count (lib/pageCounts.ts)
   const hits = 'buy' in body ? [hitForBuy(body.buy)].filter((h) => h !== null) : hitsForPage(body.p, body.q);
   if (hits.length) {
     const visitor = visitorOf(clientAddress(req.headers), ua.slice(0, 300));

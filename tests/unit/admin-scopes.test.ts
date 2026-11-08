@@ -9,7 +9,7 @@ const walk = (dir: string, name: string): string[] =>
 
 describe('admin scopes (D-H)', () => {
   it('has Super Admin and the five scoped roles; Negotiator is reserved', () => {
-    expect([...SCOPES]).toEqual(['super', 'finance', 'catalog', 'support', 'content', 'delivery']);
+    expect([...SCOPES]).toEqual(['super', 'finance', 'catalog', 'support', 'content', 'delivery', 'dev']);
   });
   it('an admin from before scopes existed (null) is a Super Admin; unknown and reserved values grant nothing', () => {
     expect(effectiveScopes(null)).toEqual(['super']);

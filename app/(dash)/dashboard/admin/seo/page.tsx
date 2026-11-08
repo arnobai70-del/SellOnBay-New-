@@ -41,7 +41,7 @@ export default async function SeoAdmin() {
           <div>
             <h2>Posts</h2>
             <p className="sub">
-              Guides and news at <Link href="/blog">/blog</Link>. Each post has its own address, meta title and meta description, and goes into the sitemap and the feed when published.
+              Guides and news at <Link href="/guides">/guides</Link>. Each post has its own address, meta title and meta description, and goes into the sitemap and the feed when published.
             </p>
           </div>
           <Link className="btn btn-dark btn-sm" href="/dashboard/admin/seo/post">

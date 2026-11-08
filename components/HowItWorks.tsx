@@ -117,7 +117,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
         </div>
         <span className="chip blue">
           <i />
-          Paid every Sunday
+          Paid every Thursday
         </span>
       </div>
     </div>

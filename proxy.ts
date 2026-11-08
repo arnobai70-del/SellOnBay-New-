@@ -1,3 +1,4 @@
+import { passedCode } from './lib/auth/authenticator';
 import { originOf } from './lib/publicOrigin';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -5,16 +6,19 @@ import { sessionCookieOptions } from '@/lib/supabase/cookieOptions';
 import { supabaseAnonKey, supabaseConfigured, supabaseUrl } from '@/lib/supabase/env';
 import { cannotAct } from './lib/accounts';
 import { closedForPath, maintenanceJson, maintenancePageResponse } from './lib/maintenance/guard';
+import { allowedIp } from './lib/maintenance/state';
+import { clientAddress } from './lib/clientIp';
 import type { ModuleKey } from './lib/maintenance/config';
 import { crossSiteWrite } from './lib/sameOrigin';
 import { isRetired, isRetiredApi, legacyPublic } from './lib/legacy';
+import { movedTo } from './lib/glass/moved';
 import { savedRedirects } from './lib/seo/redirectRead';
 import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
 import { SITE_URL } from './lib/site';
 import { basicAuthOk, isStaging, openOnStaging, STAGING_ROBOTS, stagingProblem } from './lib/stage';
 
-const SIGNED_IN = ['/dashboard', '/messages', '/checkout', '/sell/new'];
-const STAFF = ['/dashboard/seller', '/dashboard/admin', '/sell/new']; // sellers and admins need 2FA
+const SIGNED_IN = ['/dashboard', '/admin', '/messages', '/checkout', '/sell/new'];
+const STAFF = ['/dashboard/seller', '/dashboard/admin', '/admin', '/sell/new']; // sellers and admins need 2FA (/admin: the glass admin, Phase 6)
 
 /* Every visitor gets a random device id once. It is only used to spot many accounts on one device (lib/guard.ts) and is stored as a hash. */
 export async function proxy(req: NextRequest) {
@@ -45,8 +49,19 @@ async function proxyInner(req: NextRequest) {
     return NextResponse.json({ error: 'Not allowed from another site.' }, { status: 403 });
   // A module in maintenance (lib/maintenance): its pages show the maintenance notice, its APIs answer 503. The routes check again themselves.
   const closed = await closedForPath(req.nextUrl.pathname);
-  if (closed && !(await adminPasses(req, closed.key))) return closed.api ? maintenanceJson(closed.row) : maintenancePageResponse(closed.row);
-  // The old public site (shelves, developers, domains, blog, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
+  if (closed && !(await allowedIp(clientAddress(req.headers))) && !(closed.module && (await adminPasses(req, closed.module))))
+    return closed.api ? maintenanceJson(closed.closure) : maintenancePageResponse(closed.closure);
+  // Addresses that moved in the glass redesign answer with a permanent redirect (lib/glass/moved.ts), so rankings carry over.
+  if (!legacyPublic() && (req.method === 'GET' || req.method === 'HEAD')) {
+    const to = movedTo(req.nextUrl.pathname);
+    if (to) {
+      // Keep the visitor's query (for example ?next=), merged with any the new address carries.
+      const dest = new URL(to, originOf(req));
+      req.nextUrl.searchParams.forEach((v, k) => dest.searchParams.has(k) || dest.searchParams.append(k, v));
+      return NextResponse.redirect(dest, 301);
+    }
+  }
+  // The old public site (shelves, developers, tools) is retired: its code and data stay, visitors get 410 Gone (lib/legacy.ts).
   if (!legacyPublic() && isRetired(req.nextUrl.pathname)) {
     const headers = { 'x-robots-tag': 'noindex', 'cache-control': 'public, max-age=300' };
     if (isRetiredApi(req.nextUrl.pathname)) return NextResponse.json({ error: 'This is no longer available.' }, { status: 410, headers });
@@ -78,7 +93,7 @@ async function adminPasses(req: NextRequest, key: ModuleKey): Promise<boolean> {
   const { data: p } = await sb.from('profiles').select('role, banned, suspended_until').eq('id', user.id).single();
   if (!p || p.role !== 'admin' || cannotAct(p)) return false;
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  return aal?.currentLevel === 'aal2';
+  return passedCode(aal);
 }
 
 async function handle(req: NextRequest) {
@@ -111,18 +126,18 @@ async function handle(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const go = (to: string) => NextResponse.redirect(new URL(to, originOf(req)));
 
-  if (!user) return SIGNED_IN.some((p) => path.startsWith(p)) ? go('/login?next=' + encodeURIComponent(path)) : res;
+  if (!user) return SIGNED_IN.some((p) => path.startsWith(p)) ? go('/signin?next=' + encodeURIComponent(path)) : res;
 
   const { data: profile } = await supabase.from('profiles').select('role, banned, suspended_until').eq('id', user.id).single();
-  if (profile && cannotAct(profile)) return go('/login?error=banned');
+  if (profile && cannotAct(profile)) return go('/signin?error=banned');
 
   const role = profile?.role ?? 'buyer';
-  if (path.startsWith('/dashboard/admin') && role !== 'admin') return go('/dashboard/' + (role === 'seller' ? 'seller' : 'buyer'));
+  if ((path.startsWith('/dashboard/admin') || path === '/admin' || path.startsWith('/admin/')) && role !== 'admin') return go('/dashboard/' + (role === 'seller' ? 'seller' : 'buyer'));
   if (path.startsWith('/dashboard/seller') && role === 'buyer') return go('/dashboard/buyer');
 
   if (role !== 'buyer' && STAFF.some((p) => path.startsWith(p))) {
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.currentLevel !== 'aal2') return go('/login/mfa?next=' + encodeURIComponent(path));
+    if (!passedCode(aal)) return go('/two-factor?next=' + encodeURIComponent(path));
   }
   return res;
 }

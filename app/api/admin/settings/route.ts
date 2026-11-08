@@ -11,6 +11,7 @@ const dollars = z.coerce
   .refine((n) => Number.isFinite(n), 'Enter a number')
   .transform((n) => Math.round(n * 100));
 const schema = z.object({
+  paymentsMode: z.enum(['beta_free', 'live']).optional(),
   priceMinCents: dollars.optional(),
   priceMaxCents: dollars.optional(),
   holdNewBuyerMinCents: dollars.optional(),
@@ -19,6 +20,11 @@ const schema = z.object({
   showExamples: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
   deliveryHoursOn: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
   deliveryHourChoices: z.string().max(100).optional(),
+  allowedCountries: z
+    .string()
+    .max(800)
+    .transform((v) => v.toUpperCase())
+    .optional(),
   reason: z.string().max(500).default(''),
 });
 

@@ -106,6 +106,17 @@ Apply the files in `supabase/migrations/` strictly in number order, each one onc
 | 0071_cron_runs.sql | Owner 2026-11-03: one row per run of the orders and payouts jobs (start, finish, ok, first 500 characters of an error) for the admin system page; server only (RLS on, no client grant); kept 30 days |
 | 0072_app_errors.sql | Owner 2026-11-03: server error counts per kind and hour (fingerprint of route, status and first message line, already blanked by lib/monitor.ts) and log_app_error(), service role only; kept 30 days |
 | 0073_system_db_stats.sql | Owner 2026-11-03: system_db_stats() returns the database size and connection count for the admin system page; read only, service role only |
+| 0074_flat_plan.sql | Owner 2026-11-07: version 2 of the free plan at a flat 22% fee; older plan versions stop being offered, and orders keep the fee they recorded |
+| 0075_public_store_and_contact.sql | Owner 2026-11-07: public seller store fields, listing stack, featured and beta opt-in, contact messages and newsletter tables; only adds |
+| 0076_free_beta.sql | Owner 2026-11-07: three beta order states, beta requests and feedback; the status check keeps every older value |
+| 0077_service_role_grants.sql | Fix: the server may read and write the tables of 0075 and 0076 |
+| 0078_profile_details.sql | Owner 2026-11-07: country, international phone and company on the profile; only adds |
+| 0079_seller_mode.sql | Owner 2026-11-07: `profiles.can_sell`, bKash added to the payout method check (Bangladesh sellers only, checked by the server), `seller_verifications` (server only) and the private `seller-ids` bucket; only adds |
+| 0080_admin_visitors_health.sql | Owner 2026-11-08: the cookieless daily `page_counts` (page and country only, server only), `system_storage_bytes()` for Server health, and the Dev admin scope added to the scope check; only adds |
+| 0081_smart_search.sql | Owner 2026-11-08: `pg_trgm` in the extensions schema, trigram and full-text indexes on products and seller names, `search_listings` and `search_sellers` (server only); only adds |
+| 0082_maintenance_pages.sql | Owner 2026-11-08: `banner_minutes` on module maintenance and the `page_maintenance` table for single pages (server only); only adds |
+| 0083_guides_editor.sql | Owner 2026-11-08: the guides editor's fields on `posts` (HTML and JSON body, category, tags, author, OG image, canonical, `publish_at`), scheduled and unpublished states, covers from our storage, and `post_revisions` (server only) |
+| 0084_listing_prices.sql | Owner 2026-11-08: `listing_price_history` kept by a trigger on `products.price_cents` (existing listings start their history at the time it is applied) and `listing_sales` for launch prices and sales (server only); adds rows, changes none |
 
 Almost every file only adds or tightens. One exception: 0016 drops the old `wallets` and `ledger_entries` tables from 0001 and rebuilds the ledger, so on a database that already holds money records, back up and read 0016 before running it. Files 0043, 0045 and 0047 remove client write rights. After them, check that sellers can still save listings through the site, because the site writes through the server.
 

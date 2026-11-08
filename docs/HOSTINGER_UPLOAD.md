@@ -51,6 +51,7 @@ In number order, one file at a time (`supabase/migrations/00NN_*.sql`, paste int
 
 | Variable | What it adds |
 |---|---|
+| `ZEPTOMAIL_API_KEY`, `ZEPTOMAIL_HOST` | Real email through Zoho ZeptoMail (the provider since 2026-11-07). Paste the token WITHOUT the `Zoho-enczapikey ` in front; see `docs/DEPLOY_HOSTINGER.md` |
 | `RESEND_API_KEY` | Real email, including the alerts to sellonbayus@gmail.com. The sender defaults to `noreply@sellonbay.com`, which must be verified in Resend (`EMAIL_FROM` changes it) |
 | `PAYPAL_WEBHOOK_ID` | Webhook for refunds made inside PayPal: webhook `https://<your domain>/api/webhooks/payment`, events `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.CAPTURE.REFUNDED` |
 | `NEXT_PUBLIC_SITE_URL` | Only if your address is not `https://sellonbay.com` (build-time: set it before `npm run build`) |

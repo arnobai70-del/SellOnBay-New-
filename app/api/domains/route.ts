@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 
 /* GET /api/domains?name=mybakery  ->  availability and yearly price for each ending. Public and read-only. */
 export async function GET(req: Request) {
-  const closed = await maintenanceFor('catalog'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('domains'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const q = parseWith(domainQuery, new URL(req.url).searchParams.get('name') ?? '', 'That name is too long.');
   if (!q.ok) return q.res;

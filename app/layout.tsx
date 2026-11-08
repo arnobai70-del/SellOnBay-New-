@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import './market.css';
+import './glass.css'; // every class starts with g-; loaded here so the root 404 page gets it too (a deep import is not collected there)
+import { Suspense } from 'react';
 import { CookieNotice } from '@/components/CookieNotice';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { isStaging } from '@/lib/stage';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 
@@ -48,6 +51,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {children}
         <CookieNotice />
+        {/* Loads nothing until the visitor accepts analytics in the cookie notice. */}
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
       </body>
     </html>
   );

@@ -9,6 +9,8 @@ import { redisPing } from '../rateLimit';
 import { SITE_URL } from '../site';
 import { supabaseConfigured } from '../supabase/env';
 import { adminClientAvailable, createAdminClient } from '../supabase/server';
+import { emailProvider } from '../providers/email';
+import { zeptoHost } from '../providers/email/zeptomail';
 
 /*
  * What the admin "Server and system" page shows (read only, Super Admin with the authenticator code). Every check runs on its own with a
@@ -103,10 +105,16 @@ async function advisors(): Promise<{ security: number; performance: number } | '
   return { security, performance };
 }
 
-/* Resend answers at all (no key is sent: any HTTP answer means it can be reached). */
-const emailReachable = () =>
+/*
+ * The email provider in use (ZeptoMail since 2026-11-07; Resend only if asked for by name) answers at all. No key is sent: any HTTP answer means
+ * it can be reached.
+ */
+const emailHost = (provider: string) => (provider === 'zeptomail' ? zeptoHost() : provider === 'resend' ? 'api.resend.com' : null);
+const emailReachable = (provider: string) =>
   within(async () => {
-    const r = await fetch('https://api.resend.com/', { method: 'GET', signal: AbortSignal.timeout(LIMIT_MS), cache: 'no-store' });
+    const host = emailHost(provider);
+    if (!host) return false;
+    const r = await fetch(`https://${host}/`, { method: 'GET', signal: AbortSignal.timeout(LIMIT_MS), cache: 'no-store' });
     return r.status > 0;
   }, false);
 
@@ -156,7 +164,7 @@ export async function systemSnapshot(now = Date.now()): Promise<SystemSnapshot> 
   const [dbInfo, redis, email, webhookAt, checks, modules, runs, errors, ssl, orders, payouts] = await Promise.all([
     database(),
     within(redisPing, null),
-    emailReachable(),
+    emailReachable(emailProvider().name),
     lastWebhook(),
     within(launchChecks, []),
     within(moduleStates, { modules: [], source: 'memory' as const }),
@@ -172,7 +180,7 @@ export async function systemSnapshot(now = Date.now()): Promise<SystemSnapshot> 
   ];
   // The launch check's list (lib/launchCheck.ts): only the name of each setting and whether it is in place, never a value.
   const missingKeys = checks.filter((c) => c.state !== 'ok').map((c) => c.name);
-  const resendSet = Boolean(process.env.RESEND_API_KEY);
+  const mailer = emailProvider().name; // zeptomail, resend, console (development), fake or unconfigured
   const paypalSet = Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET);
   const errorsLastHour = errors?.counts.lastHour ?? 0;
   const services: Service[] = [
@@ -192,9 +200,9 @@ export async function systemSnapshot(now = Date.now()): Promise<SystemSnapshot> 
       : redis === null
         ? { key: 'cache', label: 'Cache', tone: 'bad', text: 'Not answering' }
         : { key: 'cache', label: 'Cache', tone: toneOf(redis, 300, 1200), text: `PING in ${redis} ms` },
-    !resendSet
-      ? { key: 'email', label: 'Email', tone: 'off', text: 'Key not set' }
-      : { key: 'email', label: 'Email', tone: email ? 'ok' : 'bad', text: email ? 'Key set, Resend reachable' : 'Key set, Resend not reachable' },
+    mailer === 'zeptomail' || mailer === 'resend'
+      ? { key: 'email', label: 'Email', tone: email ? 'ok' : 'bad', text: `${mailer === 'zeptomail' ? 'ZeptoMail' : 'Resend'} key set, ${email ? 'reachable' : 'not reachable'}` }
+      : { key: 'email', label: 'Email', tone: 'off', text: mailer === 'console' ? 'Development: emails are written to the terminal' : 'Not set (ZEPTOMAIL_API_KEY)' },
     !paypalSet
       ? { key: 'pay', label: 'Payments', tone: 'off', text: 'PayPal keys not set (test gateway)' }
       : { key: 'pay', label: 'Payments', tone: 'ok', text: webhookAt ? `Last verified webhook ${new Date(webhookAt).toISOString().slice(0, 16).replace('T', ' ')} UTC` : 'Keys set, no webhook yet' },

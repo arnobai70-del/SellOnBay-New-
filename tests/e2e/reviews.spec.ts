@@ -20,12 +20,12 @@ const ldOf = async (r: APIRequestContext, path: string) => {
 };
 
 test.describe('reviews', () => {
-  test('a product without a real review has Product data but no rating in its structured data', async ({ request }) => {
+  test('a product without a real review has no Product structured data (Google reports it as an error without offers, a review or a rating)', async ({ request }) => {
     const ld = await ldOf(request, '/product/folio-studio');
-    expect(ld['@type']).toBe('Product');
-    expect(ld.offers).toBeUndefined(); // O-11: quotation pricing, no offers.price
-    expect(ld.aggregateRating).toBeUndefined();
-    expect(ld.review).toBeUndefined();
+    expect(ld?.['@type']).not.toBe('Product');
+    expect(ld?.offers).toBeUndefined(); // O-11: quotation pricing, no offers.price
+    expect(ld?.aggregateRating).toBeUndefined();
+    expect(ld?.review).toBeUndefined();
   });
   test('only an accepted order can be reviewed; then one review, with the rating shown on the product page and in the structured data', async ({ request, page }) => {
     const id = await accepted(request, 'clinic-desk');

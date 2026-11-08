@@ -1,9 +1,10 @@
 // Runs every migration in order against an in-process Postgres (PGlite) with small stand-ins for Supabase (auth, storage, cron, roles).
 // Catches SQL mistakes and clashes between migrations without touching any real database. Usage: node scripts/check-migrations.mjs
 import { PGlite } from '@electric-sql/pglite';
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 import { forPglite, migrationFiles, STAND_INS } from './lib/pgliteSupabase.mjs';
 
-const db = new PGlite();
+const db = new PGlite({ extensions: { pg_trgm } });
 
 await db.exec(STAND_INS);
 
@@ -324,9 +325,7 @@ if (!failed) {
     if (
       JSON.stringify(plans) !==
       JSON.stringify([
-        { code: 'free', monthly_cents: 0, yearly_cents: 0, commission_bps: 1500, listing_limit: 5 },
-        { code: 'pro', monthly_cents: 1900, yearly_cents: 19380, commission_bps: 1000, listing_limit: 25 },
-        { code: 'business', monthly_cents: 4900, yearly_cents: 49980, commission_bps: 500, listing_limit: 100 },
+        { code: 'free', monthly_cents: 0, yearly_cents: 0, commission_bps: 2200, listing_limit: 100 }, // the flat plan (0074); older versions are kept but not offered
       ])
     )
       throw new Error('plan seed rows differ: ' + JSON.stringify(plans));

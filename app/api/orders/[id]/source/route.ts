@@ -28,7 +28,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL('/login?next=' + encodeURIComponent(`/api/orders/${id}/source`), originOf(req)));
+  if (!user) return NextResponse.redirect(new URL('/signin?next=' + encodeURIComponent(`/api/orders/${id}/source`), originOf(req)));
 
   const { data: order } = await supabase.from('orders').select('*').eq('id', id).single();
   if (!order || order.buyer_id !== user.id) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });

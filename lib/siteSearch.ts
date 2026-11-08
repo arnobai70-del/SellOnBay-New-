@@ -14,6 +14,7 @@ import { markdownText } from './markdown';
 import { publishedPosts } from './posts';
 import { SEO_PAGES } from './seo/pageList';
 import { type Doc, type Hit, pageSections, searchDocs, textFragment, words } from './siteSearchCore';
+import { plainWords } from './glass/words';
 
 /*
  * The site search (owner, 2026-10-21): products on every shelf, categories and topics, the words on the public pages, blog posts and
@@ -107,8 +108,9 @@ export async function siteSearch(q: string, perKind = 50): Promise<Hit[]> {
     // Products and the five category pages only: no pages, posts, developers or old shelves.
     const alloc = await allocation();
     const { docs } = await productDocs();
-    const cats: Doc[] = HUBS.map((h) => ({ kind: 'category', title: h.name, href: hubPublicPath(h, alloc), sub: 'Website templates', text: `${h.description} ${h.cats.join(' ')}` }));
-    return searchDocs([...docs, ...cats], q, perKind);
+    const cats: Doc[] = HUBS.map((h) => ({ kind: 'category', title: h.name, href: hubPublicPath(h, alloc), sub: 'Websites', text: `${h.description} ${h.cats.join(' ')}` }));
+    // Shown without the removed word (Phase 7): stored names stay as the seller wrote them, only the display changes (lib/glass/words.ts).
+    return searchDocs([...docs, ...cats], q, perKind).map((h) => ({ ...h, title: plainWords(h.title), sub: h.sub ? plainWords(h.sub) : h.sub, snippet: plainWords(h.snippet) }));
   }
   const [{ docs: products, all }, pages, posts, devs] = await Promise.all([productDocs(), pageDocs(), postDocs().catch(() => []), devDocs().catch(() => [])]);
   const hits = searchDocs([...products, ...categoryDocs(all), ...pages, ...posts, ...devs], q, perKind);

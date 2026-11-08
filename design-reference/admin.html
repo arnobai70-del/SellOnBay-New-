@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SellOnBay Admin — Overview</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#2B4250;background:#EDF3F6;-webkit-font-smoothing:antialiased}
+a{color:#1A5444}a:hover{color:#13453A}
+.page{min-height:100%;padding:16px;box-sizing:border-box;position:relative;overflow:hidden;isolation:isolate;background:radial-gradient(900px 520px at 8% -6%,#D9EDF5 0%,rgba(217,237,245,0) 62%),radial-gradient(820px 520px at 96% 8%,#DCF2E9 0%,rgba(220,242,233,0) 60%),#EDF3F6}
+.page::before,.page::after{content:"";position:absolute;z-index:-1;width:620px;height:620px;border-radius:50%;filter:blur(90px);opacity:.55;pointer-events:none}
+.page::before{top:-160px;left:-140px;background:#CBE6F2;animation:sob-drift1 22s ease-in-out infinite}
+.page::after{top:300px;right:-200px;background:#CFEFE2;animation:sob-drift2 26s ease-in-out infinite}
+.glass{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(43,66,80,.06);border-radius:20px}
+.shell{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;max-width:1440px;margin:0 auto}
+.side{flex:1 1 220px;max-width:250px;padding:18px 12px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
+.col{flex:999 1 640px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.logo{font-weight:600;font-size:17px;color:#2B4250;text-decoration:none;display:flex;align-items:center;gap:10px;padding:2px 10px 10px}
+.dot{width:24px;height:24px;border-radius:8px;background:#CDEBDF;border:1px solid #fff}
+.grp{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#566C78;padding:14px 12px 4px}
+.mi{display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:0 12px;border-radius:12px;color:#3D5563;text-decoration:none;font-size:14px;transition:background .3s,transform .3s}
+.mi:hover{background:rgba(255,255,255,.8);color:#2B4250;transform:translateX(2px)}
+.mi.on{background:#CDEBDF;color:#1A5444;font-weight:500}
+.cnt{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#FBEFD9;color:#6E4B12;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:999px}
+.gsearch{flex:1 1 280px;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;min-height:44px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #DCE7EC}
+.gsearch input{flex:1;min-width:0;border:0;background:transparent;font:14px 'Inter',sans-serif;color:#2B4250;outline:none;min-height:42px}
+kbd{font:11px 'Inter',sans-serif;padding:3px 7px;border-radius:6px;border:1px solid #D3E2E9;background:#fff;color:#566C78}
+.iconbtn{position:relative;width:44px;height:44px;border-radius:50%;border:1px solid #DCE7EC;background:rgba(255,255,255,.75);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#2B4250}
+.iconbtn .b{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:#C2553F;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.me{display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #DCE7EC}
+.av{width:36px;height:36px;border-radius:50%;background:#E6E2F4;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;background:#CDEBDF;color:#1A5444;font:500 14px 'Inter',sans-serif;text-decoration:none;border:1px solid rgba(255,255,255,.9);cursor:pointer;box-sizing:border-box;white-space:nowrap;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,background .3s}
+.btn:hover{background:#BDE3D4;color:#13453A;transform:translateY(-2px);box-shadow:0 10px 24px rgba(63,143,119,.18)}
+.btn.ghost{background:rgba(255,255,255,.72);border:1px solid #D3E2E9;color:#2B4250}
+.btn.warn{background:#F6E3E0;color:#7A2E24}
+.btn.sm{min-height:40px;padding:0 14px;font-size:13px}
+.muted{color:#566C78}
+h1,h2,h3{font-weight:400;margin:0;letter-spacing:-.015em}
+h1{font-size:28px}h2{font-size:19px}
+.tag{font-size:12px;color:#566C78;margin-top:4px}
+.card{padding:22px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{padding:18px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}.kpi:hover{transform:translateY(-4px)}
+.kpi .l{font-size:13px;color:#566C78}.kpi .v{font-size:28px;font-weight:300;margin-top:8px}.kpi .s{font-size:12px;color:#566C78;margin-top:4px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.status{display:inline-flex;align-items:center;min-height:26px;padding:0 10px;border-radius:999px;font-size:12px;white-space:nowrap}
+.st-ok{background:#E2F3EC;color:#1A5444}.st-wait{background:#FBEFD9;color:#6E4B12}.st-bad{background:#F6E3E0;color:#7A2E24}.st-info{background:#DDEAF6;color:#24476B}.st-draft{background:#E8EEF2;color:#3D5563}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;font-size:11px;color:#566C78;padding:12px 14px;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid rgba(220,231,236,.9);vertical-align:middle}
+tbody tr{transition:background .3s}tbody tr:hover{background:rgba(255,255,255,.55)}
+.tbl{overflow-x:auto}
+.seg{display:inline-flex;flex-wrap:wrap;padding:4px;border-radius:999px;background:rgba(255,255,255,.6);border:1px solid #DCE7EC}
+.seg button{min-height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:13px 'Inter',sans-serif;color:#566C78;cursor:pointer;transition:background .35s,color .35s,box-shadow .35s}
+.seg button.on{background:#fff;color:#2B4250;font-weight:500;box-shadow:0 2px 8px rgba(43,66,80,.08)}
+.field label{display:block;font-size:13px;color:#3D5563;margin-bottom:6px}
+.input{width:100%;box-sizing:border-box;min-height:44px;border-radius:12px;border:1px solid #D3E2E9;background:rgba(255,255,255,.85);padding:0 14px;font:14px 'Inter',sans-serif;color:#2B4250;transition:border-color .3s,box-shadow .3s}
+.input:focus{outline:none;border-color:#7FBFA9;box-shadow:0 0 0 4px rgba(127,191,169,.18)}
+textarea.input{padding:12px 14px;min-height:96px;resize:vertical}
+.bar{height:8px;border-radius:999px;background:#E1EAEF;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:#7FBFA9;animation:sob-fill 1.8s cubic-bezier(.2,.8,.2,1) .5s both}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;border:0;background:#D3E2E9;cursor:pointer;flex:none;transition:background .3s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sw.on{background:#5FA88F}.sw.on::after{transform:translateX(20px)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(220,231,236,.9)}
+.li:first-child{border-top:0}
+.chk{display:flex;align-items:center;gap:10px;min-height:36px;font-size:14px;color:#3D5563}
+.chk input{width:18px;height:18px;accent-color:#3F8F77}
+.hidden-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@keyframes sob-rise{from{opacity:0;transform:translateY(24px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes sob-slide{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes sob-drop{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes sob-drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes sob-drift2{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-110px,120px) scale(.95)}}
+@keyframes sob-fill{from{width:0}}
+@keyframes sob-ringfill{from{stroke-dashoffset:314}}
+@keyframes sob-draw{to{stroke-dashoffset:0}}
+@keyframes sob-blink{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes sob-ring{0%,100%{box-shadow:0 0 0 0 rgba(194,85,63,.45)}50%{box-shadow:0 0 0 6px rgba(194,85,63,0)}}
+.glass{animation:sob-rise .9s cubic-bezier(.2,.8,.2,1) both}
+.glass:nth-child(2){animation-delay:.06s}.glass:nth-child(3){animation-delay:.12s}.glass:nth-child(4){animation-delay:.18s}.glass:nth-child(5){animation-delay:.24s}.glass:nth-child(6){animation-delay:.3s}
+.topbar{animation:sob-drop .8s cubic-bezier(.2,.8,.2,1) both}
+.mi{animation:sob-slide .6s cubic-bezier(.2,.8,.2,1) both}
+tbody tr{animation:sob-slide .6s cubic-bezier(.2,.8,.2,1) .3s both}
+.st-wait{animation:sob-blink 2.4s ease-in-out infinite}
+.iconbtn .b{animation:sob-ring 2.2s ease-in-out infinite}
+polyline.draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:sob-draw 2.4s cubic-bezier(.4,0,.2,1) .4s forwards}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.qa{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:16px;border-radius:16px;background:rgba(255,255,255,.7);border:1px solid #DCE7EC;text-decoration:none;color:#2B4250;font-size:14px;font-weight:500;transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s}
+.qa:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(43,66,80,.08);color:#2B4250}
+.qa span{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.editing .widget{outline:2px dashed #9CCDBB;outline-offset:4px}
+.ring{width:132px;height:132px;flex:none}
+
+</style>
+
+<style>html,body{height:100%}input,select,textarea,button{font-family:inherit}</style>
+</head>
+<body>
+
+
+<div class="page">
+<div class="shell">
+<aside class="glass side" aria-label="Admin menu">
+<a class="logo" href="index.html"><span class="dot" aria-hidden="true"></span>SellOnBay <span class="tag" style="margin:0 0 0 2px">Admin</span></a>
+<a class="mi on" href="admin.html" aria-current="page"><span>Overview</span></a>
+<div class="grp">Operations</div>
+<a class="mi" href="admin-orders.html"><span>Orders &amp; payments</span><span class="cnt" aria-label="4 waiting">4</span></a>
+<a class="mi" href="admin-listings.html"><span>Listing review</span><span class="cnt" aria-label="2 waiting">2</span></a>
+<a class="mi" href="admin-support.html"><span>Disputes &amp; support</span><span class="cnt" aria-label="3 waiting">3</span></a>
+<a class="mi" href="admin-domains.html"><span>Domains</span></a>
+<div class="grp">Money</div>
+<a class="mi" href="admin-finance.html"><span>Finance &amp; payouts</span></a>
+<a class="mi" href="admin-reports.html"><span>Reports</span></a>
+<div class="grp">People</div>
+<a class="mi" href="admin-users.html"><span>Users &amp; roles</span></a>
+<div class="grp">Growth</div>
+<a class="mi" href="admin-marketing.html"><span>Marketing</span></a>
+<div class="grp">System</div>
+<a class="mi" href="admin-security.html"><span>Security &amp; logs</span><span class="cnt" aria-label="1 waiting">1</span></a>
+<a class="mi" href="admin-settings.html"><span>Settings</span></a>
+<div style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,255,255,.6);border:1px solid #DCE7EC"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77"></span>All systems normal</div><a href="admin-settings.html#health" class="tag" style="display:block">View system health</a></div>
+</aside>
+<div class="col">
+<header class="glass topbar">
+<div class="gsearch"><label for="gs" class="hidden-label">Search everything</label><svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="#566C78" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="gs" placeholder="Search orders, users, domains, bKash TrxID…"><kbd>Ctrl K</kbd></div>
+<a class="btn" href="admin-orders.html#pos">+ Manual order</a>
+<button class="iconbtn" type="button" aria-label="Notifications, 7 new"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg><span class="b">7</span></button>
+<label for="lang" class="hidden-label">Language</label><select id="lang" class="input" style="width:auto;min-width:110px;border-radius:999px"><option>English</option><option>বাংলা</option></select>
+<div class="me"><span class="av" aria-hidden="true">SA</span><div><div style="font-size:13px;font-weight:500">Super admin</div><div class="tag" style="margin:0">Demo workspace</div></div></div>
+</header>
+<div class="row">
+<div><h1>Good morning, Admin</h1><div class="tag">Here is what needs you today · sample numbers</div></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<div class="seg" role="tablist" aria-label="Period"><button type="button" class="" onclick="">Today</button><button type="button" class="" onclick="">7 days</button><button type="button" class="on" onclick="">30 days</button><button type="button" class="" onclick="">This month</button></div>
+<button class="btn ghost" type="button" onclick="">Customize</button>
+</div>
+</div>
+
+
+
+<div class="" style="display:flex;flex-direction:column;gap:16px">
+<div class="kpis">
+
+<div class="glass kpi widget"><div class="l">Gross sales</div><div class="v">$4,820</div><div class="s">↑ 12% vs last period</div></div>
+
+<div class="glass kpi widget"><div class="l">Platform income (22%)</div><div class="v">$1,060</div><div class="s">After refunds</div></div>
+
+<div class="glass kpi widget"><div class="l">Held in escrow</div><div class="v">$612</div><div class="s">7 orders in review</div></div>
+
+<div class="glass kpi widget"><div class="l">Payments to verify</div><div class="v">3</div><div class="s">bKash 2 · Bank 1</div></div>
+
+<div class="glass kpi widget"><div class="l">Open disputes</div><div class="v">1</div><div class="s">Oldest 42h</div></div>
+
+<div class="glass kpi widget"><div class="l">Payouts due</div><div class="v">$1,280</div><div class="s">Thursday</div></div>
+
+</div>
+
+<section class="glass card widget">
+<div class="row" style="margin-bottom:14px"><h2>Quick access</h2><span class="tag" style="margin:0">Most used actions</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+
+<a class="qa" href="admin-orders.html#pos"><span style="background:#DCF0E7" aria-hidden="true"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#2B4250" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg></span>Manual order</a>
+
+<a class="qa" href="admin-orders.html"><span style="background:#FBEFD9" aria-hidden="true"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#2B4250" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></span>Verify payments</a>
+
+<a class="qa" href="admin-listings.html"><span style="background:#DDEAF6" aria-hidden="true"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#2B4250" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"></path></svg></span>Review listings</a>
+
+<a class="qa" href="admin-finance.html"><span style="background:#E6E2F4" aria-hidden="true"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#2B4250" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v10H3zM7 12h.01M17 12h.01"></path></svg></span>Process payouts</a>
+
+<a class="qa" href="admin-marketing.html"><span style="background:#F1E8DD" aria-hidden="true"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#2B4250" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-8-8 8-8zM12 9v.01"></path></svg></span>Create coupon</a>
+
+<a class="qa" href="admin-reports.html"><span style="background:#E8EEF2" aria-hidden="true"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="#2B4250" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"></path></svg></span>Export report</a>
+
+</div>
+</section>
+
+<div class="grid2">
+<section class="glass card widget">
+<div class="row"><h2>Sales trend</h2><span class="tag" style="margin:0">30 days · sample</span></div>
+<svg viewbox="0 0 600 180" style="width:100%;height:180px;display:block;margin-top:10px" role="img" aria-label="Sales rising over the selected period">
+<line x1="0" y1="40" x2="600" y2="40" stroke="#DCE7EC"></line><line x1="0" y1="100" x2="600" y2="100" stroke="#DCE7EC"></line><line x1="0" y1="160" x2="600" y2="160" stroke="#DCE7EC"></line>
+<polyline class="draw" points="10,165 68,150 126,156 184,128 242,132 300,104 358,110 416,84 474,80 532,56 590,48" fill="none" stroke="#5FA88F" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></polyline>
+</svg>
+</section>
+<section class="glass card widget" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+<svg class="ring" viewbox="0 0 120 120" role="img" aria-label="62 percent of monthly target reached">
+<circle cx="60" cy="60" r="50" fill="none" stroke="#E1EAEF" stroke-width="12"></circle>
+<circle cx="60" cy="60" r="50" fill="none" stroke="#5FA88F" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="119" transform="rotate(-90 60 60)" style="animation:sob-ringfill 1.8s cubic-bezier(.2,.8,.2,1) .4s both"></circle>
+<text x="60" y="66" text-anchor="middle" font-size="22" fill="#2B4250" font-family="Inter">62%</text>
+</svg>
+<div style="flex:1 1 180px"><h2>Monthly target</h2><div class="muted" style="font-size:14px;margin-top:6px;line-height:1.6">$4,820 of $7,800 · 24 days in</div><div class="tag">On track if sales hold at $135/day</div><a class="btn sm ghost" href="admin-settings.html" style="margin-top:12px">Edit target</a></div>
+</section>
+</div>
+
+<div class="grid2">
+<section class="glass card widget">
+<div class="row" style="margin-bottom:6px"><h2>Needs your attention</h2><span class="status st-wait">5 items</span></div>
+
+<div class="li"><span class="status st-wait">Payments</span><div style="flex:1;min-width:0;font-size:14px">3 bKash / bank payments waiting for verification</div><a class="btn sm ghost" href="admin-orders.html">Verify</a></div>
+
+<div class="li"><span class="status st-info">Listings</span><div style="flex:1;min-width:0;font-size:14px">2 new websites waiting for review</div><a class="btn sm ghost" href="admin-listings.html">Review</a></div>
+
+<div class="li"><span class="status st-bad">Dispute</span><div style="flex:1;min-width:0;font-size:14px">Commerce Kit buyer reported a problem · 6h left</div><a class="btn sm ghost" href="admin-support.html">Open</a></div>
+
+<div class="li"><span class="status st-ok">Payouts</span><div style="flex:1;min-width:0;font-size:14px">3 sellers ready for Thursday payout</div><a class="btn sm ghost" href="admin-finance.html">Pay</a></div>
+
+<div class="li"><span class="status st-draft">Domains</span><div style="flex:1;min-width:0;font-size:14px">4 domains expire in the next 7 days</div><a class="btn sm ghost" href="admin-domains.html">Remind</a></div>
+
+</section>
+<section class="glass card widget">
+<div class="row" style="margin-bottom:6px"><h2>Escrow review timers</h2><a class="tag" style="margin:0" href="admin-orders.html">All orders</a></div>
+
+<div class="li" style="flex-direction:column;align-items:stretch;gap:8px"><div class="row" style="font-size:14px"><span><b style="font-weight:500">#SB-1042</b> <span class="muted">· Commerce Kit</span></span><span class="status st-bad">6h left</span></div><div class="bar"><i style="width:88%"></i></div></div>
+
+<div class="li" style="flex-direction:column;align-items:stretch;gap:8px"><div class="row" style="font-size:14px"><span><b style="font-weight:500">#SB-1039</b> <span class="muted">· Studio Portfolio</span></span><span class="status st-wait">22h left</span></div><div class="bar"><i style="width:54%"></i></div></div>
+
+<div class="li" style="flex-direction:column;align-items:stretch;gap:8px"><div class="row" style="font-size:14px"><span><b style="font-weight:500">#SB-1037</b> <span class="muted">· SaaS Dashboard</span></span><span class="status st-ok">31h left</span></div><div class="bar"><i style="width:35%"></i></div></div>
+
+<div class="li" style="flex-direction:column;align-items:stretch;gap:8px"><div class="row" style="font-size:14px"><span><b style="font-weight:500">#SB-1035</b> <span class="muted">· Blog Platform</span></span><span class="status st-ok">44h left</span></div><div class="bar"><i style="width:8%"></i></div></div>
+
+</section>
+</div>
+
+<div class="grid2">
+<section class="glass card widget">
+<div class="row" style="margin-bottom:6px"><h2>Recent activity</h2><a class="tag" style="margin:0" href="admin-security.html">Activity log</a></div>
+
+<div class="li"><span class="av" style="width:32px;height:32px;font-size:11px;background:#DDEAF6" aria-hidden="true">FN</span><div style="flex:1;min-width:0;font-size:14px">Finance verified bKash payment for #SB-1041</div><span class="tag" style="margin:0;white-space:nowrap">12m ago</span></div>
+
+<div class="li"><span class="av" style="width:32px;height:32px;font-size:11px;background:#DCF0E7" aria-hidden="true">MD</span><div style="flex:1;min-width:0;font-size:14px">Moderator approved “Clinic Booking” by Daniel</div><span class="tag" style="margin:0;white-space:nowrap">40m ago</span></div>
+
+<div class="li"><span class="av" style="width:32px;height:32px;font-size:11px;background:#E6E2F4" aria-hidden="true">SA</span><div style="flex:1;min-width:0;font-size:14px">Super admin changed role “Support” permissions</div><span class="tag" style="margin:0;white-space:nowrap">2h ago</span></div>
+
+<div class="li"><span class="av" style="width:32px;height:32px;font-size:11px;background:#F1E8DD" aria-hidden="true">SP</span><div style="flex:1;min-width:0;font-size:14px">Support extended review window for #SB-1038</div><span class="tag" style="margin:0;white-space:nowrap">3h ago</span></div>
+
+<div class="li"><span class="av" style="width:32px;height:32px;font-size:11px;background:#DDEAF6" aria-hidden="true">FN</span><div style="flex:1;min-width:0;font-size:14px">Finance exported Seller earnings (CSV)</div><span class="tag" style="margin:0;white-space:nowrap">5h ago</span></div>
+
+</section>
+<section class="glass card widget">
+<div class="row" style="margin-bottom:6px"><h2>System health</h2><a class="tag" style="margin:0" href="admin-settings.html#health">Details</a></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Database</span><span class="muted" style="font-size:13px">Connected</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Payment gateways</span><span class="muted" style="font-size:13px">Card, bKash online</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Email & SMS</span><span class="muted" style="font-size:13px">Sending</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#C9962E;flex:none"></span><span style="flex:1">Domain registrar API</span><span class="muted" style="font-size:13px">Slow · 2.4s</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Background jobs</span><span class="muted" style="font-size:13px">0 failed</span></div>
+
+<div class="li" style="font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#3F8F77;flex:none"></span><span style="flex:1">Last backup</span><span class="muted" style="font-size:13px">3 hours ago</span></div>
+
+</section>
+</div>
+
+<section class="glass card widget">
+<div class="row"><div><h2>Seller bulletin</h2><div class="tag">Last notice sent to all sellers</div></div><a class="btn sm ghost" href="admin-marketing.html">New bulletin</a></div>
+<p class="muted" style="margin:12px 0 0;font-size:14px;line-height:1.6">“Payouts for the week are processed every Thursday. Please keep your payout details and NID verification up to date.”</p>
+</section>
+</div>
+</div>
+</div>
+</div>
+
+</body>
+</html>

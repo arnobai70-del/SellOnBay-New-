@@ -33,7 +33,7 @@ export function onTimeShare(orders: Pick<Order, 'deliveredAt' | 'dueAt'>[]): num
   return done.filter((o) => o.deliveredAt! <= o.dueAt!).length / done.length;
 }
 
-/* Sums per payout week (Sunday), the last `weeks` weeks ending with the current one, oldest first. */
+/* Sums per payout week (Thursday UTC), the last `weeks` weeks ending with the current one, oldest first. */
 export function weeklyBuckets(items: { at: number; cents: number }[], now: number, weeks = 8): { week: string; cents: number }[] {
   const start = Date.parse(weekStartOf(now) + 'T00:00:00Z');
   const out = Array.from({ length: weeks }, (_, i) => ({ week: new Date(start - (weeks - 1 - i) * 7 * DAY_MS).toISOString().slice(0, 10), cents: 0 }));

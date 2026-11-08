@@ -67,7 +67,7 @@ export function GuestPanel() {
       </div>
 
       <div className="gp-cta">
-        <Link className="btn btn-blue" href="/login">
+        <Link className="btn btn-blue" href="/signin">
           Sign in or make an account
         </Link>
         <Link className="btn btn-line" href="/sell">

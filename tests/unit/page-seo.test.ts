@@ -23,18 +23,18 @@ describe('page titles and descriptions an admin can change', () => {
   });
 
   it('uses the built-in words until an admin saves, then exactly what was saved', async () => {
-    expect(await pageMetadata('/faq')).toMatchObject({ title: 'Questions and answers' });
-    expect((await pageMetadata('/faq')).openGraph).toBeUndefined(); // the site-wide share card stays
-    expect(await setPageSeo('admin-1', '/faq', { title: '  Website questions answered  ', description: 'Escrow, refunds, delivery and domains in plain words.' })).toEqual({ ok: true });
-    const m = await pageMetadata('/faq');
+    expect(await pageMetadata('/help')).toMatchObject({ title: 'Help center' });
+    expect((await pageMetadata('/help')).openGraph).toBeUndefined(); // the site-wide share card stays
+    expect(await setPageSeo('admin-1', '/help', { title: '  Website questions answered  ', description: 'Escrow, refunds, delivery and domains in plain words.' })).toEqual({ ok: true });
+    const m = await pageMetadata('/help');
     expect(m.title).toEqual({ absolute: 'Website questions answered' });
     expect(m.description).toBe('Escrow, refunds, delivery and domains in plain words.');
     expect(m.openGraph).toMatchObject({ title: 'Website questions answered', description: 'Escrow, refunds, delivery and domains in plain words.' });
-    expect((await auditList(10)).some((e) => e.action === 'seo_page_changed' && e.targetRef === '/faq')).toBe(true);
+    expect((await auditList(10)).some((e) => e.action === 'seo_page_changed' && e.targetRef === '/help')).toBe(true);
 
     // Empty boxes go back to the built-in words.
-    expect(await setPageSeo('admin-1', '/faq', { title: '', description: '' })).toEqual({ ok: true });
-    expect(await pageMetadata('/faq')).toMatchObject({ title: 'Questions and answers' });
+    expect(await setPageSeo('admin-1', '/help', { title: '', description: '' })).toEqual({ ok: true });
+    expect(await pageMetadata('/help')).toMatchObject({ title: 'Help center' });
   });
 
   it('keeps a page’s own extras and refuses bad input', async () => {

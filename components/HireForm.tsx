@@ -130,7 +130,7 @@ export function HireForm({ dev, start, live }: { dev: Dev; start: number; live: 
           <label className="check">
             <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} />
             <span>
-              I agree to the <Link href="/terms">terms</Link>. Work starts after payment is held in escrow.
+              I agree to the <Link href="/legal/terms">terms</Link>. Work starts after payment is held in escrow.
             </span>
           </label>
           {err && (

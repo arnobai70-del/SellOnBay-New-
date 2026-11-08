@@ -1,3 +1,4 @@
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { cannotAct } from '@/lib/accounts';
 import { audit } from '@/lib/admin/audit';
@@ -16,7 +17,7 @@ const no = (error: string, status = 400) => NextResponse.json({ error }, { statu
  * refused, every change is in the audit log, and the seller is told by notification and email, so a stolen session cannot quietly redirect payouts.
  */
 export async function POST(req: Request) {
-  const closed = await maintenanceFor('seller'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('payouts'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   if (!supabaseConfigured) return no('Payout details need an account. There are none in demo mode.', 404);
   const sb = await createClient();
@@ -28,18 +29,21 @@ export async function POST(req: Request) {
   if (!p || cannotAct(p)) return no('This account cannot change payout details.', 403);
   if (p.role !== 'seller' && p.role !== 'admin') return no('Only sellers are paid out.', 403);
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== 'aal2') return no('Enter your authenticator code first.', 403);
+  if (!passedCode(aal)) return no('Enter your authenticator code first.', 403);
   if (!(await limit(`payout-details:${user.id}`, 5, 24 * 3_600_000))) return no('You changed your payout details a few times today. Try again tomorrow.', 429);
 
   const body = (await req.json().catch(() => null)) as { method?: unknown; account?: unknown } | null;
-  const c = checkPayoutDetails(body?.method, body?.account);
+  const admin = createAdminClient();
+  const { data: who } = await admin.from('profiles').select('country').eq('id', user.id).single();
+  const c = checkPayoutDetails(body?.method, body?.account, who?.country);
   if (!c.ok) return no(c.error);
 
-  const admin = createAdminClient();
   const { data: before } = await admin.from('seller_profiles').select('payout_method, payout_ref').eq('user_id', user.id).maybeSingle();
   const { error } = before
-    ? await admin.from('seller_profiles').update({ payout_method: c.method, payout_ref: c.account }).eq('user_id', user.id)
-    : await admin.from('seller_profiles').insert({ user_id: user.id, display_name: p.full_name || 'Seller', payout_method: c.method, payout_ref: c.account });
+    ? await admin.from('seller_profiles').update({ payout_method: c.method, payout_ref: c.account, payout_changed_at: new Date().toISOString() }).eq('user_id', user.id)
+    : await admin
+        .from('seller_profiles')
+        .insert({ user_id: user.id, display_name: p.full_name || 'Seller', payout_method: c.method, payout_ref: c.account, payout_changed_at: new Date().toISOString() });
   if (error) return no('Could not save your payout details. Try again.', 500);
   const was = payoutLabel(before?.payout_method, before?.payout_ref);
   const now = payoutLabel(c.method, c.account)!;

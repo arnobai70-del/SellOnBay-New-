@@ -52,7 +52,7 @@ export async function launchChecks(): Promise<Check[]> {
     c(
       'Scheduled jobs',
       jobsOk,
-      `CRON_SECRET, and a scheduler calling POST /api/cron/orders every 5 to 10 minutes and /api/cron/payouts on Sundays. Orders job last finished: ${when(orders)}${late('orders', orders)}. Payout job last finished: ${when(payouts)}${late('payouts', payouts)}.`,
+      `CRON_SECRET, and a scheduler calling POST /api/cron/orders every 5 to 10 minutes and /api/cron/payouts on Thursdays (UTC). Orders job last finished: ${when(orders)}${late('orders', orders)}. Payout job last finished: ${when(payouts)}${late('payouts', payouts)}.`,
     ),
     c('Abuse hashing salt', derivedSecret('GUARD_SALT') !== null, 'Made from the Supabase service key. Set GUARD_SALT only if you want your own; changing it later forgets blocks.'),
     c(
@@ -89,7 +89,6 @@ export async function launchChecks(): Promise<Check[]> {
     c('Examples cannot be bought', process.env.EXAMPLE_ORDERS !== '1', 'EXAMPLE_ORDERS must not be set on the live site.'),
     // Each of these switches a protection off; none may be set when real buyers come (lib/demoMode.ts also ignores the first on a live configuration).
     c('Demo mode off', process.env.LAUNCHBAY_DEMO !== '1', 'LAUNCHBAY_DEMO must not be set on the live site (it would switch sign-in and the database off; it is ignored there, but remove it).'),
-    c('Test cards off', process.env.ENABLE_TEST_CHECKOUT !== '1', 'ENABLE_TEST_CHECKOUT lets test cards fund orders: remove it before the market opens.'),
     // Never "ok": the owner removed malware scanning and accepted the risk (2026-10-29). It stays visible so nobody mistakes it for done.
     c('Malware scanning', false, 'REMOVED BY OWNER — SECURITY RISK ACCEPTED. Seller files are not scanned for malware; the sandbox review is the only check of what the code does.', 'warn'),
     c(
@@ -105,8 +104,8 @@ export async function launchChecks(): Promise<Check[]> {
     c('PayPal is live', paymentProvider().name !== 'paypal' || process.env.PAYPAL_ENV === 'live', 'PAYPAL_ENV is not live, so PayPal runs in sandbox: no real money moves.', 'warn'),
     c(
       'Email',
-      emailProvider().name === 'resend',
-      'Optional. A RESEND_API_KEY turns real email on (the sender defaults to noreply@your domain, which must be verified in Resend; EMAIL_FROM changes it). Configuration is not proof of delivery: send and confirm a staging email.',
+      ['zeptomail', 'resend'].includes(emailProvider().name),
+      'ZEPTOMAIL_API_KEY (and ZEPTOMAIL_HOST) turns real email on, through Zoho ZeptoMail. Until launch only our own and test addresses receive it (EMAIL_ALLOW_ALL=1 lifts that). Nothing else is needed: Resend is only an optional fallback (EMAIL_PROVIDER=resend). Configuration is not proof of delivery: send and confirm a staging email.',
       'warn',
     ),
     c(

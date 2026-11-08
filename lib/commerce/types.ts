@@ -50,7 +50,7 @@ export const publicView = (
   kind: o.kind === 'product' ? ('site' as const) : ('hire' as const),
   state: o.state,
   instant: o.instant,
-  real: !!o.sellerId, // a real seller's order: no demo controls
+  real: !!o.sellerId || !o.demo, // a real order (a seller's, or any order not made in demo mode, SellOnBay's own listings included): no demo controls
   title: o.title,
   productId: o.productKey ?? undefined,
   dev: o.devKey ?? undefined,

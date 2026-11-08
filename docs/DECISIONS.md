@@ -129,3 +129,100 @@ Where the code differs from Blueprint v1.3 sections 5.6 and 5.7, and why:
   and the revision's own release, from private storage, hash-checked, logged like every download.
 - **Allowance:** only the quotation snapshot of the product's approved policy decides what is included. Orders from before quotations have
   no included revisions; their defects are still fixed free. Defects never count.
+
+## Glass UI redesign (owner, 2026-11-07)
+
+The handoff is `SELLONBAY_REDESIGN.md`, with the 44 reference pages in `design-reference/`. These answers were given after the Phase 0 audit. Each one is shipped in a later phase, and until then the code and the older rules above stay in force. Phase 1 changes none of these rules.
+
+- **Buying:** direct checkout for ready-made websites. Quotations stay for the Extended licence and custom work.
+- **Fee:** a new flat plan version, seller 78% and platform 22%. Existing orders keep their recorded fee. Pro and Business are hidden for new sellers.
+- **Payouts:** the 7-day hold stays. The copy is "Paid every Thursday for earnings accepted at least 7 days ago".
+- **Payments:** bKash and bank through the existing Finance check, cash for POS orders only. Card stays hidden until a provider is chosen, and then uses the provider's hosted fields only.
+- **Domains:** "Check availability" and manual registration. No promise of automatic setup until a registrar is connected.
+- **Accounts:** one account may buy and sell, with a `can_sell` flag. The authenticator code is required in seller mode.
+- **Messages:** a shared buyer and seller thread only inside an order. The contact filter stays, but the word "bKash" is allowed in order threads.
+- **Addresses and SEO:** category pages at `/websites/category/[category]`. `/websites`, `/domains` and `/blog` (as `/guides`) reopen, with 301s from every old address, including `/templates`. Google Analytics stays behind cookie consent and loads from the root layout. Offer data stays out of structured data (O-11).
+- **Wording:** "template" is removed from visible text and titles.
+- **Corrections to the design:** payment keys and the GA ID are shown read-only; no "Run backup now"; two-factor cannot be turned off for sellers or admins; hashed addresses only in the security log; no claims we cannot keep (domains in minutes, automatic connection, privacy included, SMS); refund copy includes the 7-day dispute window and the bug-fix guarantee.
+- **To retire:** three.js and JS motion on the home page, the dark and light switch (light only), the test-card form and demo controls, `AUTHENTICATOR_OFF`.
+- **Postponed:** the Bengali switcher and SMS.
+- **Placeholders:** values the owner has not given yet stay as clear `[PLACEHOLDER]` text.
+- **Environment:** migrations go to a separate dev Supabase project only. Nothing is applied to production without the owner's written ok.
+
+Google Analytics on private pages (Phase 1): once GA runs from the root layout it also sees signed-in pages, and a signed-out order is reachable by its id alone. On those pages GA gets the address with ids replaced by `[id]`, no query string and no hash (`gaPage` in `lib/ga4.ts`).
+
+## Global market, free beta and email (owner, 2026-11-07, after Phase 1)
+
+These replace the earlier answers above wherever they differ, above all the bKash and bank launch. Phases 2 to 7 build them; `docs/REDESIGN_PROGRESS.md` says what has shipped.
+
+**Global market**
+
+- SellOnBay is global, not Bangladesh-only. Copy is English-first and ready for i18n later (no language switcher yet). Times show in the user's timezone, phones use the international format, and profiles and invoices have a country field. No Bangladesh-specific claims, such as bKash as the main method.
+- Prices are in USD.
+- Future live payments: card and wallet through a hosted checkout provider (ideally a merchant of record for global VAT and sales tax), plus the existing PayPal path. bKash and bank transfer are local options shown only where relevant. Cash is for admin POS only. The payment interface is provider-agnostic and card uses hosted fields only. The owner chooses the provider later.
+- Seller payouts: PayPal, Payoneer, Wise or bank transfer worldwide; bKash only for Bangladesh sellers. "Thursday" means Thursday UTC, for earnings accepted at least 7 days ago.
+- Seller verification: government ID (passport, national ID or driver licence) and country. Kept in a private bucket, Finance access only.
+- Legal and privacy: ready for GDPR and CCPA (data export, deletion and cookie consent stay).
+- Security: admin access has no fixed country rule. Allowed countries are a setting. (No "Bangladesh only" rule existed in the code, so nothing had to be removed.)
+
+**Free beta (`PAYMENTS_MODE`)**
+
+- `PAYMENTS_MODE` is `beta_free` or `live`, default `beta_free`, editable only by a Super Admin, recorded in `audit_log`. All real payment code stays behind it and is not deleted.
+- Cart and checkout look the same, but the payment step is an honest notice: "Beta: free in exchange for your feedback. No payment is taken." The buyer gives name, email, country, optional company and "What will you use it for?". No card or bank form, nothing charged.
+- Submitting creates an order with status `beta_requested`, total $0 and method `beta_free`, with no escrow and no seller payout. It has no ledger row (see below).
+- Emails go through the queue: to sales@ a new beta request with the order link; to the buyer from support@ "Request received, we'll review it shortly".
+- Admin Orders & payments has a Beta requests tab: Approve (unlocks files and domain steps, emails the buyer) or Decline (with a reason).
+- 7 days after approval the buyer is emailed a short feedback form. Answers (rating, what worked, what to improve) are stored and shown to admins. Leaving a review is made easy.
+- Only listings marked `beta_free_ok` can be requested: all SellOnBay-owned listings, plus a seller opt-in switch "Offer this website free during beta" on the upload and edit page. Others show "Available after beta".
+- A small site-wide banner says: "SellOnBay is in beta. Websites are free for early users."
+
+**Email**
+
+- Human inboxes stay on Zoho Mail. App email goes through Zoho ZeptoMail by its API, behind the email provider interface, with `ZEPTOMAIL_API_KEY` and `ZEPTOMAIL_HOST`. In development emails are logged to the console instead of sent. Admin Settings has a development-only "send test email" button. Keys are never printed or committed; the owner adds real values.
+- Routing lives in config, never in pages: sales@ new checkout and beta requests; support@ sender for buyer emails, ticket replies, help and contact form; billing@ invoices, receipts, payment and payout questions; business@ partnerships and seller onboarding; report@ abuse, report seller, DMCA and security reports; dev@ system errors, health alerts and failed jobs; administrator@ critical admin and security alerts (all at sellonbay.com). The footer, help and contact page and legal pages use these.
+
+**How the work runs**
+
+- Phases 2 to 7 run without a pause between them. Each has its short plan in `docs/REDESIGN_PROGRESS.md`, its own branch from the previous one (`redesign/phase-N-...`) and small commits.
+- After each phase, build, lint, typecheck, tests and the browser check (360, 390, 768, 1280 px, reduced motion on and off) must pass, and the progress file says what is done, what is not and what to click.
+- Migrations are written and applied only to the dev Supabase project in `.env.local`. Placeholders stay as clear `[PLACEHOLDER]` values and are listed at the end.
+- Stop and ask only for: anything touching production (database, deploy, production environment, push to main); dropping or rewriting tables, columns or existing data; missing or production keys in `.env.local`; a money-rule choice not written here.
+
+**Working database and the open questions (owner, 2026-11-07, later the same day)**
+
+- There is no real customer data, so the existing Supabase project in `.env.local` is the working database for the redesign. This replaces "dev project only" for the database only. Deploying and pushing to main stay forbidden without the owner's word.
+- Before the first migration: a full `pg_dump` with `SUPABASE_DB_URL` (all schemas, including auth and storage metadata) into `backups/<date>-before-redesign.sql`, and every Storage file into `backups/storage/`. `backups/` is ignored by git.
+- The owner's real products and own admin and user accounts are never deleted or edited. Every test row is marked (email ending `@test.sellonbay.dev`, listing title starting with `[TEST]`) and listed in `docs/REDESIGN_PROGRESS.md`, so they can be removed before launch.
+- Pending migrations (0054 to 0073) are applied first, then the new ones, one at a time, with the tests run after each.
+- Emails go only to the owner's own addresses or test addresses; everything else is logged.
+- Beta orders have no ledger row. The record is an `order_events` row (`beta_requested`, $0, `beta_free`). This settles the question above.
+- The platform pays coupon discounts: the seller always gets 78% of the list price. `[PAYOUT FEE]` stays a placeholder.
+- During beta the Extended licence and custom work show "Available after beta". Only Standard licence websites can be requested free. The code stays behind `PAYMENTS_MODE`.
+- Phases 2 to 7 run continuously. Decisions that can be made during the build take the safest option that matches this file and are noted under "Decisions taken during build" in `docs/REDESIGN_PROGRESS.md`. Stop only to deploy, push to main, delete or rewrite existing data, or make a new money rule.
+
+## Admin additions for Phase 6 (owner, 2026-11-08)
+
+- **Admin › System › Visitors** (Super Admin and marketing; marketing is the existing Content scope, which already covers visitor analytics). Reads the GA4 Data API with a service account (`GA4_PROPERTY_ID`, `GA4_SERVICE_ACCOUNT_JSON`, server only, never committed). Without them the page shows a "Connect GA4" card and does not fail. Shows visitors today, 7 and 30 days with the trend, new and returning, top countries (table and bars), top pages, device split and top clicked sections, cached 15 minutes. Clicks are counted with `data-track="<section>"` on key buttons (hero search, featured websites, start selling, cart, checkout, domains), sent to GA as a `section_click` event only after consent, with no personal data. A cookieless first-party daily count (page and country from the host's geo header, never an address or user id) is shown beside it, labelled approximate.
+- **Admin › System › Server health** (Super Admin and a new Dev scope), extending the read-only System page. CPU, memory, disk and uptime of the machine only when we run on our own server (`HOST_KIND=server`); on shared or serverless hosting they are hidden and the page says why. Always: database and storage size against the plan limit, API p95, errors in 24 hours, the email queue and its failures, the last backup, SSL and domain expiry, the last job run. Under 80% normal, 80 to 90% warning, over 90% critical; a critical metric emails dev@ at most once an hour per metric. Read only, rate limited, never a key or value.
+- **Admin › Settings › Contact & social** (Super Admin, every change in `audit_log`), kept in `app_settings`. The seven contact addresses are editable and must end with @sellonbay.com; email routing reads them and falls back to the defaults. Social links `{platform, url, enabled, order}` for Facebook, Instagram, X, LinkedIn, YouTube, TikTok, GitHub, Telegram, WhatsApp, Discord, Threads, Pinterest, Behance and Dribbble, each https on that platform's own domain; add, remove, on and off, reorder, live footer preview. On the site: simple-icons brand marks (one colour, brand colour on hover; LinkedIn is not in simple-icons, so it gets a plain "in" mark), `aria-label="SellOnBay on <Platform>"`, `rel="noopener me"`, new tab; in the public footer, Help and Sell, and in the Organization JSON-LD `sameAs`. No row when none is on.
+- **Phase 7 cleanup:** unused code is found with knip, depcheck and a search for routes and components no longer imported or linked. The delete list goes in `docs/CLEANUP.md` and waits for the owner's ok (the only stop in Phase 7). Never deleted: migrations, `supabase/`, `.env*`, `backups/`, tests of live code, robots, sitemap and redirects, `docs/DECISIONS.md`, `SELLONBAY_REDESIGN.md`, anything still imported. Test rows stay until the owner says so. `design-reference/` stays until launch.
+
+## Cash at a point of sale, request timing, site builder reset (owner, 2026-11-08)
+
+- **Cash (POS)** is treated exactly like a verified bank transfer. An admin records the cash with its receipt number; SellOnBay holds the money in a "cash on hand" ledger account; the admin who took it is recorded in `audit_log`. Then the normal flow: 48-hour buyer review, acceptance, the 7-day hold, and the seller's 78% paid on the Thursday (UTC) payout. The POS desk is hidden while `PAYMENTS_MODE` is `beta_free`.
+- **Request timing:** one shared wrapper times the API routes, sampled, with no request bodies and no personal data (route pattern, method, status class and milliseconds only), so Server health shows a real API p95.
+- **Site builder reset** (menu, footer, page blocks, sections, social) saves an empty value instead of deleting the row, because the server may not delete `app_settings` rows (migration 0040).
+
+## Search, maintenance, guides editor, page editing and sale prices (owner, 2026-11-08)
+
+Built after the cash desk and before the Phase 7 cleanup.
+
+- **Smart search** (top bar, home hero, `/websites`): any part of a word, any letter sequence, typo-tolerant, with Postgres full-text and `pg_trgm` (similarity, prefix and infix `ILIKE`), weighted title > category and stack > seller > description > tags. Across websites, sellers, domains (an availability-check entry), guides and help articles, grouped by type. A live dropdown after 2 characters (debounced 200 ms) with the match highlighted, keyboard navigation (up, down, Enter, Escape), "See all results", recent searches, and "no results" with suggestions and popular categories. Indexed, rate limited, and the full results page works without JavaScript.
+- **Maintenance** (Admin › Settings › Maintenance), extending module maintenance: the whole site, a module (checkout, cart, seller upload, payouts, domains, guides, help, sign-up, messaging, search) or one page by its path. Per item: message, optional start and end (automatic), a banner some minutes before. Admins and an allow-listed address or session may still use the area. Visitors get the glass maintenance page with 503 and `Retry-After`; the related APIs answer 503. Every change audited; the status shows on Server health.
+- **Guides editor** (Admin › Content › Guides): a rich block editor (Tiptap) with headings 1 to 4, bold, italic, underline, strike, highlight, text colour, alignment, bullet, numbered and check lists, quote, code block, inline code, link, divider, table, callout, button, image (uploaded, resized, alt text required, caption), gallery, YouTube or video embed, a website card from our listings; slash menu, drag to reorder, undo and redo, word count and reading time. Per post: slug, category, tags, cover, author, SEO title and description, OG image, canonical, noindex; draft, schedule, publish, unpublish; autosave, revisions with restore, a preview link. Output is sanitized HTML, server-rendered, images optimized and lazy-loaded, Article JSON-LD.
+- **Edit every public page** (Admin › Content › Pages), extending the site builder and CMS: every public page (home, websites, the website detail layout, domains, sellers, sell, buyer protection, help, guides index, legal, 404 and maintenance, footer, top bar) is content blocks with today's text as the defaults. Admins edit text, buttons, links and pictures, show, hide and reorder sections, and set per-page SEO (title, description, OG image), with a live preview, draft and publish, history and restore; long text (legal) uses the same rich editor. Live data still comes from the database; dashboards stay in code. Content admin and Super Admin; every publish audited; GA and SEO tags are never broken by an edit.
+- **Prices:** no automatic struck-through "1.7x" price. Only real launch prices and sales:
+  - Data: a price history per listing (price, from, to) and a sale record (regular price, sale price, start, end, type "launch" or "sale"), set by the seller or an admin on the listing edit page. Sale price at least $20 and below the regular price, at most 30 days long, and no new sale on a listing until 30 days after its last one ended.
+  - Display: an existing listing on sale shows the struck-through price only when it was the lowest price the listing had in the 30 days before the sale began (EU rule), with "Sale ends in N days"; otherwise only the sale price. A new listing with no history shows "Launch price $50 · $85 from <date>" with nothing struck through. At the end the price returns to the regular price by itself (scheduled job, recorded in the history) and the badge goes.
+  - Money: the seller gets 78% of the price actually paid; coupons are still paid by the platform. In the free beta prices are shown for information and requests stay free.
+  - Shown on website cards, the website page, cart, checkout, the seller dashboard (a "Sale" status) and the admin listing review (with the history, to spot abuse).

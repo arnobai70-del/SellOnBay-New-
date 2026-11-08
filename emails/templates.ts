@@ -6,6 +6,11 @@ import { BUGFIX_DAYS, CONFIG, REVIEW_HOURS } from '../lib/config';
  * Short, plain verbs. Never put a secret, a card detail or somebody else's private data in here.
  */
 export type NotificationKind =
+  | 'beta_requested'
+  | 'beta_approved'
+  | 'beta_declined'
+  | 'beta_feedback'
+  | 'identity_checked'
   | 'order_funded'
   | 'order_due_soon'
   | 'order_delivered'
@@ -66,6 +71,17 @@ export type Payload = Record<string, string | number | boolean | null | undefine
 const t = (v: unknown, fallback = 'your order') => (typeof v === 'string' && v ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : fallback);
 
 export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: string; text: string }> = {
+  beta_requested: (p) => ({
+    subject: "Request received, we'll review it shortly",
+    text: `We have your request for ${t(p.title)}. It is free during the beta and no payment is taken. We'll email you when it has been reviewed.`,
+  }),
+  beta_approved: (p) => ({ subject: `Your request for ${t(p.title)} is approved`, text: 'Your files are ready. Open the order in your dashboard to download them and to start your domain steps.' }),
+  beta_declined: (p) => ({ subject: `About your request for ${t(p.title)}`, text: `We could not approve this request. ${t(p.reason)}` }),
+  identity_checked: (p) =>
+    p.ok
+      ? { subject: 'Your identity is verified', text: 'Thank you. Your weekly payouts can now be sent.' }
+      : { subject: 'Your identity check needs another look', text: `We could not accept the document: ${t(p.reason, 'it was not clear enough')}. Please send it again from Earnings & payouts.` },
+  beta_feedback: (p) => ({ subject: `How is ${t(p.title)} working for you?`, text: `It has been a week. Two minutes of feedback helps us a lot: ${t(p.url)}` }),
   repo_invite_resent: (p) => ({
     subject: `A new GitHub invite for ${t(p.title)}`,
     text: `The seller sent your invite again. Accept it on GitHub within ${t(p.days, '7')} days, then confirm in your order that you can open it.`,

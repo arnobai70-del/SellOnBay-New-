@@ -27,3 +27,15 @@ describe('fake payment isolation', () => {
     expect(canUseDemoPayment({ ...example, demo: false, sellerId: 'seller-1' })).toBe(false);
   });
 });
+
+describe('the test-card form is retired for real orders (Phase 7)', () => {
+  it('ENABLE_TEST_CHECKOUT no longer lets test cards fund a real order', () => {
+    process.env.ENABLE_TEST_CHECKOUT = '1';
+    try {
+      expect(canUseDemoPayment({ ...example, demo: false, productId: 'p1' })).toBe(false);
+      expect(canUseDemoPayment({ ...example, demo: false })).toBe(false);
+    } finally {
+      delete process.env.ENABLE_TEST_CHECKOUT;
+    }
+  });
+});

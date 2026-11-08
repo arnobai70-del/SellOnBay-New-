@@ -10,7 +10,7 @@ export const REDIRECT_PROTECTED = [
   '/api',
   '/_next',
   '/dashboard',
-  '/login',
+  '/signin',
   '/auth',
   '/checkout',
   '/pay',

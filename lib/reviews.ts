@@ -18,7 +18,7 @@ const ACCEPTED = ['accepted', 'payout_pending', 'paid_out'];
 export type R<T> = { ok: true; value: T } | { ok: false; status: number; error: string };
 const fail = (status: number, error: string): { ok: false; status: number; error: string } => ({ ok: false, status, error });
 
-export const canReview = (o: Order) => ACCEPTED.includes(o.state) && !!o.productKey && o.kind === 'product';
+export const canReview = (o: Order) => (ACCEPTED.includes(o.state) || o.state === 'beta_approved') && !!o.productKey && o.kind === 'product';
 
 export async function reviewOfOrder(orderId: string): Promise<Review | null> {
   if (await pg()) {

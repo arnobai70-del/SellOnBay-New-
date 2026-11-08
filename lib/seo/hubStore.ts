@@ -145,9 +145,9 @@ export async function allHubViews(): Promise<HubView[]> {
 
 /* The address ending a category answers to: the admin's own, or its built-in one. */
 export const hubPublicSlug = (hub: HubCopy, a: Allocation) => a.slugs[hub.slug] ?? hub.slug;
-export const hubPublicPath = (hub: HubCopy, a: Allocation) => (hub.slug === 'ecommerce' ? '/' : `/templates/${hubPublicSlug(hub, a)}`);
+export const hubPublicPath = (hub: HubCopy, a: Allocation) => `/websites/category/${hubPublicSlug(hub, a)}`;
 /* A product's public address: always /templates/<category ending>/<product>. */
-export const hubProductPath = (hub: HubCopy, a: Allocation, productId: string) => `/templates/${hubPublicSlug(hub, a)}/${productId}`;
+export const hubProductPath = (_hub: HubCopy, _a: Allocation, productId: string) => `/websites/${productId}`;
 
 /* The category a /templates/<ending> address belongs to: by its own ending, or by the admin's. */
 export async function hubByEnding(ending: string): Promise<HubCopy | null> {
@@ -179,12 +179,12 @@ export async function setHubSlug(adminId: string | null, slug: string, ending: s
   if (!r.ok) return r;
   // The old address (the built-in one, or the earlier choice) answers with a 301 to the new one, so no link or search listing breaks.
   if (want === hub.slug) {
-    await removeRedirect(adminId, `/templates/${hub.slug}`);
-    await addRedirect(adminId, { from: `/templates/${now}`, to: `/templates/${hub.slug}`, code: 301 }, { allowOwn: true });
+    await removeRedirect(adminId, `/websites/category/${hub.slug}`);
+    await addRedirect(adminId, { from: `/websites/category/${now}`, to: `/websites/category/${hub.slug}`, code: 301 }, { allowOwn: true });
   } else {
-    await addRedirect(adminId, { from: `/templates/${now}`, to: `/templates/${want}`, code: 301 }, { allowOwn: true });
-    if (now !== hub.slug) await addRedirect(adminId, { from: `/templates/${hub.slug}`, to: `/templates/${want}`, code: 301 }, { allowOwn: true });
-    await removeRedirect(adminId, `/templates/${want}`); // a return to an earlier ending must not leave a redirect from it
+    await addRedirect(adminId, { from: `/websites/category/${now}`, to: `/websites/category/${want}`, code: 301 }, { allowOwn: true });
+    if (now !== hub.slug) await addRedirect(adminId, { from: `/websites/category/${hub.slug}`, to: `/websites/category/${want}`, code: 301 }, { allowOwn: true });
+    await removeRedirect(adminId, `/websites/category/${want}`); // a return to an earlier ending must not leave a redirect from it
   }
   return { ok: true };
 }

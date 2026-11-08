@@ -1,4 +1,5 @@
 import type { AdminScope } from '../admin/scopes';
+import { checkPageDoc, pageByKey, type PageDoc } from '../content/registry';
 
 /*
  * CMS documents with draft, preview, approval and publish (SellOnBay 2.0 Phase 12). Pure, tested.
@@ -13,10 +14,12 @@ export type FaqDoc = { groups: { title: string; items: { q: string; a: string }[
 export type Step = { t: string; d: string };
 export type HowDoc = { buy: Step[]; sell: Step[] };
 export type EmailDoc = { subject: string; text: string };
-export type DocName = 'faq' | 'how_it_works' | `email:${string}`;
+export type DocName = 'faq' | 'how_it_works' | `email:${string}` | `page:${string}`;
 
 export const isEmailDoc = (n: string): n is `email:${string}` => /^email:[a-z_]{3,40}$/.test(n);
-export const isDocName = (n: string): n is DocName => n === 'faq' || n === 'how_it_works' || isEmailDoc(n);
+/* One public page's words (owner, 2026-11-08; lib/content/registry.ts), by the page's key. */
+export const isPageDoc = (n: string): n is `page:${string}` => /^page:[a-z-]{2,40}$/.test(n) && !!pageByKey(n.slice(5)) && !pageByKey(n.slice(5))!.legal;
+export const isDocName = (n: string): n is DocName => n === 'faq' || n === 'how_it_works' || isEmailDoc(n) || isPageDoc(n);
 
 /* Who may draft and who may publish each document. */
 export function docScopes(name: DocName): { edit: AdminScope; publish: AdminScope } {
@@ -87,7 +90,8 @@ export function checkEmail(raw: unknown): Check<EmailDoc> {
   return { ok: true, value: { subject, text } };
 }
 
-export function checkDoc(name: DocName, raw: unknown): Check<FaqDoc | HowDoc | EmailDoc> {
+export function checkDoc(name: DocName, raw: unknown): Check<FaqDoc | HowDoc | EmailDoc | PageDoc> {
+  if (isPageDoc(name)) return checkPageDoc(pageByKey(name.slice(5))!, raw);
   return name === 'faq' ? checkFaq(raw) : name === 'how_it_works' ? checkHow(raw) : checkEmail(raw);
 }
 

@@ -37,11 +37,11 @@ describe('the public bar', () => {
   it('is exactly the five template categories, each a plain link, the first being the home page', () => {
     expect(MARKET_MENU).toBe(HUB_MENU);
     expect(MARKET_MENU.map((e) => [e.label, e.href])).toEqual([
-      ['E-commerce Templates', '/'],
-      ['SaaS & Startup Templates', '/templates/saas'],
-      ['Business & Corporate Templates', '/templates/business'],
-      ['Portfolio & Agency Templates', '/templates/portfolio'],
-      ['Industry Website Templates', '/templates/industry'],
+      ['E-commerce Websites', '/websites/category/ecommerce'],
+      ['SaaS & Startup Websites', '/websites/category/saas'],
+      ['Business & Corporate Websites', '/websites/category/business'],
+      ['Portfolio & Agency Websites', '/websites/category/portfolio'],
+      ['Industry Websites', '/websites/category/industry'],
     ]);
     for (const e of MARKET_MENU) expect(e.groups).toEqual([]); // no mega menus
   });

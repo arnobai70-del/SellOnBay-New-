@@ -12,7 +12,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
     items: [
       {
         q: 'Do I need to know how to code?',
-        a: 'No. Choose a template and send a request to buy. SellOnBay sends you a quotation with the price and the terms, and the seller sets it up for you.',
+        a: 'No. Choose a website and send a request to buy. SellOnBay sends you a quotation with the price and the terms, and the seller sets it up for you.',
       },
       { q: 'Who owns the domain?', a: 'You do. The domain is registered in your name, and you can move it any time.' },
       {

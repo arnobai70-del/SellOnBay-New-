@@ -10,7 +10,7 @@ const schema = z.object({ note: z.string().max(300).default('') });
 
 /* The transfer did not go through. The orders go back to waiting for the next batch. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const closed = await maintenanceFor('admin'); // module maintenance (lib/maintenance)
+  const closed = await maintenanceFor('payouts'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const a = await adminOnly('finance');
   if (!a.ok) return a.res;

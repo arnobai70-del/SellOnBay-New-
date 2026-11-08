@@ -24,6 +24,9 @@ export const STATES = [
   'overdue',
   'refunded',
   'cancelled',
+  'beta_requested', // free beta (owner, 2026-11-07): a $0 request waiting for an admin; no money anywhere
+  'beta_approved', // the buyer may have the files; never funded, so no ledger, escrow or payout
+  'beta_declined',
 ] as const;
 export type OrderState = (typeof STATES)[number];
 export type OrderKind = 'product' | 'custom' | 'trial';
@@ -48,13 +51,16 @@ export const TRANSITIONS: Record<OrderState, readonly OrderState[]> = {
   paid_out: [],
   refunded: [],
   cancelled: [],
+  beta_requested: ['beta_approved', 'beta_declined'],
+  beta_approved: [],
+  beta_declined: [],
 };
 export const canTransition = (from: OrderState, to: OrderState) => TRANSITIONS[from].includes(to);
 
 /* The buyer's money is in escrow (or paid out of it). Files are released from here on, never before. */
 export const FUNDED_STATES: readonly OrderState[] = ['funded', 'release_pending', 'in_delivery', 'delivered', 'accepted', 'payout_pending', 'paid_out', 'disputed', 'fix_requested', 'overdue'];
 export const isFundedState = (s: OrderState) => FUNDED_STATES.includes(s);
-export const isOpenState = (s: OrderState) => !['paid_out', 'refunded', 'cancelled'].includes(s);
+export const isOpenState = (s: OrderState) => !['paid_out', 'refunded', 'cancelled', 'beta_approved', 'beta_declined'].includes(s);
 
 export type Order = {
   id: string;

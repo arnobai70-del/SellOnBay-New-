@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SellOnBay — My domains</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#2B4250;background:#EDF3F6;-webkit-font-smoothing:antialiased}
+a{color:#1A5444}a:hover{color:#13453A}
+.page{min-height:100%;padding:16px;box-sizing:border-box;position:relative;overflow:hidden;isolation:isolate;background:radial-gradient(900px 520px at 8% -6%,#D9EDF5 0%,rgba(217,237,245,0) 62%),radial-gradient(820px 520px at 96% 8%,#DCF2E9 0%,rgba(220,242,233,0) 60%),#EDF3F6}
+.page::before,.page::after{content:"";position:absolute;z-index:-1;width:620px;height:620px;border-radius:50%;filter:blur(90px);opacity:.55;pointer-events:none}
+.page::before{top:-160px;left:-140px;background:#CBE6F2;animation:sob-drift1 22s ease-in-out infinite}
+.page::after{top:300px;right:-200px;background:#CFEFE2;animation:sob-drift2 26s ease-in-out infinite}
+.glass{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(43,66,80,.06);border-radius:20px}
+.shell{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;max-width:1440px;margin:0 auto}
+.side{flex:1 1 220px;max-width:250px;padding:18px 12px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
+.col{flex:999 1 640px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.logo{font-weight:600;font-size:17px;color:#2B4250;text-decoration:none;display:flex;align-items:center;gap:10px;padding:2px 10px 10px}
+.dot{width:24px;height:24px;border-radius:8px;background:#CDEBDF;border:1px solid #fff}
+.grp{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#566C78;padding:14px 12px 4px}
+.mi{display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:0 12px;border-radius:12px;color:#3D5563;text-decoration:none;font-size:14px;transition:background .3s,transform .3s}
+.mi:hover{background:rgba(255,255,255,.8);color:#2B4250;transform:translateX(2px)}
+.mi.on{background:#CDEBDF;color:#1A5444;font-weight:500}
+.cnt{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#FBEFD9;color:#6E4B12;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:999px}
+.gsearch{flex:1 1 280px;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;min-height:44px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #DCE7EC}
+.gsearch input{flex:1;min-width:0;border:0;background:transparent;font:14px 'Inter',sans-serif;color:#2B4250;outline:none;min-height:42px}
+kbd{font:11px 'Inter',sans-serif;padding:3px 7px;border-radius:6px;border:1px solid #D3E2E9;background:#fff;color:#566C78}
+.iconbtn{position:relative;width:44px;height:44px;border-radius:50%;border:1px solid #DCE7EC;background:rgba(255,255,255,.75);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#2B4250}
+.iconbtn .b{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:#C2553F;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.me{display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #DCE7EC}
+.av{width:36px;height:36px;border-radius:50%;background:#E6E2F4;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;background:#CDEBDF;color:#1A5444;font:500 14px 'Inter',sans-serif;text-decoration:none;border:1px solid rgba(255,255,255,.9);cursor:pointer;box-sizing:border-box;white-space:nowrap;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,background .3s}
+.btn:hover{background:#BDE3D4;color:#13453A;transform:translateY(-2px);box-shadow:0 10px 24px rgba(63,143,119,.18)}
+.btn.ghost{background:rgba(255,255,255,.72);border:1px solid #D3E2E9;color:#2B4250}
+.btn.warn{background:#F6E3E0;color:#7A2E24}
+.btn.sm{min-height:40px;padding:0 14px;font-size:13px}
+.muted{color:#566C78}
+h1,h2,h3{font-weight:400;margin:0;letter-spacing:-.015em}
+h1{font-size:28px}h2{font-size:19px}
+.tag{font-size:12px;color:#566C78;margin-top:4px}
+.card{padding:22px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{padding:18px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}.kpi:hover{transform:translateY(-4px)}
+.kpi .l{font-size:13px;color:#566C78}.kpi .v{font-size:28px;font-weight:300;margin-top:8px}.kpi .s{font-size:12px;color:#566C78;margin-top:4px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.status{display:inline-flex;align-items:center;min-height:26px;padding:0 10px;border-radius:999px;font-size:12px;white-space:nowrap}
+.st-ok{background:#E2F3EC;color:#1A5444}.st-wait{background:#FBEFD9;color:#6E4B12}.st-bad{background:#F6E3E0;color:#7A2E24}.st-info{background:#DDEAF6;color:#24476B}.st-draft{background:#E8EEF2;color:#3D5563}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;font-size:11px;color:#566C78;padding:12px 14px;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid rgba(220,231,236,.9);vertical-align:middle}
+tbody tr{transition:background .3s}tbody tr:hover{background:rgba(255,255,255,.55)}
+.tbl{overflow-x:auto}
+.seg{display:inline-flex;flex-wrap:wrap;padding:4px;border-radius:999px;background:rgba(255,255,255,.6);border:1px solid #DCE7EC}
+.seg button{min-height:36px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:13px 'Inter',sans-serif;color:#566C78;cursor:pointer;transition:background .35s,color .35s,box-shadow .35s}
+.seg button.on{background:#fff;color:#2B4250;font-weight:500;box-shadow:0 2px 8px rgba(43,66,80,.08)}
+.field label{display:block;font-size:13px;color:#3D5563;margin-bottom:6px}
+.input{width:100%;box-sizing:border-box;min-height:44px;border-radius:12px;border:1px solid #D3E2E9;background:rgba(255,255,255,.85);padding:0 14px;font:14px 'Inter',sans-serif;color:#2B4250;transition:border-color .3s,box-shadow .3s}
+.input:focus{outline:none;border-color:#7FBFA9;box-shadow:0 0 0 4px rgba(127,191,169,.18)}
+textarea.input{padding:12px 14px;min-height:96px;resize:vertical}
+.bar{height:8px;border-radius:999px;background:#E1EAEF;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:#7FBFA9;animation:sob-fill 1.8s cubic-bezier(.2,.8,.2,1) .5s both}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;border:0;background:#D3E2E9;cursor:pointer;flex:none;transition:background .3s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sw.on{background:#5FA88F}.sw.on::after{transform:translateX(20px)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(220,231,236,.9)}
+.li:first-child{border-top:0}
+.chk{display:flex;align-items:center;gap:10px;min-height:36px;font-size:14px;color:#3D5563}
+.chk input{width:18px;height:18px;accent-color:#3F8F77}
+.hidden-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@keyframes sob-rise{from{opacity:0;transform:translateY(24px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes sob-slide{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes sob-drop{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes sob-drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes sob-drift2{0%,100%{transform:translate(0,0) scale(1.1)}50%{transform:translate(-110px,120px) scale(.95)}}
+@keyframes sob-fill{from{width:0}}
+@keyframes sob-ringfill{from{stroke-dashoffset:314}}
+@keyframes sob-draw{to{stroke-dashoffset:0}}
+@keyframes sob-blink{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes sob-ring{0%,100%{box-shadow:0 0 0 0 rgba(194,85,63,.45)}50%{box-shadow:0 0 0 6px rgba(194,85,63,0)}}
+.glass{animation:sob-rise .9s cubic-bezier(.2,.8,.2,1) both}
+.glass:nth-child(2){animation-delay:.06s}.glass:nth-child(3){animation-delay:.12s}.glass:nth-child(4){animation-delay:.18s}.glass:nth-child(5){animation-delay:.24s}.glass:nth-child(6){animation-delay:.3s}
+.topbar{animation:sob-drop .8s cubic-bezier(.2,.8,.2,1) both}
+.mi{animation:sob-slide .6s cubic-bezier(.2,.8,.2,1) both}
+tbody tr{animation:sob-slide .6s cubic-bezier(.2,.8,.2,1) .3s both}
+.st-wait{animation:sob-blink 2.4s ease-in-out infinite}
+.iconbtn .b{animation:sob-ring 2.2s ease-in-out infinite}
+polyline.draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:sob-draw 2.4s cubic-bezier(.4,0,.2,1) .4s forwards}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.dc{padding:20px;display:flex;flex-direction:column;gap:12px}
+.dns td{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+
+</style>
+
+<style>html,body{height:100%}input,select,textarea,button{font-family:inherit}</style>
+</head>
+<body>
+
+
+<div class="page">
+<div class="shell">
+<aside class="glass side" aria-label="Buyer menu">
+<a class="logo" href="index.html"><span class="dot" aria-hidden="true"></span>SellOnBay <span class="tag" style="margin:0 0 0 2px">Buyer</span></a>
+<a class="mi" href="buyer.html"><span>Overview</span></a>
+<div class="grp">Shopping</div>
+<a class="mi" href="buyer-orders.html"><span>Orders &amp; payments</span><span class="cnt" aria-label="1 new">1</span></a>
+<a class="mi" href="buyer-websites.html"><span>My websites</span></a>
+<a class="mi on" href="buyer-domains.html" aria-current="page"><span>Domains</span><span class="cnt" aria-label="1 new">1</span></a>
+<div class="grp">Help</div>
+<a class="mi" href="buyer-support.html"><span>Support &amp; disputes</span><span class="cnt" aria-label="1 new">1</span></a>
+<a class="mi" href="buyer-notifications.html"><span>Notifications</span><span class="cnt" aria-label="3 new">3</span></a>
+<div class="grp">Account</div>
+<a class="mi" href="buyer-account.html"><span>Account &amp; security</span></a>
+<div style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,255,255,.6);border:1px solid #DCE7EC"><div style="font-size:13px;font-weight:500">Want to sell?</div><div class="tag">Keep 78% of every sale</div><a class="btn sm ghost" href="seller-dashboard.html" style="margin-top:10px">Switch to selling</a></div>
+</aside>
+<div class="col">
+<header class="glass topbar">
+<div class="gsearch"><label for="gs" class="hidden-label">Search</label><svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="#566C78" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="gs" placeholder="Search your orders, websites, domains…"><kbd>Ctrl K</kbd></div>
+<a class="btn" href="websites.html">Browse websites</a>
+<a class="iconbtn" href="buyer-notifications.html" aria-label="Notifications, 3 new"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg><span class="b">3</span></a>
+<label for="lang" class="hidden-label">Language</label><select id="lang" class="input" style="width:auto;min-width:110px;border-radius:999px"><option>English</option><option>বাংলা</option></select>
+<div class="me"><span class="av" style="background:#DDEAF6" aria-hidden="true">AL</span><div><div style="font-size:13px;font-weight:500">Alex</div><div class="tag" style="margin:0">Buyer · demo</div></div></div>
+</header>
+<div class="row">
+<div><h1>Domains</h1><div class="tag">Registered in your own name · renew, connect and transfer</div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" type="button">Transfer a domain in</button><a class="btn" href="domains.html">+ Find a new domain</a></div>
+</div>
+
+<div class="grid3">
+
+<section class="glass dc">
+<div class="row"><b style="font-weight:500;font-size:17px">alexstudio.com</b><span class="status st-ok">Active</span></div>
+<div class="tag" style="margin:0">Owner: Alex (you) · expires Mar 2027</div>
+<div class="li" style="font-size:14px;padding:8px 0"><span style="flex:1">Connected to</span><span class="muted">Commerce Kit</span></div>
+<div class="row" style="font-size:14px"><span>Auto-renew</span><button type="button" class="sw on" onclick="" aria-label="Auto-renew alexstudio.com"></button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" onclick="">Renew 1 year</button><button class="btn sm ghost" type="button" onclick="">DNS settings</button></div>
+</section>
+
+<section class="glass dc">
+<div class="row"><b style="font-weight:500;font-size:17px">alexshop.store</b><span class="status st-bad">Expires soon</span></div>
+<div class="tag" style="margin:0">Owner: Alex (you) · expires in 9 days</div>
+<div class="li" style="font-size:14px;padding:8px 0"><span style="flex:1">Connected to</span><span class="muted">Not connected</span></div>
+<div class="row" style="font-size:14px"><span>Auto-renew</span><button type="button" class="sw" onclick="" aria-label="Auto-renew alexshop.store"></button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" onclick="">Renew 1 year</button><button class="btn sm ghost" type="button" onclick="">DNS settings</button></div>
+</section>
+
+<section class="glass dc">
+<div class="row"><b style="font-weight:500;font-size:17px">alexblog.net</b><span class="status st-wait">Setting up</span></div>
+<div class="tag" style="margin:0">Owner: Alex (you) · expires after payment</div>
+<div class="li" style="font-size:14px;padding:8px 0"><span style="flex:1">Connected to</span><span class="muted">Studio Portfolio</span></div>
+<div class="row" style="font-size:14px"><span>Auto-renew</span><button type="button" class="sw on" onclick="" aria-label="Auto-renew alexblog.net"></button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" onclick="">Renew 1 year</button><button class="btn sm ghost" type="button" onclick="">DNS settings</button></div>
+</section>
+
+</div>
+
+<section class="glass" style="padding:8px 8px 4px">
+<div class="row" style="padding:14px 14px 4px"><div><h2>DNS · alexstudio.com</h2><div class="tag">Connected to your SellOnBay website automatically. Change only if you host somewhere else.</div></div><button class="btn sm ghost" type="button">+ Add record</button></div>
+<div class="tbl"><table class="dns">
+<thead><tr><th>Type</th><th>Name</th><th>Value</th><th>TTL</th></tr></thead>
+<tbody>
+<tr><td>A</td><td>@</td><td>[YOUR SERVER IP]</td><td>1 hour</td></tr>
+<tr><td>CNAME</td><td>www</td><td>alexstudio.com</td><td>1 hour</td></tr>
+<tr><td>MX</td><td>@</td><td>[MAIL SERVER]</td><td>1 hour</td></tr>
+<tr><td>TXT</td><td>@</td><td>v=spf1 include:[MAIL] ~all</td><td>1 hour</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<div class="grid2">
+<section class="glass card">
+<h2>Reminders</h2>
+<div class="li" style="font-size:14px"><span style="flex:1">Email me 30, 7 and 1 day before expiry</span><span class="status st-ok">On</span></div>
+<div class="li" style="font-size:14px"><span style="flex:1">SMS 3 days before expiry</span><span class="status st-draft">Off</span></div>
+<div class="tag">Change these in <a href="buyer-account.html">Account &amp; security</a>.</div>
+</section>
+<section class="glass card">
+<h2>Transfer out</h2>
+<p class="muted" style="font-size:14px;line-height:1.6;margin:8px 0 12px">The domain is yours. Get an authorization code to move it to another registrar any time after 60 days from registration.</p>
+<button class="btn sm ghost" type="button">Get transfer code</button>
+</section>
+</div>
+</div>
+</div>
+</div>
+
+</body>
+</html>

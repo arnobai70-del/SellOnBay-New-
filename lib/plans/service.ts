@@ -34,7 +34,9 @@ export async function requestPlan(sellerId: string, code: string, billing: strin
   if (!isPlanCode(code) || code === 'free') return fail(400, 'Choose Pro or Business.');
   if (billing !== 'monthly' && billing !== 'yearly') return fail(400, 'Choose monthly or yearly.');
   if (await openSubscription(sellerId)) return fail(409, 'You already have a plan request or subscription. Message SellOnBay to change it.');
-  const plan = await currentPlan(code);
+  // Pro and Business are no longer offered (owner, 2026-11-07): on the database currentPlan finds nothing, and that is a plain refusal, not a crash.
+  const plan = await currentPlan(code).catch(() => null);
+  if (!plan) return fail(409, 'Every seller is on the same flat plan now.');
   try {
     const sub = await insertSubscription(
       { sellerId, planId: plan.id, billing: billing as Billing, status: 'requested', priceCents: priceFor(plan, billing as Billing) },

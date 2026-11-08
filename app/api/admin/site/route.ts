@@ -17,6 +17,8 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const { kind, path, value, reset } = body.data;
+  // Social links moved to Admin › Settings › Contact & social, a Super Admin setting (owner, 2026-11-08).
+  if (kind === 'social' && !a.scopes.includes('super')) return NextResponse.json({ error: 'Only a Super Admin can change the social links.' }, { status: 403 });
   const r = await saveSite(a.id, kind, reset ? [] : value, path);
   return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
 }

@@ -8,10 +8,11 @@
  *  support   purchase requests, messages, disputes triage, abuse reports, support tickets
  *  content   CMS, site builder, SEO, blog, visitor analytics
  *  delivery  release approval, entitlements, repository access, work authorisation
+ *  dev       Server health and the read-only system page (owner, 2026-11-08; migration 0080)
  *
  * "negotiator" is reserved for a later role (R-6) and grants nothing until the owner enables it.
  */
-export const SCOPES = ['super', 'finance', 'catalog', 'support', 'content', 'delivery'] as const;
+export const SCOPES = ['super', 'finance', 'catalog', 'support', 'content', 'delivery', 'dev'] as const;
 export type AdminScope = (typeof SCOPES)[number];
 export const RESERVED_SCOPES = ['negotiator'] as const;
 
@@ -22,6 +23,7 @@ export const SCOPE_LABEL: Record<AdminScope, string> = {
   support: 'Support',
   content: 'Content',
   delivery: 'Delivery',
+  dev: 'Developer',
 };
 
 const isScope = (s: unknown): s is AdminScope => typeof s === 'string' && (SCOPES as readonly string[]).includes(s);

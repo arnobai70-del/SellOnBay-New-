@@ -52,6 +52,9 @@ export const PLANS_V1: Record<PlanCode, Plan> = Object.fromEntries(
   }),
 ) as Record<PlanCode, Plan>;
 
+/* The flat plan every seller is on (owner, 2026-11-07): version 2 of 'free' in the database (migration 0074). A test compares the numbers. */
+export const FLAT_PLAN: Plan = { ...PLANS_V1.free, id: 'plan-free-2', version: 2, name: 'Standard', commissionBps: CONFIG.flatPlan.commissionBps, listingLimit: CONFIG.flatPlan.listingLimit };
+
 /* 12 months less the yearly discount, in whole cents. */
 export const yearlyFromMonthly = (monthlyCents: number, discountBps = CONFIG.yearlyDiscountBps) => Math.round((monthlyCents * 12 * (10_000 - discountBps)) / 10_000);
 export const priceFor = (plan: Plan, billing: Billing) => (billing === 'yearly' ? plan.yearlyCents : plan.monthlyCents);

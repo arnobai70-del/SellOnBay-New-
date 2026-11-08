@@ -20,6 +20,15 @@ export const MODULES = {
   seo: { label: 'SEO & CMS', keeps: 'The whole public site. Only the blog and SEO editing close.' },
   ai: { label: 'AI tools', keeps: 'Everything else.' },
   disputes: { label: 'Disputes & refunds', keeps: 'Orders, payments and browsing.' },
+  // Added by the owner on 2026-11-08 (Admin › Settings › Maintenance).
+  site: { label: 'The whole site', keeps: 'Signing in and the admin dashboard, so the site can be opened again.' },
+  cart: { label: 'Cart', keeps: 'Browsing and existing orders.' },
+  payouts: { label: 'Payouts', keeps: 'Orders and selling. Earnings keep being counted; only payouts wait.' },
+  domains: { label: 'Domains', keeps: 'Websites, orders and the rest of the site.' },
+  guides: { label: 'Guides', keeps: 'Everything else.' },
+  help: { label: 'Help and contact', keeps: 'Everything else. Signed-in people can still write to us from their dashboard.' },
+  signup: { label: 'Sign-up', keeps: 'Signing in, and everything people already use.' },
+  search: { label: 'Search', keeps: 'Browsing by category and every other page.' },
 } as const;
 export type ModuleKey = keyof typeof MODULES;
 export const MODULE_KEYS = Object.keys(MODULES) as ModuleKey[];
@@ -33,12 +42,20 @@ export const MAINTENANCE_LIMITS = { message: 300, defaultRetrySeconds: 300, maxR
  * Maintenance Manager with the audit log (the way back). Paths are API paths without the /api prefix.
  */
 export const ALWAYS_ON_API: RegExp[] = [/^\/webhooks\//, /^\/paypal\/return$/, /^\/cron\//, /^\/health$/, /^\/admin\/maintenance(\/|$)/];
-const ALWAYS_ON_PAGE: RegExp[] = [/^\/dashboard\/admin\/maintenance(\/|$)/, /^\/dashboard\/admin\/audit(\/|$)/, /^\/(login|auth)(\/|$)/, /^\/maintenance(\/|$)/];
+const ALWAYS_ON_PAGE: RegExp[] = [
+  /^\/dashboard\/admin\/maintenance(\/|$)/,
+  /^\/dashboard\/admin\/audit(\/|$)/,
+  /^\/admin\/settings\/maintenance(\/|$)/, // the glass Maintenance page (owner, 2026-11-08): the way back
+  /^\/(login|signin|two-factor|verify-email|forgot-password|auth)(\/|$)/,
+  /^\/maintenance(\/|$)/,
+];
 
 /* API routes (path after /api), most specific first. */
 const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/admin\/(seo|posts)(\/|$)/, 'seo'],
   [/^\/admin\/disputes(\/|$)/, 'disputes'],
+  [/^\/admin\/payouts(\/|$)/, 'payouts'],
+  [/^\/admin\/domains(\/|$)/, 'domains'],
   [/^\/admin(\/|$)/, 'admin'],
   [/^\/account(\/|$)/, 'auth'],
   [/^\/(demo\/)?orders\/[^/]+\/(dispute|evidence)$/, 'disputes'],
@@ -46,20 +63,24 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/(demo\/)?orders\/[^/]+\/messages$/, 'messaging'],
   [/^\/demo\/orders\/[^/]+\/pay$/, 'checkout'],
   [/^\/demo\/orders$/, 'checkout'],
-  [/^\/(requests|quotations)(\/|$)/, 'checkout'], // purchase requests and quotations (lib/requests)
+  [/^\/cart(\/|$)/, 'cart'],
+  [/^\/(requests|quotations|beta)(\/|$)/, 'checkout'], // purchase requests and quotations (lib/requests)
   [/^\/orders\/[^/]+\/payments$/, 'checkout'], // manual payment reports (lib/payments)
   [/^\/paypal\/start$/, 'checkout'],
   [/^\/(demo\/)?orders(\/|$)/, 'orders'],
   [/^\/download(\/|$)/, 'orders'],
   [/^\/reports(\/|$)/, 'orders'], // sales PDFs and receipts kept 24 hours (lib/reports)
   [/^\/(hire|products\/[^/]+\/trial)$/, 'checkout'],
+  [/^\/contact(\/|$)/, 'help'],
   [/^\/(notifications|presale|conversations|tickets)(\/|$)/, 'messaging'],
   [/^\/listings(\/|$)/, 'upload'],
   [/^\/seller\/files(\/|$)/, 'upload'], // source-file uploads (lib/files)
   [/^\/seller\/orders\/[^/]+\/delivery$/, 'orders'], // a work order's delivery sent for release (lib/release)
   [/^\/seller\/revisions(\/|$)/, 'orders'], // revised work sent for release (lib/revisions)
+  [/^\/seller\/payout(\/|$)/, 'payouts'],
   [/^\/(seller|developers)(\/|$)/, 'seller'],
-  [/^\/(domains|search)(\/|$)/, 'catalog'],
+  [/^\/domains(\/|$)/, 'domains'],
+  [/^\/search(\/|$)/, 'search'],
   [/^\/tools(\/|$)/, 'ai'],
   [/^\/track$/, 'visitor'], // visitor analytics: a closed module just stops counting
 ];
@@ -68,20 +89,27 @@ const API_RULES: [RegExp, ModuleKey][] = [
 const PAGE_RULES: [RegExp, ModuleKey][] = [
   [/^\/dashboard\/admin\/seo(\/|$)/, 'seo'],
   [/^\/dashboard\/admin\/disputes(\/|$)/, 'disputes'],
+  [/^\/dashboard\/admin\/payouts(\/|$)/, 'payouts'],
   [/^\/dashboard\/admin(\/|$)/, 'admin'],
+  [/^\/admin(\/|$)/, 'admin'], // the glass admin (Phase 6)
   [/^\/dashboard\/buyer(\/|$)/, 'buyer'],
+  [/^\/dashboard\/seller\/payouts(\/|$)/, 'payouts'],
   [/^\/dashboard\/seller(\/|$)/, 'seller'],
   [/^\/(reset-password|account)(\/|$)/, 'auth'], // sign-in pages stay open (ALWAYS_ON_PAGE); the sign-up and reset actions check for themselves
   [/^\/guest(\/|$)/, 'visitor'],
   [/^\/sell\/new(\/|$)/, 'upload'],
   [/^\/developers\/join(\/|$)/, 'seller'],
   [/^\/developers\/[^/]+\/hire(\/|$)/, 'checkout'],
-  [/^\/(checkout|pay)(\/|$)/, 'checkout'],
+  [/^\/cart(\/|$)/, 'cart'],
+  [/^\/(checkout|pay|feedback)(\/|$)/, 'checkout'],
   [/^\/orders(\/|$)/, 'orders'],
   [/^\/(messages|notifications)(\/|$)/, 'messaging'],
-  [/^\/blog(\/|$)/, 'seo'],
+  [/^\/(blog|guides)(\/|$)/, 'guides'],
+  [/^\/help(\/|$)/, 'help'],
+  [/^\/domains(\/|$)/, 'domains'],
+  [/^\/search(\/|$)/, 'search'],
   [/^\/(tools|find)(\/|$)/, 'ai'],
-  [/^\/(browse|apps|product|preview|categories|websites|templates|developers|domains|search)(\/|$)/, 'catalog'],
+  [/^\/(browse|apps|product|preview|categories|websites|sellers|templates|developers|domains|search)(\/|$)/, 'catalog'],
 ];
 
 const match = (rules: [RegExp, ModuleKey][], path: string) => rules.find(([re]) => re.test(path))?.[1] ?? null;

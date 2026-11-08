@@ -1,7 +1,7 @@
 import 'server-only';
 import { orderStore } from '../orders/store';
 import { createAdminClient } from '../supabase/server';
-import { PLANS_V1, isPlanCode, type Billing, type Plan, type PlanCode, type SubState } from './rules';
+import { FLAT_PLAN, PLANS_V1, isPlanCode, type Billing, type Plan, type PlanCode, type SubState } from './rules';
 
 /*
  * Where plans and subscriptions are kept: Postgres (migration 0057) when it is there, otherwise memory (tests and demo mode), like the other
@@ -52,7 +52,7 @@ const toPlan = (r: PlanRow): Plan | null =>
 
 /* The plan offered now under a code: its newest version in effect. */
 export async function currentPlan(code: PlanCode, now = Date.now()): Promise<Plan> {
-  if (!(await plansPg())) return PLANS_V1[code];
+  if (!(await plansPg())) return code === 'free' ? FLAT_PLAN : PLANS_V1[code];
   const { data } = await createAdminClient()
     .from('seller_plans')
     .select('id, code, version, name, monthly_cents, yearly_cents, commission_bps, listing_limit, featured')

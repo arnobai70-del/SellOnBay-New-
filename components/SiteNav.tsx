@@ -214,7 +214,7 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
     clearTimeout(leave.current);
     leave.current = setTimeout(() => setOpen(null), 220);
   };
-  const account = dashHref ?? '/login';
+  const account = dashHref ?? '/signin';
   const accountLabel = dashHref ? 'My dashboard' : 'Sign in';
 
   return (
@@ -305,7 +305,7 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
               {saved > 0 && <i>{saved}</i>}
             </Link>
           )}
-          <Link className={'mk-ico mk-ico-acct' + (dashHref ? '' : ' mk-ico-guest')} href={dashHref ?? (legacyPublic() ? '/guest' : '/login')} aria-label={dashHref ? accountLabel : 'Your visit'}>
+          <Link className={'mk-ico mk-ico-acct' + (dashHref ? '' : ' mk-ico-guest')} href={dashHref ?? (legacyPublic() ? '/guest' : '/signin')} aria-label={dashHref ? accountLabel : 'Your visit'}>
             <Person />
           </Link>
           <Link className="mk-sell" href="/sell" aria-current={active === 'sell' ? 'page' : undefined}>
@@ -412,7 +412,7 @@ export function SiteNav({ active = '', dashHref, menu = MARKET_MENU }: { active?
           </svg>
           Sell
         </Link>
-        <Link href={dashHref ?? (legacyPublic() ? '/guest' : '/login')} aria-current={path.startsWith('/guest') || path.startsWith('/login') ? 'page' : undefined}>
+        <Link href={dashHref ?? (legacyPublic() ? '/guest' : '/signin')} aria-current={path.startsWith('/guest') || path.startsWith('/signin') ? 'page' : undefined}>
           <Person />
           {dashHref ? 'Account' : 'You'}
         </Link>

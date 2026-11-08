@@ -1,499 +1,148 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AdminForm } from '@/components/AdminForm';
-import { DashShell } from '@/components/DashShell';
 import { ReplyForm } from '@/components/ReplyForm';
-import { StateChip } from '@/components/StateChip';
 import { Bars } from '@/components/charts';
-import { Timer } from '@/components/dash';
-import { sellerDashboard } from '@/lib/dashboard';
-import { draftsFor } from '@/lib/drafts';
-import { PAYOUT_METHODS } from '@/lib/payoutDetails';
-import { questionsForSeller } from '@/lib/presale/service';
-import { supabaseConfigured } from '@/lib/supabase/env';
-import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
-import { SellerPlanPanel } from '@/components/SellerPlanPanel';
-import { SourceUpload } from '@/components/SourceUpload';
-import { DeliveryForm } from '@/components/DeliveryForm';
-import { listFiles } from '@/lib/files/store';
-import { PLANS_V1, PLAN_CODES } from '@/lib/plans/rules';
-import { sellerPlan } from '@/lib/plans/service';
-import { planById, publishedOrWaiting } from '@/lib/plans/store';
-import { catForCategory } from '@/lib/catAccent';
+import { Button } from '@/components/glass/Button';
+import { GlassCard } from '@/components/glass/GlassCard';
+import { Kpi } from '@/components/glass/Kpi';
+import { SellerShell } from '@/components/glass/SellerShell';
+import { StatusPill } from '@/components/glass/StatusPill';
+import { PAYOUT_TEXT, PLAN_KEEP_TEXT } from '@/lib/config';
+import { usd } from '@/lib/glass/orderStatus';
+import { sellerOverview, storeProfile } from '@/lib/glass/seller';
+import { plainWords } from '@/lib/glass/words';
+import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Seller dashboard', robots: { index: false } };
+export const metadata: Metadata = { title: 'Seller overview', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const shortDay = (iso: string) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-const LISTING_CHIP: Record<string, [string, string]> = { live: ['Live', 'chip mint'], in_review: ['In review', 'chip amber'], rejected: ['Rejected', 'chip rose'], paused: ['Paused', 'chip rose'] };
 
-export default async function SellerDashboard() {
+/* The seller's first screen: money, what to do next, and questions from buyers. Orders, listings and payouts each have their own page. */
+export default async function SellerOverview() {
   const viewer = await requireViewer({ path: '/dashboard/seller', roles: ['seller', 'admin'] });
-  const sellerId = await getViewerId();
-  const questions = sellerId ? await questionsForSeller(sellerId) : [];
-  const drafts = sellerId ? await draftsFor(sellerId) : [];
-  const v = sellerId ? await sellerDashboard(sellerId) : null;
-  const plan = sellerId ? await sellerPlan(sellerId) : null;
-  const used = sellerId ? await publishedOrWaiting(sellerId) : 0;
-  const allMyFiles = sellerId ? await listFiles({ uploadedBy: sellerId }) : [];
-  const myFiles = allMyFiles.filter((f) => f.purpose !== 'delivery' && f.purpose !== 'revision').slice(0, 12); // order files are shown with their order or revision
-  const deliveryFiles = (orderId: string) => allMyFiles.filter((f) => f.purpose === 'delivery' && f.orderId === orderId);
-  const pendingPlan = plan?.subscription && plan.subscription.status !== 'ended' ? await planById(plan.subscription.planId) : null;
-  const now = Date.now();
-  const h = v?.health;
+  const data = viewer ? await sellerOverview(viewer.id) : null;
+  const store = viewer ? await storeProfile(viewer.id, viewer.name) : null;
+  const v = data?.v;
+  const first = viewer?.name?.split(' ')[0];
+  const steps = v
+    ? [
+        { done: !!store?.username, label: 'Choose your store name', href: '/dashboard/seller/store' },
+        { done: !!v.health.payoutLabel, label: 'Add where we send your earnings', href: '/dashboard/seller/payouts' },
+        { done: data!.verification.status === 'approved' || data!.verification.status === 'pending', label: 'Verify your identity', href: '/dashboard/seller/payouts#verify' },
+        { done: v.listings.length > 0, label: 'Upload your first website', href: '/dashboard/seller/websites/new' },
+      ]
+    : [];
+  const todo = steps.filter((s) => !s.done);
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller" title="Seller dashboard">
-      {!supabaseConfigured && <p className="muted">In demo mode there are no seller accounts, so nothing is listed here. Sign in with a seller account to see your own orders, money and listings.</p>}
-      <div className="strip">
-        <div>
-          <small>Available for payout</small>
-          <b>{money(v?.availableCents ?? 0)}</b>
-          <span className="d">Next payout {v ? shortDay(v.nextPayout) : 'on Sunday'}</span>
-        </div>
-        <div>
-          <small>Pending (7-day hold)</small>
-          <b>{money(v?.pendingCents ?? 0)}</b>
-          <span className="muted" style={{ fontSize: '13.5px' }}>
-            After acceptance
-          </span>
-        </div>
-        <div>
-          <small>In escrow</small>
-          <b>{money(v?.escrowCents ?? 0)}</b>
-          <span className="muted" style={{ fontSize: '13.5px' }}>
-            {v?.toDeliver.length ?? 0} to deliver
-          </span>
-        </div>
-        <div>
-          <small>Lifetime earned</small>
-          <b>{money(v?.lifetimeCents ?? 0)}</b>
-          <span className="muted" style={{ fontSize: '13.5px' }}>
-            {v?.acceptedCount ?? 0} accepted orders
-          </span>
-        </div>
-      </div>
-
-      {v && (v.reserveCents > 0 || v.debtCents > 0) && (
-        <p className="panel" role="status">
-          {v.reserveCents > 0 && <>A reserve of {money(v.reserveCents)} is kept back for a few days and then becomes available. </>}
-          {v.debtCents > 0 && <>You owe {money(v.debtCents)} after a refund or dispute fee. It is taken from your next earnings.</>}
-        </p>
-      )}
-
-      <div className="cols2">
-        <div className="dp">
-          <div className="hd">
-            <div>
+    <SellerShell
+      viewer={viewer}
+      active="overview"
+      title={first ? `Welcome back, ${first}` : 'Seller overview'}
+      subtitle={`You keep ${PLAN_KEEP_TEXT} of every sale. ${PAYOUT_TEXT}`}
+      handle={store?.username ? store.handle : undefined}
+      actions={<Button href="/dashboard/seller/websites/new">Upload website</Button>}
+    >
+      {v && data && (
+        <>
+          <div className="g-kpis">
+            <Kpi label="Available" value={usd(v.availableCents)} note={`Next payout ${shortDay(v.nextPayout)}`} />
+            <Kpi label="On hold (7 days)" value={usd(v.pendingCents)} note="After the buyer accepts" />
+            <Kpi label="In escrow" value={usd(v.escrowCents)} note={`${v.toDeliver.length} to deliver`} />
+            <Kpi label="Lifetime earned" value={usd(v.lifetimeCents)} note={`${v.acceptedCount} accepted orders`} />
+          </div>
+          {(v.reserveCents > 0 || v.debtCents > 0) && (
+            <GlassCard as="section" role="status">
+              {v.reserveCents > 0 && <p>A reserve of {usd(v.reserveCents)} is kept back for a few days and then becomes available.</p>}
+              {v.debtCents > 0 && <p>You owe {usd(v.debtCents)} after a refund or dispute fee. It is taken from your next earnings.</p>}
+            </GlassCard>
+          )}
+          <div className="g-grid2">
+            <GlassCard as="section">
+              <h2>{todo.length ? 'Get ready to sell' : 'You are set up'}</h2>
+              {steps.map((s) => (
+                <div key={s.label} className="g-li">
+                  <span style={{ flex: 1 }}>{s.done ? s.label : <Link href={s.href}>{s.label}</Link>}</span>
+                  <StatusPill tone={s.done ? 'ok' : 'wait'}>{s.done ? 'Done' : 'To do'}</StatusPill>
+                </div>
+              ))}
+            </GlassCard>
+            <GlassCard as="section">
               <h2>Earnings per week</h2>
-              <p className="sub">Accepted orders, after SellOnBay&apos;s commission</p>
-            </div>
-            <span className="chip mint">
-              <i />
-              Payout on Sundays
-            </span>
-          </div>
-          {v && v.weekly.some((w) => w.cents > 0) ? (
-            <Bars label="Weekly earnings" prefix="$" data={v.weekly.map((w) => [shortDay(w.week), Math.round(w.cents / 100)] as [string, number])} />
-          ) : (
-            <p className="muted">Nothing earned yet. Your first accepted order shows up here.</p>
-          )}
-        </div>
-        <div className="dp">
-          <div className="hd">
-            <div>
-              <h2>Account health</h2>
-              <p className="sub">Worked out from your real orders</p>
-            </div>
-          </div>
-          <ul className="lst">
-            <li>
-              <div className="grow">
-                <b>On-time delivery</b>
-                <div className="meter">
-                  <i style={{ width: `${Math.round((h?.onTime ?? 0) * 100)}%` }} />
-                </div>
-              </div>
-              <b>{h?.onTime === null || h?.onTime === undefined ? 'No deliveries yet' : `${Math.round(h.onTime * 100)}%`}</b>
-            </li>
-            <li>
-              <div className="grow">
-                <b>Average rating</b>
-                <div className="meter">
-                  <i style={{ width: `${((h?.rating ?? 0) / 5) * 100}%` }} />
-                </div>
-              </div>
-              <b>{h?.rating ? `${h.rating} (${h.ratingCount})` : 'No reviews yet'}</b>
-            </li>
-            <li>
-              <div className="grow">
-                <b>Orders with a dispute</b>
-                <div className="meter">
-                  <i style={{ width: `${Math.min(100, Math.round((h?.disputeRate ?? 0) * 100))}%`, background: 'var(--gold)' }} />
-                </div>
-              </div>
-              <b>{h?.disputeRate === null || h?.disputeRate === undefined ? 'No orders yet' : `${Math.round(h.disputeRate * 1000) / 10}%`}</b>
-            </li>
-            <li>
-              <div className="grow">
-                <b>Identity and payout account</b>
-                <small>
-                  {h?.verified
-                    ? `Email ${h.verified.email ? 'verified' : 'not verified'}, phone ${h.verified.phone ? 'verified' : 'not verified'}, ID ${h.verified.id ? 'verified' : 'not verified'}, payout account ${h.verified.payout ? 'set' : 'not set'}`
-                    : 'Not set up yet'}
-                </small>
-              </div>
-              {h?.verified && h.verified.email && h.verified.phone && h.verified.id && h.verified.payout ? (
-                <span className="chip mint">
-                  <i />
-                  Verified
-                </span>
+              <p className="g-tag">Accepted orders, after the platform fee</p>
+              {v.weekly.some((w) => w.cents > 0) ? (
+                <Bars label="Weekly earnings" prefix="$" data={v.weekly.map((w) => [shortDay(w.week), Math.round(w.cents / 100)] as [string, number])} />
               ) : (
-                <span className="chip amber">
-                  <i />
-                  To do
-                </span>
+                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                  Nothing earned yet. Your first accepted order shows up here.
+                </p>
               )}
-            </li>
-            {supabaseConfigured && (
-              <li>
-                <div className="grow">
-                  <b>Where we send your earnings</b>
-                  <small>{h?.payoutLabel ?? 'Not set yet. Add it so your weekly payouts can be sent.'}</small>
-                </div>
-                <AdminForm
-                  endpoint="/api/seller/payout"
-                  submit="Save payout details"
-                  openLabel={h?.payoutLabel ? 'Change' : 'Add payout details'}
-                  tone="line"
-                  fields={[
-                    { name: 'method', label: 'How you want to be paid', kind: 'select', options: PAYOUT_METHODS.map(([v, l]) => [v, l]) },
-                    {
-                      name: 'account',
-                      label: 'Account',
-                      kind: 'text',
-                      required: true,
-                      hint: 'For a bank: IBAN or account number, bank name and account holder. For Payoneer or Wise: the email of that account. We email you when this changes.',
-                    },
-                  ]}
-                />
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
-
-      {drafts.length > 0 && (
-        <div className="dp" data-drafts>
-          <div className="hd">
-            <div>
-              <h2>Your drafts</h2>
-              <p className="sub">Saved but not sent for review. Buyers cannot see them.</p>
-            </div>
+            </GlassCard>
           </div>
-          <ul className="lst">
-            {drafts.map((d) => (
-              <li key={d.slug}>
-                <div className="grow">
-                  <b>{d.name}</b>
-                  <small>{d.platform === 'web' ? 'Website' : d.platform}</small>
-                </div>
-                <Link className="btn btn-line btn-sm" href={`/sell/new?draft=${encodeURIComponent(d.slug)}`}>
-                  Continue
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {questions.length > 0 && (
-        <div className="dp" data-questions>
-          <div className="hd">
-            <div>
-              <h2>Questions from buyers</h2>
-              <p className="sub">Answer fast: buyers who get an answer are more likely to buy.</p>
-            </div>
-          </div>
-          <ul className="lst">
-            {questions.map((q) => (
-              <li key={q.id}>
-                <div className="grow">
-                  <b>{q.product_key}</b>
-                  <small>{q.body}</small>
-                  {q.reply ? <small>You replied: {q.reply}</small> : <ReplyForm id={q.id} />}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="dp">
-        <div className="hd">
-          <div>
-            <h2>Orders to deliver</h2>
-            <p className="sub">The money is in escrow. Deliver before the timer ends.</p>
-          </div>
-        </div>
-        {v && v.toDeliver.length === 0 && <p className="muted">Nothing to deliver right now.</p>}
-        {v && v.toDeliver.length > 0 && (
-          <div className="scroll">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Buyer&apos;s domain</th>
-                  <th>Status</th>
-                  <th>Time left</th>
-                  <th className="num">You earn</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {v.toDeliver.map(({ order: o, earnCents, held }) => (
-                  <tr key={o.id}>
-                    <td>
-                      <b>{o.title}</b>
-                      {o.express && <span className="chip blue"> Express</span>}
-                    </td>
-                    <td>{o.domain?.name ?? (o.githubUsername ? `GitHub: ${o.githubUsername}` : '-')}</td>
-                    <td>
-                      <StateChip state={o.state} />
-                    </td>
-                    {held ? <td className="muted">Paused, waiting for a safety check</td> : <Timer seconds={Math.max(0, Math.floor(((o.dueAt ?? now) - now) / 1000))} />}
-                    <td className="num">{money(earnCents)}</td>
-                    <td>
-                      <Link className="btn btn-dark btn-sm" href={`/messages/${o.id}`}>
-                        Open chat
-                      </Link>
-                      {/* SellOnBay 2.0: a quotation order's delivery is sent for release and released by SellOnBay; the seller never marks it delivered. */}
-                      {o.quotationId && o.state === 'funded' && <small className="muted">Waiting for SellOnBay to authorise the work.</small>}
-                      {o.quotationId && o.state === 'release_pending' && <small className="muted">Sent. Waiting for SellOnBay to release it.</small>}
-                      {o.quotationId && ['in_delivery', 'overdue', 'fix_requested'].includes(o.state) && (
-                        <DeliveryForm
-                          orderId={o.id}
-                          approvedFiles={deliveryFiles(o.id)
-                            .filter((f) => f.state === 'approved')
-                            .map((f) => ({ id: f.id, name: f.originalName }))}
-                          pending={deliveryFiles(o.id).filter((f) => ['awaiting_upload', 'checking', 'awaiting_review'].includes(f.state)).length}
-                        />
-                      )}
-                      {/* After a dispute the fix is delivered the same way for every kind of order, repository and instant downloads included. */}
-                      {!o.quotationId &&
-                        (o.state === 'fix_requested' || (o.deliveryType !== 'repo_access' && !o.instant && (o.state === 'funded' || o.state === 'in_delivery' || o.state === 'overdue'))) && (
-                          <AdminForm endpoint={`/api/orders/${o.id}/deliver`} fields={[]} submit="Yes, it is live and ready" openLabel="I delivered it" tone="dark" />
-                        )}
-                      {o.deliveryType === 'repo_access' && (o.quotationId ? o.state === 'delivered' && !!o.releaseApprovedAt : o.state === 'funded' || o.state === 'in_delivery') && (
-                        <AdminForm
-                          endpoint={o.state === 'funded' ? `/api/orders/${o.id}/handover` : `/api/orders/${o.id}/resend-invite`}
-                          fields={[]}
-                          submit={o.state === 'funded' ? 'I sent the invite' : 'Send the invite again'}
-                          openLabel={o.state === 'funded' ? 'I sent the invite' : 'Send the invite again'}
-                          tone="line"
-                        />
-                      )}{' '}
-                      <a className="btn btn-line btn-sm" href={`/api/orders/${o.id}/evidence`} download>
-                        Record (PDF)
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {v && v.revocations.length > 0 && (
-        <div className="dp" data-revocations>
-          <div className="hd">
-            <div>
-              <h2>Remove access to a repository</h2>
-              <p className="sub">These orders were refunded or cancelled after you sent the GitHub invite. Remove the buyer from your private repository, then tell us.</p>
-            </div>
-          </div>
-          <ul className="lst">
-            {v.revocations.map((c) => (
-              <li key={c.orderId}>
-                <div className="grow">
-                  <b>{c.title}</b>
-                  <small>Remove GitHub user {c.github || 'the buyer'}</small>
-                </div>
-                <AdminForm endpoint={`/api/orders/${c.orderId}/revoke-done`} fields={[]} submit="I removed the access" openLabel="I removed the access" tone="dark" />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="dp">
-        <div className="hd">
-          <div>
-            <h2>Extra work you sent</h2>
-            <p className="sub">Scope changes your buyers asked for. Start only after it shows Funded.</p>
-          </div>
-        </div>
-        {v && v.extras.length === 0 && <p className="muted">No extra work requests yet.</p>}
-        <ul className="lst">
-          {v?.extras.map(({ order, request }) => (
-            <li key={request.id}>
-              <div className="grow">
-                <b>
-                  {request.title} · {order.title}
-                </b>
-                <small>
-                  {money(request.priceCents)} · +{request.addDays} {request.addDays === 1 ? 'day' : 'days'}
-                </small>
+          <div className="g-grid2">
+            <GlassCard as="section">
+              <div className="g-row">
+                <h2>Orders to deliver</h2>
+                <Link href="/dashboard/seller/orders">All orders</Link>
               </div>
-              <span className={'chip ' + ({ pending: 'amber', funded: 'mint', declined: 'rose', cancelled: '' }[request.state] ?? '')}>
-                <i />
-                {{ pending: 'Waiting for buyer', funded: 'Funded', declined: 'Declined', cancelled: 'Taken back' }[request.state]}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {plan && (
-        <SellerPlanPanel
-          current={plan.plan}
-          used={used}
-          plans={PLAN_CODES.map((c) => PLANS_V1[c])}
-          pending={
-            plan.subscription && pendingPlan
-              ? {
-                  plan: pendingPlan.name,
-                  billing: plan.subscription.billing,
-                  status: plan.subscription.status.replace('_', ' '),
-                  periodEnd: plan.subscription.periodEnd ? new Date(plan.subscription.periodEnd).toISOString().slice(0, 10) : undefined,
-                }
-              : null
-          }
-        />
-      )}
-
-      {sellerId && (
-        <div className="dp" id="files">
-          <div className="hd">
-            <div>
-              <h2>Source files</h2>
-              <p className="sub">Buyers get exactly the file SellOnBay approved, from private storage. A change is a new upload and a new version; an approved file never changes.</p>
-            </div>
-          </div>
-          <SourceUpload listings={(v?.listings ?? []).filter((l) => l.status !== 'rejected').map((l) => ({ slug: l.slug, name: l.name }))} />
-          {myFiles.length > 0 && (
-            <ul className="lst" data-my-files>
-              {myFiles.map((f) => {
-                const problems = ((f.checks as { problems?: string[] }).problems ?? []).slice(0, 2);
-                return (
-                  <li key={f.id}>
-                    <div className="grow">
-                      <b>{f.originalName}</b>
-                      <small>
-                        {
-                          {
-                            awaiting_upload: 'Not uploaded yet',
-                            checking: 'Being checked',
-                            failed_checks: 'Not accepted',
-                            awaiting_review: 'Waiting for a reviewer',
-                            approved: 'Approved',
-                            rejected: 'Rejected',
-                            purged: 'Removed',
-                          }[f.state]
-                        }
-                        {f.reviewNote ? ` · ${f.reviewNote}` : ''}
-                      </small>
-                      {problems.map((p, i) => (
-                        <small key={i}>{p}</small>
-                      ))}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      )}
-
-      <div className="cols2">
-        <div className="dp" id="listings">
-          <div className="hd">
-            <div>
-              <h2>Your listings</h2>
-            </div>
-            <Link className="btn btn-blue btn-sm" href="/sell/new">
-              List a new site
-            </Link>
-          </div>
-          {v && v.listings.length === 0 && <p className="muted">No listings yet.</p>}
-          <ul className="lst">
-            {v?.listings.map((l) => {
-              const [label, cls] = LISTING_CHIP[l.status] ?? [l.status, 'chip'];
-              return (
-                <li key={l.slug} className="cat-card" data-cat={catForCategory(l.category)}>
-                  <div className="grow">
-                    <b>{l.name}</b>
-                    <small>
-                      {money(l.priceCents)} · Delivery {l.delivery}
-                      {l.ratingCount ? ` · ${l.ratingAvg} stars (${l.ratingCount})` : ''}
-                    </small>
-                    {l.reviewNote && <small>Admin note: {l.reviewNote}</small>}
-                    {l.digital && l.versions.length > 0 && (
-                      <small>Versions: {l.versions.map((x) => `${x.version} (${x.status === 'live' ? 'live' : x.status === 'in_review' ? 'in review' : 'rejected'})`).join(', ')}</small>
-                    )}
-                    {l.digital && l.status === 'live' && (
-                      <AdminForm
-                        endpoint={`/api/listings/${l.slug}/versions`}
-                        openLabel="Publish a new version"
-                        submit="Send for review"
-                        tone="line"
-                        fields={[
-                          { name: 'version', label: 'Version number, for example 1.1', kind: 'text', required: true },
-                          { name: 'changelog', label: 'What changed (buyers see this)', kind: 'textarea', required: true },
-                          { name: 'fileUrl', label: 'Private link to the new files (https)', kind: 'text', required: true },
-                        ]}
-                      />
-                    )}
+              {v.toDeliver.length ? (
+                v.toDeliver.slice(0, 5).map(({ order: o, earnCents }) => (
+                  <div key={o.id} className="g-li">
+                    <span style={{ flex: 1 }}>{plainWords(o.title)}</span>
+                    <span className="g-tag">{usd(earnCents)}</span>
                   </div>
-                  {['in_review', 'live', 'rejected', 'paused'].includes(l.status) && (
-                    <Link className="btn btn-line btn-sm" href={`/sell/new?edit=${encodeURIComponent(l.slug)}`} aria-label={`Edit ${l.name}`}>
-                      Edit
-                    </Link>
-                  )}
-                  <span className={cls}>
-                    <i />
-                    {label}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        <div className="dp">
-          <div className="hd">
-            <div>
-              <h2>Payouts</h2>
-            </div>
+                ))
+              ) : (
+                <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+                  Nothing to deliver right now.
+                </p>
+              )}
+            </GlassCard>
+            <GlassCard as="section">
+              <h2>Account health</h2>
+              <div className="g-li">
+                <span style={{ flex: 1 }}>On-time delivery</span>
+                <b>{v.health.onTime === null ? 'No deliveries yet' : `${Math.round(v.health.onTime * 100)}%`}</b>
+              </div>
+              <div className="g-li">
+                <span style={{ flex: 1 }}>Average rating</span>
+                <b>{v.health.rating ? `${v.health.rating} (${v.health.ratingCount})` : 'No reviews yet'}</b>
+              </div>
+              <div className="g-li">
+                <span style={{ flex: 1 }}>Orders with a dispute</span>
+                <b>{v.health.disputeRate === null ? 'No orders yet' : `${Math.round(v.health.disputeRate * 1000) / 10}%`}</b>
+              </div>
+            </GlassCard>
           </div>
-          {v && v.payouts.length === 0 && <p className="muted">No payouts yet. Earnings are paid every Sunday, 7 days after the buyer accepts.</p>}
-          <ul className="lst">
-            {v?.payouts.map((p) => (
-              <li key={p.id}>
-                <div className="grow">
-                  <b>Week of {shortDay(p.weekStart)}</b>
-                  <small>{p.method}</small>
+          {data.drafts.length > 0 && (
+            <GlassCard as="section" data-drafts>
+              <h2>Your drafts</h2>
+              <p className="g-tag">Saved but not sent for review. Buyers cannot see them.</p>
+              {data.drafts.map((d) => (
+                <div key={d.slug} className="g-li">
+                  <span style={{ flex: 1 }}>{d.name}</span>
+                  <Button variant="ghost" size="sm" href={`/dashboard/seller/websites/new?draft=${encodeURIComponent(d.slug)}`}>
+                    Continue
+                  </Button>
                 </div>
-                <b>{money(p.amountCents)}</b>
-                <span className={'chip ' + (p.status === 'paid' ? 'mint' : p.status === 'failed' ? 'rose' : 'blue')}>
-                  <i />
-                  {p.status === 'paid' ? 'Paid' : p.status === 'failed' ? 'Failed' : p.status === 'exported' ? 'Being sent' : 'Scheduled'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </DashShell>
+              ))}
+            </GlassCard>
+          )}
+          {data.questions.length > 0 && (
+            <GlassCard as="section" data-questions>
+              <h2>Questions from buyers</h2>
+              <p className="g-tag">Answer fast: buyers who get an answer are more likely to buy.</p>
+              {data.questions.map((q) => (
+                <div key={q.id} className="g-li" style={{ alignItems: 'flex-start', flexDirection: 'column' }}>
+                  <b>{q.product_key}</b>
+                  <span className="g-muted">{q.body}</span>
+                  {q.reply ? <span className="g-tag">You replied: {q.reply}</span> : <ReplyForm id={q.id} />}
+                </div>
+              ))}
+            </GlassCard>
+          )}
+        </>
+      )}
+    </SellerShell>
   );
 }

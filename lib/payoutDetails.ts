@@ -8,12 +8,21 @@ export const PAYOUT_METHODS = [
   ['payoneer', 'Payoneer'],
   ['wise', 'Wise'],
   ['paypal', 'PayPal'],
+  ['bkash', 'bKash'],
 ] as const;
 export type PayoutMethod = (typeof PAYOUT_METHODS)[number][0];
 const NAMES: Record<string, string> = Object.fromEntries(PAYOUT_METHODS);
+/* bKash pays only inside Bangladesh, so only sellers whose profile country is BD see or may pick it (owner, 2026-11-07; migration 0079). */
+export const payoutMethodsFor = (country: string | null | undefined) => PAYOUT_METHODS.filter(([m]) => m !== 'bkash' || country === 'BD');
 
-export function checkPayoutDetails(method: unknown, account: unknown): { ok: true; method: PayoutMethod; account: string } | { ok: false; error: string } {
+export function checkPayoutDetails(method: unknown, account: unknown, country?: string | null): { ok: true; method: PayoutMethod; account: string } | { ok: false; error: string } {
   if (typeof method !== 'string' || !(method in NAMES)) return { ok: false, error: 'Pick how you want to be paid.' };
+  if (method === 'bkash' && country !== 'BD') return { ok: false, error: 'bKash is only for sellers in Bangladesh. Set your country first, or pick another way.' };
+  if (method === 'bkash') {
+    const n = typeof account === 'string' ? account.replace(/[\s-]/g, '') : '';
+    if (!/^(\+?880|0)1[3-9]\d{8}$/.test(n)) return { ok: false, error: 'Write your bKash account number, for example 01712345678.' };
+    return { ok: true, method: 'bkash', account: n };
+  }
   const a = typeof account === 'string' ? account.replace(/\s+/g, ' ').trim() : '';
   if (/[\u0000-\u001f\u007f]/.test(typeof account === 'string' ? account.replace(/[\r\n\t]/g, ' ') : '')) return { ok: false, error: 'Remove the special characters.' };
   if (a.length < 5 || a.length > 200) return { ok: false, error: 'Write the account details in 5 to 200 characters.' };

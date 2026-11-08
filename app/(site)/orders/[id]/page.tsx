@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+import { BetaOrderView } from '@/components/glass/BetaOrderView';
 import { OrderView } from '@/components/OrderView';
+import { betaFeedbackOf, betaRequest } from '@/lib/beta/service';
+import { plainWords } from '@/lib/glass/words';
+import { reviewOfOrder } from '@/lib/reviews';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { getViewerId } from '@/lib/supabase/viewer';
 import { deliveryOf } from '@/lib/apps';
@@ -21,6 +25,11 @@ export default async function Order({ params, searchParams }: { params: Promise<
   const { paid } = await searchParams;
   const o = await orderFor(id);
   if (!o) notFound();
+  // A free beta request has no payment to show (owner, 2026-11-07).
+  if (o.state === 'beta_requested' || o.state === 'beta_approved' || o.state === 'beta_declined') {
+    const [r, fb, rev] = await Promise.all([betaRequest(id), betaFeedbackOf(id), reviewOfOrder(id)]);
+    return <BetaOrderView id={id} title={plainWords(o.title)} state={o.state} reason={r?.declineReason} domain={r?.domain} reviewed={!!rev} feedbackDone={!!fb} />;
+  }
   if (!o.fundedAt) redirect(`/pay/${id}`);
   const p = o.productKey ? await productByKey(o.productKey) : undefined;
   const dv = p ? deliveryOf(p) : null;

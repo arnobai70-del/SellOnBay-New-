@@ -21,7 +21,7 @@ describe('page words an admin can rewrite', () => {
     const used = new Set([...src.matchAll(/pageWords\('([^']+)'\)|<LegalPage path="([^"]+)"/g)].map((m) => m[1] ?? m[2]));
     // The five template categories read their words through the category route (hubPath), checked below.
     const listed = SEO_PAGES.filter((p) => p.words && !isHubPath(p.path)).map((p) => p.path);
-    expect(readFileSync('app/(site)/templates/[category]/page.tsx', 'utf8')).toContain('pageWords(hubPath(hub))');
+    expect(readFileSync('app/(glass)/websites/category/[category]/page.tsx', 'utf8')).toContain('pageWords(hubPath(hub))');
     expect(SEO_PAGES.filter((p) => isHubPath(p.path)).every((p) => p.words)).toBe(true);
     expect(listed.length).toBeGreaterThanOrEqual(15);
     for (const p of listed) expect(used, `${p} has words in lib/seo/pageList.ts but its page never reads them`).toContain(p);
@@ -31,13 +31,13 @@ describe('page words an admin can rewrite', () => {
   });
 
   it('shows the built-in words until an admin saves, then the saved ones, and empty goes back', async () => {
-    expect(await pageWords('/faq')).toEqual({ heading: 'Questions people ask', intro: 'Short answers about buying, selling, money and safety.', body: null });
-    expect(await setPageWords('admin-1', '/faq', { heading: '  Your questions, answered ', intro: 'Money, delivery and safety in plain words.', body: '' })).toEqual({ ok: true });
-    expect(await pageWords('/faq')).toEqual({ heading: 'Your questions, answered', intro: 'Money, delivery and safety in plain words.', body: null });
-    const log = (await auditList(20)).find((e) => e.action === 'page_words_changed' && e.targetRef === '/faq');
+    expect(await pageWords('/sellers')).toEqual({ heading: 'Meet the sellers', intro: 'Developers who build and sell full-stack websites. Many also take custom work.', body: null });
+    expect(await setPageWords('admin-1', '/sellers', { heading: '  Your questions, answered ', intro: 'Money, delivery and safety in plain words.', body: '' })).toEqual({ ok: true });
+    expect(await pageWords('/sellers')).toEqual({ heading: 'Your questions, answered', intro: 'Money, delivery and safety in plain words.', body: null });
+    const log = (await auditList(20)).find((e) => e.action === 'page_words_changed' && e.targetRef === '/sellers');
     expect(log?.detail).toMatchObject({ from: { heading: '' }, to: { heading: 'Your questions, answered' } });
-    expect(await setPageWords('admin-1', '/faq', { heading: '', intro: '', body: '' })).toEqual({ ok: true });
-    expect((await pageWords('/faq')).heading).toBe('Questions people ask');
+    expect(await setPageWords('admin-1', '/sellers', { heading: '', intro: '', body: '' })).toEqual({ ok: true });
+    expect((await pageWords('/sellers')).heading).toBe('Meet the sellers');
   });
 
   it('a policy page shows its saved text as safe blocks, never raw HTML', async () => {

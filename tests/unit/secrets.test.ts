@@ -83,7 +83,9 @@ describe('secrets stay on the server', () => {
 describe('no raw HTML from users', () => {
   it('dangerouslySetInnerHTML is used only by the JSON-LD helper', () => {
     // Allowed in one place only: the JSON-LD helper, which must neutralise every "<" so nothing can close the script tag.
-    expect(sources.filter((s) => s.text.includes('dangerouslySetInnerHTML') && s.file !== 'components/JsonLd.tsx').map((s) => s.file)).toEqual([]);
+    // And in CleanHtml, which runs the guides allow-list on every render (owner, 2026-11-08: the guides editor).
+    expect(sources.filter((s) => s.text.includes('dangerouslySetInnerHTML') && s.file !== 'components/JsonLd.tsx' && s.file !== 'components/glass/CleanHtml.tsx').map((s) => s.file)).toEqual([]);
+    expect(sources.find((s) => s.file === 'components/glass/CleanHtml.tsx')!.text).toContain('__html: cleanGuideHtml(html)');
     const ld = sources.find((s) => s.file === 'components/JsonLd.tsx')!;
     expect(ld.text).toContain('.replace(/</g,');
     expect(ld.text).toContain('u003c');

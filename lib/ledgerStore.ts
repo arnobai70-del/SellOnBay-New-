@@ -50,9 +50,10 @@ export const postgresLedger: LedgerStore = {
       .map((r) => ({ account: r.account as string, holds: (r.account as string).startsWith('seller_debt:') ? -Number(r.net_cents) : Number(r.net_cents) }));
   },
   async lines(key) {
-    const { data, error } = await createAdminClient().from('ledger_entries').select('account, amount_cents, side').eq('entry_key', key);
+    // Migration 0018 renamed entry_key to entry_id and side to direction (the spec's names); reading the old names failed on every call.
+    const { data, error } = await createAdminClient().from('ledger_entries').select('account, amount_cents, direction').eq('entry_id', key);
     if (error) throw new Error('Could not read the ledger: ' + error.message);
-    return (data ?? []).map((r) => ({ account: r.account as string, amountCents: Number(r.amount_cents), side: r.side as LedgerLine['side'] }));
+    return (data ?? []).map((r) => ({ account: r.account as string, amountCents: Number(r.amount_cents), side: r.direction as LedgerLine['side'] }));
   },
   async balance(account) {
     const { data } = await createAdminClient().from('ledger_balances').select('net_cents').eq('account', account).maybeSingle();

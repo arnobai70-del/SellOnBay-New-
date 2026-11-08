@@ -1,4 +1,5 @@
 import 'server-only';
+import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { cannotAct, mayBuy } from '../accounts';
 import { supabaseConfigured } from '../supabase/env';
@@ -33,7 +34,7 @@ async function signedIn(): Promise<{ ok: true; id: string; email: string | null;
     email: user.email ?? null,
     role: p.role ?? 'buyer',
     name: p.full_name || 'You',
-    aal2: aal?.currentLevel === 'aal2',
+    aal2: passedCode(aal),
     social: hasSocialIdentity(user.identities as Identity[] | undefined),
   };
 }
@@ -41,7 +42,7 @@ async function signedIn(): Promise<{ ok: true; id: string; email: string | null;
 export async function buyerOnly(): Promise<Who> {
   const s = await signedIn();
   if (!s.ok) return s;
-  if (!mayBuy(s.role)) return no('Only a buyer account can do this. Seller and admin accounts cannot buy.', 403);
+  if (!mayBuy(s.role)) return no('Admin accounts cannot buy. Use your own account.', 403);
   return { ok: true, id: s.id, name: s.name, email: s.email };
 }
 

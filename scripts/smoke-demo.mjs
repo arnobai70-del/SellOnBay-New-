@@ -38,7 +38,7 @@ async function waitUntilReady() {
 }
 try {
   await waitUntilReady();
-  for (const page of ['/', '/templates/saas', '/login', '/robots.txt', '/api/health']) {
+  for (const page of ['/', '/websites', '/websites/category/saas', '/signin', '/robots.txt', '/api/health']) {
     const res = await response(page);
     if (res.status !== 200) throw new Error(`Demo smoke ${page} returned ${res.status}`);
     if (page === '/') {
@@ -55,11 +55,18 @@ try {
     }
     console.log(`Demo smoke passed: GET ${page}`);
   }
-  // The retired public pages (lib/legacy.ts, owner 2026-10-23) must stay gone.
-  const gone = await response('/browse');
-  await gone.body?.cancel();
-  if (gone.status !== 410) throw new Error(`Demo smoke /browse returned ${gone.status}, expected 410 Gone`);
-  console.log('Demo smoke passed: GET /browse is 410 Gone');
+  // Old addresses move permanently to the glass UI pages (owner, 2026-11-07).
+  for (const [from, to] of [
+    ['/templates/saas', '/websites/category/saas'],
+    ['/login', '/signin'],
+    ['/browse', '/websites'],
+  ]) {
+    const res = await response(from);
+    await res.body?.cancel();
+    const at = new URL(res.headers.get('location') ?? '', origin).pathname;
+    if (res.status !== 301 || at !== to) throw new Error(`Demo smoke ${from} returned ${res.status} to ${at}, expected 301 to ${to}`);
+    console.log(`Demo smoke passed: GET ${from} is 301 to ${to}`);
+  }
   // A route that sets no cache header of its own must still come back uncacheable.
   const api = await response('/api/demo/orders/smoke-missing');
   await api.body?.cancel();

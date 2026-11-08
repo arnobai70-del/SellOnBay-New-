@@ -3,7 +3,7 @@ import { pageCopy } from '@/lib/content/copy';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Earnings } from './Earnings';
 import { PageExtras } from '@/components/PageExtras';
-import { CONFIG, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, REVIEW_HOURS } from '@/lib/config';
+import { CONFIG, PAYOUT_FEE_TEXT, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, REVIEW_HOURS } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { SocialRow } from '@/components/glass/SocialRow';
@@ -87,8 +87,11 @@ export default async function Sell() {
             {PLAN_KEEP_TEXT} to you
           </div>
           <div className="g-li">
-            <span style={{ flex: 1, fontSize: 14 }}>Payout fee</span>[PAYOUT FEE]
+            <span style={{ flex: 1, fontSize: 14 }}>Payout fee</span>None from SellOnBay
           </div>
+          <p className="g-tag" style={{ marginTop: 10 }}>
+            {PAYOUT_FEE_TEXT}
+          </p>
           <p className="g-tag" style={{ marginTop: 10 }}>
             {PAYOUT_TEXT}, after the buyer&apos;s {REVIEW_HOURS}-hour review. By PayPal, Payoneer, Wise or bank transfer worldwide.
           </p>

@@ -121,6 +121,10 @@ export const PLAN_KEEP_TEXT = pct(10_000 - CONFIG.flatPlan.commissionBps);
 export const planNetCents = (priceCents: number, commissionBps: number = CONFIG.flatPlan.commissionBps) => priceCents - Math.round((priceCents * commissionBps) / 10_000);
 /* The one sentence about when sellers are paid (owner's words, 2026-11-07). */
 export const PAYOUT_TEXT = `Paid every Thursday for earnings accepted at least ${CONFIG.payout.holdDays} days ago`;
+/* Owner's words, 2026-11-09: payout fees, domain refunds and licence updates. Shown on /sell, /domains, the terms, refunds and licences pages. */
+export const PAYOUT_FEE_TEXT = 'No payout fee from SellOnBay. Any fee charged by your bank or payout provider (e.g. PayPal, Payoneer) is deducted by that provider.';
+export const DOMAIN_REFUND_TEXT = 'Domains are non-refundable once registered, because the registrar charges us at registration. If registration fails, you get a full refund.';
+export const LICENCE_UPDATE_MONTHS = { standard: 6, extended: 12 } as const;
 /* What the seller keeps of a sale before plans: "78% (70% under $20)". */
 export const SELLER_KEEP_TEXT = `${pct(10_000 - CONFIG.fees.saleBps)} (${pct(10_000 - CONFIG.fees.saleLowBps)} under $${CONFIG.fees.saleLowBelowCents / 100})`;
 /*

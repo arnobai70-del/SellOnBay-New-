@@ -6,8 +6,8 @@ export const LICENCE_TYPES = ['single_project', 'multi_project', 'full_transfer'
 export type LicenceType = (typeof LICENCE_TYPES)[number];
 
 export const LICENCES: Record<LicenceType, { label: string; terms: string }> = {
-  single_project: { label: 'Single project', terms: 'Use it for one site or project of your own. You may not resell it or give it away.' },
-  multi_project: { label: 'Multi project', terms: 'Use it for as many projects of your own as you like. You may not resell or give away the product itself.' },
+  single_project: { label: 'Single project', terms: 'Use it for one end website, for yourself or for one client. You may not resell it or give it away.' },
+  multi_project: { label: 'Multi project', terms: 'Use it for as many projects of your own or your clients as you like. You may not resell or give away the product itself.' },
   full_transfer: { label: 'Full transfer', terms: 'Ownership of the product passes to you and the seller stops selling it.' },
 };
 export const DEFAULT_LICENCE: LicenceType = 'single_project';

@@ -4,12 +4,10 @@ Written at the end of the glass redesign (2026-11-08). Nothing here is done by i
 
 ## Placeholders to fill
 
+Payout fee, domain refunds, client use and update months were filled on 2026-11-09 (owner's words, kept in `lib/config.ts`: `PAYOUT_FEE_TEXT`, `DOMAIN_REFUND_TEXT`, `LICENCE_UPDATE_MONTHS`). Only the lawyer review is left.
+
 | Placeholder | Where | What it needs |
 | --- | --- | --- |
-| `[PAYOUT FEE]` | `/sell`, fees table (`app/(glass)/sell/page.tsx`) | What a payout costs the seller (per method, or "none"). |
-| `[DOMAIN REFUND POLICY]` | `/domains` (`app/(glass)/domains/page.tsx`) | Whether a registered domain can be refunded (registrar fees usually cannot). |
-| `[CONFIRM]` | `/legal/licenses`, "Use for a client" under the standard licence | Yes or No. |
-| `[N] months` (twice) | `/legal/licenses`, "Updates from the seller" for the standard and extended licence | How many months of updates each licence includes. |
 | `[LAWYER REVIEW]` | Terms, seller agreement, the other legal pages' stamp, the accept-box consent text, the handover certificate, the evidence PDF, licence texts and tiers, quotation terms, sales PDF | A lawyer reads them; then publish each as a version in Admin › Legal documents. |
 
 ## Keys and server settings (server environment only, never in git)

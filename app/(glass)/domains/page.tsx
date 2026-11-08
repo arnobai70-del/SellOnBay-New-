@@ -4,6 +4,7 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { StatusPill } from '@/components/glass/StatusPill';
 import { PageExtras } from '@/components/PageExtras';
 import { ALL_TLDS, cleanName, registrarLive, TLDS } from '@/lib/domains';
+import { DOMAIN_REFUND_TEXT } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 
@@ -89,7 +90,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
           <div className="g-li" style={{ display: 'block' }}>
             <b style={{ fontWeight: 500, fontSize: 14 }}>Is the domain refunded if I reject the website?</b>
             <p className="g-muted" style={{ marginTop: 4, fontSize: 14 }}>
-              [DOMAIN REFUND POLICY]
+              {DOMAIN_REFUND_TEXT} The domain stays yours even if you reject the website.
             </p>
           </div>
         </GlassCard>

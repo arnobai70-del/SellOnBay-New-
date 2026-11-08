@@ -14,7 +14,7 @@ export type RequestedTier = BuyerTier | 'exclusive_review';
 export const TIER_TEXT: Record<RequestedTier, { label: string; terms: string }> = {
   single_project: {
     label: 'Single project',
-    terms: 'Use it for one website or project of your own or for one client. Not exclusive: others may buy the same product. No resale or redistribution of the product itself.',
+    terms: 'Use it for one end website, for yourself or for one client. Not exclusive: others may buy the same product. No resale or redistribution of the product itself.',
   },
   multi_project: { label: 'Multi project', terms: 'Use it for as many projects of your own or your clients as you like. Not exclusive. No resale or redistribution of the product itself.' },
   extended_commercial: {

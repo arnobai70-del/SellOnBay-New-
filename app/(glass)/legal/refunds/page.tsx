@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { LegalPage } from '@/components/LegalPage';
-import { BUGFIX_DAYS, CONFIG, REVIEW_HOURS } from '@/lib/config';
+import { BUGFIX_DAYS, CONFIG, DOMAIN_REFUND_TEXT, REVIEW_HOURS } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 
 export const generateMetadata = () => pageMetadata('/refunds', { alternates: { canonical: '/legal/refunds' } });
@@ -17,6 +17,9 @@ export default function Refunds() {
         <li>A dispute for a serious problem, within {BUGFIX_DAYS} days after you accept: not as described, does not work, malware, or a copyright claim.</li>
         <li>A {BUGFIX_DAYS}-day bug-fix guarantee. The seller must fix faults that were in what they delivered. This is a fix, not a refund.</li>
       </ul>
+
+      <h2 id="domains">Domains</h2>
+      <p>{DOMAIN_REFUND_TEXT} A registered domain stays yours even if the website order is refunded.</p>
 
       <h2 id="digital-products">Digital products (files, kits, plugins, scripts, automations)</h2>
       <p>

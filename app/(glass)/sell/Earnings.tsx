@@ -25,7 +25,7 @@ export function Earnings() {
         <div className="g-tag">You earn per month</div>
         <div style={{ fontSize: 32, fontWeight: 300 }}>{money(each * n)}</div>
         <div className="g-tag">
-          {money(each)} per sale · {PLAN_KEEP_TEXT} share · before payout fees
+          {money(each)} per sale · {PLAN_KEEP_TEXT} share · before any fee your bank or payout provider charges
         </div>
       </div>
     </GlassCard>

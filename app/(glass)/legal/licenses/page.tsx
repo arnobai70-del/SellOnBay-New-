@@ -1,4 +1,5 @@
 import { LegalPage } from '@/components/LegalPage';
+import { LICENCE_UPDATE_MONTHS } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 
 export const generateMetadata = () => pageMetadata('/licenses', { alternates: { canonical: '/legal/licenses' } });
@@ -19,11 +20,26 @@ export default function Licenses() {
           <tr>
             <td>Launch websites</td>
             <td>1</td>
-            <td>Up to 5</td>
+            <td>More than one, as set in your quotation</td>
           </tr>
           <tr>
-            <td>Use for a client</td>
-            <td>[CONFIRM]</td>
+            <td>Build one end website for one client</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Build websites for several clients</td>
+            <td>No</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Resell finished websites built from it</td>
+            <td>No</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Use it in a SaaS or paid product for many users</td>
+            <td>No</td>
             <td>Yes</td>
           </tr>
           <tr>
@@ -38,11 +54,15 @@ export default function Licenses() {
           </tr>
           <tr>
             <td>Updates from the seller</td>
-            <td>[N] months</td>
-            <td>[N] months</td>
+            <td>{LICENCE_UPDATE_MONTHS.standard} months</td>
+            <td>{LICENCE_UPDATE_MONTHS.extended} months</td>
           </tr>
         </tbody>
       </table>
+      <p>
+        The Standard licence covers one end website, for yourself or for one client. Several clients, reselling finished websites, or SaaS use need the Extended licence. Neither licence lets you
+        resell or share the source code itself, as a template, kit or copy. A digital product states its own support and update period on its listing, and that period applies to it.
+      </p>
       <p>During the beta only the Standard licence can be requested. The Extended licence is available after beta, through a quotation.</p>
     </LegalPage>
   );

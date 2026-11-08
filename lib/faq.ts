@@ -54,7 +54,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
         q: 'What does SellOnBay charge?',
         a: `A commission set by your plan: ${PLAN_FEE_TEXT}. It applies to sales, custom work, extra work and paid revisions. Buyers pay no service fee. Domains and hosting are optional extras.`,
       },
-      { q: 'Can I sell the same site again and again?', a: 'Yes, that is the idea. Each buyer gets their own licence and you keep ownership. Buyers may not resell or copy it.' },
+      { q: 'Can I sell the same site again and again?', a: 'Yes, that is the idea. Each buyer gets their own licence and you keep ownership. Buyers may not resell or share your source code.' },
       { q: 'How are listings checked?', a: 'We review the listing, check your files in a private quarantine, and make sure the demo works before it goes live.' },
     ],
   },

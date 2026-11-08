@@ -87,7 +87,7 @@ All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
 
 ## Placeholders still to fill
 
-`[PAYOUT FEE]`, `[DOMAIN REFUND POLICY]`, `[CONFIRM]` and `[N]` (licences page).
+None. Filled on 2026-11-09 with the owner's words (see `docs/DECISIONS.md`, "Payout fee, domain refunds and licences").
 
 ## Phase 3: done
 

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT } from '@/lib/config';
+import { DOMAIN_REFUND_TEXT, FEE_CUSTOM_TEXT, FEE_SALE_TEXT, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT } from '@/lib/config';
 import { LegalPage } from '@/components/LegalPage';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { paypalConfigured } from '@/lib/providers/payment';
@@ -25,7 +25,7 @@ export default function Terms() {
         </li>
         <li>
           When a real registrar is connected and registration is completed, a purchased domain will be registered in your name. Domains and hosting are optional extras, priced separately; registration
-          is not yet live.
+          is not yet live. {DOMAIN_REFUND_TEXT}
         </li>
       </ul>
 
@@ -52,8 +52,11 @@ export default function Terms() {
 
       <h2>License</h2>
       <ul>
-        <li>When you buy a site, you get a license to use it for your own business or project, on your own domain.</li>
-        <li>You may not resell it, share it, or give the seller&apos;s work to someone else to copy or rebuild. The seller keeps ownership and can sell the same site to other buyers.</li>
+        <li>
+          When you buy a site with the Standard licence, you may launch one end website with it, for yourself or for one client. Several clients, reselling finished websites, or SaaS use need the
+          Extended licence. See <Link href="/legal/licenses">Licences</Link>.
+        </li>
+        <li>You may not resell or share the source code, or give the seller&apos;s work to someone else to copy or rebuild. The seller keeps ownership and can sell the same site to other buyers.</li>
         <li>Taking a delivered site and then asking for a refund so you can use it elsewhere is a breach of these terms, and we can suspend the account.</li>
       </ul>
 

@@ -16,6 +16,7 @@ import { applyControls } from '@/lib/seo/applyControls';
 import { pageControls } from '@/lib/seo/controlStore';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { savedSocial } from '@/lib/site/contentStore';
+import { pageCopy } from '@/lib/content/copy';
 import { shownSocial } from '@/lib/site/social';
 
 const HOME_DESCRIPTION = `Buy ready-made full-stack websites with escrow protection, get a domain in your own name, or sell your own websites and keep ${PLAN_KEEP_TEXT}.`;
@@ -41,104 +42,49 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const dynamic = 'force-dynamic';
 
-const PILLARS = [
-  {
-    n: '01',
-    who: 'For buyers',
-    t: 'Full-stack websites',
-    d: 'Pick a complete, working website with frontend, backend and database. Try the live demo and buy safely with escrow.',
-    li: ['Live demo before you buy', `Escrow and a ${REVIEW_HOURS}-hour review`, 'Customization by the seller'],
-    href: '/websites',
-    cta: 'Browse websites',
-  },
-  {
-    n: '02',
-    who: 'For everyone',
-    t: 'Domains',
-    d: 'Check a name and we register it for you, in your own name.',
-    li: ['Registered in your own name', 'Reminders before it expires', 'Help connecting it to your site'],
-    href: '/domains',
-    cta: 'Find a domain',
-  },
-  {
-    n: '03',
-    who: 'For developers',
-    t: 'Seller platform',
-    d: 'Upload your full-stack websites, set your price and get paid after each review.',
-    li: [`Keep ${PLAN_KEEP_TEXT} of every sale`, `Prices from $${CONFIG.sale.priceMinCents / 100}`, 'Your own seller store'],
-    href: '/sell',
-    cta: 'Start selling',
-  },
-];
-const STEPS = [
-  { t: 'Try the live demo', d: 'Open the real site and test every page.' },
-  { t: 'Pay into escrow', d: 'SellOnBay holds your payment, not the seller.' },
-  { t: `Review for ${REVIEW_HOURS} hours`, d: 'Get the files, check them, ask for fixes.' },
-  { t: 'Approve and launch', d: 'The seller is paid and the site is yours.' },
-];
-
-export default async function Home() {
-  const [sites, sellers, social] = await Promise.all([publicWebsites(), publicSellers(), savedSocial()]);
+export default async function Home({ searchParams }: { searchParams: Promise<{ draft?: string }> }) {
+  const [sites, sellers, social, c] = await Promise.all([publicWebsites(), publicSellers(), savedSocial(), pageCopy('home', (await searchParams).draft === '1')]);
   const sameAs = shownSocial(social).map((l) => l.url);
   const featured = browse(sites, readQuery({}, []), () => null).items.slice(0, 6);
-  return (
-    <>
-      <section className="g-hero">
-        <h1>
-          <span className="g-hl">
-            <span>Buy a website. Get a domain. Or sell your own.</span>
-          </span>
-        </h1>
-        <p className="g-lead">
-          One place for your online business: ready-made full-stack websites with escrow protection, domains in your own name, and a marketplace where developers keep {PLAN_KEEP_TEXT} of every sale.
-        </p>
-        <div className="g-glass g-search">
-          <SearchBox action="/websites" label="Search websites" placeholder="Search full-stack websites" track="hero-search" />
-        </div>
-        <div className="g-chips">
-          {HUBS.map((h) => (
-            <Link key={h.slug} className="g-chip" href={categoryPath(h.slug)}>
-              {h.name.replace(/ Websites$/, '')}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="g-sec">
-        <h2>Three things, one platform</h2>
+  // Each section an admin can hide or move (Admin › Content › Pages); the top banner always comes first.
+  const SECTIONS: Record<string, React.ReactNode> = {
+    pillars: (
+      <section className="g-sec" key="pillars">
+        <h2>{c.t('pillars', 'heading')}</h2>
         <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
-          Everything a website needs, from the first idea to launch.
+          {c.t('pillars', 'intro')}
         </p>
         <div className="g-grid3" style={{ marginTop: 18 }}>
-          {PILLARS.map((p) => (
-            <GlassCard key={p.n} as="article" reveal>
+          {['1', '2', '3'].map((n) => (
+            <GlassCard key={n} as="article" reveal>
               <div className="g-tag">
-                {p.n} · {p.who}
+                0{n} · {c.t('pillars', `p${n}who`)}
               </div>
-              <h3 style={{ fontSize: 20, marginTop: 8 }}>{p.t}</h3>
+              <h3 style={{ fontSize: 20, marginTop: 8 }}>{c.t('pillars', `p${n}title`)}</h3>
               <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-                {p.d}
+                {c.t('pillars', `p${n}text`)}
               </p>
               <ul className="g-list">
-                {p.li.map((x) => (
+                {c.lines('pillars', `p${n}points`).map((x) => (
                   <li key={x}>✓ {x}</li>
                 ))}
               </ul>
               <div style={{ marginTop: 16 }}>
-                <Button variant="ghost" href={p.href}>
-                  {p.cta}
+                <Button variant="ghost" href={c.t('pillars', `p${n}href`)}>
+                  {c.t('pillars', `p${n}cta`)}
                 </Button>
               </div>
             </GlassCard>
           ))}
         </div>
       </section>
-
-      <section className="g-sec">
+    ),
+    featured: (
+      <section className="g-sec" key="featured">
         <div className="g-row">
-          <h2>Featured websites</h2>
+          <h2>{c.t('featured', 'heading')}</h2>
           <Button variant="ghost" size="sm" href="/websites">
-            Browse all
+            {c.t('featured', 'all')}
           </Button>
         </div>
         {featured.length ? (
@@ -149,21 +95,22 @@ export default async function Home() {
           </div>
         ) : (
           <p className="g-muted" style={{ marginTop: 18 }}>
-            New websites are on their way.
+            {c.t('featured', 'empty')}
           </p>
         )}
       </section>
-
-      <section className="g-sec">
+    ),
+    domains: (
+      <section className="g-sec" key="domains">
         <GlassCard reveal>
-          <div className="g-tag">Domains</div>
-          <h2 style={{ marginTop: 8 }}>Your name on the web, in your name.</h2>
+          <div className="g-tag">{c.t('domains', 'tag')}</div>
+          <h2 style={{ marginTop: 8 }}>{c.t('domains', 'heading')}</h2>
           <form className="g-row" action="/domains" method="get" style={{ marginTop: 14, justifyContent: 'flex-start' }} data-track="domains">
             <label className="g-sr" htmlFor="home-domain">
               Search a domain
             </label>
-            <input id="home-domain" className="g-input" name="q" placeholder="yourbrand" style={{ flex: '1 1 220px', width: 'auto' }} />
-            <Button type="submit">Check availability</Button>
+            <input id="home-domain" className="g-input" name="q" placeholder={c.t('domains', 'hint')} style={{ flex: '1 1 220px', width: 'auto' }} />
+            <Button type="submit">{c.t('domains', 'button')}</Button>
           </form>
           <p className="g-tag">
             {TLDS.slice(0, 4)
@@ -172,33 +119,35 @@ export default async function Home() {
           </p>
         </GlassCard>
       </section>
-
-      <section className="g-sec">
+    ),
+    how: (
+      <section className="g-sec" key="how">
         <div className="g-row">
-          <h2>How buying works</h2>
+          <h2>{c.t('how', 'heading')}</h2>
           <Button variant="ghost" size="sm" href="/buyer-protection">
-            Buyer protection
+            {c.t('how', 'link')}
           </Button>
         </div>
         <div className="g-grid3" style={{ marginTop: 18 }}>
-          {STEPS.map((s, i) => (
-            <GlassCard key={s.t} reveal>
-              <span className="g-step-n">{i + 1}</span>
-              <h3>{s.t}</h3>
+          {[1, 2, 3, 4].map((i) => (
+            <GlassCard key={i} reveal>
+              <span className="g-step-n">{i}</span>
+              <h3>{c.t('how', `s${i}t`)}</h3>
               <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
-                {s.d}
+                {c.t('how', `s${i}d`)}
               </p>
             </GlassCard>
           ))}
         </div>
       </section>
-
-      {sellers.length > 0 && (
-        <section className="g-sec">
+    ),
+    sellers:
+      sellers.length > 0 ? (
+        <section className="g-sec" key="sellers">
           <div className="g-row">
-            <h2>Top sellers</h2>
+            <h2>{c.t('sellers', 'heading')}</h2>
             <Button variant="ghost" size="sm" href="/sellers">
-              See all sellers
+              {c.t('sellers', 'all')}
             </Button>
           </div>
           <div className="g-grid3" style={{ marginTop: 18 }}>
@@ -217,21 +166,50 @@ export default async function Home() {
             ))}
           </div>
         </section>
-      )}
-
-      <section className="g-sec">
+      ) : null,
+    sell: (
+      <section className="g-sec" key="sell">
         <GlassCard reveal>
-          <h2>Sell your full-stack websites. Keep {PLAN_KEEP_TEXT} of every sale.</h2>
+          <h2>{c.t('sell', 'heading')}</h2>
           <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-            Upload your site with a live demo and set your price from ${CONFIG.sale.priceMinCents / 100}. {PAYOUT_TEXT}.
+            {c.t('sell', 'text')}
           </p>
           <div style={{ marginTop: 14 }}>
             <Button href="/sell" data-track="start-selling">
-              Start selling
+              {c.t('sell', 'button')}
             </Button>
           </div>
         </GlassCard>
       </section>
+    ),
+  };
+  return (
+    <>
+      {c.preview && (
+        <p className="g-banner g-banner-warn" role="status">
+          Preview of the saved draft. Visitors still see the published words.
+        </p>
+      )}
+      <section className="g-hero">
+        <h1>
+          <span className="g-hl">
+            <span>{c.t('hero', 'title')}</span>
+          </span>
+        </h1>
+        <p className="g-lead">{c.t('hero', 'lead')}</p>
+        <div className="g-glass g-search">
+          <SearchBox action="/websites" label="Search websites" placeholder={c.t('hero', 'search')} track="hero-search" />
+        </div>
+        <div className="g-chips">
+          {HUBS.map((h) => (
+            <Link key={h.slug} className="g-chip" href={categoryPath(h.slug)}>
+              {h.name.replace(/ Websites$/, '')}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {c.order.map((k) => SECTIONS[k] ?? null)}
 
       <JsonLd data={{ '@context': 'https://schema.org', '@type': 'Organization', name: SITE_NAME, url: SITE_URL, ...(sameAs.length ? { sameAs } : {}) }} />
       <JsonLd

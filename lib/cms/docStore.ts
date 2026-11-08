@@ -37,6 +37,7 @@ async function read<T>(key: string, fresh = false): Promise<T | null> {
   let v: unknown = mem.get(key) ?? null;
   try {
     if (await settingsTableReady()) v = (await createAdminClient().from('app_settings').select('value').eq('key', key).maybeSingle()).data?.value ?? null;
+    if (v && typeof v === 'object' && (v as { __empty?: boolean }).__empty === true) v = null; // a removed draft (see write)
   } catch {
     v = null; // a database problem shows the built-in text
   }
@@ -51,7 +52,8 @@ async function write(key: string, value: unknown | null, by: string | null): Pro
     return true;
   }
   const db = createAdminClient().from('app_settings');
-  const { error } = value === null ? await db.delete().eq('key', key) : await db.upsert({ key, value, changed_by: uuid(by), changed_at: new Date().toISOString() });
+  // A removed value is saved as an empty marker: the server may not delete app_settings rows (migration 0040), and read() treats it as nothing saved.
+  const { error } = await db.upsert({ key, value: value === null ? { __empty: true } : value, changed_by: uuid(by), changed_at: new Date().toISOString() });
   return !error;
 }
 const refresh = (name: DocName) => {

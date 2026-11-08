@@ -1,4 +1,5 @@
 import { Button } from '@/components/glass/Button';
+import { pageCopy } from '@/lib/content/copy';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Earnings } from './Earnings';
 import { PageExtras } from '@/components/PageExtras';
@@ -29,17 +30,18 @@ const CHECKS = [
 
 export default async function Sell() {
   const [words, social] = await Promise.all([pageWords('/sell'), savedSocial()]);
+  const copy = await pageCopy('sell'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
-        {words.intro && <p className="g-lead">{words.intro}</p>}
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
+        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
         <div className="g-row" style={{ justifyContent: 'flex-start' }}>
           <Button href="/signin?mode=signup" data-track="start-selling">
-            Start selling
+            {copy.t('cta', 'start')}
           </Button>
           <Button variant="ghost" href="/legal/seller-agreement">
-            Seller agreement
+            {copy.t('cta', 'agreement')}
           </Button>
         </div>
       </div>
@@ -94,9 +96,9 @@ export default async function Sell() {
       </section>
       <section className="g-sec">
         <GlassCard reveal className="g-row">
-          <h2>Ready to open your store?</h2>
+          <h2>{copy.t('cta', 'ready')}</h2>
           <Button href="/signin?mode=signup" data-track="start-selling">
-            Create a seller account
+            {copy.t('cta', 'create')}
           </Button>
         </GlassCard>
         <SocialRow links={social} label="Sellers community" />

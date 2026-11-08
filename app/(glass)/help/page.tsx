@@ -1,4 +1,5 @@
 import { ContactForm } from './ContactForm';
+import { pageCopy } from '@/lib/content/copy';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PageExtras } from '@/components/PageExtras';
 import { liveSiteKey } from '@/lib/bot/turnstile';
@@ -16,11 +17,12 @@ export const generateMetadata = () => pageMetadata('/help', { alternates: { cano
 export default async function Help() {
   const [words, saved, routes, social] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial()]);
   const { groups } = faqToShow(saved?.groups ?? null); // Admin > CMS, else built-in
+  const copy = await pageCopy('help'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
-        {words.intro && <p className="g-lead">{words.intro}</p>}
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
+        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
       </div>
       <div className="g-stack">
         {groups.map((g) => (
@@ -40,9 +42,9 @@ export default async function Help() {
       <section className="g-sec" id="contact">
         <div className="g-grid2">
           <GlassCard>
-            <h2>Still need help?</h2>
+            <h2>{copy.t('contact', 'heading')}</h2>
             <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-              Signed in? Open a ticket from your dashboard so it&apos;s linked to your order. Otherwise send us a message here.
+              {copy.t('contact', 'text')}
             </p>
             <div className="g-li" style={{ marginTop: 10 }}>
               <span style={{ flex: 1, fontSize: 14 }}>Support</span>

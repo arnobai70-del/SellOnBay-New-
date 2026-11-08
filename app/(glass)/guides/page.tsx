@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { pageCopy } from '@/lib/content/copy';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PageExtras } from '@/components/PageExtras';
 import { descriptionOf, publishedPosts } from '@/lib/posts';
@@ -10,11 +11,12 @@ export const generateMetadata = () => pageMetadata('/guides', { alternates: { ca
 
 export default async function Guides() {
   const [posts, words] = await Promise.all([publishedPosts(200), pageWords('/guides')]);
+  const copy = await pageCopy('guides'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
-        {words.intro && <p className="g-lead">{words.intro}</p>}
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
+        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
       </div>
       {posts.length ? (
         <div className="g-grid3">

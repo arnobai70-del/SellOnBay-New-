@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pageCopy } from '@/lib/content/copy';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/glass/Button';
@@ -57,6 +58,7 @@ export default async function Website({ params }: Props) {
   const related = sites.filter((x) => x.id !== p.id && hub && cats.of(x)?.slug === hub.slug).slice(0, 3);
   const beta = settings.paymentsMode === 'beta_free';
   const requestable = p.sellerId ? betaEligible(p) : examplesBuyable();
+  const copy = await pageCopy('website'); // the words around every listing (Admin › Content › Pages)
   return (
     <div style={{ paddingTop: 32 }}>
       <TrackView id={p.id} />
@@ -95,7 +97,7 @@ export default async function Website({ params }: Props) {
             </p>
             {p.inc.length > 0 && (
               <>
-                <h3 style={{ marginTop: 18 }}>What&apos;s included</h3>
+                <h3 style={{ marginTop: 18 }}>{copy.t('labels', 'included')}</h3>
                 <ul className="g-list">
                   {p.inc.map((x) => (
                     <li key={x}>✓ {x}</li>
@@ -144,13 +146,13 @@ export default async function Website({ params }: Props) {
               {!beta ? (
                 <Button href={`/checkout?id=${encodeURIComponent(p.id)}`}>Buy with escrow</Button>
               ) : requestable ? (
-                <Button href={`/cart?add=${encodeURIComponent(p.id)}`}>Add to cart</Button>
+                <Button href={`/cart?add=${encodeURIComponent(p.id)}`}>{copy.t('labels', 'cart')}</Button>
               ) : (
-                <Button disabled>Available after beta</Button>
+                <Button disabled>{copy.t('labels', 'after')}</Button>
               )}
               {p.demo && (
                 <Button variant="ghost" href={`/preview/${p.id}`} target="_blank" rel="noopener">
-                  Open live demo
+                  {copy.t('labels', 'demo')}
                 </Button>
               )}
             </div>

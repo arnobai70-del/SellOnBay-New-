@@ -6,7 +6,19 @@ import type { SocialLink } from '@/lib/site/social';
 import { SocialRow } from './SocialRow';
 import { FOOTER_COLUMNS, type FooterColumn } from '@/lib/glass/nav';
 
-export function PublicFooter({ columns = FOOTER_COLUMNS, routes = EMAIL_ROUTES, social = [] }: { columns?: FooterColumn[]; routes?: ContactRoutes; social?: SocialLink[] }) {
+export function PublicFooter({
+  columns = FOOTER_COLUMNS,
+  routes = EMAIL_ROUTES,
+  social = [],
+  tagline = 'Full-stack websites and domains, bought safely with escrow.',
+  contactTitle = 'Contact',
+}: {
+  columns?: FooterColumn[];
+  routes?: ContactRoutes;
+  social?: SocialLink[];
+  tagline?: string;
+  contactTitle?: string;
+}) {
   return (
     <footer className="g-foot">
       <div>
@@ -14,7 +26,7 @@ export function PublicFooter({ columns = FOOTER_COLUMNS, routes = EMAIL_ROUTES, 
           <span className="g-dot" aria-hidden="true" />
           {BRAND_NAME}
         </Link>
-        <p className="g-foot-p">Full-stack websites and domains, bought safely with escrow.</p>
+        <p className="g-foot-p">{tagline}</p>
         <SocialRow links={social} />
       </div>
       {columns.map((c) => (
@@ -28,7 +40,7 @@ export function PublicFooter({ columns = FOOTER_COLUMNS, routes = EMAIL_ROUTES, 
         </div>
       ))}
       <div className="g-foot-c">
-        <span className="g-foot-t">Contact</span>
+        <span className="g-foot-t">{contactTitle}</span>
         <a className="g-foot-a" href={`mailto:${routes.support}`}>
           {routes.support}
         </a>

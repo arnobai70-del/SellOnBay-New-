@@ -30,7 +30,7 @@ export function trackedKey(key: string): Tracked | null {
   for (const [p, kind, label] of PREFIXES) {
     if (!key.startsWith(p)) continue;
     const path = key.slice(p.length);
-    if (kind === 'cms_doc') return /^(faq|how_it_works|email:[a-z_]{3,40})$/.test(path) ? { kind, path, label: `${label} · ${path}` } : null;
+    if (kind === 'cms_doc') return /^(faq|how_it_works|email:[a-z_]{3,40}|page:[a-z-]{2,40})$/.test(path) ? { kind, path, label: `${label} · ${path}` } : null; // page:<key>: Admin › Content › Pages (2026-11-08)
     if (!path.startsWith('/') || path.length > 200) return null;
     return { kind, path, label: `${label} · ${path}` };
   }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { pageCopy } from '@/lib/content/copy';
 import { Button } from '@/components/glass/Button';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PageExtras } from '@/components/PageExtras';
@@ -18,11 +19,12 @@ const STEPS = [
 
 export default async function BuyerProtection() {
   const words = await pageWords('/buyer-protection');
+  const copy = await pageCopy('buyer-protection'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
-        {words.intro && <p className="g-lead">{words.intro}</p>}
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
+        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
       </div>
       <section>
         <h2>How buying works</h2>

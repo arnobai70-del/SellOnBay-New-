@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { pageCopy } from '@/lib/content/copy';
 import { Button } from '@/components/glass/Button';
 import { Field } from '@/components/glass/Field';
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -20,10 +21,11 @@ export default async function Websites({ searchParams }: { searchParams: Promise
   const [sites, cats, words] = await Promise.all([publicWebsites(), websiteCategories(), pageWords('/websites')]);
   const r = browse(sites, q, (p) => cats.of(p)?.slug ?? null, q.q ? await rankWebsites(q.q) : undefined);
   const hub = HUBS.find((h) => h.slug === q.category);
+  const copy = await pageCopy('websites'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
         <div className="g-glass g-search">
           <SearchBox action="/websites" label="Search websites" placeholder="Search full-stack websites" defaultValue={q.q} hidden={q.category ? { category: q.category } : {}} />
         </div>

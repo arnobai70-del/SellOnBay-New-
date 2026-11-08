@@ -1,4 +1,5 @@
 import { Button } from '@/components/glass/Button';
+import { pageCopy } from '@/lib/content/copy';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { StatusPill } from '@/components/glass/StatusPill';
 import { PageExtras } from '@/components/PageExtras';
@@ -17,11 +18,12 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
   const { q = '' } = await searchParams;
   const name = cleanName(String(q));
   const words = await pageWords('/domains');
+  const copy = await pageCopy('domains'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
-        {words.intro && <p className="g-lead">{words.intro}</p>}
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
+        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
         <form className="g-glass g-search" action="/domains" method="get" role="search">
           <label className="g-sr" htmlFor="domain-q">
             Search a domain

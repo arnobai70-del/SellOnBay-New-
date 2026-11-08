@@ -1,4 +1,5 @@
 import { Button } from '@/components/glass/Button';
+import { pageCopy } from '@/lib/content/copy';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { StatusPill } from '@/components/glass/StatusPill';
 import { PageExtras } from '@/components/PageExtras';
@@ -15,11 +16,12 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
   const [all, words] = await Promise.all([publicSellers(), pageWords('/sellers')]);
   const term = String(q).trim().toLowerCase();
   const list = all.filter((s) => (!term || `${s.name} ${s.headline} ${s.skills.join(' ')}`.toLowerCase().includes(term)) && (custom !== '1' || s.customAvailable));
+  const copy = await pageCopy('sellers'); // Admin › Content › Pages; empty fields keep the page's own words
   return (
     <>
       <div className="g-head">
-        <h1>{words.heading}</h1>
-        {words.intro && <p className="g-lead">{words.intro}</p>}
+        <h1>{copy.t('head', 'heading', words.heading)}</h1>
+        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
         <form className="g-glass g-search" action="/sellers" method="get" role="search">
           <label className="g-sr" htmlFor="seller-q">
             Search sellers

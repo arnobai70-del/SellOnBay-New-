@@ -15,6 +15,8 @@ import { legacyPublic } from '@/lib/legacy';
 import { realListings } from '@/lib/seo/hubStore';
 import { navMenu } from '@/lib/seo/navStore';
 import { getSettings } from '@/lib/settings';
+import { pageCopy } from '@/lib/content/copy';
+import { PUBLIC_LINKS } from '@/lib/glass/nav';
 import { contactRoutes, savedFooter, savedSocial, topBlocks } from '@/lib/site/contentStore';
 
 /*
@@ -56,19 +58,19 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </>
     );
   }
-  const [{ paymentsMode }, routes] = await Promise.all([getSettings(), contactRoutes()]);
+  const [{ paymentsMode }, routes, nav, foot] = await Promise.all([getSettings(), contactRoutes(), pageCopy('nav'), pageCopy('footer')]);
   return (
     <>
       <GlassPage>
         {paymentsMode === 'beta_free' && <p className="g-banner">{BETA_BANNER_TEXT}</p>}
         <MaintenanceBanner />
         <div className="g-wrap">
-          <PublicNav showCart />
+          <PublicNav showCart links={PUBLIC_LINKS.map((l) => ({ ...l, label: nav.t('links', l.href.slice(1), l.label) }))} />
           <main id="main" className="g-old">
             <TopBlocks slots={slots} />
             {children}
           </main>
-          <PublicFooter routes={routes} social={social} />
+          <PublicFooter routes={routes} social={social} tagline={foot.t('main', 'tagline')} contactTitle={foot.t('main', 'contact')} />
         </div>
       </GlassPage>
       {tail}

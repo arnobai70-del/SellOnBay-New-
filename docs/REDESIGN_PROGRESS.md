@@ -11,7 +11,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 | 4 Buyer dashboard | `redesign/phase-4-buyer-dashboard` | Done |
 | 5 Seller dashboard | `redesign/phase-5-seller-dashboard` | Done |
 | 6 Admin | `redesign/phase-6-admin` | Done |
-| 7 Polish | `redesign/phase-7-polish`, then `redesign/phase-6c-search-cms-prices` | Done, except the deletions in `docs/CLEANUP.md` (waiting for the owner's ok) |
+| 7 Polish | `redesign/phase-7-polish`, then `redesign/phase-6c-search-cms-prices` | Done (cleanup group A and C deleted; group B, test data and `design-reference/` wait for "prepare launch") |
 
 ## Database
 
@@ -80,7 +80,7 @@ What to click (`npm run dev`, then `http://localhost:3000`):
 
 All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
 
-- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `buyer5@` (switched to selling), `admin2@` (Content scope, banned after each run, an authenticator factor), `seller1@` (an authenticator factor "[TEST] e2e", store name `test-seller-qa`, PayPal payout, country US, ID verifications `e00e774f-d1f6-407b-b13d-97483d7132d8` and `2d3a8f2c-50af-4bd7-956f-9e9f92662f18` with their files in `seller-ids`; one rejected and one approved by the Phase 6 check, so seller1 is ID-verified). `admin1@` also has an authenticator factor. One `page_counts` row for `/legal/privacy` came from the check, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
+- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `buyer5@` (switched to selling), `buyer6@` (beta flow after the cleanup, order `0db69944-7c24-414d-b259-499617e1fc1a`), `admin2@` (Content scope, banned after each run, an authenticator factor), `seller1@` (an authenticator factor "[TEST] e2e", store name `test-seller-qa`, PayPal payout, country US, ID verifications `e00e774f-d1f6-407b-b13d-97483d7132d8` and `2d3a8f2c-50af-4bd7-956f-9e9f92662f18` with their files in `seller-ids`; one rejected and one approved by the Phase 6 check, so seller1 is ID-verified). `admin1@` also has an authenticator factor. One `page_counts` row for `/legal/privacy` came from the check, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
 - Listing: `test-beta-website-qa` ("[TEST] Beta website"), paused.
 - Cash sale (Phase 6 check): order `57a4408b-1ce5-4853-b47f-58c139beca00` for `buyer4@`, receipt `TEST-R-MW76MTO1`, funded, with its four ledger lines (`cash-in:TEST-R-MW76MTO1`, `pay:57a4408b-…`) and the audit row. Settings rows left empty by the checks: `site:contact` `{}`, `marketing:coupons` `[]`, `site:blocks:/guides` `[]`.
 - Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, `bf3b2ce6-5c47-4821-93b0-f0b894e4943f`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.

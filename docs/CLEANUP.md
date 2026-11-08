@@ -1,10 +1,10 @@
-# Cleanup list (Phase 7, waiting for the owner's ok)
+# Cleanup list (Phase 7)
 
 Found with tools, then checked by hand: knip 6.42.1 (unused files, exports, packages), depcheck 1.4.7 (unused packages), and a search of `app`, `components`, `lib` and `tests` for every import of each file (static imports, dynamic `import()`, and tests that read a file by name). Nothing below is imported by any page, route, library or unit test that still runs. Nothing is deleted until the owner says ok; then it goes in one commit ("chore: remove unused files"), followed by the build, the full tests and the typecheck.
 
 Never deleted (owner, 2026-11-08): migrations, `supabase/`, `.env*`, `backups/`, tests of live code, robots, sitemap and redirects, `docs/DECISIONS.md`, `SELLONBAY_REDESIGN.md`, and anything still imported anywhere. `design-reference/` stays until launch.
 
-## A. Unused anywhere: proposed for deletion (41 files, 3.0 MB)
+## A. Unused anywhere: deleted on the owner's ok (41 files, 3.0 MB)
 
 | File | Why it is unused | Size |
 | --- | --- | --- |
@@ -79,3 +79,11 @@ Every test row is marked (emails ending `@test.sellonbay.dev`, titles starting `
 - Listing `test-beta-website-qa` ("[TEST] Beta website", paused) with its price history and the stopped sale `e93cba1f-…`.
 - Beta orders `2c57de3e-…`, `c714c781-…`, `7395a0d0-…`, `859a921d-…`, `bf3b2ce6-…`, and the cash order `57a4408b-…` with its ledger lines (ledger lines are never deleted; a reversing entry would be the way).
 - Guide `0caf8f3d-…` ("[TEST] Guide check", unpublished) and its revision; seller1's store `test-seller-qa`, two ID verifications with their files in `seller-ids`; one `page_counts` row; settings rows left empty by the checks.
+
+## Done (owner's ok, 2026-11-08)
+
+- Commit `300c03a` "chore: remove unused files": group A (41 files) and group C (`/design-preview`, with its two unit tests updated).
+- `.next-view/` (228 MB, untracked) deleted and added to `.gitignore`; the six empty folders under `app/(site)` deleted.
+- `AUTHENTICATOR_OFF` removed from `.env.local` (only that line; the file is not in git).
+- After the deletions: build, typecheck, lint, all 1,177 unit tests, and the beta flow on the real database passed (request $0 and unfunded, no files before approval, files after, feedback saved, the ledger unchanged at 584 rows). Nothing broke, so nothing was restored.
+- Waiting for "prepare launch": group B (the legacy public site, its test build and browser tests), `PayForm.tsx`, the test data of group E, and moving `design-reference/` out.

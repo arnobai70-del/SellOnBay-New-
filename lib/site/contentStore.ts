@@ -6,6 +6,8 @@ import { createAdminClient } from '../supabase/server';
 import { settingsTableReady } from '../seo/pageMeta';
 import { seoPage } from '../seo/pageList';
 import { cleanSocial, type SocialLink } from './social';
+import { checkContact, mergeContact, type ContactRoutes } from './contact';
+import { cleanCoupons, type Coupon } from '../marketing/coupons';
 import { cleanBlocks, cleanFooter, cleanMenu, cleanSections, HOME_SECTIONS, type Block, type FooterColumn, type MenuItem, type SectionsConfig } from './content';
 
 /*
@@ -160,4 +162,23 @@ export async function saveSite(adminId: string | null, kind: Kind | 'blocks' | '
   }
   const f = cleanFooter(value);
   return write(adminId, KEY.footer, f.length ? f : null, 'site_footer_changed');
+}
+
+/* The contact addresses (owner, 2026-11-08), saved over the defaults in lib/emailRouting.ts. A database problem falls back to the defaults. */
+export async function contactRoutes(now?: number): Promise<ContactRoutes> {
+  return mergeContact(await read('site:contact', now));
+}
+export async function saveContact(adminId: string | null, value: unknown) {
+  const c = checkContact(value);
+  if (!c.ok) return { ok: false as const, status: 400, error: c.error };
+  // An empty object, not a delete: the server may not delete app_settings rows (migration 0040), and {} reads as the defaults.
+  return write(adminId, 'site:contact', c.value, 'contact_addresses_changed');
+}
+
+/* Coupons (Admin › Marketing; lib/marketing/coupons.ts). Saving replaces the whole list. */
+export async function savedCoupons(now?: number): Promise<Coupon[]> {
+  return cleanCoupons(await read('marketing:coupons', now));
+}
+export async function saveCoupons(adminId: string | null, list: Coupon[]) {
+  return write(adminId, 'marketing:coupons', list, 'coupons_changed'); // [] rather than a delete (no delete right on app_settings, migration 0040)
 }

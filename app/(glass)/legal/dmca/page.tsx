@@ -1,14 +1,15 @@
 import { LegalPage } from '@/components/LegalPage';
-import { EMAIL_ROUTES } from '@/lib/emailRouting';
+import { contactRoutes } from '@/lib/site/contentStore';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 
 export const generateMetadata = () => pageMetadata('/dmca', { alternates: { canonical: '/legal/dmca' } });
 
-export default function Dmca() {
+export default async function Dmca() {
+  const routes = await contactRoutes();
   return (
     <LegalPage path="/dmca">
       <h2>If someone copied your work</h2>
-      <p>Send a notice to {EMAIL_ROUTES.report} with these things.</p>
+      <p>Send a notice to {routes.report} with these things.</p>
       <ul>
         <li>Your name and how we can reach you.</li>
         <li>What you own, with a link to the original.</li>

@@ -1404,3 +1404,33 @@ textarea.g-input {
 .g-auth a {
   color: var(--g-mint-tx);
 }
+
+/* Social links (owner, 2026-11-08): one colour, the brand colour on hover. */
+.g-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.g-social a {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--g-muted);
+  transition: color 0.2s var(--g-ease), background 0.2s var(--g-ease);
+}
+.g-social a:hover,
+.g-social a:focus-visible {
+  color: var(--brand, var(--g-text));
+  background: var(--g-line);
+}
+@media (pointer: coarse) {
+  .g-social a {
+    width: 44px;
+    height: 44px;
+  }
+}

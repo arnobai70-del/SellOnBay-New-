@@ -74,6 +74,7 @@ const PAGE_RULES: [RegExp, ModuleKey][] = [
   [/^\/dashboard\/admin\/seo(\/|$)/, 'seo'],
   [/^\/dashboard\/admin\/disputes(\/|$)/, 'disputes'],
   [/^\/dashboard\/admin(\/|$)/, 'admin'],
+  [/^\/admin(\/|$)/, 'admin'], // the glass admin (Phase 6)
   [/^\/dashboard\/buyer(\/|$)/, 'buyer'],
   [/^\/dashboard\/seller(\/|$)/, 'seller'],
   [/^\/(reset-password|account)(\/|$)/, 'auth'], // sign-in pages stay open (ALWAYS_ON_PAGE); the sign-up and reset actions check for themselves

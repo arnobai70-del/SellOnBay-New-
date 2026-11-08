@@ -15,8 +15,8 @@ import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
 import { SITE_URL } from './lib/site';
 import { basicAuthOk, isStaging, openOnStaging, STAGING_ROBOTS, stagingProblem } from './lib/stage';
 
-const SIGNED_IN = ['/dashboard', '/messages', '/checkout', '/sell/new'];
-const STAFF = ['/dashboard/seller', '/dashboard/admin', '/sell/new']; // sellers and admins need 2FA
+const SIGNED_IN = ['/dashboard', '/admin', '/messages', '/checkout', '/sell/new'];
+const STAFF = ['/dashboard/seller', '/dashboard/admin', '/admin', '/sell/new']; // sellers and admins need 2FA (/admin: the glass admin, Phase 6)
 
 /* Every visitor gets a random device id once. It is only used to spot many accounts on one device (lib/guard.ts) and is stored as a hash. */
 export async function proxy(req: NextRequest) {
@@ -129,7 +129,7 @@ async function handle(req: NextRequest) {
   if (profile && cannotAct(profile)) return go('/signin?error=banned');
 
   const role = profile?.role ?? 'buyer';
-  if (path.startsWith('/dashboard/admin') && role !== 'admin') return go('/dashboard/' + (role === 'seller' ? 'seller' : 'buyer'));
+  if ((path.startsWith('/dashboard/admin') || path === '/admin' || path.startsWith('/admin/')) && role !== 'admin') return go('/dashboard/' + (role === 'seller' ? 'seller' : 'buyer'));
   if (path.startsWith('/dashboard/seller') && role === 'buyer') return go('/dashboard/buyer');
 
   if (role !== 'buyer' && STAFF.some((p) => path.startsWith(p))) {

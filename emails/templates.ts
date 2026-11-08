@@ -10,6 +10,7 @@ export type NotificationKind =
   | 'beta_approved'
   | 'beta_declined'
   | 'beta_feedback'
+  | 'identity_checked'
   | 'order_funded'
   | 'order_due_soon'
   | 'order_delivered'
@@ -76,6 +77,10 @@ export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: stri
   }),
   beta_approved: (p) => ({ subject: `Your request for ${t(p.title)} is approved`, text: 'Your files are ready. Open the order in your dashboard to download them and to start your domain steps.' }),
   beta_declined: (p) => ({ subject: `About your request for ${t(p.title)}`, text: `We could not approve this request. ${t(p.reason)}` }),
+  identity_checked: (p) =>
+    p.ok
+      ? { subject: 'Your identity is verified', text: 'Thank you. Your weekly payouts can now be sent.' }
+      : { subject: 'Your identity check needs another look', text: `We could not accept the document: ${t(p.reason, 'it was not clear enough')}. Please send it again from Earnings & payouts.` },
   beta_feedback: (p) => ({ subject: `How is ${t(p.title)} working for you?`, text: `It has been a week. Two minutes of feedback helps us a lot: ${t(p.url)}` }),
   repo_invite_resent: (p) => ({
     subject: `A new GitHub invite for ${t(p.title)}`,

@@ -14,6 +14,8 @@ import { HUBS } from '@/lib/seo/hubs';
 import { applyControls } from '@/lib/seo/applyControls';
 import { pageControls } from '@/lib/seo/controlStore';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
+import { savedSocial } from '@/lib/site/contentStore';
+import { shownSocial } from '@/lib/site/social';
 
 const HOME_DESCRIPTION = `Buy ready-made full-stack websites with escrow protection, get a domain in your own name, or sell your own websites and keep ${PLAN_KEEP_TEXT}.`;
 
@@ -75,7 +77,8 @@ const STEPS = [
 ];
 
 export default async function Home() {
-  const [sites, sellers] = await Promise.all([publicWebsites(), publicSellers()]);
+  const [sites, sellers, social] = await Promise.all([publicWebsites(), publicSellers(), savedSocial()]);
+  const sameAs = shownSocial(social).map((l) => l.url);
   const featured = browse(sites, readQuery({}, []), () => null).items.slice(0, 6);
   return (
     <>
@@ -88,7 +91,7 @@ export default async function Home() {
         <p className="g-lead">
           One place for your online business: ready-made full-stack websites with escrow protection, domains in your own name, and a marketplace where developers keep {PLAN_KEEP_TEXT} of every sale.
         </p>
-        <form className="g-glass g-search" action="/websites" method="get" role="search">
+        <form className="g-glass g-search" action="/websites" method="get" role="search" data-track="hero-search">
           <label className="g-sr" htmlFor="home-q">
             Search websites
           </label>
@@ -142,7 +145,7 @@ export default async function Home() {
           </Button>
         </div>
         {featured.length ? (
-          <div className="g-grid3" style={{ marginTop: 18 }}>
+          <div className="g-grid3" style={{ marginTop: 18 }} data-track="featured-websites">
             {featured.map((p) => (
               <WebsiteCard key={p.id} p={p} reveal />
             ))}
@@ -158,7 +161,7 @@ export default async function Home() {
         <GlassCard reveal>
           <div className="g-tag">Domains</div>
           <h2 style={{ marginTop: 8 }}>Your name on the web, in your name.</h2>
-          <form className="g-row" action="/domains" method="get" style={{ marginTop: 14, justifyContent: 'flex-start' }}>
+          <form className="g-row" action="/domains" method="get" style={{ marginTop: 14, justifyContent: 'flex-start' }} data-track="domains">
             <label className="g-sr" htmlFor="home-domain">
               Search a domain
             </label>
@@ -226,12 +229,14 @@ export default async function Home() {
             Upload your site with a live demo and set your price from ${CONFIG.sale.priceMinCents / 100}. {PAYOUT_TEXT}.
           </p>
           <div style={{ marginTop: 14 }}>
-            <Button href="/sell">Start selling</Button>
+            <Button href="/sell" data-track="start-selling">
+              Start selling
+            </Button>
           </div>
         </GlassCard>
       </section>
 
-      <JsonLd data={{ '@context': 'https://schema.org', '@type': 'Organization', name: SITE_NAME, url: SITE_URL }} />
+      <JsonLd data={{ '@context': 'https://schema.org', '@type': 'Organization', name: SITE_NAME, url: SITE_URL, ...(sameAs.length ? { sameAs } : {}) }} />
       <JsonLd
         data={{
           '@context': 'https://schema.org',

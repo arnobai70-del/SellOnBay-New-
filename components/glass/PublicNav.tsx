@@ -32,7 +32,7 @@ export function PublicNav({
     </Link>
   ));
   const cart = showCart && (
-    <Button variant="ghost" href="/cart" onClick={shut}>
+    <Button variant="ghost" href="/cart" onClick={shut} data-track="cart">
       {cartCount > 0 ? `Cart · ${cartCount}` : 'Cart'}
     </Button>
   );
@@ -51,7 +51,7 @@ export function PublicNav({
           <div className="g-nav-sheet">
             {list}
             {showCart && (
-              <Link className="g-nav-link" href="/cart" onClick={shut}>
+              <Link className="g-nav-link" href="/cart" onClick={shut} data-track="cart">
                 {cartCount > 0 ? `Cart · ${cartCount}` : 'Cart'}
               </Link>
             )}

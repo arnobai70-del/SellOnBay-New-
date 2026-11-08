@@ -83,7 +83,7 @@ export function CartClient({ add }: { add?: string }) {
         </div>
         <div style={{ marginTop: 14 }}>
           {ready.length ? (
-            <Button href={`/checkout?ids=${encodeURIComponent(ready.map((i) => i.id).join(','))}`} style={{ width: '100%' }}>
+            <Button href={`/checkout?ids=${encodeURIComponent(ready.map((i) => i.id).join(','))}`} style={{ width: '100%' }} data-track="checkout">
               Go to checkout
             </Button>
           ) : (

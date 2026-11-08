@@ -20,6 +20,7 @@ const schema = z.object({
   showExamples: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
   deliveryHoursOn: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
   deliveryHourChoices: z.string().max(100).optional(),
+  allowedCountries: z.string().max(800).transform((v) => v.toUpperCase()).optional(),
   reason: z.string().max(500).default(''),
 });
 

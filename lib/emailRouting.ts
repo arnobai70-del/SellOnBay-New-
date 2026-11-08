@@ -16,6 +16,8 @@ export const EMAIL_ROUTES = {
 export type EmailPurpose = keyof typeof EMAIL_ROUTES;
 
 export const emailSenderFor = (purpose: EmailPurpose = 'support') => `${BRAND_NAME} <${EMAIL_ROUTES[purpose]}>`;
+/* The same with an address an admin saved (Admin › Settings › Contact & social, lib/site/contentStore.ts contactRoutes). */
+export const senderFrom = (address: string) => `${BRAND_NAME} <${address}>`;
 
 /*
  * While the redesign is built, real email goes only to our own addresses and test addresses; everything else is logged and dropped (owner, 2026-11-07).

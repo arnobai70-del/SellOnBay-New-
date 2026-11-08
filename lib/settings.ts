@@ -22,6 +22,7 @@ export type Settings = {
   showExamples: boolean;
   deliveryHoursOn: boolean;
   deliveryHourChoices: string;
+  allowedCountries: string; // comma-separated ISO codes buyers may request from; empty = everywhere (owner, 2026-11-07)
 };
 export type Key = keyof Settings;
 export type Result = { ok: true } | { ok: false; status: number; error: string };
@@ -36,6 +37,7 @@ export const DEFAULTS: Settings = {
   showExamples: true,
   deliveryHoursOn: true,
   deliveryHourChoices: hourChoicesText(CONFIG.deliveryHours.choices),
+  allowedCountries: '',
 };
 export const LABEL: Record<Key, string> = {
   paymentsMode: 'Payments mode',
@@ -47,6 +49,7 @@ export const LABEL: Record<Key, string> = {
   showExamples: 'Show the example listings (made-up products that show how the shop works; they cannot be bought)',
   deliveryHoursOn: 'Sellers may promise delivery in hours',
   deliveryHourChoices: 'The hour choices sellers get, like 6, 12, 18',
+  allowedCountries: 'Countries buyers may order from, as two-letter codes like US, GB, DE (empty = everywhere)',
 };
 const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinCents', [number, number]> = {
   priceMinCents: [CONFIG.sale.priceMinCents, 100_000], // never below the $20 minimum (owner, 2026-11-07)
@@ -69,6 +72,8 @@ export function problemWith(s: Settings): string | null {
   const h = typeof s.deliveryHourChoices === 'string' ? parseHourChoices(s.deliveryHourChoices) : { ok: false as const, error: 'The hour choices are a list of numbers.' };
   if (!h.ok) return h.error;
   if (s.deliveryHoursOn && !h.hours.length) return 'Give at least one hour choice, or turn delivery in hours off.';
+  if (typeof s.allowedCountries !== 'string' || !/^\s*([A-Z]{2}\s*(,\s*[A-Z]{2}\s*)*)?$/.test(s.allowedCountries))
+    return 'Write the countries as two-letter codes separated by commas, like US, GB, DE.';
   return null;
 }
 
@@ -76,6 +81,15 @@ export function problemWith(s: Settings): string | null {
 export const allowedHours = (s: Settings): number[] => {
   const h = s.deliveryHoursOn ? parseHourChoices(s.deliveryHourChoices) : null;
   return h?.ok ? h.hours : [];
+};
+
+/* May a buyer from this country order? Empty list: everywhere. */
+export const countryAllowed = (s: Settings, country: string) => {
+  const list = s.allowedCountries
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean);
+  return !list.length || list.includes(country.toUpperCase());
 };
 
 /* The standard words of the bar, with the price range worked out from the settings. */

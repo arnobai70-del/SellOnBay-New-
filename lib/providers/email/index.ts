@@ -2,7 +2,7 @@
 import { ResendEmailProvider, emailSender, resendConfigured } from './resend';
 import { ZeptoMailProvider, zeptoConfigured, zeptoHost } from './zeptomail';
 import { demoMode } from '../../demoMode';
-import { emailAllowed, emailSenderFor, maskEmail } from '../../emailRouting';
+import { emailAllowed, emailSenderFor, maskEmail, senderFrom } from '../../emailRouting';
 /* `from` and `replyTo` are addresses from lib/emailRouting.ts; without `from` the sender is support@. */
 export type Mail = { to: string; subject: string; text: string; idempotencyKey?: string; from?: string; replyTo?: string };
 export interface EmailProvider {
@@ -26,11 +26,21 @@ const unavailable: EmailProvider = {
     throw new Error('Email provider is not configured.');
   },
 };
+/* The support address an admin saved (Admin › Settings › Contact & social), else the default. Never fails a send. */
+async function savedSupportSender(): Promise<string> {
+  try {
+    const { contactRoutes } = await import('../../site/contentStore');
+    return senderFrom((await contactRoutes()).support);
+  } catch {
+    return emailSenderFor('support');
+  }
+}
+
 /* Until launch only our own and test addresses get real email. Anything else is logged, without its words, and counts as handled so the queue does not retry it. */
 export const heldEmail = (real: EmailProvider, env: Record<string, string | undefined> = process.env): EmailProvider => ({
   name: real.name,
   async send(mail) {
-    if (emailAllowed(mail.to, env)) return real.send(mail);
+    if (emailAllowed(mail.to, env)) return real.send(mail.from ? mail : { ...mail, from: await savedSupportSender() });
     console.info(JSON.stringify({ event: 'email_held', to: maskEmail(mail.to), subject: mail.subject }));
   },
 });

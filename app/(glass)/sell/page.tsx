@@ -5,6 +5,8 @@ import { PageExtras } from '@/components/PageExtras';
 import { CONFIG, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, REVIEW_HOURS } from '@/lib/config';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
+import { SocialRow } from '@/components/glass/SocialRow';
+import { savedSocial } from '@/lib/site/contentStore';
 
 export const generateMetadata = () => pageMetadata('/sell', { alternates: { canonical: '/sell' } });
 
@@ -26,14 +28,16 @@ const CHECKS = [
 ];
 
 export default async function Sell() {
-  const words = await pageWords('/sell');
+  const [words, social] = await Promise.all([pageWords('/sell'), savedSocial()]);
   return (
     <>
       <div className="g-head">
         <h1>{words.heading}</h1>
         {words.intro && <p className="g-lead">{words.intro}</p>}
         <div className="g-row" style={{ justifyContent: 'flex-start' }}>
-          <Button href="/signin?mode=signup">Start selling</Button>
+          <Button href="/signin?mode=signup" data-track="start-selling">
+            Start selling
+          </Button>
           <Button variant="ghost" href="/legal/seller-agreement">
             Seller agreement
           </Button>
@@ -91,8 +95,11 @@ export default async function Sell() {
       <section className="g-sec">
         <GlassCard reveal className="g-row">
           <h2>Ready to open your store?</h2>
-          <Button href="/signin?mode=signup">Create a seller account</Button>
+          <Button href="/signin?mode=signup" data-track="start-selling">
+            Create a seller account
+          </Button>
         </GlassCard>
+        <SocialRow links={social} label="Sellers community" />
       </section>
       <PageExtras path="/sell" />
     </>

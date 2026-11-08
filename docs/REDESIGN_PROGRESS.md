@@ -10,7 +10,7 @@ Rules and decisions: `docs/DECISIONS.md`, sections "Glass UI redesign" and "Glob
 | 3 Buying flow | `redesign/phase-3-buying-flow` | Done |
 | 4 Buyer dashboard | `redesign/phase-4-buyer-dashboard` | Done |
 | 5 Seller dashboard | `redesign/phase-5-seller-dashboard` | Done |
-| 6 Admin | none yet | Not started |
+| 6 Admin | `redesign/phase-6-admin` | Done |
 | 7 Polish | none yet | Not started |
 
 ## Database
@@ -80,7 +80,7 @@ What to click (`npm run dev`, then `http://localhost:3000`):
 
 All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
 
-- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `buyer5@` (switched to selling), `seller1@` (an authenticator factor "[TEST] e2e", store name `test-seller-qa`, PayPal payout, country US, ID verifications `e00e774f-d1f6-407b-b13d-97483d7132d8` and `2d3a8f2c-50af-4bd7-956f-9e9f92662f18` with their files in `seller-ids`), `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
+- Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `buyer5@` (switched to selling), `admin2@` (Content scope, banned after each run, an authenticator factor), `seller1@` (an authenticator factor "[TEST] e2e", store name `test-seller-qa`, PayPal payout, country US, ID verifications `e00e774f-d1f6-407b-b13d-97483d7132d8` and `2d3a8f2c-50af-4bd7-956f-9e9f92662f18` with their files in `seller-ids`; one rejected and one approved by the Phase 6 check, so seller1 is ID-verified). `admin1@` also has an authenticator factor. One `page_counts` row for `/legal/privacy` came from the check, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
 - Listing: `test-beta-website-qa` ("[TEST] Beta website"), paused.
 - Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, `bf3b2ce6-5c47-4821-93b0-f0b894e4943f`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.
 
@@ -142,3 +142,28 @@ Fixed on the way: the upload page had two h1 (the form's own); the form now leav
 Not done: Finance's review of ID documents and approval (Phase 6 admin); old `/dashboard/seller/promote`, `reports` and `revisions` pages keep the old look (Phase 7); the listing form itself keeps its older look inside the glass page (Phase 7); the old seller plan panel is gone from the dashboard because there is one flat plan.
 
 What to click: sign in as a buyer, Account & security, Switch to selling, set up the authenticator; then each seller menu item; on My websites turn "Free during beta" off and on; on Earnings & payouts add a PayPal email.
+
+## Phase 6 plan
+
+The admin on the glass shell at `/admin/*` (the route map), each page reading the real stores and linking to the older full tool for actions not moved yet: overview, orders and payments (beta requests with approve and decline, payments to check, all orders, the manual order desk), listing review, disputes and support, domains (recorded by hand in the buyer's name), finance and reconciliation, reports, users and roles (with Finance's identity checks), marketing (coupons, the platform pays the discount), security and logs (hashed addresses, audit log), settings (payments mode, allowed countries, server keys set or missing, GA id, a development-only test email). Added by the owner on 2026-11-08: Visitors (GA4 Data API, cookieless first-party count), Server health, and Contact & social. Migration 0080.
+
+## Phase 6: done
+
+- Thirteen admin pages at `/admin/*` on the glass shell, each with the permission it needs and links to the older full tools: overview, orders and payments (beta requests approve or decline, payments to check, all orders), listing review, disputes and support, domains (record a domain registered by hand in the buyer's name), finance and reconciliation, reports, users and roles with Finance's identity checks (document through a 5-minute link, every opening audited), marketing with coupons, security and logs, settings (payments mode, allowed countries, server keys set or missing, GA id, development-only test email), Visitors, Server health, Contact & social.
+- Visitors: GA4 Data API (15-minute cache; "Connect GA4" until `GA4_PROPERTY_ID` and `GA4_SERVICE_ACCOUNT_JSON` are set), `data-track` clicks after consent, and the cookieless daily count (`page_counts`: page and country only).
+- Server health: levels 80% and 90%, dev@ alert once an hour per critical metric (page and scheduled job), result kept one minute, machine figures only with `HOST_KIND=server`. Plan limits from `DB_PLAN_MB` (500) and `STORAGE_PLAN_MB` (1024). The last backup needs `SUPABASE_ACCESS_TOKEN`.
+- Contact & social: addresses on @sellonbay.com read by email routing and the public pages; 14 networks with simple-icons 16.35.0 marks, order, on and off, preview; footer, Help, Sell and `sameAs`.
+- New Dev admin scope; marketing is the existing Content scope. Migration 0080 applied after a dump (`backups/2026-11-08-before-0080.sql`).
+
+Checked: 1,122 unit tests, typecheck, lint, build. On the real database: a buyer and a signed-out visitor are kept out of `/admin`; a Content admin opens Visitors and Marketing and is refused Server health, Settings, Users, ID documents and contact changes; every page at 390 and 1280 for a Super Admin (status, width, one h1 and one main); contact and social input refused off our domain or off the network; a contact change saved, put back and audited; coupons added, duplicate refused, removed; an ID document opens through a signed link; a rejection needs a reason; allowed countries saved and put back; the test email is a 404 outside development; a page open is counted.
+
+Fixed on the way: resetting a setting tried to delete its row, which the server may not do (0040), and left a test address and the `TEST-QA` coupon behind; resets now save an empty value, and both were cleared.
+
+Not done:
+- API p95 is shown as "Not measured": the app does not time its requests. Timing them needs a small change to every API route; say if you want it.
+- Manual cash order (POS): waits for a money rule. How should a cash payment enter the ledger (who holds the cash, when the seller's share becomes available)?
+- Coupons are managed and their split is tested, but checkout uses them only once live payments start.
+- From this machine the database answers in about 4.7 seconds right now, so Server health showed several figures as "Not known" in the check. On the server it should answer quickly.
+- Found, not fixed: the site builder's "reset" (menu, footer, page blocks) also tries to delete a row and fails the same way. It is older than this phase.
+
+What to click: `/admin` and each menu item; Settings › Contact & social: add a social link and watch the preview; Users & roles: open and decide an identity check; Server health.

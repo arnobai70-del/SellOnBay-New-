@@ -62,7 +62,7 @@ export async function requireViewer(opts: { path: string; roles?: ViewerRole[]; 
   if (role === 'admin' && hasSocialIdentity(user.identities as Identity[] | undefined)) redirect('/signin?error=' + encodeURIComponent('Admin accounts sign in with password and authenticator code only. Contact another admin.'));
   if (role === 'admin') {
     scopes = effectiveScopes((await readAdminProfile(sb, user.id))?.admin_scopes);
-    if (opts.scope && !hasScope(scopes, opts.scope)) redirect('/dashboard/admin?denied=1');
+    if (opts.scope && !hasScope(scopes, opts.scope)) redirect(opts.path.startsWith('/admin') ? '/admin?denied=1' : '/dashboard/admin?denied=1');
   }
   return { id: user.id, name: p.full_name || user.email || 'You', role, scopes };
 }

@@ -257,3 +257,4 @@ const LIST: [code: string, name: string][] = [
 ];
 
 export const COUNTRIES: { code: string; name: string }[] = LIST.map(([code, name]) => ({ code, name }));
+export const COUNTRY_NAME: Record<string, string> = Object.fromEntries(LIST);

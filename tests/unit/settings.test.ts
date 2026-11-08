@@ -19,6 +19,7 @@ afterEach(async () => {
       showExamples: true,
       deliveryHoursOn: DEFAULTS.deliveryHoursOn,
       deliveryHourChoices: DEFAULTS.deliveryHourChoices,
+      allowedCountries: '',
     },
     'Reset after a test.',
   );
@@ -38,6 +39,7 @@ describe('the standard values', () => {
       showExamples: true,
       deliveryHoursOn: true,
       deliveryHourChoices: '6, 12, 18, 36',
+      allowedCountries: '', // everywhere (owner, 2026-11-07)
     });
     expect(CONFIG.sale).toEqual({ priceMinCents: 2000, priceMaxCents: 7000 });
   });

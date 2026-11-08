@@ -9,6 +9,7 @@ import { beat } from '@/lib/heartbeat';
 import { purgeSystemRecords, recordRun } from '@/lib/cronRuns';
 import { sendQueued } from '@/lib/emailQueue';
 import { runBetaJobs } from '@/lib/beta/service';
+import { alertCriticals, serverHealth } from '@/lib/admin/health';
 import { dailyReport } from '@/lib/analytics';
 import { fileJobs } from '@/lib/files/service';
 import { expireDue } from '@/lib/requests/service';
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
     reports: await purgeReports(), // generated sales PDFs and receipts deleted after 24 hours; their log entries stay (lib/reports)
     adminSocial: await adminIdentityCheck(), // alerts if an admin account holds a social sign-in (O-7); never changes accounts
     systemRecords: await purgeSystemRecords(), // job runs and error counts older than 30 days (lib/cronRuns.ts)
+    healthAlerts: await alertCriticals(await serverHealth()), // critical Server health metrics email dev@, once an hour each (lib/admin/health.ts)
   }));
   await beat('orders');
   return NextResponse.json(done);

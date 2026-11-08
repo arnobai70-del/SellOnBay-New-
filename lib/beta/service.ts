@@ -2,13 +2,14 @@ import 'server-only';
 import { audit } from '../admin/audit';
 import { productRecord } from '../catalog';
 import { emailProvider } from '../providers/email';
-import { EMAIL_ROUTES, emailSenderFor } from '../emailRouting';
+import { senderFrom } from '../emailRouting';
+import { contactRoutes } from '../site/contentStore';
 import { examplesBuyable } from '../examples';
 import { notify } from '../notify';
 import { getOrder, insertBetaOrder, move } from '../orders/service';
 import { orderStore } from '../orders/store';
 import type { Order } from '../orders/machine';
-import { getSettings } from '../settings';
+import { countryAllowed, getSettings } from '../settings';
 import { SITE_URL } from '../site';
 import { createAdminClient } from '../supabase/server';
 import { BETA_METHOD, betaEligible, checkBetaInput, checkFeedback, feedbackDue, type BetaFeedback, type BetaInput } from './rules';
@@ -87,9 +88,10 @@ export async function betaRequests(filter: { waiting?: boolean } = {}): Promise<
 }
 
 async function mailSales(r: BetaRequest, title: string, now: number): Promise<void> {
+  const routes = await contactRoutes();
   await emailProvider().send({
-    to: EMAIL_ROUTES.sales,
-    from: emailSenderFor('support'),
+    to: routes.sales,
+    from: senderFrom(routes.support),
     replyTo: r.email,
     subject: `New beta request: ${title}`.slice(0, 150),
     text: `${r.name} (${r.email}, ${r.country}${r.company ? `, ${r.company}` : ''}) asked for ${title}.\n\nWill use it for: ${r.useFor}\n${r.domain ? `Domain: ${r.domain}\n` : ''}\nReview it: ${SITE_URL}/dashboard/admin/beta`,
@@ -104,9 +106,11 @@ async function mailSales(r: BetaRequest, title: string, now: number): Promise<vo
 }
 
 export async function requestBeta(buyerId: string, key: string, raw: Partial<Record<keyof BetaInput, unknown>>, now = Date.now()): Promise<R<Order>> {
-  if ((await getSettings()).paymentsMode !== 'beta_free') return fail(409, 'The free beta has ended.');
+  const settings = await getSettings();
+  if (settings.paymentsMode !== 'beta_free') return fail(409, 'The free beta has ended.');
   const input = checkBetaInput(raw);
   if (!input.ok) return fail(400, input.error);
+  if (!countryAllowed(settings, input.value.country)) return fail(409, 'We do not take orders from your country yet.');
   const found = await productRecord(key);
   if (!found || found.status !== 'live') return fail(404, 'This website is not available.');
   const p = found.product;

@@ -3,7 +3,8 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { PageExtras } from '@/components/PageExtras';
 import { liveSiteKey } from '@/lib/bot/turnstile';
 import { publishedFaq } from '@/lib/cms/docStore';
-import { EMAIL_ROUTES } from '@/lib/emailRouting';
+import { SocialRow } from '@/components/glass/SocialRow';
+import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 import { faqToShow } from '@/lib/faq';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const generateMetadata = () => pageMetadata('/help', { alternates: { canonical: '/help' } });
 
 export default async function Help() {
-  const [words, saved] = await Promise.all([pageWords('/help'), publishedFaq()]);
+  const [words, saved, routes, social] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial()]);
   const { groups } = faqToShow(saved?.groups ?? null); // Admin > CMS, else built-in
   return (
     <>
@@ -44,20 +45,21 @@ export default async function Help() {
             </p>
             <div className="g-li" style={{ marginTop: 10 }}>
               <span style={{ flex: 1, fontSize: 14 }}>Support</span>
-              <a href={`mailto:${EMAIL_ROUTES.support}`}>{EMAIL_ROUTES.support}</a>
+              <a href={`mailto:${routes.support}`}>{routes.support}</a>
             </div>
             <div className="g-li">
               <span style={{ flex: 1, fontSize: 14 }}>Billing and payouts</span>
-              <a href={`mailto:${EMAIL_ROUTES.billing}`}>{EMAIL_ROUTES.billing}</a>
+              <a href={`mailto:${routes.billing}`}>{routes.billing}</a>
             </div>
             <div className="g-li">
               <span style={{ flex: 1, fontSize: 14 }}>Partnerships and seller onboarding</span>
-              <a href={`mailto:${EMAIL_ROUTES.business}`}>{EMAIL_ROUTES.business}</a>
+              <a href={`mailto:${routes.business}`}>{routes.business}</a>
             </div>
             <div className="g-li">
               <span style={{ flex: 1, fontSize: 14 }}>Abuse, copyright and security</span>
-              <a href={`mailto:${EMAIL_ROUTES.report}`}>{EMAIL_ROUTES.report}</a>
+              <a href={`mailto:${routes.report}`}>{routes.report}</a>
             </div>
+            <SocialRow links={social} label="SellOnBay elsewhere" />
           </GlassCard>
           <GlassCard>
             <ContactForm siteKey={liveSiteKey() || undefined} />

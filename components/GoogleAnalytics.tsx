@@ -70,5 +70,18 @@ export function GoogleAnalytics() {
     gtag?.('event', 'page_view', { page_path: page.path, ...fields });
   }, [on, path, search]);
 
+  // Clicks on marked sections (data-track="<section>", owner 2026-11-08): only after consent, only the section name, never text, ids or addresses.
+  useEffect(() => {
+    if (!on) return;
+    const click = (e: MouseEvent) => {
+      const el = (e.target as Element | null)?.closest?.('[data-track]');
+      const section = el?.getAttribute('data-track') ?? '';
+      if (!/^[a-z0-9-]{1,40}$/.test(section)) return;
+      (window as GaWindow).gtag?.('event', 'section_click', { section });
+    };
+    document.addEventListener('click', click, { capture: true, passive: true });
+    return () => document.removeEventListener('click', click, { capture: true });
+  }, [on]);
+
   return null;
 }

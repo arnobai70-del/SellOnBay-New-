@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { verifyTurnstile } from '@/lib/bot/turnstile';
 import { CONTACT_TOPICS, TOPIC_INBOX } from '@/lib/contact';
 import { clientIp } from '@/lib/delivery/service';
-import { EMAIL_ROUTES, emailSenderFor } from '@/lib/emailRouting';
+import { senderFrom } from '@/lib/emailRouting';
+import { contactRoutes } from '@/lib/site/contentStore';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { emailProvider } from '@/lib/providers/email';
 import { limit } from '@/lib/rateLimit';
@@ -39,10 +40,11 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: 'Could not send. Please try again.' }, { status: 500 });
   }
   // The message is saved, so a mail problem does not lose it.
+  const routes = await contactRoutes();
   await emailProvider()
     .send({
-      to: EMAIL_ROUTES[TOPIC_INBOX[m.topic]],
-      from: emailSenderFor('support'),
+      to: routes[TOPIC_INBOX[m.topic]],
+      from: senderFrom(routes.support),
       replyTo: m.email,
       subject: `[Contact] ${m.topic}: ${m.name}`.slice(0, 150),
       text: `${m.name} <${m.email}>\nOrder: ${m.orderRef || 'none'}\n\n${m.message}`,

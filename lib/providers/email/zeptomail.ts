@@ -11,7 +11,16 @@ export const zeptoHost = (env: EmailEnv = process.env) => {
       .replace(/\/+$/, '') || DEFAULT_HOST;
   return /^[a-z0-9.-]+$/i.test(host) ? host : DEFAULT_HOST;
 };
-export const zeptoConfigured = (env: EmailEnv = process.env) => (env.ZEPTOMAIL_API_KEY?.trim().length ?? 0) >= 20;
+/*
+ * The ZeptoMail token from the setting, with or without the "Zoho-enczapikey " word ZeptoMail shows in front of it (paste it WITHOUT, as the docs
+ * say; both work). Whitespace is trimmed; the header always gets exactly one "Zoho-enczapikey " in front.
+ */
+export const zeptoToken = (raw: string | undefined) =>
+  (raw ?? '')
+    .trim()
+    .replace(/^Zoho-enczapikey\s+/i, '')
+    .trim();
+export const zeptoConfigured = (env: EmailEnv = process.env) => zeptoToken(env.ZEPTOMAIL_API_KEY).length >= 20;
 
 /* "Name <a@b.c>" or "a@b.c" to ZeptoMail's shape. */
 const address = (text: string) => {
@@ -30,8 +39,7 @@ export class ZeptoMailProvider implements EmailProvider {
     private readonly http: typeof fetch = fetch,
   ) {}
   async send(mail: Mail): Promise<void> {
-    // ZeptoMail hands the key out with or without its scheme word.
-    const token = this.apiKey.trim().replace(/^Zoho-enczapikey\s+/i, '');
+    const token = zeptoToken(this.apiKey);
     const response = await this.http(`https://${this.host}/v1.1/email`, {
       method: 'POST',
       headers: { Authorization: `Zoho-enczapikey ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },

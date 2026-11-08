@@ -1,6 +1,6 @@
 /* Real delivery is explicitly opt-in. Missing credentials must not pretend to send. */
 import { ResendEmailProvider, emailSender, resendConfigured } from './resend';
-import { ZeptoMailProvider, zeptoConfigured, zeptoHost } from './zeptomail';
+import { ZeptoMailProvider, zeptoConfigured, zeptoHost, zeptoToken } from './zeptomail';
 import { demoMode } from '../../demoMode';
 import { emailAllowed, emailSenderFor, maskEmail, senderFrom } from '../../emailRouting';
 /* `from` and `replyTo` are addresses from lib/emailRouting.ts; without `from` the sender is support@. */
@@ -59,7 +59,7 @@ export const emailProvider = (): EmailProvider => {
   if (process.env.NODE_ENV === 'development') return consoleProvider;
   if (process.env.EMAIL_PROVIDER === 'zeptomail' || (!process.env.EMAIL_PROVIDER && zeptoConfigured())) {
     if (!zeptoConfigured()) return unavailable;
-    return heldEmail(new ZeptoMailProvider(process.env.ZEPTOMAIL_API_KEY!.trim(), zeptoHost(), emailSenderFor()));
+    return heldEmail(new ZeptoMailProvider(zeptoToken(process.env.ZEPTOMAIL_API_KEY), zeptoHost(), emailSenderFor()));
   }
   // A Resend key alone turns real email on (EMAIL_PROVIDER=resend still works; fake or anything else keeps it off).
   if (process.env.EMAIL_PROVIDER === 'resend' || (!process.env.EMAIL_PROVIDER && process.env.RESEND_API_KEY)) {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EMAIL_ROUTES, emailAllowed, emailSenderFor, maskEmail } from '@/lib/emailRouting';
 import { heldEmail } from '@/lib/providers/email';
-import { ZeptoMailProvider, zeptoConfigured, zeptoHost } from '@/lib/providers/email/zeptomail';
+import { ZeptoMailProvider, zeptoConfigured, zeptoHost, zeptoToken } from '@/lib/providers/email/zeptomail';
 
 const FAKE_KEY = 'fake-key-for-the-test-only-0000';
 
@@ -82,5 +82,25 @@ describe('ZeptoMail', () => {
     expect(zeptoHost({ ZEPTOMAIL_HOST: 'evil.example/path?x=' })).toBe('api.zeptomail.com');
     expect(zeptoConfigured({})).toBe(false);
     expect(zeptoConfigured({ ZEPTOMAIL_API_KEY: FAKE_KEY })).toBe(true);
+  });
+});
+
+describe('the ZeptoMail token (owner, 2026-11-09)', () => {
+  const TOKEN = 'wSsVR61z' + 'x'.repeat(40);
+  it('takes it with or without the "Zoho-enczapikey " prefix, trims whitespace, and sends the prefix exactly once', async () => {
+    expect(zeptoToken(TOKEN)).toBe(TOKEN);
+    expect(zeptoToken(`Zoho-enczapikey ${TOKEN}`)).toBe(TOKEN);
+    expect(zeptoToken(`  zoho-enczapikey   ${TOKEN} \n`)).toBe(TOKEN);
+    expect(zeptoToken(`\t${TOKEN}  `)).toBe(TOKEN);
+    for (const raw of [TOKEN, `Zoho-enczapikey ${TOKEN}`, ` ${TOKEN}\n`]) {
+      const http = vi.fn(async (..._a: Parameters<typeof fetch>) => new Response('{}', { status: 201 }));
+      await new ZeptoMailProvider(raw, 'h.example', emailSenderFor(), http as unknown as typeof fetch).send({ to: 'a@test.sellonbay.dev', subject: 's', text: 't' });
+      expect((http.mock.calls[0][1]!.headers as Record<string, string>).Authorization).toBe(`Zoho-enczapikey ${TOKEN}`);
+    }
+  });
+  it('a prefix with no token is not a configured key', () => {
+    expect(zeptoConfigured({ ZEPTOMAIL_API_KEY: 'Zoho-enczapikey ' })).toBe(false);
+    expect(zeptoConfigured({ ZEPTOMAIL_API_KEY: `Zoho-enczapikey ${TOKEN}` })).toBe(true);
+    expect(zeptoConfigured({ ZEPTOMAIL_API_KEY: TOKEN })).toBe(true);
   });
 });

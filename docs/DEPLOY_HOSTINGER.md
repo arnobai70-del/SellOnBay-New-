@@ -26,4 +26,4 @@ Never set `EXAMPLE_ORDERS`, `LAUNCHBAY_DEMO` or `ENABLE_TEST_CHECKOUT` on the li
 
 ## The release build
 
-`SellOnBay-HOSTINGER.zip` is made from the committed code with `git archive` (the zip's comment is the commit it was made from). Upload it, then build on the server with `npm ci && npm run build` and start with `npm start`. The previous zip is kept beside it as `SellOnBay-HOSTINGER-previous-<commit>.zip` to roll back.
+On the `release/glass-ui` branch with nothing uncommitted, run `npm run package:hostinger`. It makes `SellOnBay-HOSTINGER.zip` from the last commit with `git archive` (only committed files, never `.env.local` or backups; the zip's comment is the commit it was made from) and pushes or deploys nothing. Upload it, then build on the server with `npm ci && npm run build` and start with `npm start`. The previous zip is kept beside it as `SellOnBay-HOSTINGER-previous-<commit>.zip` to roll back.

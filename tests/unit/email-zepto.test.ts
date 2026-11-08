@@ -123,3 +123,15 @@ describe('email works with ZeptoMail alone (owner, 2026-11-09)', () => {
     expect(readFileSync('lib/admin/system.ts', 'utf8')).toMatch(/emailReachable\(emailProvider\(\)\.name\)/);
   });
 });
+
+describe('the Hostinger package', () => {
+  it('is made only from the release branch with nothing uncommitted, with git archive, and never pushes', async () => {
+    const { readFileSync } = await import('node:fs');
+    const s = readFileSync('scripts/package-hostinger.mjs', 'utf8');
+    expect(JSON.parse(readFileSync('package.json', 'utf8')).scripts['package:hostinger']).toBe('node scripts/package-hostinger.mjs');
+    expect(s).toMatch(/'release\/glass-ui'/);
+    expect(s).toMatch(/'status', '--porcelain', '--untracked-files=no'/);
+    expect(s).toMatch(/'archive', '--format=zip'/);
+    expect(s).not.toMatch(/'push'|deploy\(/);
+  });
+});

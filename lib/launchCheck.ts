@@ -105,7 +105,7 @@ export async function launchChecks(): Promise<Check[]> {
     c(
       'Email',
       ['zeptomail', 'resend'].includes(emailProvider().name),
-      'ZEPTOMAIL_API_KEY (and ZEPTOMAIL_HOST) turns real email on, through Zoho ZeptoMail. Until launch only our own and test addresses receive it (EMAIL_ALLOW_ALL=1 lifts that). A RESEND_API_KEY also works (the sender defaults to noreply@your domain, which must be verified in Resend; EMAIL_FROM changes it). Configuration is not proof of delivery: send and confirm a staging email.',
+      'ZEPTOMAIL_API_KEY (and ZEPTOMAIL_HOST) turns real email on, through Zoho ZeptoMail. Until launch only our own and test addresses receive it (EMAIL_ALLOW_ALL=1 lifts that). Nothing else is needed: Resend is only an optional fallback (EMAIL_PROVIDER=resend). Configuration is not proof of delivery: send and confirm a staging email.',
       'warn',
     ),
     c(

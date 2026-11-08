@@ -104,3 +104,22 @@ describe('the ZeptoMail token (owner, 2026-11-09)', () => {
     expect(zeptoConfigured({ ZEPTOMAIL_API_KEY: TOKEN })).toBe(true);
   });
 });
+
+describe('email works with ZeptoMail alone (owner, 2026-11-09)', () => {
+  it('in production, a ZeptoMail key with no RESEND_* setting gives the ZeptoMail provider', async () => {
+    const keep = { ...process.env };
+    try {
+      for (const k of Object.keys(process.env)) if (k.startsWith('RESEND_') || k === 'EMAIL_PROVIDER') delete process.env[k];
+      Object.assign(process.env, { NODE_ENV: 'production', ZEPTOMAIL_API_KEY: 'Zoho-enczapikey ' + 'k'.repeat(40) });
+      const { emailProvider } = await import('@/lib/providers/email');
+      expect(emailProvider().name).toBe('zeptomail');
+    } finally {
+      process.env = keep;
+    }
+  });
+  it('no page or check needs a RESEND_* setting', async () => {
+    const { readFileSync } = await import('node:fs');
+    expect(readFileSync('lib/admin/system.ts', 'utf8')).not.toMatch(/RESEND_/);
+    expect(readFileSync('lib/admin/system.ts', 'utf8')).toMatch(/emailReachable\(emailProvider\(\)\.name\)/);
+  });
+});

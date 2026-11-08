@@ -33,6 +33,7 @@ export function DashboardShell({
   viewerRole,
   badges,
   unread = 0,
+  hideCta = false,
 }: {
   role: GlassRole;
   /* The key of the current menu item in lib/glass/nav.ts. */
@@ -49,6 +50,8 @@ export function DashboardShell({
   /* How many things wait behind a menu item, by item key. */
   badges?: Record<string, number>;
   unread?: number;
+  /* Hide the top bar's main button (the admin's manual order while the free beta runs). */
+  hideCta?: boolean;
 }) {
   const menu = ROLE_MENUS[role];
   const shown = name || 'Your account';
@@ -126,7 +129,7 @@ export function DashboardShell({
               </svg>
             </button>
             {search ? <div className="g-top-search">{search}</div> : <div className="g-top-gap" />}
-            <Button href={menu.cta.href}>{menu.cta.label}</Button>
+            {!hideCta && <Button href={menu.cta.href}>{menu.cta.label}</Button>}
             <Link className="g-iconbtn" href={menu.notifications} aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M6 9a6 6 0 0 1 12 0c0 6 2 8 2 8H4s2-2 2-8M10 21a2 2 0 0 0 4 0" />

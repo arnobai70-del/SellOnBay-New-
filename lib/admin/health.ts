@@ -12,6 +12,11 @@ import { supabaseConfigured } from '../supabase/env';
 import { adminClientAvailable, createAdminClient } from '../supabase/server';
 import { criticals, HOST_NOTE, hostKind, levelOfAge, levelOfCount, levelOfDays, levelOfPct, pctOf, type HostKind, type Metric } from './healthCore';
 import { systemSnapshot } from './system';
+import { samples } from '../timing';
+import { p95 } from '../timingCore';
+
+/* The API p95 against a 1-second target, with the same 80% and 90% levels. */
+const apiLevel = (ms: number | null) => (ms === null ? ('off' as const) : levelOfPct((ms / 1000) * 100));
 
 /*
  * Admin › System › Server health (owner, 2026-11-08), on top of the read-only system snapshot (lib/admin/system.ts). Read only: nothing here changes
@@ -122,6 +127,7 @@ async function measure(now: number): Promise<Health> {
     within(recentRuns, null),
     machine(kind),
   ]);
+  const api = p95(samples(), now);
   const dbLimit = planMb('DB_PLAN_MB', 500);
   const stLimit = planMb('STORAGE_PLAN_MB', 1024);
   const dbPct = pctOf(snap.database.sizeMb, dbLimit);
@@ -135,10 +141,10 @@ async function measure(now: number): Promise<Health> {
     { key: 'storage_size', label: 'File storage', level: levelOfPct(stPct), value: store === null ? 'Not known' : `${mb(store)} of ${mb(stLimit)} (${stPct}%)` },
     {
       key: 'api_p95',
-      label: 'API p95',
-      level: 'off',
-      value: 'Not measured',
-      note: 'The app does not time its requests yet; the database round trip is ' + (snap.database.latencyMs === null ? 'not answering' : `${snap.database.latencyMs} ms`) + '.',
+      label: 'API p95 (last hour)',
+      level: apiLevel(api.p95),
+      value: api.p95 === null ? `Not enough requests yet (${api.count})` : `${api.p95} ms over ${api.count} requests`,
+      note: 'Timed on this server copy, sampled. Normal under 800 ms, a warning from 800 ms, critical over 900 ms (80% and 90% of a 1-second target).',
     },
     { key: 'errors', label: 'Errors in 24 hours', level: levelOfCount(day, 100), value: day === null ? 'Not known' : String(day) },
     {

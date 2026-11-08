@@ -82,6 +82,7 @@ All marked: emails end with `@test.sellonbay.dev`, titles start with `[TEST]`.
 
 - Accounts: `buyer1@`, `buyer2@`, `buyer3@` (country, phone and company set by the account test), `buyer4@`, `buyer5@` (switched to selling), `admin2@` (Content scope, banned after each run, an authenticator factor), `seller1@` (an authenticator factor "[TEST] e2e", store name `test-seller-qa`, PayPal payout, country US, ID verifications `e00e774f-d1f6-407b-b13d-97483d7132d8` and `2d3a8f2c-50af-4bd7-956f-9e9f92662f18` with their files in `seller-ids`; one rejected and one approved by the Phase 6 check, so seller1 is ID-verified). `admin1@` also has an authenticator factor. One `page_counts` row for `/legal/privacy` came from the check, `admin1@test.sellonbay.dev` (the test admin is banned after each run; passwords are random and never stored).
 - Listing: `test-beta-website-qa` ("[TEST] Beta website"), paused.
+- Cash sale (Phase 6 check): order `57a4408b-1ce5-4853-b47f-58c139beca00` for `buyer4@`, receipt `TEST-R-MW76MTO1`, funded, with its four ledger lines (`cash-in:TEST-R-MW76MTO1`, `pay:57a4408b-…`) and the audit row. Settings rows left empty by the checks: `site:contact` `{}`, `marketing:coupons` `[]`, `site:blocks:/guides` `[]`.
 - Orders: `2c57de3e-0fe5-429a-8ec0-eb011e19f977` (left waiting by the grant bug, before the fix), `c714c781-59ac-4908-8aeb-614f59dc1dc1`, `7395a0d0-0b8f-4b86-9892-2e984c9349b1`, `859a921d-ac4f-40e1-a595-e50e0c84b1a5`, `bf3b2ce6-5c47-4821-93b0-f0b894e4943f`, with their `beta_requests`, `beta_feedback`, `order_events`, notifications and audit rows.
 
 ## Placeholders still to fill
@@ -167,3 +168,12 @@ Not done:
 - Found, not fixed: the site builder's "reset" (menu, footer, page blocks) also tries to delete a row and fails the same way. It is older than this phase.
 
 What to click: `/admin` and each menu item; Settings › Contact & social: add a social link and watch the preview; Users & roles: open and decide an identity check; Server health.
+
+## Phase 6, second part: done
+
+- Cash at a point of sale (owner, 2026-11-08), Finance or Super Admin, hidden and refused while the free beta runs: the order is created for the buyer's own account at the listing price, the cash goes into `platform_cash_on_hand` and funds the order like a reconciled transfer, the admin who took it is in the audit log, and one receipt number counts once. Then the normal 48-hour review, 7-day hold and Thursday payout.
+- Request timing: one hook in `instrumentation.ts` times every second API request (route shape, method, status class, milliseconds; no body, query, header, address or user), kept an hour in memory per server copy. Server health shows the real p95 against a 1-second target.
+- The site builder reset now saves an empty value instead of deleting the row (the server may not delete settings rows).
+- Fixed on the way, older than this work: the ledger read used the column names from before migration 0018 (`entry_key`, `side`) and failed on the real database. It is used for the payout amounts and debt settlement, so those would have failed for the first accepted order.
+
+Checked: 1,130 unit tests and the build. On the real database, with the payments mode switched to live for the check and put back, and the test listing made live for the check and paused again: cash desk hidden and refused in the beta; wrong amount, unknown buyer and a repeated receipt refused; a cash sale funded the order with a 22% fee, cash on hand, held and escrow lines, and the admin in the audit log; the API p95 measured; a page's blocks saved and reset to an empty value.

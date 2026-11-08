@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { adminBadges } from '@/lib/glass/admin';
+import { getSettings } from '@/lib/settings';
 import { DashboardShell } from './DashboardShell';
 
 /* The admin pages' shell: live counts on the menu, and the way to the older full tools while they still hold actions not moved yet. */
@@ -18,7 +19,7 @@ export async function AdminShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const counts = await adminBadges();
+  const [counts, settings] = await Promise.all([adminBadges(), getSettings()]);
   return (
     <DashboardShell
       role="admin"
@@ -30,6 +31,7 @@ export async function AdminShell({
       signedIn={!!viewer}
       viewerRole="admin"
       badges={counts}
+      hideCta={settings.paymentsMode === 'beta_free'} // the cash desk is closed in the free beta (owner, 2026-11-08)
       sideCard={
         <>
           <div style={{ fontWeight: 500 }}>All admin tools</div>

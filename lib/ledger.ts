@@ -20,6 +20,7 @@ export type EntrySet = { key: string; orderId: string | null; memo: string; line
 
 export const acct = {
   cash: 'platform_cash',
+  cashOnHand: 'platform_cash_on_hand', // cash taken at a point of sale and held by SellOnBay (owner, 2026-11-08)
   revenue: 'platform_revenue',
   escrow: (orderId: string) => `order_escrow:${orderId}`,
   pending: (sellerId: string) => `seller_pending:${sellerId}`,
@@ -233,6 +234,13 @@ export const manualReceived = (orderId: string, attemptId: string, amountCents: 
   orderId,
   memo: 'Manual payment reconciled by Finance',
   lines: [debit(acct.cash, amountCents), credit(acct.held(orderId), amountCents)],
+});
+/* Cash taken at a point of sale (owner, 2026-11-08): like a verified bank transfer, but into "cash on hand". Keyed by the receipt number, so one receipt counts once. */
+export const cashReceived = (orderId: string, receipt: string, amountCents: number): EntrySet => ({
+  key: `cash-in:${receipt}`,
+  orderId,
+  memo: 'Cash taken at a point of sale',
+  lines: [debit(acct.cashOnHand, amountCents), credit(acct.held(orderId), amountCents)],
 });
 export const heldToEscrow = (orderId: string, amountCents: number): EntrySet => ({
   key: `pay:${orderId}`,

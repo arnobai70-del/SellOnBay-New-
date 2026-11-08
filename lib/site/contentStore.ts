@@ -41,13 +41,13 @@ async function read(key: string, now = Date.now()): Promise<unknown> {
 async function write(adminId: string | null, key: string, value: unknown | null, what: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   cache.delete(key);
   const before = await read(key, 0);
-  if (JSON.stringify(before) === JSON.stringify(value)) return { ok: false, status: 409, error: 'Nothing changed.' };
+  const blank = (x: unknown) => x === null || (Array.isArray(x) && x.length === 0); // a reset row holds []
+  if (JSON.stringify(before) === JSON.stringify(value) || (blank(before) && blank(value))) return { ok: false, status: 409, error: 'Nothing changed.' };
   if (await settingsTableReady()) {
     const db = createAdminClient();
-    const { error } =
-      value === null
-        ? await db.from('app_settings').delete().eq('key', key)
-        : await db.from('app_settings').upsert({ key, value, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
+    // A reset saves an empty list instead of deleting the row: the server may not delete app_settings rows (migration 0040), and every reader
+    // treats an empty list as "nothing saved", so the built-in menu, footer, sections or blocks show again (owner, 2026-11-08).
+    const { error } = await db.from('app_settings').upsert({ key, value: value ?? [], changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
     if (error) return { ok: false, status: 500, error: 'Could not save.' };
   } else if (value === null) mem.delete(key);
   else mem.set(key, value);
@@ -88,8 +88,8 @@ export async function pagesWithBlocks(): Promise<string[]> {
   const out = new Set<string>([...mem.keys()].filter((k) => k.startsWith(BLOCKS)).map((k) => k.slice(BLOCKS.length)));
   try {
     if (await settingsTableReady()) {
-      const { data } = await createAdminClient().from('app_settings').select('key').like('key', `${BLOCKS}%`);
-      for (const r of data ?? []) out.add(String(r.key).slice(BLOCKS.length));
+      const { data } = await createAdminClient().from('app_settings').select('key, value').like('key', `${BLOCKS}%`);
+      for (const r of data ?? []) if (!(Array.isArray(r.value) && r.value.length === 0)) out.add(String(r.key).slice(BLOCKS.length)); // a reset page has []
     }
   } catch {
     // the list is only a help

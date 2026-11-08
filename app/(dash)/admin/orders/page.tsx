@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ActionButton } from '@/components/ActionButton';
+import { AdminForm } from '@/components/AdminForm';
 import { AdminShell } from '@/components/glass/AdminShell';
 import { DataTable } from '@/components/glass/DataTable';
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -45,13 +46,29 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       {tab === 'beta' && <BetaTab />}
       {tab === 'payments' && <PaymentsTab />}
       {tab === 'all' && <AllTab />}
-      <GlassCard as="section" id="pos">
-        <h2>Manual order (cash, point of sale)</h2>
-        <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-          Cash is taken only at a point of sale run by an admin. It opens when live payments start, because how a cash payment enters the ledger is a money rule the owner has not set yet. During the
-          beta, a customer asks for a website from its page and you approve it under Beta requests.
-        </p>
-      </GlassCard>
+      {settings.paymentsMode === 'live' && (
+        <GlassCard as="section" id="pos">
+          <h2>Manual order (cash)</h2>
+          <p className="g-tag">
+            Cash is treated like a verified bank transfer: SellOnBay holds it, the buyer has 48 hours to check, and the seller is paid on the usual Thursday after the 7-day hold. You are recorded as
+            the admin who took it.
+          </p>
+          <div style={{ marginTop: 10 }}>
+            <AdminForm
+              endpoint="/api/admin/pos"
+              openLabel="Record a cash sale"
+              submit="Record cash and create the order"
+              tone="line"
+              fields={[
+                { name: 'buyerEmail', label: "Buyer's account email", kind: 'text', required: true },
+                { name: 'productKey', label: 'Website address name (the end of /websites/...)', kind: 'text', required: true },
+                { name: 'amount', label: 'Cash taken (US dollars, the listing price)', kind: 'text', required: true },
+                { name: 'receipt', label: 'Receipt number', kind: 'text', required: true, max: 40 },
+              ]}
+            />
+          </div>
+        </GlassCard>
+      )}
     </AdminShell>
   );
 }

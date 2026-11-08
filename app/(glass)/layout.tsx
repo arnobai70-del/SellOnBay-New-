@@ -11,7 +11,7 @@ import { pageCopy } from '@/lib/content/copy';
 import { PUBLIC_LINKS } from '@/lib/glass/nav';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 
-/* The public pages on the glass UI. The page keeps its own <main> wrapper here so /design-preview, which draws its own shells, is untouched. */
+/* The public pages on the glass UI. Each page keeps its own <main> inside this frame. */
 export default async function GlassLayout({ children }: { children: React.ReactNode }) {
   const [{ paymentsMode }, routes, social, nav, foot] = await Promise.all([getSettings(), contactRoutes(), savedSocial(), pageCopy('nav'), pageCopy('footer')]);
   return (

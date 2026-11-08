@@ -72,7 +72,7 @@ describe('glass UI', () => {
   });
 
   it('does not use the banned word, an SMS or language control, or a claim we cannot keep', () => {
-    const sources = [...components.map(([, s]) => s), read('lib/glass/nav.ts'), read('app/(glass)/design-preview/page.tsx')].join('\n');
+    const sources = [...components.map(([, s]) => s), read('lib/glass/nav.ts')].join('\n');
     expect(sources).not.toMatch(/template/i);
     expect(sources).not.toMatch(/\bSMS\b|বাংলা|within minutes|privacy included|auto-connect/i);
   });
@@ -92,9 +92,7 @@ describe('glass UI', () => {
     }
   });
 
-  it('keeps the preview out of production', () => {
-    const page = read('app/(glass)/design-preview/page.tsx');
-    expect(page).toMatch(/process\.env\.NODE_ENV === 'production'\) notFound\(\)/);
-    expect(page).toMatch(/robots: \{ index: false/);
+  it('the design preview page is gone (removed in Phase 7, owner 2026-11-08)', () => {
+    expect(() => read('app/(glass)/design-preview/page.tsx')).toThrow();
   });
 });

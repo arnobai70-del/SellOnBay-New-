@@ -28,7 +28,6 @@ function routes(dir: string, file: string): string[] {
 
 /* Pages that stay open whatever is in maintenance: the home page, information and policy pages, and redirects. */
 const OPEN_PAGES = [
-  '/design-preview', // development only: a 404 in production, removed in redesign Phase 7
   '/admin/settings/maintenance', // the way back when the admin area is closed (2026-11-08)
   '/buyer-protection',
   '/signin',

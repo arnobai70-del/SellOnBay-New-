@@ -29,17 +29,13 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
   const viewer = await requireViewer({ path: '/admin/listings', roles: ['admin'], scope: 'catalog' });
   const raw = (await searchParams).status ?? '';
   const status = FILTERS.includes(raw) ? raw : '';
-  const [queue, rows] = await Promise.all([listingQueue(), allListings(status)]);
-  // Each listing's sale and price history (owner, 2026-11-08), so an admin can spot a raised price before a "sale".
-  const { data: idRows } = supabaseConfigured
-    ? await createAdminClient()
-        .from('products')
-        .select('id, slug')
-        .in(
-          'slug',
-          rows.map((r) => r.slug),
-        )
-    : { data: [] };
+  // Each listing's sale and price history (owner, 2026-11-08), so an admin can spot a raised price before a "sale". The ids are read beside
+  // the lists, not after them: every round trip to the database counts on a slow link.
+  const [queue, rows, { data: idRows }] = await Promise.all([
+    listingQueue(),
+    allListings(status),
+    supabaseConfigured ? createAdminClient().from('products').select('id, slug').neq('status', 'draft').limit(500) : Promise.resolve({ data: [] }),
+  ]);
   const ids = (idRows ?? []) as { id: string; slug: string }[];
   const [sales, history] = await Promise.all([openSalesBySlug(ids), historyOf(ids.map((r) => r.id))]);
   const historyOfSlug = (slug: string) => history.get(ids.find((r) => r.slug === slug)?.id ?? '') ?? [];

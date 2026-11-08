@@ -202,9 +202,118 @@
 :is(.sob-d, .sob-p) a.tk,
 :is(.sob-d, .sob-p) a.rt,
 :is(.sob-d, .sob-p) a.role,
+:is(.sob-d, .sob-p) a.pm,
+:is(.sob-d, .sob-p) a.sw,
 :is(.sob-d, .sob-p) a.qa,
 :is(.sob-d, .sob-p) a.btn,
 :is(.sob-d, .sob-p) a.chk {
   text-decoration: none;
   box-sizing: border-box;
+}
+
+/* The one listing form (components/SellForm.tsx) inside the design's "Upload a new website" card (design-reference/seller-websites.html). */
+:is(.sob-d, .sob-p) .sob-split {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+:is(.sob-d, .sob-p) .sob-panel {
+  flex: 999 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+:is(.sob-d, .sob-p) .sob-sum {
+  flex: 1 1 260px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #dce7ec;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:is(.sob-d, .sob-p) .sob-sum h2 {
+  font-size: 17px !important;
+}
+:is(.sob-d, .sob-p) .sob-tot {
+  padding-top: 10px;
+  border-top: 1px solid #dee8ed;
+  font-weight: 500;
+}
+:is(.sob-d, .sob-p) .sob-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+:is(.sob-d, .sob-p) .sob-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:is(.sob-d, .sob-p) .sob-checks li::before {
+  content: '✓ ';
+  color: #3f8f77;
+}
+:is(.sob-d, .sob-p) .sob-upbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #566c78;
+}
+:is(.sob-d, .sob-p) .sob-upbar i {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #7fbfa9;
+}
+:is(.sob-d, .sob-p) .sob-strength {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #dce7ec;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+:is(.sob-d, .sob-p) .sob-strength ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #566c78;
+}
+:is(.sob-d, .sob-p) .sob-strength li.on {
+  color: #1a5444;
+}
+:is(.sob-d, .sob-p) .sob-clean {
+  align-items: flex-start;
+}
+:is(.sob-d, .sob-p) .sob-shots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+:is(.sob-d, .sob-p) .sob-shots img {
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #dce7ec;
+}
+:is(.sob-d, .sob-p) .field select,
+:is(.sob-d, .sob-p) .field input,
+:is(.sob-d, .sob-p) .field textarea {
+  font-family: var(--font-inter);
+}
+/* A switch drawn as a link (it opens the place where the setting is changed) shows like the design's .sw. */
+:is(.sob-d, .sob-p) a.sw {
+  display: inline-block;
 }

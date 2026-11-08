@@ -103,7 +103,7 @@ export function ProductCard({ p }: { p: Product }) {
             <span>No reviews yet</span>
           )}
           <span>{p.example ? 'Example listing' : `by ${p.seller}`}</span>
-          <span className="chip">{daysLabel(p.days, p.hours)}</span>
+          <span className="status st-draft">{daysLabel(p.days, p.hours)}</span>
         </div>
       </Link>
       {isNew(p) && !p.example && <span className="new-chip">New</span>}

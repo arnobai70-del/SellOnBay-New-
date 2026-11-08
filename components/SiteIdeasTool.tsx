@@ -101,10 +101,10 @@ export function SiteIdeasTool() {
             {out.names.map((n) => (
               <li key={n.name}>
                 <b>{n.domain}</b>
-                {n.status === 'available' && <span className="chip mint">Available</span>}
-                {n.status === 'taken' && <span className="chip rose">Taken</span>}
+                {n.status === 'available' && <span className="status st-ok">Available</span>}
+                {n.status === 'taken' && <span className="status st-bad">Taken</span>}
                 {n.status === 'unknown' && (
-                  <Link className="chip" href={`/domains?name=${encodeURIComponent(n.name)}`}>
+                  <Link className="status st-draft" href={`/domains?name=${encodeURIComponent(n.name)}`}>
                     View domain ideas (unverified)
                   </Link>
                 )}

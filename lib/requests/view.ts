@@ -5,15 +5,15 @@ import type { LogEvent, PurchaseRequest, Quotation } from './store';
 
 /* Plain words and small lookups for the request and quotation pages (buyer and admin). */
 export const REQUEST_WORDS: Record<string, [string, string]> = {
-  submitted: ['Sent', 'chip blue'],
-  under_review: ['Being reviewed', 'chip amber'],
-  needs_info: ['SellOnBay asked a question', 'chip gold'],
-  requirements_verified: ['Requirements confirmed', 'chip amber'],
-  quoted: ['Quotation ready', 'chip mint'],
-  converted: ['Ordered', 'chip mint'],
-  declined: ['Declined', 'chip rose'],
-  withdrawn: ['Withdrawn', 'chip'],
-  expired: ['Expired', 'chip'],
+  submitted: ['Sent', 'status st-info'],
+  under_review: ['Being reviewed', 'status st-wait'],
+  needs_info: ['SellOnBay asked a question', 'status st-wait'],
+  requirements_verified: ['Requirements confirmed', 'status st-wait'],
+  quoted: ['Quotation ready', 'status st-ok'],
+  converted: ['Ordered', 'status st-ok'],
+  declined: ['Declined', 'status st-bad'],
+  withdrawn: ['Withdrawn', 'status st-draft'],
+  expired: ['Expired', 'status st-draft'],
 };
 export const QUOTE_WORDS: Record<string, string> = {
   draft: 'Draft',

@@ -6,7 +6,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 export const metadata: Metadata = { title: 'Launch check', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const CHIP = { ok: ['Done', 'chip mint'], todo: ['To do', 'chip rose'], warn: ['Known gap', 'chip amber'] } as const;
+const CHIP = { ok: ['Done', 'status st-ok'], todo: ['To do', 'status st-bad'], warn: ['Known gap', 'status st-wait'] } as const;
 
 /* What the live server still needs, read from its own settings. Keys are never shown, only whether they are set. */
 export default async function LaunchCheck() {

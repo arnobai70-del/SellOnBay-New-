@@ -52,7 +52,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
         <div className="hv-card">
           <div className="hv-row">
             <b>Saffron Table</b>
-            <span className="chip amber">
+            <span className="status st-wait">
               <i />
               Ready to review
             </span>
@@ -86,19 +86,19 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   if (n === 1) {
     return (
       <div className="hv hv-checks" aria-hidden="true">
-        <span className="chip mint">
+        <span className="status st-ok">
           <i />
           Checked
         </span>
-        <span className="chip mint">
+        <span className="status st-ok">
           <i />
           Original: 97%
         </span>
-        <span className="chip mint">
+        <span className="status st-ok">
           <i />
           Demo works
         </span>
-        <span className="chip blue">
+        <span className="status st-info">
           <i />
           Approved in 24 hours
         </span>
@@ -115,7 +115,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
             <i key={i} style={{ height: h + '%' }} />
           ))}
         </div>
-        <span className="chip blue">
+        <span className="status st-info">
           <i />
           Paid every Thursday
         </span>

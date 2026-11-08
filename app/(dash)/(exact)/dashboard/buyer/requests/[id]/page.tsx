@@ -26,7 +26,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
   const title = requestTitle(r, products);
   const timeline = buyerTimeline(await requestEvents(r.id));
   const q = buyerQuote(await quotesOf(r.id));
-  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'chip'];
+  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
   return (
     <DashShell name={viewer.name} signedIn role="buyer" active="buyer-requests" title={title} viewerRole={viewer.role}>
       <div className="glass card sob-sec" data-request={r.id}>

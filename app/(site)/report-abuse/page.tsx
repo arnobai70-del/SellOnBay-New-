@@ -17,7 +17,7 @@ export default async function ReportAbuse({ searchParams }: { searchParams: Prom
         {sent ? (
           <div className="panel">
             <div className="done">
-              <span className="chip mint">
+              <span className="status st-ok">
                 <i />
                 Report received
               </span>

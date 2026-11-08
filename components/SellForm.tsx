@@ -156,7 +156,7 @@ export function SellForm({
         <small>PNG, JPG or WebP, up to 4 MB each. {hint}</small>
       </div>
       {shots.length > 0 && (
-        <div className="shot-prev">
+        <div className="sob-shots">
           {shots.map((f, i) => (
             <span key={f.name + f.size} style={{ backgroundImage: `url(${previews[i]})` }} />
           ))}
@@ -406,20 +406,20 @@ export function SellForm({
   };
 
   return (
-    <div className="wrap" data-sell>
+    <div className="sob-sellform" data-sell>
       {!embedded && (
-        <div className="page-head">
+        <div className="row">
           <h1>{editSlug ? 'Edit your listing' : 'List a site'}</h1>
           <p>Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.</p>
         </div>
       )}
-      <div className="checkout" style={{ paddingTop: 16 }}>
+      <div className="sob-split" style={{ paddingTop: 16 }}>
         {done ? (
-          <div className="panel">
-            <div className="done">
+          <div className="sob-panel">
+            <div className="sob-stack">
               {done.edited && done.status && done.status !== 'in_review' ? (
                 <>
-                  <span className="chip mint">
+                  <span className="status st-ok">
                     <i />
                     {done.status === 'live' ? 'Live' : 'Paused'}
                   </span>
@@ -431,7 +431,7 @@ export function SellForm({
                 </>
               ) : (
                 <>
-                  <span className="chip amber">
+                  <span className="status st-wait">
                     <i />
                     In review
                   </span>
@@ -444,11 +444,11 @@ export function SellForm({
               )}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 22 }}>
                 {done.slug && (
-                  <Link className="btn btn-blue" href={`/preview/${done.slug}`} target="_blank">
+                  <Link className="btn" href={`/preview/${done.slug}`} target="_blank">
                     Preview your site
                   </Link>
                 )}
-                <Link className="btn btn-dark" href="/dashboard/seller">
+                <Link className="btn ghost" href="/dashboard/seller">
                   Open seller dashboard
                 </Link>
               </div>
@@ -457,10 +457,10 @@ export function SellForm({
         ) : (
           <>
             {check && (
-              <div className="panel sell-check" data-check aria-labelledby="chk-h">
+              <div className="sob-panel sob-check" data-check aria-labelledby="chk-h">
                 <h2 id="chk-h">Check your listing</h2>
                 <p className="muted">This is what buyers will see, in the same order as every other listing. Change anything with Edit.</p>
-                <dl className="chk-list">
+                <dl className="sob-kv">
                   <div>
                     <dt>Name</dt>
                     <dd>{check.name}</dd>
@@ -547,28 +547,28 @@ export function SellForm({
                   </div>
                 </dl>
                 {error && (
-                  <p role="alert" style={{ color: 'var(--rose)', marginTop: 14 }}>
+                  <p role="alert" style={{ color: '#7A2E24', marginTop: 14 }}>
                     {error}
                   </p>
                 )}
                 {busy && (
-                  <div className="upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                  <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                     <i style={{ width: pct + '%' }} />
                     <span>{pct < 100 ? `Uploading ${pct}%` : 'Opening and checking your files'}</span>
                   </div>
                 )}
-                <div className="sell-actions">
-                  <button className="btn btn-blue btn-lg" type="button" disabled={busy} onClick={() => go('review')}>
+                <div className="sob-acts">
+                  <button className="btn" type="button" disabled={busy} onClick={() => go('review')}>
                     {busy ? 'Please wait' : editSlug ? 'Send changes for review' : 'Submit for review'}
                   </button>
-                  <button className="btn btn-line btn-lg" type="button" disabled={busy} onClick={() => setCheck(null)}>
+                  <button className="btn ghost" type="button" disabled={busy} onClick={() => setCheck(null)}>
                     Edit
                   </button>
                 </div>
               </div>
             )}
             <form
-              className="panel"
+              className="sob-panel"
               ref={form}
               noValidate
               hidden={!!check}
@@ -580,7 +580,7 @@ export function SellForm({
             >
               <div className="field" style={{ marginTop: 0 }}>
                 <label>What are you selling?</label>
-                <div className="seg seg3" role="group" aria-label="What are you selling">
+                <div className="seg" role="group" aria-label="What are you selling">
                   {(
                     [
                       ['web', 'A website'],
@@ -613,7 +613,7 @@ export function SellForm({
                 <label htmlFor="s-name">{dig ? 'Product name' : app ? 'App name' : 'Site name'}</label>
                 <input id="s-name" name="name" required minLength={3} maxLength={60} placeholder={dig ? 'Lead Capture workflow' : app ? 'HabitLoop' : 'Saffron Table'} />
               </div>
-              <div className="row2">
+              <div className="sob-grid2">
                 <div className="field">
                   <label htmlFor="s-cat">Category</label>
                   <select id="s-cat" key={kind} name="category" onChange={(e) => setCat(e.target.value)}>
@@ -713,7 +713,7 @@ export function SellForm({
                       </small>
                     </div>
                   ) : (
-                    <div className="drop plain">
+                    <div className="drop">
                       <input id="s-demo" name="demo" type="url" required placeholder="https://demo.example.com" />
                       <small>Your own hosted demo. Some sites refuse to be shown inside other pages. If yours does, buyers get an Open in a new tab link.</small>
                     </div>
@@ -779,12 +779,12 @@ export function SellForm({
                 </div>
               )}
               {dig && (
-                <div className="strength" aria-live="polite">
-                  <div className="strength-h">
+                <div className="sob-strength" aria-live="polite">
+                  <div className="row">
                     <b>Listing strength</b>
                     <span>{strength} of 4</span>
                   </div>
-                  <div className="meter">
+                  <div className="bar">
                     <i style={{ width: strength * 25 + '%' }} />
                   </div>
                   <ul>
@@ -800,13 +800,13 @@ export function SellForm({
                 </div>
               )}
               {dig && (
-                <label className="clean-check">
+                <label className="chk sob-clean">
                   <input type="checkbox" name="clean" required />
                   <span>I confirm these files contain no malware or hidden code, and I have the right to sell them. We review every product before it goes live.</span>
                 </label>
               )}
               {dig && NEEDS_RELEASE.includes(cat) && (
-                <label className="clean-check">
+                <label className="chk sob-clean">
                   <input type="checkbox" name="release" required />
                   <span>
                     Everything in these files is mine or licensed to me for resale (music, footage, fonts, samples). Anyone who can be recognised, and any private place or artwork shown, has signed a
@@ -962,18 +962,18 @@ export function SellForm({
                 <span className="muted">I own the rights to sell this, and it has no copied or harmful code.</span>
               </label>
               {error && (
-                <p role="alert" style={{ color: 'var(--rose)', marginTop: 14 }}>
+                <p role="alert" style={{ color: '#7A2E24', marginTop: 14 }}>
                   {error}
                 </p>
               )}
               {busy && (
-                <div className="upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                   <i style={{ width: pct + '%' }} />
                   <span>{pct < 100 ? `Uploading ${pct}%` : 'Opening and checking your site'}</span>
                 </div>
               )}
               {missing.length > 0 && (
-                <div className="missing" role="alert">
+                <div className="sob-note-box" role="alert">
                   <b>{reviewMessage([]).replace(': .', ':')}</b>
                   <ul>
                     {missing.map((m) => (
@@ -984,16 +984,16 @@ export function SellForm({
                 </div>
               )}
               {note && (
-                <p className="ask-ok" role="status">
+                <p className="tag" role="status">
                   {note}
                 </p>
               )}
-              <div className="sell-actions">
-                <button className="btn btn-blue btn-lg" type="submit" disabled={busy}>
+              <div className="sob-acts">
+                <button className="btn" type="submit" disabled={busy}>
                   Check my listing
                 </button>
                 {!editSlug && (
-                  <button className="btn btn-line btn-lg" type="button" disabled={busy} onClick={() => go('draft')}>
+                  <button className="btn ghost" type="button" disabled={busy} onClick={() => go('draft')}>
                     Save draft
                   </button>
                 )}
@@ -1001,26 +1001,26 @@ export function SellForm({
             </form>
           </>
         )}
-        <aside className="sum">
+        <aside className="sob-sum">
           <h2 style={{ fontSize: '1.5rem' }}>What you earn</h2>
-          <div className="line" style={{ marginTop: 12 }}>
+          <div className="row" style={{ marginTop: 12 }}>
             <span>Buyer pays</span>
             <b>{money(price)}</b>
           </div>
-          <div className="line">
+          <div className="row">
             <span>
               {BRAND_NAME} commission, {percent(commissionBps)} ({planName} plan)
             </span>
             <b>{money(fee)}</b>
           </div>
-          <div className="tot">
+          <div className="row sob-tot">
             <span>You earn</span>
             <span>{money(you)}</span>
           </div>
-          <div className="note warn" style={{ marginTop: 20 }}>
+          <div className="sob-note-box" style={{ marginTop: 20 }}>
             <span>Paid weekly, 7 days after the buyer accepts. Verify your email, phone and payout account before your first listing goes live.</span>
           </div>
-          <ul className="checks" style={{ gridTemplateColumns: '1fr', marginTop: 22 }}>
+          <ul className="sob-checks" style={{ gridTemplateColumns: '1fr', marginTop: 22 }}>
             <li>Checked for copied content before it goes live</li>
             <li>Sell the same site again and again</li>
             <li>Get extra income from customisation jobs</li>

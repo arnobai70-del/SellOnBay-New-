@@ -30,7 +30,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
   const open = quotes.find((q) => ['draft', 'pending_super', 'issued'].includes(q.status));
   const canQuote = ['under_review', 'requirements_verified'].includes(r.status) && !open && (r.kind === 'product' || !!r.requirementsConfirmedAt);
   const qEvents = new Map(await Promise.all(quotes.map(async (q) => [q.id, await quoteEvents(q.id)] as const)));
-  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'chip'];
+  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
   const title = requestTitle(r, products);
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-requests" title={title}>

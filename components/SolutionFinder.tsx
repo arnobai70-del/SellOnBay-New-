@@ -162,7 +162,7 @@ export function SolutionFinder({ extra = [], examples = [] }: { extra?: Product[
                       </span>
                       <span className="ff-info">
                         {i === 0 && (
-                          <span className="chip mint">
+                          <span className="status st-ok">
                             <i />
                             Best match
                           </span>

@@ -86,7 +86,7 @@ export default async function Requests() {
           {list.length === 0 && <p className="muted">None.</p>}
           <ul className="sob-list">
             {list.map((r) => {
-              const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'chip'];
+              const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
               return (
                 <li key={r.id}>
                   <div className="sob-grow">

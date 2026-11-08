@@ -11,7 +11,22 @@ const MINE: Record<'buyer' | 'seller' | 'admin', string> = { buyer: 'You', selle
  * Messages about one request, order or ticket. Buyers see only their channel with SellOnBay, sellers only theirs; admins see all three and
  * write in the one they pick. The server decides who may read and write (lib/messaging/rules.ts); this only shows what it returns.
  */
-export function ConversationPanel({ type, id, me, heading = 'Messages with SellOnBay' }: { type: 'request' | 'order' | 'ticket'; id: string; me: 'buyer' | 'seller' | 'admin'; heading?: string }) {
+export function ConversationPanel({
+  type,
+  id,
+  me,
+  heading = 'Messages with SellOnBay',
+  bare = false,
+  actions,
+}: {
+  type: 'request' | 'order' | 'ticket';
+  id: string;
+  me: 'buyer' | 'seller' | 'admin';
+  heading?: string;
+  bare?: boolean;
+  /* More buttons beside Send (the design's reply row). */
+  actions?: React.ReactNode;
+}) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [tab, setTab] = useState<Channel | null>(null);
@@ -62,40 +77,41 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
   }
 
   if (status === 'none') return null;
+  // bare: inside a design pane (support inbox, order page) without a card of its own. A plain tag, so the form is never remounted while typing.
+  const Box = bare ? 'div' : 'section';
+  const boxProps = { className: bare ? undefined : 'glass card', style: { display: 'flex', flexDirection: 'column' as const, gap: 12 }, 'data-conversation': `${type}:${id}` };
   if (status !== 'ready')
     return (
-      <div className="glass card sob-sec conv" data-conversation={`${type}:${id}`}>
-        <div className="row sob-hd">
-          <div>
-            <h2>{heading}</h2>
-          </div>
-        </div>
+      <Box {...boxProps}>
+        {!bare && <h2>{heading}</h2>}
         {status === 'loading' ? (
-          <p className="muted" role="status">
+          <p className="muted" role="status" style={{ margin: 0, fontSize: 14 }}>
             Loading messages…
           </p>
         ) : (
-          <p className="sob-note-box warn" role="alert">
-            <span>Could not load your messages just now.</span>{' '}
+          <p className="tag" role="alert" style={{ margin: 0 }}>
+            Could not load your messages just now.{' '}
             <button type="button" className="btn ghost sm" onClick={() => void load()}>
               Try again
             </button>
           </p>
         )}
-      </div>
+      </Box>
     );
   const shown = messages.filter((m) => m.channel === tab);
-  const who = (m: Msg) => (m.senderRole === me ? MINE[me] : m.senderRole === 'admin' ? 'SellOnBay' : m.senderRole === 'buyer' ? 'Buyer' : 'Seller');
+  const who = (m: Msg) => (m.senderRole === me ? MINE[me] : m.senderRole === 'admin' ? 'SellOnBay support' : m.senderRole === 'buyer' ? 'Buyer' : 'Seller');
+  // The design's bubbles: mine on one side, the other person on the other, SellOnBay (and internal notes) across.
+  const bubble = (m: Msg) => (m.channel === 'internal' ? 'msg note' : m.senderRole === me ? 'msg me' : m.senderRole === 'admin' ? 'msg team' : 'msg them');
   return (
-    <div className="glass card sob-sec conv" data-conversation={`${type}:${id}`}>
-      <div className="row sob-hd">
+    <Box {...boxProps}>
+      {!bare && (
         <div>
           <h2>{heading}</h2>
-          {me !== 'admin' && <p className="tag">SellOnBay handles every message. Please keep contact details and payments on SellOnBay.</p>}
+          {me !== 'admin' && <div className="tag">SellOnBay handles every message. Please keep contact details and payments on SellOnBay.</div>}
         </div>
-      </div>
+      )}
       {channels.length > 1 && (
-        <div className="seg" role="tablist" aria-label="Channel">
+        <div className="seg" role="tablist" aria-label="Reply type" style={{ alignSelf: 'flex-start' }}>
           {channels.map((c) => (
             <button key={c} type="button" role="tab" aria-selected={tab === c} className={tab === c ? 'on' : ''} onClick={() => setTab(c)}>
               {TAB[c]}
@@ -103,37 +119,46 @@ export function ConversationPanel({ type, id, me, heading = 'Messages with SellO
           ))}
         </div>
       )}
-      <ul className="conv-list" aria-live="polite">
-        {shown.length === 0 && <li className="muted">No messages yet.</li>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} aria-live="polite">
+        {shown.length === 0 && (
+          <p className="muted" style={{ margin: 0, fontSize: 14 }}>
+            No messages yet.
+          </p>
+        )}
         {shown.map((m) => (
-          <li key={m.id} className={m.senderRole === me ? 'mine' : ''}>
-            <b>{who(m)}</b>
+          <div key={m.id} className={bubble(m)}>
+            <div className="tag" style={{ margin: '0 0 4px' }}>
+              {m.channel === 'internal' ? 'Internal note · ' : ''}
+              {who(m)} · {new Date(m.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </div>
             <span style={{ whiteSpace: 'pre-wrap' }}>{m.body}</span>
-            <small>{new Date(m.at).toLocaleString()}</small>
-          </li>
+          </div>
         ))}
-      </ul>
-      <form onSubmit={send} className="conv-form">
-        <label htmlFor={`cv-${type}-${id}`} className="hidden-label">
-          Your message
-        </label>
-        <textarea
-          id={`cv-${type}-${id}`}
-          rows={3}
-          maxLength={4000}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={tab === 'internal' ? 'Only admins see this.' : 'Write your message'}
-        />
-        <button className="btn sm" type="submit" disabled={busy || !text.trim()}>
-          {busy ? 'Sending...' : 'Send'}
-        </button>
+      </div>
+      <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="field">
+          <label htmlFor={`cv-${type}-${id}`}>{tab === 'internal' ? 'Internal note' : me === 'admin' ? 'Reply' : 'Your reply'}</label>
+          <textarea
+            id={`cv-${type}-${id}`}
+            className="input"
+            maxLength={4000}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={tab === 'internal' ? 'Only admins see this.' : 'Write a reply…'}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button className="btn" type="submit" disabled={busy || !text.trim()}>
+            {busy ? 'Sending...' : 'Send'}
+          </button>
+          {actions}
+        </div>
         {error && (
-          <p className="sob-note-box warn" role="alert">
-            <span>{error}</span>
+          <p className="tag" role="alert" style={{ margin: 0, color: '#7A2E24' }}>
+            {error}
           </p>
         )}
       </form>
-    </div>
+    </Box>
   );
 }

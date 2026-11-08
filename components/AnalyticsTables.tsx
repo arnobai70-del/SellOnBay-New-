@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { type Attraction, type DayLine, type Named, type Top, DAY_FIELDS, LEVEL_LABEL } from '@/lib/analyticsCore';
 
 /* The tables of the admin Visitors page and its daily report (app/(dash)/admin/visitors/details). */
-const LEVEL_CHIP: Record<Attraction['level'], string> = { strong: 'chip mint', fair: 'chip amber', weak: 'chip rose', few: 'chip' };
+const LEVEL_CHIP: Record<Attraction['level'], string> = { strong: 'status st-ok', fair: 'status st-wait', weak: 'status st-bad', few: 'status st-draft' };
 
 function Empty({ cols, text }: { cols: number; text: string }) {
   return (

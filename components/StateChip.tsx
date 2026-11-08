@@ -1,25 +1,25 @@
 /* The words and the tone of each state: mint money held, blue in progress, violet done, pink a problem, gold waiting on someone (app/globals.css). */
 const LABEL: Record<string, [string, string]> = {
-  draft: ['Draft', 'chip st-plain'],
+  draft: ['Draft', 'status st-draft'],
   awaiting_payment: ['Waiting for payment', 'chip st-gold'],
   payment_review: ['Payment being checked', 'chip st-gold'],
-  release_pending: ['Paid, waiting for release', 'chip st-mint'],
-  funded: ['Paid, starting', 'chip st-mint'],
+  release_pending: ['Paid, waiting for release', 'status st-ok'],
+  funded: ['Paid, starting', 'status st-ok'],
   in_delivery: ['Seller working', 'chip st-blue'],
   delivered: ['Ready to review', 'chip st-blue'],
-  accepted: ['Accepted', 'chip st-violet'],
-  payout_pending: ['Accepted', 'chip st-violet'],
-  paid_out: ['Done', 'chip st-violet'],
-  disputed: ['Problem reported', 'chip st-pink'],
+  accepted: ['Accepted', 'status st-info'],
+  payout_pending: ['Accepted', 'status st-info'],
+  paid_out: ['Done', 'status st-info'],
+  disputed: ['Problem reported', 'status st-bad'],
   fix_requested: ['Fix requested', 'chip st-gold'],
-  overdue: ['Late', 'chip st-pink'],
-  refunded: ['Refunded', 'chip st-plain'],
-  cancelled: ['Cancelled', 'chip st-plain'],
+  overdue: ['Late', 'status st-bad'],
+  refunded: ['Refunded', 'status st-draft'],
+  cancelled: ['Cancelled', 'status st-draft'],
 };
 
 /* The same words for an order's state everywhere it is listed. */
 export function StateChip({ state }: { state: string }) {
-  const [label, cls] = LABEL[state] ?? [state.replace(/_/g, ' '), 'chip st-plain'];
+  const [label, cls] = LABEL[state] ?? [state.replace(/_/g, ' '), 'status st-draft'];
   return (
     <span className={cls}>
       <i />

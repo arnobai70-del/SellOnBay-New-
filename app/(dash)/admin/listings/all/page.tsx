@@ -10,7 +10,12 @@ export const metadata: Metadata = { title: 'Listings', robots: { index: false } 
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
-const CHIP: Record<string, [string, string]> = { live: ['Live', 'chip mint'], in_review: ['In review', 'chip amber'], rejected: ['Rejected', 'chip rose'], paused: ['Paused', 'chip rose'] };
+const CHIP: Record<string, [string, string]> = {
+  live: ['Live', 'status st-ok'],
+  in_review: ['In review', 'status st-wait'],
+  rejected: ['Rejected', 'status st-bad'],
+  paused: ['Paused', 'status st-bad'],
+};
 const FILTERS: [string, string][] = [
   ['', 'All'],
   ['in_review', 'In review'],
@@ -58,7 +63,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
         {rows.length === 0 && <p className="muted">No listings here.</p>}
         <ul className="sob-list">
           {rows.map((r) => {
-            const [label, cls] = CHIP[r.status] ?? [r.status, 'chip'];
+            const [label, cls] = CHIP[r.status] ?? [r.status, 'status st-draft'];
             return (
               <li key={r.slug}>
                 <div className="sob-grow">

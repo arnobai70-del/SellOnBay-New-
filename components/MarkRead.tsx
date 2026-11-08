@@ -10,7 +10,7 @@ export function MarkRead() {
   return (
     <>
       <button
-        className="btn btn-line btn-sm"
+        className="btn ghost"
         type="button"
         disabled={busy}
         onClick={async () => {
@@ -27,10 +27,10 @@ export function MarkRead() {
           }
         }}
       >
-        {busy ? 'One moment...' : 'Mark all as read'}
+        {busy ? 'One moment...' : 'Mark all read'}
       </button>
       {err && (
-        <p className="form-err" role="alert">
+        <p className="tag" style={{ color: '#7A2E24' }} role="alert">
           {err}
         </p>
       )}

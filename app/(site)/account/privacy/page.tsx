@@ -31,7 +31,7 @@ export default async function YourData() {
           We remove your name, payout details, developer profile and notifications, and lock the sign-in. Payments, orders and accounting records stay because the law makes us keep them, but they no
           longer point to a named person. You cannot undo this. We cannot delete while an order, a dispute or a payout is still open.
         </p>
-        {pending ? <p className="chip amber">We have your request and will process it soon.</p> : <DeleteAccount />}
+        {pending ? <p className="status st-wait">We have your request and will process it soon.</p> : <DeleteAccount />}
         {requests.length > 0 && (
           <>
             <h2>Your requests</h2>

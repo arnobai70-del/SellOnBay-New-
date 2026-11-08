@@ -49,10 +49,10 @@ export function SourceUpload({ listings }: { listings: Listing[] }) {
 
   if (!listings.length) return <p className="muted">Create a listing first, then upload its source files here.</p>;
   return (
-    <form className="upl" onSubmit={send} data-source-upload>
-      <div className="upl-row">
+    <form onSubmit={send} data-source-upload style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <label htmlFor="su-product">Listing</label>
-        <select id="su-product" value={product} onChange={(e) => setProduct(e.target.value)}>
+        <select id="su-product" className="input" style={{ width: 'auto' }} value={product} onChange={(e) => setProduct(e.target.value)}>
           {listings.map((l) => (
             <option key={l.slug} value={l.slug}>
               {l.name}
@@ -60,18 +60,18 @@ export function SourceUpload({ listings }: { listings: Listing[] }) {
           ))}
         </select>
         <label htmlFor="su-purpose">This is</label>
-        <select id="su-purpose" value={purpose} onChange={(e) => setPurpose(e.target.value as 'listing' | 'version')}>
+        <select id="su-purpose" className="input" style={{ width: 'auto' }} value={purpose} onChange={(e) => setPurpose(e.target.value as 'listing' | 'version')}>
           <option value="listing">The listing&apos;s files</option>
           <option value="version">A new version</option>
         </select>
       </div>
       <label htmlFor="su-file">Source archive (.zip, up to 500 MB, no passwords or keys inside)</label>
       <input id="su-file" type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      <button className="btn btn-blue btn-sm" type="submit" disabled={!!step}>
+      <button className="btn sm" type="submit" disabled={!!step}>
         {step || 'Upload for checking'}
       </button>
       {msg && (
-        <p className={msg.ok ? 'note' : 'note warn'} role={msg.ok ? 'status' : 'alert'}>
+        <p className="tag" style={{ margin: 0, color: msg.ok ? '#1A5444' : '#7A2E24' }} role={msg.ok ? 'status' : 'alert'}>
           <span>{msg.text}</span>
         </p>
       )}

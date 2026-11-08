@@ -1,39 +1,37 @@
 import type { Metadata } from 'next';
-import { GlassCard } from '@/components/glass/GlassCard';
+import { NotificationsList, GROUPS, type Group } from '@/components/glass/NotificationsList';
 import { SellerShell } from '@/components/glass/SellerShell';
-import { MarkRead } from '@/components/MarkRead';
-import { shortDate } from '@/lib/glass/orderStatus';
 import { sellerNotes } from '@/lib/glass/seller';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Notifications', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-export default async function SellerNotifications() {
+const SHOWN: Group[] = ['all', 'orders', 'websites', 'support', 'payouts'];
+
+/* design-reference/seller-notifications.html: new orders, listing decisions, disputes and payout news, by kind. */
+export default async function SellerNotifications({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const viewer = await requireViewer({ path: '/dashboard/seller/notifications', roles: ['seller', 'admin'] });
+  const raw = (await searchParams).type;
+  const group: Group = SHOWN.includes(raw as Group) && Object.hasOwn(GROUPS, raw ?? '') ? (raw as Group) : 'all';
   const list = viewer ? await sellerNotes(viewer.id) : [];
-  const unread = list.filter((n) => !n.read).length;
   return (
-    <SellerShell viewer={viewer} active="notifications" title="Notifications" subtitle={`${unread} unread`} actions={unread ? <MarkRead /> : undefined}>
-      <GlassCard as="section">
-        {list.length ? (
-          list.map((n) => (
-            <div key={n.id} className="li" style={{ alignItems: 'flex-start' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: n.read ? 400 : 500 }}>{n.subject}</div>
-                <div className="tag">{n.text}</div>
-              </div>
-              <span className="tag" style={{ whiteSpace: 'nowrap' }}>
-                {shortDate(n.at)}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="muted" style={{ fontSize: 14 }}>
-            Nothing yet. New orders, questions from buyers and payout news show up here.
-          </p>
-        )}
-      </GlassCard>
+    <SellerShell viewer={viewer} active="notifications" file="seller-notifications" title="Notifications" head={false}>
+      <NotificationsList
+        list={list}
+        group={group}
+        groups={SHOWN}
+        labels={{ orders: 'Sales', websites: 'Listings', support: 'Disputes' }}
+        base="/dashboard/seller/notifications"
+        now={Date.now()}
+        link={(n, g) => {
+          const order = typeof n.payload.orderId === 'string' ? n.payload.orderId : null;
+          if (g === 'payouts') return ['/dashboard/seller/payouts', 'View'];
+          if (g === 'support') return ['/dashboard/seller/support', 'Reply'];
+          if (g === 'websites') return ['/dashboard/seller/websites', 'Open'];
+          return order ? [`/orders/${order}`, 'View'] : ['/dashboard/seller/orders', 'View'];
+        }}
+      />
     </SellerShell>
   );
 }

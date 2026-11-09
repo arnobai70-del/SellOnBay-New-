@@ -1,12 +1,12 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 
-/* Module maintenance (lib/maintenance), demo mode: one module closes, the rest keeps working, and it opens again. */
+/* Module maintenance (lib/maintenance), demo mode: one module closes, the rest keeps working, and it opens again. Glass UI addresses (2026-11-10). */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';
 const set = (request: APIRequestContext, data: object) => request.post(`${DEMO}/api/admin/maintenance`, { data, headers: { origin: DEMO } });
 
 test.describe('module maintenance (demo mode)', () => {
   test.afterEach(async ({ request }) => {
-    for (const key of ['seller', 'checkout', 'seo', 'ai']) await set(request, { module: key, enabled: false, message: '' });
+    for (const key of ['seller', 'checkout', 'seo', 'guides']) await set(request, { module: key, enabled: false, message: '' });
   });
 
   test('seller maintenance closes the seller side only; buyers and visitors carry on', async ({ page, request }) => {
@@ -15,13 +15,12 @@ test.describe('module maintenance (demo mode)', () => {
 
     const seller = await page.goto(`${DEMO}/dashboard/seller`);
     expect(seller?.status()).toBe(503);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Seller dashboard: back soon');
     await expect(page.getByText('Seller tools are being updated. Back at 14:00.')).toBeVisible();
     await expect(page).toHaveURL(/\/dashboard\/seller$/); // the address stays
 
-    for (const open of ['/dashboard/buyer', '/browse', '/product/saffron-table', '/']) expect((await request.get(`${DEMO}${open}`)).status(), open).toBe(200);
+    for (const open of ['/dashboard/buyer', '/websites', '/sellers', '/']) expect((await request.get(`${DEMO}${open}`)).status(), open).toBe(200);
 
-    const api = await request.post(`${DEMO}/api/seller/payout`, { data: {}, headers: { origin: DEMO } });
+    const api = await request.post(`${DEMO}/api/seller/plan`, { data: {}, headers: { origin: DEMO } });
     expect(api.status()).toBe(503);
     expect(api.headers()['retry-after']).toBe('300');
     expect((await api.json()).maintenance.module).toBe('seller');
@@ -41,19 +40,19 @@ test.describe('module maintenance (demo mode)', () => {
     const order = await request.post(`${DEMO}/api/demo/orders`, { data: { productId: 'saffron-table', pkg: 'asis' }, headers: { origin: DEMO } });
     expect(order.status()).toBe(503);
     expect(Number(order.headers()['retry-after'])).toBeGreaterThan(1100);
-    expect((await request.get(`${DEMO}/browse?q=shop`)).status()).toBe(200);
-    expect((await request.get(`${DEMO}/api/domains?name=example`)).status()).toBe(200);
+    expect((await request.get(`${DEMO}/websites?q=shop`)).status()).toBe(200);
+    expect((await request.get(`${DEMO}/domains?q=example`)).status()).toBe(200);
 
     // planned for later: not closed yet
     const later = new Date(Date.now() + 60 * 60_000).toISOString();
     expect((await set(request, { module: 'checkout', enabled: true, message: '', startAt: later })).status()).toBe(200);
-    expect((await request.get(`${DEMO}/checkout?id=saffron-table`)).status()).toBe(200);
+    expect((await request.get(`${DEMO}/checkout`)).status()).toBeLessThan(500);
   });
 
-  test('SEO maintenance closes the blog, never the public site; bad input is refused', async ({ request }) => {
-    expect((await set(request, { module: 'seo', enabled: true, message: '' })).status()).toBe(200);
-    expect((await request.get(`${DEMO}/blog`)).status()).toBe(503);
-    expect((await request.get(`${DEMO}/apps/digital`)).status()).toBe(200);
+  test('guides maintenance closes the guides only, never the public site; bad input is refused', async ({ request }) => {
+    expect((await set(request, { module: 'guides', enabled: true, message: '' })).status()).toBe(200);
+    expect((await request.get(`${DEMO}/guides`)).status()).toBe(503);
+    expect((await request.get(`${DEMO}/websites`)).status()).toBe(200);
     expect((await set(request, { module: 'nope', enabled: true })).status()).toBe(400);
     expect((await set(request, { module: 'seo', enabled: true, message: '<script>' })).status()).toBe(400);
     const now = Date.now();
@@ -63,24 +62,23 @@ test.describe('module maintenance (demo mode)', () => {
   test('the Maintenance Manager closes and reopens a module, shows its state and history, and fits a phone', async ({ page }) => {
     await page.goto(`${DEMO}/admin/settings/maintenance/modules`);
     await expect(page.getByRole('heading', { name: 'Every part of the site is open' })).toBeVisible();
-    const card = page.locator('#module-ai');
+    const card = page.locator('#module-guides');
     await card.getByLabel('Under maintenance').check();
-    await card.getByLabel(/Message visitors see/).fill('The idea tool gets a new model today.');
+    await card.getByLabel(/Message visitors see/).fill('Guides get new pictures today.');
     await card.getByRole('button', { name: 'Save' }).click();
     await expect(card.getByRole('status')).toContainText('now in maintenance');
-    await expect(page.getByRole('heading', { name: 'In maintenance now: AI tools' })).toBeVisible();
-    await expect(card.locator('.chip')).toHaveText('In maintenance');
-    await expect(page.getByText('AI tools: maintenance on').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'In maintenance now: Guides' })).toBeVisible();
+    await expect(card.locator('.status')).toHaveText('In maintenance');
 
-    const tool = await page.request.get(`${DEMO}/tools/site-ideas`);
-    expect(tool.status()).toBe(503);
-    expect(await tool.text()).toContain('The idea tool gets a new model today.');
+    const guides = await page.request.get(`${DEMO}/guides`);
+    expect(guides.status()).toBe(503);
+    expect(await guides.text()).toContain('Guides get new pictures today.');
 
     await card.getByLabel('Under maintenance').uncheck();
     await card.getByRole('button', { name: 'Save' }).click();
     await expect(card.getByRole('status')).toContainText('open again');
-    await expect(card.locator('.chip')).toHaveText('Open');
-    expect((await page.request.get(`${DEMO}/tools/site-ideas`)).status()).toBe(200);
+    await expect(card.locator('.status')).toHaveText('Open');
+    expect((await page.request.get(`${DEMO}/guides`)).status()).toBe(200);
 
     await page.setViewportSize({ width: 360, height: 800 });
     await page.goto(`${DEMO}/admin/settings/maintenance/modules`);

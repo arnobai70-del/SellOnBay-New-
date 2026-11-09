@@ -13,9 +13,9 @@ const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';
 
 /* A product page. The normal build shows only real seller listings, and demo mode has none, so the legacy demo build's example is used. */
 async function productUrl(page: Page): Promise<string | null> {
-  await page.goto(BASE + '/');
-  const hrefs = await page.$$eval('a[href^="/templates/"]', (as) => as.map((a) => a.getAttribute('href') ?? ''));
-  const own = hrefs.find((h) => /^\/templates\/[^/]+\/[^/?#]+$/.test(h));
+  await page.goto(BASE + '/websites');
+  const hrefs = await page.$$eval('a[href^="/websites/"]', (as) => as.map((a) => a.getAttribute('href') ?? ''));
+  const own = hrefs.find((h) => /^\/websites\/(?!category\/)[^/?#]+$/.test(h));
   if (own) return BASE + own;
   const r = await page.request.get(DEMO + '/product/saffron-table').catch(() => null);
   return r && r.ok() ? DEMO + '/product/saffron-table' : null;
@@ -23,11 +23,14 @@ async function productUrl(page: Page): Promise<string | null> {
 
 const PAGES: [string, string][] = [
   ['storefront', '/'],
-  ['category', '/templates/saas'],
-  ['login', '/login'],
-  ['FAQ', '/faq'],
-  ['how it works', '/how-it-works'],
-  ['admin dashboard', '/dashboard/admin'],
+  ['websites', '/websites'],
+  ['category', '/websites/category/saas'],
+  ['sign in', '/signin'],
+  ['help', '/help'],
+  ['buyer protection', '/buyer-protection'],
+  ['sellers', '/sellers'],
+  ['sell', '/sell'],
+  ['admin dashboard', '/admin'],
   ['admin purchase requests', '/admin/orders/requests'],
   ['admin support', '/admin/support/tickets'],
   ['admin releases', '/admin/orders/releases'],
@@ -88,7 +91,7 @@ test.describe('automated WCAG checks', () => {
 
 test.describe('keyboard and focus', () => {
   test('the first Tab reaches a visible, focused control on the storefront and the login page', async ({ page }) => {
-    for (const path of ['/', '/login']) {
+    for (const path of ['/', '/signin']) {
       await page.goto(BASE + path);
       await page.keyboard.press('Tab');
       const info = await page.evaluate(() => {
@@ -104,7 +107,7 @@ test.describe('keyboard and focus', () => {
     }
   });
   test('every control on the main forms has an accessible name', async ({ page }) => {
-    for (const path of ['/login', '/dashboard/buyer/support', '/admin/content/cms']) {
+    for (const path of ['/signin', '/dashboard/buyer/support', '/admin/content/cms']) {
       await page.goto(BASE + path);
       const unnamed = await page.$$eval('input:not([type=hidden]), select, textarea, button', (els) =>
         els
@@ -121,15 +124,15 @@ test.describe('keyboard and focus', () => {
       expect(unnamed, `${path}: controls without a name`).toEqual([]);
     }
   });
-  test('the phone menu opens with the keyboard and closes with Escape', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 800 }); // the top bar is plain links on wide screens; phones use the menu sheet
+  test('on a phone the menu is one row the keyboard reaches, and a focused link scrolls into view', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 }); // the Glass UI top bar: on phones the links are one row you swipe, no menu sheet
     await page.goto(BASE + '/');
-    const trigger = page.locator('.mk-hdr .mk-burger');
-    await trigger.focus();
-    await page.keyboard.press('Enter');
-    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    await page.keyboard.press('Escape');
-    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    const links = page.locator('nav.nav .navlinks a');
+    expect(await links.count()).toBeGreaterThan(3);
+    const last = links.last();
+    await last.focus();
+    await expect(last).toBeFocused();
+    await expect(last).toBeInViewport();
   });
 });
 
@@ -137,7 +140,7 @@ test.describe('responsive layout', () => {
   for (const width of [360, 390, 768, 1280])
     test(`no sideways scrolling at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
-      for (const path of ['/', '/login', '/faq', '/dashboard/buyer', '/dashboard/admin']) {
+      for (const path of ['/', '/websites', '/signin', '/help', '/dashboard/buyer', '/dashboard/seller', '/admin']) {
         await page.goto(BASE + path);
         const sw = await page.evaluate(() => document.documentElement.scrollWidth);
         expect(sw, `${path} at ${width}px`).toBeLessThanOrEqual(width); // compare with the width we set (CLAUDE.md phone lessons)

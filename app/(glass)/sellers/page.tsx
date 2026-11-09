@@ -81,7 +81,25 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
             ))}
           </div>
           <Link className="chk" href={href({ skill, custom: custom === '1' ? undefined : '1' })} prefetch={false} role="checkbox" aria-checked={custom === '1'} style={{ textDecoration: 'none' }}>
-            <input type="checkbox" checked={custom === '1'} readOnly tabIndex={-1} aria-hidden="true" /> Available for custom work
+            <span
+              aria-hidden="true"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 18,
+                height: 18,
+                borderRadius: 5,
+                border: '1.5px solid #7FBFA9',
+                background: custom === '1' ? '#5FA88F' : '#fff',
+                color: '#fff',
+                fontSize: 12,
+                lineHeight: 1,
+              }}
+            >
+              {custom === '1' ? '✓' : ''}
+            </span>{' '}
+            Available for custom work
           </Link>
         </div>
       </header>

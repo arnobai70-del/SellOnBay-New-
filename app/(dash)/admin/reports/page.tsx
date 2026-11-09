@@ -122,7 +122,7 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
         </form>
       </div>
       <section className="glass card">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(170px, 100%),1fr))', gap: 12 }}>
           {KINDS.map(([k, label, text]) => (
             <Link key={k} className={k === kind[0] ? 'rt on' : 'rt'} href={href(k)} prefetch={false} aria-current={k === kind[0] ? 'true' : undefined}>
               <b style={{ fontWeight: 500 }}>{label}</b>

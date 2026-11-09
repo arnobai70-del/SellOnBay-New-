@@ -38,11 +38,11 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
         setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Could not send. Please try again.');
       }}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
         <Field label="Name" name="name" required maxLength={100} autoComplete="name" />
         <Field label="Email" name="email" type="email" required maxLength={254} autoComplete="email" />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
         <Field as="select" label="Topic" name="topic" defaultValue={CONTACT_TOPICS[0]}>
           {CONTACT_TOPICS.map((t) => (
             <option key={t}>{t}</option>

@@ -103,7 +103,8 @@ export default async function Home() {
   const featured = browse(sites, readQuery({}, []), () => null).items.slice(0, 6);
   const [line1, line2] = twoLines(c.t('hero', 'title'));
   const [sell1, sell2] = twoLines(c.t('sell', 'heading'));
-  const [f1, f2] = featured;
+  // The two floating cards show real websites, those with a screenshot first (owner, 2026-11-09).
+  const [f1, f2] = [...featured.filter((p) => p.shots?.[0]), ...featured.filter((p) => !p.shots?.[0])];
   // Each section an admin can hide or move (Admin › Content › Pages); the top banner always comes first.
   const SECTIONS: Record<string, React.ReactNode> = {
     pillars: (
@@ -351,21 +352,32 @@ export default async function Home() {
       <section style={{ position: 'relative', isolation: 'isolate', padding: '96px 0 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 22 }}>
         {f1 && (
           <div className="floater" aria-hidden="true" style={{ left: 0, top: 300, ['--r' as string]: '-6deg', animationDelay: '.9s, 2.3s' }}>
-            <div
-              className="thumb"
-              style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 6 }}
-            >
-              <span className="tb" />
-              <div style={{ display: 'flex', gap: 6 }}>
-                <span className="sq m" />
-                <span className="sq l" />
-                <span className="sq b" />
+            {f1.shots?.[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element -- a seller screenshot from our own route, any size
+              <img
+                src={f1.shots[0]}
+                alt=""
+                loading="eager"
+                decoding="async"
+                style={{ display: 'block', width: '100%', height: 110, objectFit: 'cover', objectPosition: 'top', borderRadius: 12, border: '1px solid #E1EBF0' }}
+              />
+            ) : (
+              <div
+                className="thumb"
+                style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 6 }}
+              >
+                <span className="tb" />
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span className="sq m" />
+                  <span className="sq l" />
+                  <span className="sq b" />
+                </div>
+                <span className="ln" />
+                <span className="ln s" />
               </div>
-              <span className="ln" />
-              <span className="ln s" />
-            </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '8px 4px 0', gap: 8 }}>
-              <span>{f1.name}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f1.name}</span>
               <span>
                 <PriceTag p={f1} />
               </span>
@@ -374,16 +386,27 @@ export default async function Home() {
         )}
         {f2 && (
           <div className="floater" aria-hidden="true" style={{ right: 0, top: 290, ['--r' as string]: '5deg', animationDelay: '1.1s, 2.5s' }}>
-            <div style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span className="img" style={{ height: 70 }} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span className="mini">Create.</span>
-                <span className="ln" />
-                <span className="ln s" />
+            {f2.shots?.[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element -- a seller screenshot from our own route, any size
+              <img
+                src={f2.shots[0]}
+                alt=""
+                loading="eager"
+                decoding="async"
+                style={{ display: 'block', width: '100%', height: 110, objectFit: 'cover', objectPosition: 'top', borderRadius: 12, border: '1px solid #E1EBF0' }}
+              />
+            ) : (
+              <div style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span className="img" style={{ height: 70 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span className="mini">Create.</span>
+                  <span className="ln" />
+                  <span className="ln s" />
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '8px 4px 0', gap: 8 }}>
-              <span>{f2.name}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f2.name}</span>
               <span>
                 <PriceTag p={f2} />
               </span>

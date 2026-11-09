@@ -25,7 +25,7 @@ export function PublicFooter({
   contactTitle?: string;
 }) {
   return (
-    <footer style={{ marginTop: 72, padding: '32px 0 8px', borderTop: '1px solid #D9E5EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 24 }}>
+    <footer style={{ marginTop: 72, padding: '32px 0 8px', borderTop: '1px solid #D9E5EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 24 }}>
       <div>
         <Link className="logo" href="/" prefetch={false}>
           <BrandMark />

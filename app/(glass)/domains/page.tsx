@@ -153,7 +153,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
       </section>
       <section className="reveal">
         <h2 style={{ fontSize: 28, marginBottom: 20 }}>Why buy your domain here</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           {FEATURES.map(([t, d, paths]) => (
             <div key={t} className="glass feat">
               <span className="ico" aria-hidden="true">

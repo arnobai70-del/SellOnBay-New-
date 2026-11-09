@@ -39,7 +39,7 @@ export function PublicNav({
           </Link>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="sob-navr">
         {search && <SearchBox compact placeholder="Search" />}
         {showCart && (
           <Link className="btn ghost" href="/cart" prefetch={false} data-track="cart">

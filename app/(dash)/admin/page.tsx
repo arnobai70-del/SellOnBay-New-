@@ -125,7 +125,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               Most used actions
             </span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(150px, 100%),1fr))', gap: 12 }}>
             {(
               [
                 ['/admin/orders#pos', '#DCF0E7', 'M12 5v14M5 12h14', 'Manual order'],

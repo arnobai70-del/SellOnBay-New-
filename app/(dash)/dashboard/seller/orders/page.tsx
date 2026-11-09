@@ -254,7 +254,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
 
       <section className="glass card">
         <h2>How you get paid</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginTop: 12, fontSize: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px, 100%),1fr))', gap: 12, marginTop: 12, fontSize: 14 }}>
           {(
             [
               ['1 · Buyer pays', 'Money goes to escrow, not to anyone yet', false],

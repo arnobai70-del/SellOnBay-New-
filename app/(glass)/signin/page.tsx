@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { BrandMark } from '@/components/glass/BrandMark';
 import Link from 'next/link';
 import { AuthClient } from '@/components/AuthClient';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -26,7 +27,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
     <PublicFrame file="signin" chrome={false}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
         <Link className="logo" href="/" style={{ padding: '18px 0' }} prefetch={false}>
-          <span className="dot" aria-hidden="true" />
+          <BrandMark />
           {BRAND_NAME}
         </Link>
       </div>

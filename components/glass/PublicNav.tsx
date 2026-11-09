@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { BrandMark } from '@/components/glass/BrandMark';
 import { usePathname } from 'next/navigation';
 import { BRAND_NAME } from '@/lib/brand';
 import { useCart } from '@/lib/glass/cart';
@@ -28,7 +29,7 @@ export function PublicNav({
   return (
     <nav className="glass nav" aria-label="Main">
       <Link className="logo" href="/" prefetch={false}>
-        <span className="dot" aria-hidden="true" />
+        <BrandMark />
         {BRAND_NAME}
       </Link>
       <div className="navlinks">

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandMark } from '@/components/glass/BrandMark';
 import { Fragment } from 'react';
 import { signOut } from '@/app/(bare)/login/actions';
 import { BRAND_NAME } from '@/lib/brand';
@@ -71,7 +72,7 @@ export function DashboardShell({
       <div className="shell">
         <aside className="glass side" aria-label={`${menu.label} menu`}>
           <Link className="logo" href="/" prefetch={false}>
-            <span className="dot" aria-hidden="true" />
+            <BrandMark />
             {BRAND_NAME}{' '}
             <span className="tag" style={{ margin: '0 0 0 2px' }}>
               {menu.label}

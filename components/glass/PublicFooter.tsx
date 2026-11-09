@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandMark } from '@/components/glass/BrandMark';
 import { BRAND_NAME } from '@/lib/brand';
 import { EMAIL_ROUTES } from '@/lib/emailRouting';
 import type { ContactRoutes } from '@/lib/site/contact';
@@ -27,7 +28,7 @@ export function PublicFooter({
     <footer style={{ marginTop: 72, padding: '32px 0 8px', borderTop: '1px solid #D9E5EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 24 }}>
       <div>
         <Link className="logo" href="/" prefetch={false}>
-          <span className="dot" aria-hidden="true" />
+          <BrandMark />
           {BRAND_NAME}
         </Link>
         <p className="muted" style={{ fontSize: 13, margin: '10px 0 0', lineHeight: 1.6 }}>

@@ -30,6 +30,24 @@ function buildCommit(): string {
 }
 
 /*
+ * The first line of every build log names the commit, so a host's log shows which upload it is building (owner, 2026-11-09: a stale upload looked
+ * like a new bug). A build without the files every page needs stops at once with a plain message instead of a webpack error three minutes in.
+ */
+if (process.argv.includes('build')) {
+  const commit = buildCommit().slice(0, 7) || 'unknown';
+  console.log(`SellOnBay build from commit ${commit}`);
+  const missing = ['lib/supabase/client.ts', 'lib/supabase/server.ts', 'app/layout.tsx', 'proxy.ts'].filter((f) => {
+    try {
+      readFileSync(f);
+      return false;
+    } catch {
+      return true;
+    }
+  });
+  if (missing.length) throw new Error(`SellOnBay upload is incomplete (missing ${missing.join(', ')}). Delete the old files and upload SellOnBay-HOSTINGER.zip again (commit ${commit}).`);
+}
+
+/*
  * Security headers on every page and API answer (spec section 9). The hosted seller demos under /demo are left out on purpose: they set their own
  * `Content-Security-Policy: sandbox` (no allow-same-origin) and must keep it. Scripts and styles need 'unsafe-inline' because Next writes small inline
  * scripts; tightening that needs per-request nonces and is a later step. Everything else is closed down: no plugins, no framing by other sites,

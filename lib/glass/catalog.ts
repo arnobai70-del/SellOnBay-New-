@@ -88,8 +88,9 @@ export async function publicSellers(): Promise<PublicSeller[]> {
   const sites = await publicWebsites();
   const groups = new Map<string, Product[]>();
   for (const p of sites) {
-    // SellOnBay's own listings are one official store (owner, 2026-11-09: /sellers showed nothing while every live listing was SellOnBay's own).
-    const key = p.ownerType === 'platform' ? PLATFORM_KEY : (p.sellerId ?? `name:${p.seller}`);
+    // Each listing shows under the seller account that owns it (owner, 2026-11-09: the sellers' own accounts, not one SellOnBay store). Only a
+    // SellOnBay listing with no seller account falls back to the official store.
+    const key = p.sellerId ?? (p.ownerType === 'platform' ? PLATFORM_KEY : `name:${p.seller}`);
     groups.set(key, [...(groups.get(key) ?? []), p]);
   }
   const profiles = new Map<string, ProfileRow>();

@@ -4,7 +4,7 @@
  */
 import { BRAND_NAME } from '../brand';
 
-type Listing = { name: string; desc: string; inc: string[]; tag: string; seller?: string; ownerType?: string };
+type Listing = { name: string; desc: string; inc: string[]; tag: string; seller?: string; ownerType?: string; sellerId?: string | null };
 
 const CAP = (s: string) => /^[A-Z]/.test(s);
 export function plainWords(text: string): string {
@@ -15,12 +15,12 @@ export function plainWords(text: string): string {
 }
 
 /* A copy of a listing with its public words cleaned. Everything else, the address included, is untouched. */
-/* SellOnBay's own listings show SellOnBay as the seller, whoever's account holds them. */
+/* A listing shows the seller account that owns it (owner, 2026-11-09); only a SellOnBay listing with no seller account shows SellOnBay. */
 export const publicListing = <T extends Listing>(p: T): T => ({
   ...p,
   name: plainWords(p.name),
   desc: plainWords(p.desc),
   inc: p.inc.map(plainWords),
   tag: plainWords(p.tag),
-  ...(p.ownerType === 'platform' ? { seller: BRAND_NAME } : {}),
+  ...(p.ownerType === 'platform' && !p.sellerId ? { seller: BRAND_NAME } : {}),
 });

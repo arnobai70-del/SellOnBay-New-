@@ -103,18 +103,21 @@ export function CartClient({ add, reviewHours }: { add?: string; reviewHours: nu
           </section>
         </div>
         <aside className="glass card" style={{ flex: '1 1 320px', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <h2 style={{ fontSize: 20 }}>Summary</h2>
+          <div className="row">
+            <h2 style={{ fontSize: 20 }}>Summary</h2>
+          </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <label htmlFor="cp" className="hidden-label">
               Coupon code
             </label>
-            <input id="cp" className="input" placeholder="Coupon code" disabled={beta} />
+            <input id="cp" className="input" placeholder="Coupon code" disabled aria-describedby="cp-soon" />
             <button className="btn ghost" type="button" disabled>
               Apply
             </button>
           </div>
-          <div className="tag" style={{ margin: 0 }}>
-            {beta ? 'Coupons apply once live payments open. In the beta nothing is charged.' : 'Enter your coupon on the payment step.'}
+          <div id="cp-soon" className="tag" style={{ margin: 0, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span className="status st-draft">Coming soon</span>
+            Coupons are not ready yet.{beta ? ' In the beta nothing is charged.' : ''}
           </div>
           <div style={{ borderTop: '1px solid #DEE8ED', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div className="sum">

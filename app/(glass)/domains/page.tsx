@@ -95,9 +95,10 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
             </h2>
             <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <span className="tag">{registrarLive() ? 'Live results · first year' : 'Checked by hand when you order · first year, USD'}</span>
-              <Link className="btn ghost" href="/cart" prefetch={false}>
-                View cart
-              </Link>
+              <button className="btn ghost" type="button" disabled title="A domain cart is coming soon">
+                Domain cart
+              </button>
+              <span className="status st-draft">Coming soon</span>
             </span>
           </div>
           <div>

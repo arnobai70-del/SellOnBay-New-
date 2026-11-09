@@ -59,13 +59,20 @@ export default async function BuyerDomains() {
                     By hand, we remind you
                   </span>
                 </div>
+                <div className="row" style={{ fontSize: 14 }}>
+                  <span>Auto-renew</span>
+                  <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span className="status st-draft">Coming soon</span>
+                    <button type="button" className="sw" disabled aria-label="Auto-renew (coming soon)" />
+                  </span>
+                </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <Link className="btn sm" href="/dashboard/buyer/support" prefetch={false}>
                     Renew 1 year
                   </Link>
-                  <Link className="btn sm ghost" href="/dashboard/buyer/support" prefetch={false}>
+                  <button className="btn sm ghost" type="button" disabled title="DNS settings are coming soon; ask Support for a change">
                     DNS settings
-                  </Link>
+                  </button>
                 </div>
               </section>
             );
@@ -82,7 +89,10 @@ export default async function BuyerDomains() {
       <section className="glass card">
         <div className="row">
           <div>
-            <h2>DNS</h2>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <h2>DNS</h2>
+              <span className="status st-draft">Coming soon</span>
+            </div>
             <div className="tag">The seller connects your domain to your website when it goes live. To point it somewhere else, ask us and we change the records for you.</div>
           </div>
           <Link className="btn sm ghost" href="/dashboard/buyer/support" prefetch={false}>

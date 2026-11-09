@@ -38,7 +38,7 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
     setStamp(Date.now());
   };
   useEffect(() => {
-    if (stamp && frame.current && previewPath) frame.current.src = `${previewPath}${previewPath.includes('?') ? '&' : '?'}draft=1&t=${stamp}`;
+    if (stamp && frame.current && previewPath) frame.current.src = `/api/admin/preview?path=${encodeURIComponent(previewPath)}&t=${stamp}`;
   }, [stamp, previewPath]);
 
   const setText = (id: string, v: string) => setDoc((d) => ({ ...d, text: { ...d.text, [id]: v } }));
@@ -138,8 +138,8 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
         {previewPath && (
           <div className="glass card sob-stack">
             <h2>Live preview</h2>
-            <iframe ref={frame} title="Preview" src={`${previewPath}${previewPath.includes('?') ? '&' : '?'}draft=1`} className="sob-preview" />
-            <a href={`${previewPath}${previewPath.includes('?') ? '&' : '?'}draft=1`} target="_blank" rel="noopener">
+            <iframe ref={frame} title="Preview" src={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} className="sob-preview" />
+            <a href={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} target="_blank" rel="noopener">
               Open the preview
             </a>
           </div>

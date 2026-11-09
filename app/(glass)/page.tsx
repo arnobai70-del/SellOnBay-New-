@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
 import Link from 'next/link';
 import { HeroSearch } from '@/components/glass/HeroSearch';
 import { PriceTag } from '@/components/glass/PriceTag';
@@ -40,8 +41,8 @@ export async function generateMetadata(): Promise<Metadata> {
     await pageControls('/'),
   );
 }
-// ?draft=1 shows an admin the saved draft words (Admin › Content › Pages), so the page reads its address on every request.
-export const dynamic = 'force-dynamic';
+// Static, refreshed every 5 minutes; it renders on request only in Draft Mode, which an admin's preview turns on (app/api/admin/preview).
+export const revalidate = 300;
 
 /* The last sentence goes on its own line, as the design's two-line heading ("Buy a website. Get a domain." / "Or sell your own."). */
 function twoLines(s: string): [string, string] {
@@ -95,8 +96,9 @@ const DOT = <span style={{ width: 6, height: 6, borderRadius: '50%', background:
 const ROW = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginBottom: 20 } as const;
 
 /* design-reference/index.html, wired to the live listings, sellers and the words an admin sets at Admin › Content › Pages › Home. */
-export default async function Home({ searchParams }: { searchParams: Promise<{ draft?: string }> }) {
-  const [sites, sellers, social, c] = await Promise.all([publicWebsites(), publicSellers(), savedSocial(), pageCopy('home', (await searchParams).draft === '1')]);
+export default async function Home() {
+  const draft = (await draftMode()).isEnabled;
+  const [sites, sellers, social, c] = await Promise.all([publicWebsites(), publicSellers(), savedSocial(), pageCopy('home', draft)]);
   const sameAs = shownSocial(social).map((l) => l.url);
   const featured = browse(sites, readQuery({}, []), () => null).items.slice(0, 6);
   const [line1, line2] = twoLines(c.t('hero', 'title'));

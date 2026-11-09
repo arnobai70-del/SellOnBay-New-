@@ -124,7 +124,10 @@ export default async function SellerStore({ params }: Props) {
         </div>
         <aside className="glass" style={{ flex: '1 1 300px', maxWidth: 380, padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <h2 style={{ fontSize: 20 }}>Request customization</h2>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: 20 }}>Request customization</h2>
+              {beta && <span className="status st-draft">Coming soon</span>}
+            </div>
             <div className="muted" style={{ fontSize: 14, marginTop: 6 }}>
               {beta ? 'Paid custom work is available after the beta.' : 'Paid through escrow, like a website. You pay nothing until you accept a quotation.'}
             </div>

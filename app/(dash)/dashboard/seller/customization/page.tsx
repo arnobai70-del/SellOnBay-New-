@@ -107,6 +107,61 @@ export default async function SellerCustomization() {
               )}
             </section>
           </div>
+          <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} aria-disabled="true">
+            <div className="row">
+              <h2>Your offer</h2>
+              <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span className="status st-draft">Coming soon</span>
+                <span className="tag" style={{ margin: 0 }}>
+                  Buyer pays into escrow per milestone
+                </span>
+              </span>
+            </div>
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Milestone</th>
+                    <th>Days</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <label className="hidden-label" htmlFor="mt0">
+                        Milestone
+                      </label>
+                      <input id="mt0" className="input" placeholder="For example: new colours and logo" disabled style={{ minHeight: 38 }} />
+                    </td>
+                    <td style={{ width: 90 }}>
+                      <label className="hidden-label" htmlFor="md0">
+                        Days
+                      </label>
+                      <input id="md0" className="input" placeholder="2" disabled style={{ minHeight: 38 }} />
+                    </td>
+                    <td style={{ width: 110 }}>
+                      <label className="hidden-label" htmlFor="mp0">
+                        Price
+                      </label>
+                      <input id="mp0" className="input" placeholder="$40" disabled style={{ minHeight: 38 }} />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="row">
+              <button className="btn sm ghost" type="button" disabled>
+                + Add milestone
+              </button>
+              <button className="btn" type="button" disabled>
+                Send offer
+              </button>
+            </div>
+            <div className="tag" style={{ margin: 0 }}>
+              Offers in milestones are coming soon. Until then, send extra work on an order above.
+            </div>
+          </section>
           <section className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="row" style={{ padding: '14px 14px 4px' }}>
               <h2>Extra work you sent</h2>

@@ -43,7 +43,7 @@ export function HeroSearch({ placeholder }: { placeholder: string }) {
           style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter), Inter, sans-serif', color: '#2B4250', outline: 'none', minHeight: 44 }}
         />{' '}
         <button className="btn" type="submit">
-          {sites ? 'Search websites' : 'Search domains'}
+          Search<span className="sob-hide-sm">{sites ? ' websites' : ' domains'}</span>
         </button>
       </form>
     </>

@@ -102,7 +102,7 @@ export function DashboardShell({
               <span>{ROLE_MENUS[r].label} view</span>
             </Link>
           ))}
-          <div style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
+          <div className="sob-sidecard" style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
             {sideCard}
             {signedIn && (
               <form action={signOut} style={{ marginTop: sideCard ? 8 : 0 }}>

@@ -115,7 +115,7 @@ export default async function SellerStore({ params }: Props) {
               </div>
             </div>
             <h2 style={{ fontSize: 22, marginBottom: 16 }}>Websites by {first}</h2>
-            <div className="grid2">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 20 }}>
               {s.websites.map((p) => (
                 <WebsiteCard key={p.id} p={p} />
               ))}

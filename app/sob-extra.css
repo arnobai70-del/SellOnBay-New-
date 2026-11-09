@@ -408,20 +408,20 @@
 }
 /* Phones (owner, 2026-11-09): nothing wider than the screen, the menu scrolls sideways, every grid is one column. */
 @media (max-width: 1100px) {
-  :is(.sob-p, .sob-d) .sob-sx-compact .input {
+  :is(.sob-p, .sob-d)[data-sob] .sob-sx-compact .input {
     width: 150px;
   }
 }
 @media (max-width: 760px) {
-  .sob-p .wrap {
+  .sob-p[data-sob] .wrap {
     padding: 0 16px;
   }
-  .sob-p .nav {
+  .sob-p[data-sob] .nav {
     border-radius: 24px;
     padding: 10px 12px;
     row-gap: 8px;
   }
-  .sob-p .navlinks {
+  .sob-p[data-sob] .navlinks {
     order: 3;
     width: 100%;
     flex-wrap: nowrap;
@@ -429,30 +429,122 @@
     scrollbar-width: none;
     white-space: nowrap;
   }
-  .sob-p .navlinks::-webkit-scrollbar {
+  .sob-p[data-sob] .navlinks::-webkit-scrollbar {
     display: none;
   }
-  .sob-p .sob-navr {
+  .sob-p[data-sob] .sob-navr {
     margin-left: auto;
   }
-  :is(.sob-p, .sob-d) .sob-sx-compact {
+  :is(.sob-p, .sob-d)[data-sob] .sob-sx-compact {
     display: none;
   }
-  :is(.sob-p, .sob-d) .grid2,
-  :is(.sob-p, .sob-d) .grid3 {
+  :is(.sob-p, .sob-d)[data-sob] .grid2,
+  :is(.sob-p, .sob-d)[data-sob] .grid3 {
     grid-template-columns: minmax(0, 1fr);
   }
-  .sob-p .sob-filters {
+  .sob-p[data-sob] .sob-filters {
     max-width: none !important;
     flex-basis: 100% !important;
   }
-  .sob-p .sec {
+  .sob-p[data-sob] .sec {
     padding-top: 40px;
   }
   .sob-p h1 {
     overflow-wrap: anywhere;
   }
-  :is(.sob-p, .sob-d) .tbl {
+  :is(.sob-p, .sob-d)[data-sob] .tbl {
     overflow-x: auto;
+  }
+}
+
+/* Grids on every design page (some design files do not define them; a file's own rule still wins). */
+:is(.sob-p, .sob-d) .grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 18px;
+}
+:is(.sob-p, .sob-d) .grid3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 18px;
+}
+@media (max-width: 760px) {
+  :is(.sob-p, .sob-d)[data-sob] .grid2,
+  :is(.sob-p, .sob-d)[data-sob] .grid3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Phones, second pass (owner, 2026-11-10: measured at 360px). */
+@media (max-width: 760px) {
+  .sob-p[data-sob] .nav .logo {
+    font-size: 16px;
+  }
+  .sob-p[data-sob] .sob-navr .btn {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-hide-sm {
+    display: none;
+  }
+  .sob-p[data-sob] .search-glow {
+    padding: 6px 6px 6px 16px !important;
+  }
+  /* dashboards: the sidebar becomes one row you swipe, the top bar a rounded box */
+  .sob-d[data-sob] .shell {
+    padding: 0 12px;
+  }
+  .sob-d[data-sob] .side {
+    max-width: none;
+    flex: 1 1 100%;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 20px;
+  }
+  .sob-d[data-sob] .side::-webkit-scrollbar {
+    display: none;
+  }
+  .sob-d[data-sob] .side .grp {
+    display: none;
+  }
+  .sob-d[data-sob] .side .logo,
+  .sob-d[data-sob] .side .mi {
+    flex: none;
+    white-space: nowrap;
+  }
+  .sob-d[data-sob] .side .logo .tag {
+    display: none;
+  }
+  .sob-d[data-sob] .sob-sidecard {
+    flex: none;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    white-space: nowrap;
+  }
+  .sob-d[data-sob] .topbar {
+    border-radius: 20px;
+  }
+  .sob-d[data-sob] .col {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+}
+@media (max-width: 760px) {
+  /* a box with a fixed flex size in the page's own markup may shrink to the screen; its buttons keep their text on one line */
+  :is(.sob-p, .sob-d)[data-sob] main [style*='flex:1 1'],
+  :is(.sob-p, .sob-d)[data-sob] main [style*='flex:999 1'] {
+    min-width: 0;
+  }
+  :is(.sob-p, .sob-d)[data-sob] main form .btn {
+    flex: none;
+  }
+  :is(.sob-p, .sob-d)[data-sob] main form .input {
+    min-width: 0;
   }
 }

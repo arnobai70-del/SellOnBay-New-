@@ -212,7 +212,7 @@ export default async function Home() {
               {c.t('pillars', 'p2text')}
             </p>
           </div>
-          <div style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ flex: '1 1 380px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <form
               action="/domains"
               method="get"

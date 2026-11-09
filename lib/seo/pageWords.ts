@@ -8,7 +8,7 @@ import { SEO_PAGES, pageWordsProblem, seoPage, type PageWordsInput } from './pag
 import { settingsTableReady } from './pageMeta';
 
 /*
- * The heading, intro and (for policy pages) the whole text an admin rewrote for a public page at /dashboard/admin/seo/pages/edit,
+ * The heading, intro and (for policy pages) the whole text an admin rewrote for a public page at /admin/seo/pages/edit,
  * kept in `app_settings` under "page:words:<path>". Empty means "use the built-in words" (lib/seo/pageList.ts).
  * The text is Markdown read by lib/markdown.ts, which never produces HTML, so saved words cannot inject markup.
  */

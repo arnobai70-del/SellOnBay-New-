@@ -47,7 +47,7 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
       </p>
     );
   return (
-    <form className="req-sec" onSubmit={send} data-manual-pay>
+    <form className="sob-req-sec" onSubmit={send} data-manual-pay>
       <h2>Pay and tell us</h2>
       <label htmlFor="mp-method">How you pay</label>
       <select id="mp-method" value={methodId} onChange={(e) => setMethodId(e.target.value)}>
@@ -58,7 +58,7 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
         ))}
       </select>
       {method && (
-        <div className="pay-instr">
+        <div className="sob-pay-instr">
           <p style={{ whiteSpace: 'pre-wrap' }}>{method.instructions}</p>
           <p>
             Write <b>{code}</b> as the payment reference or note, and send <b>{(dueCents / 100).toFixed(2)}</b> {method.currency}.
@@ -67,7 +67,7 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
       )}
       <label htmlFor="mp-ref">Transaction reference from your bank or wallet</label>
       <input id="mp-ref" required minLength={3} maxLength={100} value={reference} onChange={(e) => setReference(e.target.value)} />
-      <div className="req-grid">
+      <div className="sob-req-grid">
         <div>
           <label htmlFor="mp-amount">Amount you sent</label>
           <input id="mp-amount" inputMode="decimal" required value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -79,7 +79,7 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
       </div>
       <label htmlFor="mp-proof">Receipt or screenshot (PNG, JPEG, WebP or PDF, up to 5 MB; optional)</label>
       <input id="mp-proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => setProof(e.target.files?.[0] ?? null)} />
-      <button className="btn btn-blue btn-sm" type="submit" disabled={busy}>
+      <button className="btn sm" type="submit" disabled={busy}>
         {busy ? 'Sending...' : 'Send payment report'}
       </button>
       {msg && (

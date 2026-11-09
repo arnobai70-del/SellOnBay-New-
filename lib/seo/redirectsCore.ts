@@ -1,5 +1,5 @@
 /*
- * Address changes an admin saved (/dashboard/admin/seo/redirects): when a page or listing moves, the old address sends visitors and search
+ * Address changes an admin saved (/admin/seo/redirects): when a page or listing moves, the old address sends visitors and search
  * engines to the new one. Pure rules, so they are tested; the store is redirectStore.ts and proxy.ts reads them through redirectRead.ts.
  */
 export type Redirect = { from: string; to: string; code: 301 | 302 };

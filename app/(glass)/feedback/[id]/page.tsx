@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { GlassCard } from '@/components/glass/GlassCard';
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import { betaFeedbackOf, betaRequest } from '@/lib/beta/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { FeedbackForm } from './FeedbackForm';
@@ -15,12 +15,14 @@ export default async function Feedback({ params }: { params: Promise<{ id: strin
   if (!r || (viewer && r.buyerId !== viewer.id)) notFound();
   const done = await betaFeedbackOf(id);
   return (
-    <>
-      <div className="g-head">
+    <PublicFrame file="account-access">
+      <header className="pagehead">
         <h1>How did it go?</h1>
-        <p className="g-lead">Two minutes of your time helps us make SellOnBay better.</p>
-      </div>
-      <GlassCard rise={false}>
+        <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
+          Two minutes of your time helps us make SellOnBay better.
+        </p>
+      </header>
+      <section className="glass ac" style={{ maxWidth: 640 }}>
         {done ? (
           <p role="status">Thanks, we already have your feedback.</p>
         ) : !r.decidedAt || r.declineReason ? (
@@ -28,7 +30,7 @@ export default async function Feedback({ params }: { params: Promise<{ id: strin
         ) : (
           <FeedbackForm orderId={id} reviewHref={`/orders/${id}`} />
         )}
-      </GlassCard>
-    </>
+      </section>
+    </PublicFrame>
   );
 }

@@ -15,8 +15,8 @@ export function TemplatePage({ p, brand, domain }: { p: Product; brand?: string;
   const [f1, f2, f3, ...rest] = p.inc;
 
   return (
-    <div className={'tp' + (t.dark ? ' dark' : '')} style={style}>
-      <header className="tp-nav">
+    <div className={'sob-tp' + (t.dark ? ' dark' : '')} style={style}>
+      <header className="sob-tp-nav">
         <b>{name}</b>
         <nav>
           {t.nav.map((n) => (
@@ -26,33 +26,33 @@ export function TemplatePage({ p, brand, domain }: { p: Product; brand?: string;
         <u>{t.cta}</u>
       </header>
 
-      <section className="tp-hero">
-        <div className="tp-copy">
-          <div className="tp-h1">{t.h}</div>
+      <section className="sob-tp-hero">
+        <div className="sob-tp-copy">
+          <div className="sob-tp-h1">{t.h}</div>
           <p>{t.p || p.desc}</p>
-          <div className="tp-btns">
+          <div className="sob-tp-btns">
             <u>{t.cta}</u>
             <span>Learn more</span>
           </div>
           {p.reviews > 0 && (
-            <div className="tp-meta">
+            <div className="sob-tp-meta">
               <span>★ {p.rating}</span>
               <span>{p.reviews} reviews</span>
             </div>
           )}
         </div>
-        <div className={'tp-art' + (photo ? '' : ' plain')} style={tile(0)} />
+        <div className={'sob-tp-art' + (photo ? '' : ' plain')} style={tile(0)} />
       </section>
 
-      <section className="tp-feat">
-        <div className="tp-h2">Everything you need</div>
-        <div className="tp-cards">
+      <section className="sob-tp-feat">
+        <div className="sob-tp-h2">Everything you need</div>
+        <div className="sob-tp-cards">
           {[f1, f2, f3].map(
             (f, i) =>
               f && (
-                <div key={i} className="tp-card">
+                <div key={i} className="sob-tp-card">
                   <i>{i + 1}</i>
-                  <div className="tp-h3">{f}</div>
+                  <div className="sob-tp-h3">{f}</div>
                   <p>Ready to use from the first day, and easy to change.</p>
                 </div>
               ),
@@ -60,10 +60,10 @@ export function TemplatePage({ p, brand, domain }: { p: Product; brand?: string;
         </div>
       </section>
 
-      <section className="tp-split">
-        <div className={'tp-art tall' + (photo ? '' : ' plain')} style={tile(14)} />
+      <section className="sob-tp-split">
+        <div className={'sob-tp-art tall' + (photo ? '' : ' plain')} style={tile(14)} />
         <div>
-          <div className="tp-h2">Made for {p.cat.toLowerCase()}</div>
+          <div className="sob-tp-h2">Made for {p.cat.toLowerCase()}</div>
           <p>{p.desc}</p>
           <ul>
             {rest.map((r) => (
@@ -73,18 +73,18 @@ export function TemplatePage({ p, brand, domain }: { p: Product; brand?: string;
         </div>
       </section>
 
-      <section className="tp-gallery">
+      <section className="sob-tp-gallery">
         {[-10, 8, 22].map((s, i) => (
-          <div key={i} className={'tp-art' + (photo ? '' : ' plain')} style={tile(s)} />
+          <div key={i} className={'sob-tp-art' + (photo ? '' : ' plain')} style={tile(s)} />
         ))}
       </section>
 
-      <section className="tp-cta">
-        <div className="tp-h2">{t.h}</div>
+      <section className="sob-tp-cta">
+        <div className="sob-tp-h2">{t.h}</div>
         <u>{t.cta}</u>
       </section>
 
-      <footer className="tp-foot">
+      <footer className="sob-tp-foot">
         <b>{name}</b>
         <div>
           {[...t.nav, 'Contact', 'Privacy'].map((n) => (

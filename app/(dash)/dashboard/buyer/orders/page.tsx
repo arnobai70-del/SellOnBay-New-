@@ -1,87 +1,173 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BuyerShell } from '@/components/glass/BuyerShell';
-import { DataTable } from '@/components/glass/DataTable';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { Seg } from '@/components/glass/Seg';
-import { StatusPill } from '@/components/glass/StatusPill';
 import { BETA_METHOD } from '@/lib/beta/rules';
+import { REVIEW_HOURS } from '@/lib/config';
 import { buyerOrders } from '@/lib/glass/buyer';
-import { buyerStatus, ORDER_TABS, orderTab, shortDate, usd, type OrderTab } from '@/lib/glass/orderStatus';
+import { ORDER_TABS, buyerStatus, orderTab, shortDate, usd, type OrderTab } from '@/lib/glass/orderStatus';
 import { plainWords } from '@/lib/glass/words';
 import type { Order } from '@/lib/orders/machine';
 import { orderCode } from '@/lib/payments/rules';
+import { listAttempts } from '@/lib/payments/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Orders and payments', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 const TAB_LABEL: Record<OrderTab, string> = { all: 'All', progress: 'In progress', done: 'Completed', refunded: 'Refunded' };
-const method = (o: Order) => (o.payment?.brand === BETA_METHOD ? 'Free (beta)' : o.payment?.brand ? o.payment.brand : '—');
+const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
+const method = (o: Order) => (o.payment?.brand === BETA_METHOD || o.state.startsWith('beta_') ? 'Free (beta)' : o.payment?.brand ? o.payment.brand : '—');
 
-export default async function BuyerOrders({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+/*
+ * design-reference/buyer-orders.html: every order with its payment and receipt (/api/orders/[id]/receipt), a payment being checked shown on top
+ * (the reference is changed on the order's own page), and the refunds. The top bar's search filters this list (?q=).
+ */
+export default async function BuyerOrders({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
   const viewer = await requireViewer({ path: '/dashboard/buyer/orders', roles: ['buyer', 'seller'] });
-  const { tab: raw } = await searchParams;
+  const { tab: raw, q: rawQ } = await searchParams;
   const tab: OrderTab = (ORDER_TABS as readonly string[]).includes(String(raw)) ? (raw as OrderTab) : 'all';
+  const q = (rawQ ?? '').trim().toLowerCase().replace(/^#/, '').slice(0, 80);
   const orders = viewer ? await buyerOrders(viewer.id) : [];
-  const shown = tab === 'all' ? orders : orders.filter((o) => orderTab(o.state) === tab);
+  const attempts = orders.some((o) => o.state === 'payment_review') ? (await listAttempts(['submitted']).catch(() => [])).filter((a) => orders.some((o) => o.id === a.orderId)) : [];
+  const checking = orders.find((o) => o.state === 'payment_review') ?? null;
+  const attempt = checking ? attempts.find((a) => a.orderId === checking.id) : undefined;
+  const shown = (tab === 'all' ? orders : orders.filter((o) => orderTab(o.state) === tab)).filter((o) => !q || orderCode(o.id).toLowerCase().includes(q) || o.title.toLowerCase().includes(q));
+  const refunded = orders.filter((o) => o.refundedCents > 0 || o.state === 'refunded');
   return (
-    <BuyerShell
-      viewer={viewer}
-      active="orders"
-      title="Orders & payments"
-      subtitle="Every purchase, its payment and its receipt"
-      actions={
-        <Seg label="Order filter" value={tab} items={ORDER_TABS.map((t) => ({ key: t, label: TAB_LABEL[t], href: t === 'all' ? '/dashboard/buyer/orders' : `/dashboard/buyer/orders?tab=${t}` }))} />
-      }
-    >
-      <GlassCard as="section" pad={false} style={{ padding: '8px 8px 4px' }}>
-        <DataTable<Order>
-          caption="Your orders"
-          rows={shown}
-          rowKey={(o) => o.id}
-          empty="No orders here yet."
-          columns={[
-            { key: 'id', label: 'Order', cell: (o) => <Link href={`/orders/${o.id}`}>{orderCode(o.id)}</Link> },
-            { key: 'date', label: 'Date', cell: (o) => shortDate(o.createdAt) },
-            { key: 'item', label: 'Item', cell: (o) => plainWords(o.title) },
-            { key: 'amount', label: 'Amount', cell: (o) => usd(o.priceCents) },
-            { key: 'method', label: 'Method', cell: method },
-            { key: 'status', label: 'Status', cell: (o) => <StatusPill tone={buyerStatus(o.state).tone}>{buyerStatus(o.state).label}</StatusPill> },
-            {
-              key: 'receipt',
-              label: 'Receipt',
-              hideLabel: true,
-              align: 'right',
-              cell: (o) =>
-                o.fundedAt ? (
-                  <a className="g-btn g-btn-ghost g-btn-sm" href={`/api/orders/${o.id}/receipt`}>
-                    Receipt PDF
-                  </a>
-                ) : (
-                  <span className="g-tag">No payment</span>
-                ),
-            },
-          ]}
-        />
-      </GlassCard>
-      <div className="g-grid2">
-        <GlassCard as="section">
+    <BuyerShell viewer={viewer} active="orders" file="buyer-orders" title="Orders & payments" head={false}>
+      <div className="row">
+        <div>
+          <h1>Orders &amp; payments</h1>
+          <div className="tag">Every purchase, its payment and its receipt</div>
+        </div>
+        <div className="seg" role="tablist" aria-label="Order filter">
+          {ORDER_TABS.map((t) => (
+            <Link key={t} role="tab" className={t === tab ? 'on' : ''} aria-selected={t === tab} href={t === 'all' ? '/dashboard/buyer/orders' : `/dashboard/buyer/orders?tab=${t}`} prefetch={false}>
+              {TAB_LABEL[t]}
+            </Link>
+          ))}
+        </div>
+      </div>
+      {checking && (
+        <section className="glass card" style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start', borderColor: '#F0DDB4' }}>
+          <div style={{ flex: '1 1 300px' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <h2>Payment being verified</h2>
+              <span className="status st-wait">Verifying</span>
+            </div>
+            <div className="muted" style={{ fontSize: 14, marginTop: 8, lineHeight: 1.55 }}>
+              {orderCode(checking.id)} · {plainWords(checking.title)} · {usd(checking.priceCents)}. Our team checks your reference against the bank or wallet statement.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+              <span className="status st-ok">1 · Sent</span>
+              <span className="status st-wait">2 · Verifying</span>
+              <span className="status st-draft">3 · Confirmed</span>
+            </div>
+          </div>
+          <div style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="field">
+              <label htmlFor="tx">Reference you sent</label>
+              <input id="tx" className="input" value={attempt?.reference ?? '—'} readOnly />
+            </div>
+            <Link className="btn ghost" href={`/orders/${checking.id}`} prefetch={false}>
+              Update the reference
+            </Link>
+          </div>
+        </section>
+      )}
+      <section className="glass" style={{ padding: '8px 8px 4px' }}>
+        <div className="tbl">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Date</th>
+                <th>Item</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>
+                  <span className="hidden-label">Receipt</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.length ? (
+                shown.map((o) => (
+                  <tr key={o.id}>
+                    <td style={{ fontWeight: 500 }}>
+                      <Link href={`/orders/${o.id}`} prefetch={false}>
+                        {orderCode(o.id)}
+                      </Link>
+                    </td>
+                    <td>{shortDate(o.createdAt)}</td>
+                    <td>
+                      {plainWords(o.title)}
+                      <div className="tag">
+                        Website · {o.licence ?? 'Standard'}
+                        {o.domain ? ` · ${o.domain.name}` : ''}
+                      </div>
+                    </td>
+                    <td>{usd(o.priceCents)}</td>
+                    <td>{method(o)}</td>
+                    <td>
+                      <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{buyerStatus(o.state).label}</span>
+                    </td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {o.fundedAt ? (
+                        <a className="btn sm ghost" href={`/api/orders/${o.id}/receipt`}>
+                          Receipt PDF
+                        </a>
+                      ) : (
+                        <span className="tag" style={{ margin: 0 }}>
+                          No payment
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    {q ? 'No order matches that search.' : 'No orders here yet.'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="grid2">
+        <section className="glass card">
           <h2>How paying works</h2>
-          <div className="g-li">
-            <span style={{ flex: 1, fontSize: 14 }}>During the beta</span>Websites are free, no payment is taken
+          <div className="li" style={{ fontSize: 14 }}>
+            <span className="status st-info">Beta</span>
+            <span style={{ flex: 1 }}>Websites are free during the beta; no payment is taken</span>
           </div>
-          <div className="g-li">
-            <span style={{ flex: 1, fontSize: 14 }}>Escrow</span>The seller is paid only after you approve, or after the review ends
+          <div className="li" style={{ fontSize: 14 }}>
+            <span className="status st-wait">Bank / wallet</span>
+            <span style={{ flex: 1 }}>Send money, enter the reference, we verify it</span>
           </div>
-        </GlassCard>
-        <GlassCard as="section">
+          <div className="li" style={{ fontSize: 14 }}>
+            <span className="status st-ok">Escrow</span>
+            <span style={{ flex: 1 }}>The seller is paid only after you approve, or after {REVIEW_HOURS} hours</span>
+          </div>
+        </section>
+        <section className="glass card">
           <h2>Refunds</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-            Something wrong? Open a ticket from <Link href="/dashboard/buyer/support">Support &amp; disputes</Link> while the order is in review. See the{' '}
+          {refunded.map((o) => (
+            <div key={o.id} className="li" style={{ fontSize: 14 }}>
+              <span style={{ flex: 1 }}>
+                {plainWords(o.title)} · {usd(o.refundedCents || o.priceCents)}
+              </span>
+              <span className="status st-ok">Refunded</span>
+            </div>
+          ))}
+          <div className="tag">
+            Need a refund? Open a ticket from <Link href="/dashboard/buyer/support">Support &amp; disputes</Link> while the order is still in review. See the{' '}
             <Link href="/legal/refunds">refund policy</Link>.
-          </p>
-        </GlassCard>
+          </div>
+        </section>
       </div>
     </BuyerShell>
   );

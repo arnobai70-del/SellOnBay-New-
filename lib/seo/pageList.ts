@@ -4,7 +4,7 @@ import { HUBS, hubPath } from './hubs';
 import { BUGFIX_DAYS, REVIEW_HOURS, PLAN_KEEP_TEXT } from '../config';
 
 /*
- * The public pages whose title and description an admin can change at /dashboard/admin/seo/pages, with the built-in words each page uses
+ * The public pages whose title and description an admin can change at /admin/seo/pages, with the built-in words each page uses
  * when nothing is saved. Product pages, category pages and blog posts have their own words; the home page has its own form.
  * Pages read this through pageMetadata() in lib/seo/pageMeta.ts.
  */
@@ -20,29 +20,6 @@ export type SeoPage = { path: string; name: string; title: string; description: 
 export const topicPath = (key: string) => `/apps/digital?topic=${key}`;
 
 export const SEO_PAGES: SeoPage[] = [
-  {
-    path: '/welcome',
-    name: 'About (welcome)',
-    title: 'Websites and apps ready for your domain',
-    description: `${BRAND_NAME} sells ready-made websites, apps and digital files. Pick one, give your domain, and the seller puts it live, paid into escrow.`,
-  },
-  {
-    path: '/browse',
-    name: 'Browse websites',
-    title: 'Browse sites',
-    description: 'Ready-made websites you can put on your own domain in 1 to 7 days. Filter by what you do, price, speed and rating, and compare side by side.',
-  },
-  { path: '/apps/android', name: 'Android apps', title: 'Android apps', description: 'Ready-made Android apps, rebranded and published to your own Google Play account in 1 to 7 days.' },
-  { path: '/apps/ios', name: 'iPhone & iPad apps', title: 'iPhone & iPad apps', description: 'Ready-made iPhone and iPad apps, rebranded and sent to your own App Store account in 1 to 7 days.' },
-  { path: '/apps/web', name: 'Web apps', title: 'Web apps', description: 'Ready-made web apps, rebranded and deployed on your own domain in 1 to 7 days.' },
-  { path: '/apps/desktop', name: 'Desktop apps', title: 'Desktop apps', description: 'Ready-made desktop apps for Windows, Mac and Linux, rebranded and sent as installers in 1 to 7 days.' },
-  {
-    path: '/apps/digital',
-    name: 'Digital products',
-    title: 'Digital products',
-    description: 'Figma kits, no-code websites, plugins, scripts, AI automations, chatbots, prompts and video websites. Files right after payment, money held in escrow until you accept.',
-  },
-  // One page per topic of the category bar (AI tools, Audio, Fonts...): the digital shelf narrowed to that topic.
   ...HUBS.map((h) => ({
     path: hubPath(h),
     name: `${h.name} (category)`,
@@ -50,29 +27,7 @@ export const SEO_PAGES: SeoPage[] = [
     description: h.description,
     words: { heading: h.h1, intro: h.intro.join(' ') },
   })),
-  ...DIGITAL_TOPICS.map((t) => ({ path: topicPath(t.key), name: `${t.label} (topic)`, title: t.label, description: t.lead })),
-  {
-    path: '/categories',
-    name: 'All categories',
-    title: 'All categories',
-    description: 'Every shelf and category on SellOnBay: websites, apps, AI tools, video, audio, graphics, design websites, photos, 3D, fonts, developers and domains.',
-  },
-  {
-    path: '/developers',
-    name: 'Hire a developer',
-    title: 'Hire a developer',
-    description: 'Hire a developer to customise your website, fix a bug or build a feature. Fixed prices, payment held until you accept.',
-  },
-  {
-    path: '/developers/join',
-    name: 'Become a developer',
-    title: 'Become a developer',
-    description: `Make a developer profile on ${BRAND_NAME}: your languages, skills and three fixed packages, paid through escrow when buyers accept your work.`,
-    words: {
-      heading: 'Create your developer profile',
-      intro: 'Buyers filter by language and skill, so be specific. Prices are fixed per package, and payment is held in escrow until the buyer accepts.',
-    },
-  },
+
   {
     path: '/domains',
     name: 'Domains',
@@ -80,13 +35,7 @@ export const SEO_PAGES: SeoPage[] = [
     description: 'Find a domain name for your new website and have it registered in your own name. Availability is checked by hand when you order.',
     words: { heading: 'Find the perfect domain for your new website.', intro: 'We register it in your own name. You own it, not the seller.' },
   },
-  {
-    path: '/find',
-    name: 'Find your site',
-    title: 'Find your site',
-    description: 'Tell us what you do and get the best matching sites straight away.',
-    words: { heading: 'Tell us what you do. We pick your site.', intro: 'One click. No sign-up, no long form.' },
-  },
+
   {
     path: '/websites',
     name: 'Websites',
@@ -132,17 +81,7 @@ export const SEO_PAGES: SeoPage[] = [
     description: 'Practical guides on picking a full-stack website, setting it up, choosing a domain and selling your own work, from the SellOnBay team.',
     words: { heading: 'Launch your website faster', intro: 'Practical guides on picking a full-stack website, setting it up, choosing a domain and selling your own work.' },
   },
-  {
-    path: '/tools/site-ideas',
-    name: 'Free site ideas tool',
-    title: 'Free website idea and domain name generator',
-    description: 'Type your business in one line. Get five pages your website needs, ten domain names to try, and ready-made sites that fit. Free, no sign-up.',
-    words: {
-      heading: 'Website ideas and domain names, free',
-      intro:
-        'Tell us what your business does in one line. We give you five pages your site should have, ten domain names to try, and ready-made sites that fit. Suggestions currently come from predefined websites, not a live AI model.',
-    },
-  },
+
   {
     path: '/licenses',
     name: 'Licenses',

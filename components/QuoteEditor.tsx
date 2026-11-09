@@ -83,8 +83,8 @@ export function QuoteEditor({
   }
 
   return (
-    <div className="q-edit" data-quote-editor>
-      <table className="q-lines">
+    <div className="sob-q-edit" data-quote-editor>
+      <table className="sob-q-lines">
         <thead>
           <tr>
             <th>Line</th>
@@ -115,7 +115,7 @@ export function QuoteEditor({
               </td>
               <td>
                 <input aria-label="Amount" inputMode="decimal" value={r.dollars} onChange={(e) => set(i, { dollars: e.target.value })} />
-                <button type="button" className="btn btn-line btn-sm" onClick={() => setRows(rows.filter((_, n) => n !== i))} disabled={rows.length < 2}>
+                <button type="button" className="btn ghost sm" onClick={() => setRows(rows.filter((_, n) => n !== i))} disabled={rows.length < 2}>
                   Remove
                 </button>
               </td>
@@ -129,7 +129,7 @@ export function QuoteEditor({
           </tr>
         </tfoot>
       </table>
-      <button type="button" className="btn btn-line btn-sm" onClick={() => setRows([...rows, { label: '', dollars: '0.00', kind: 'extra', passThroughVerified: false }])} disabled={rows.length >= 20}>
+      <button type="button" className="btn ghost sm" onClick={() => setRows([...rows, { label: '', dollars: '0.00', kind: 'extra', passThroughVerified: false }])} disabled={rows.length >= 20}>
         Add a line
       </button>
       <p className="muted">
@@ -137,7 +137,7 @@ export function QuoteEditor({
         {(sellerCents / 100).toFixed(2)}
         {differs ? ' · differs, so a Super Admin must approve it before the buyer sees it' : ''}
       </p>
-      <div className="req-grid">
+      <div className="sob-req-grid">
         <div>
           <label htmlFor="qe-days">Delivery days</label>
           <input id="qe-days" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} />
@@ -183,11 +183,11 @@ export function QuoteEditor({
           <textarea id="qe-reason" rows={2} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />
         </>
       )}
-      <button type="button" className="btn btn-blue btn-sm" onClick={save} disabled={busy}>
+      <button type="button" className="btn sm" onClick={save} disabled={busy}>
         {busy ? 'Saving...' : 'Save draft quotation'}
       </button>
       {msg && (
-        <p className={msg.ok ? 'note' : 'note warn'} role={msg.ok ? 'status' : 'alert'}>
+        <p className={msg.ok ? 'sob-note-box' : 'sob-note-box warn'} role={msg.ok ? 'status' : 'alert'}>
           <span>{msg.text}</span>
         </p>
       )}

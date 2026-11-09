@@ -12,12 +12,12 @@ export default async function Notifications() {
   const id = await getViewerId();
   const list = id ? await notificationsFor(id) : [];
   return (
-    <div className="wrap page-body">
-      <div className="page-head">
+    <div className="wrap sob-page-body">
+      <div className="sob-page-head">
         <h1>Notifications</h1>
       </div>
       {list.length === 0 ? (
-        <div className="empty-note">
+        <div className="sob-empty-note">
           <b>Nothing yet.</b>
           <span>
             Order updates, reminders and messages from us show up here. <Link href="/">Browse templates</Link>
@@ -26,7 +26,7 @@ export default async function Notifications() {
       ) : (
         <>
           <MarkRead />
-          <ul className="notifs">
+          <ul className="sob-notifs">
             {list.map((n) => (
               <li key={n.id} className={n.read ? 'read' : 'unread'}>
                 <b>{n.subject}</b>

@@ -59,7 +59,7 @@ export function PageWordsForm({
 
   const blocks = hasBody && w.body.trim() ? parseMarkdown(w.body) : [];
   return (
-    <form className="adm-form pw-form" onSubmit={save}>
+    <form className="sob-form sob-pw-form" onSubmit={save}>
       <div className="field">
         <label htmlFor="pw-heading">Page heading</label>
         <input id="pw-heading" value={w.heading} onChange={set('heading')} maxLength={max.heading} placeholder={builtIn.heading} />
@@ -81,7 +81,7 @@ export function PageWordsForm({
           <label htmlFor="pw-body">Page text</label>
           <textarea
             id="pw-body"
-            className="pw-body"
+            className="sob-pw-body"
             rows={22}
             value={w.body}
             onChange={set('body')}
@@ -93,32 +93,32 @@ export function PageWordsForm({
             later changes in the settings. {w.body.length.toLocaleString('en-US')} / {max.body.toLocaleString('en-US')}
           </small>
           {!w.body.trim() && (
-            <button className="btn btn-line btn-sm" type="button" onClick={copyCurrent} style={{ justifySelf: 'start', marginTop: 8 }}>
+            <button className="btn ghost sm" type="button" onClick={copyCurrent} style={{ justifySelf: 'start', marginTop: 8 }}>
               Start from the current text
             </button>
           )}
         </div>
       )}
-      <div className="adm-btns">
-        <button className="btn btn-blue btn-sm" type="submit" disabled={busy}>
+      <div className="sob-acts">
+        <button className="btn sm" type="submit" disabled={busy}>
           {busy ? 'One moment...' : 'Save'}
         </button>
-        <button className="btn btn-line btn-sm" type="button" onClick={() => setW({ heading: '', intro: '', body: '' })} disabled={busy}>
+        <button className="btn ghost sm" type="button" onClick={() => setW({ heading: '', intro: '', body: '' })} disabled={busy}>
           Clear all (use the built-in words)
         </button>
-        <a className="btn btn-line btn-sm" href={path} target="_blank" rel="noopener">
+        <a className="btn ghost sm" href={path} target="_blank" rel="noopener">
           Open the page
         </a>
       </div>
       {msg && (
-        <p className={msg.ok ? 'adm-ok' : 'form-err'} role={msg.ok ? 'status' : 'alert'}>
+        <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>
           {msg.text}
         </p>
       )}
       {blocks.length > 0 && (
-        <div className="pw-preview">
+        <div className="sob-pw-preview">
           <b>Preview of the page text</b>
-          <div className="prose">
+          <div className="sob-prose">
             <PostBody blocks={blocks} />
           </div>
         </div>

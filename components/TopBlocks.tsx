@@ -6,7 +6,7 @@ export function TopBlocks({ slots }: { slots: Record<string, React.ReactNode> })
   const path = usePathname().replace(/(.)\/$/, '$1');
   const mine = slots[path];
   return mine ? (
-    <section className="wrap faq-page" aria-label="Notice" data-top-blocks>
+    <section className="wrap sob-faq-page" aria-label="Notice" data-top-blocks>
       {mine}
     </section>
   ) : null;

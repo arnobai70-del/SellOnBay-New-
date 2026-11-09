@@ -37,15 +37,15 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
       <p className="muted" style={{ marginTop: 12 }}>
         {title}
       </p>
-      <ul className="lst" style={{ marginTop: 16 }}>
+      <ul className="sob-lst" style={{ marginTop: 16 }}>
         {lines.map(([label, cents]) => (
           <li key={label}>
-            <div className="grow">{label}</div>
+            <div className="sob-grow">{label}</div>
             <b>{money(cents)}</b>
           </li>
         ))}
         <li>
-          <div className="grow">
+          <div className="sob-grow">
             <b>Total</b>
           </div>
           <b>{money(totalCents)}</b>
@@ -55,15 +55,15 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
         You pay with PayPal. The money is held until you accept the work, and only then is it released to the seller.
       </p>
       {err && (
-        <p className="err" role="alert" style={{ marginTop: 12 }}>
+        <p className="sob-err" role="alert" style={{ marginTop: 12 }}>
           {err}
         </p>
       )}
       <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
-        <button className="btn btn-blue" type="button" onClick={pay} disabled={busy}>
+        <button className="btn" type="button" onClick={pay} disabled={busy}>
           {busy ? 'Opening PayPal…' : 'Pay with PayPal'}
         </button>
-        <Link className="btn btn-line" href={back}>
+        <Link className="btn ghost" href={back}>
           Back
         </Link>
       </div>

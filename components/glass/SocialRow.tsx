@@ -7,7 +7,7 @@ export function SocialRow({ links, label = 'Follow SellOnBay' }: { links: Social
   const shown = shownSocial(links);
   if (!shown.length) return null;
   return (
-    <ul className="g-social" aria-label={label}>
+    <ul className="sob-social" aria-label={label}>
       {shown.map((l) => {
         const m = SOCIAL_MARKS[l.network];
         const name = NETWORKS[l.network].label;

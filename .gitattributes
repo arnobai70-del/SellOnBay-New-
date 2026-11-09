@@ -5,3 +5,21 @@
 *.webp binary
 *.mp4 binary
 build-commit.txt export-subst
+
+# Left out of the Hostinger zip (git archive): only what production builds and runs goes in.
+design-reference/ export-ignore
+tests/ export-ignore
+docs/ export-ignore
+load/ export-ignore
+deploy/ export-ignore
+supabase/ export-ignore
+backups/ export-ignore
+.github/ export-ignore
+SELLONBAY_REDESIGN.md export-ignore
+IMPLEMENTATION_STATUS.md export-ignore
+CLAUDE.md export-ignore
+AGENTS.md export-ignore
+playwright.config.ts export-ignore
+vitest.config.mts export-ignore
+.prettierrc.json export-ignore
+.prettierignore export-ignore

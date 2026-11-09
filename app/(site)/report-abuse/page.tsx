@@ -9,15 +9,15 @@ export default async function ReportAbuse({ searchParams }: { searchParams: Prom
   const [{ sent, error }, w] = await Promise.all([searchParams, pageWords('/report-abuse')]);
   return (
     <div className="wrap">
-      <div className="page-head">
+      <div className="sob-page-head">
         <h1>{w.heading}</h1>
         <p>{w.intro}</p>
       </div>
       <div style={{ maxWidth: 620, paddingBottom: 88 }}>
         {sent ? (
-          <div className="panel">
+          <div className="glass card">
             <div className="done">
-              <span className="chip mint">
+              <span className="status st-ok">
                 <i />
                 Report received
               </span>
@@ -28,7 +28,7 @@ export default async function ReportAbuse({ searchParams }: { searchParams: Prom
             </div>
           </div>
         ) : (
-          <form className="panel" action={reportAbuse}>
+          <form className="glass card" action={reportAbuse}>
             <div className="field" style={{ marginTop: 0 }}>
               <label htmlFor="r-url">Site address</label>
               <input id="r-url" name="url" required placeholder="example.com" autoComplete="off" />
@@ -52,7 +52,7 @@ export default async function ReportAbuse({ searchParams }: { searchParams: Prom
                 We could not send that. Check the address and try again.
               </p>
             )}
-            <button className="btn btn-blue btn-lg" type="submit" style={{ marginTop: 24 }}>
+            <button className="btn" type="submit" style={{ marginTop: 24 }}>
               Send report
             </button>
           </form>

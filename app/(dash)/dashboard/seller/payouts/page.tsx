@@ -1,125 +1,235 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AdminForm } from '@/components/AdminForm';
-import { DataTable } from '@/components/glass/DataTable';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { Kpi } from '@/components/glass/Kpi';
+import { PayoutMethodForm } from '@/components/glass/PayoutMethodForm';
 import { VerificationForm } from '@/components/glass/SellerForms';
 import { SellerShell } from '@/components/glass/SellerShell';
-import { StatusPill } from '@/components/glass/StatusPill';
 import { PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT } from '@/lib/config';
-import { sellerDashboard, type SellerView } from '@/lib/dashboard';
-import { usd } from '@/lib/glass/orderStatus';
+import { sellerDashboard } from '@/lib/dashboard';
+import { shortDate, usd } from '@/lib/glass/orderStatus';
 import { storeProfile, verificationOf } from '@/lib/glass/seller';
+import { plainWords } from '@/lib/glass/words';
+import { split } from '@/lib/ledger';
+import { orderStore } from '@/lib/orders/store';
+import { orderCode } from '@/lib/payments/rules';
 import { payoutMethodsFor } from '@/lib/payoutDetails';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Earnings and payouts', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const shortDay = (iso: string) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const shortDay = (iso: string) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
 const DOC: Record<string, string> = { passport: 'Passport', national_id: 'National ID card', driver_licence: 'Driver licence' };
+const DROP: React.CSSProperties = { border: '2px dashed #BFD8E2', borderRadius: 14, padding: 16, textAlign: 'center', fontSize: 13 };
 
-/* Money: balances, where earnings go (bKash only for Bangladesh), identity verification and every payout. */
+/*
+ * design-reference/seller-payouts.html: balances, the identity check (VerificationForm, Finance only sees it), where earnings go (bKash only for
+ * Bangladesh), how each sale this month is split, and every payout. The sales PDF is at Store & analytics.
+ */
 export default async function SellerPayouts() {
   const viewer = await requireViewer({ path: '/dashboard/seller/payouts', roles: ['seller', 'admin'] });
-  const [v, store, ver] = viewer ? await Promise.all([sellerDashboard(viewer.id), storeProfile(viewer.id, viewer.name), verificationOf(viewer.id)]) : [null, null, null];
-  type Payout = SellerView['payouts'][number];
+  const [v, store, ver, orders] = viewer
+    ? await Promise.all([
+        sellerDashboard(viewer.id),
+        storeProfile(viewer.id, viewer.name),
+        verificationOf(viewer.id),
+        (async () => (await (await orderStore()).forUser(viewer.id)).filter((o) => o.sellerId === viewer.id))(),
+      ])
+    : [null, null, null, []];
+  const now = Date.now();
+  const monthFrom = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1);
+  const yearFrom = Date.UTC(new Date(now).getUTCFullYear(), 0, 1);
+  const month = orders.filter((o) => o.fundedAt && o.fundedAt >= monthFrom).sort((a, b) => (b.fundedAt ?? 0) - (a.fundedAt ?? 0));
+  const net = (o: (typeof orders)[number]) => split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet;
+  const paidYear = v ? v.payouts.filter((p) => p.status === 'paid' && (p.paidAt ?? 0) >= yearFrom) : [];
+  const monthName = new Date(now).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
   return (
-    <SellerShell viewer={viewer} active="payouts" title="Earnings & payouts" subtitle={`You keep ${PLAN_KEEP_TEXT} of the list price; the platform fee is ${PLAN_FEE_TEXT}. ${PAYOUT_TEXT}`}>
+    <SellerShell viewer={viewer} active="payouts" file="seller-payouts" title="Earnings & payouts" head={false}>
+      <div className="row">
+        <div>
+          <h1>Earnings &amp; payouts</h1>
+          <div className="tag">
+            Your {PLAN_KEEP_TEXT} share, statements and how you get paid. {PAYOUT_TEXT}.
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link className="btn ghost" href="/dashboard/seller/reports" prefetch={false}>
+            Statement PDF
+          </Link>
+        </div>
+      </div>
       {v && store && ver && (
         <>
-          <div className="g-kpis">
-            <Kpi label="Available" value={usd(v.availableCents)} note={`Next payout ${shortDay(v.nextPayout)}`} />
-            <Kpi label="On hold (7 days)" value={usd(v.pendingCents)} note="Accepted, waiting out the hold" />
-            <Kpi label="In escrow" value={usd(v.escrowCents)} note="Not accepted yet" />
-            <Kpi label="Owed back" value={usd(v.debtCents)} note={v.debtCents ? 'Taken from your next earnings' : 'Nothing owed'} />
+          <div className="kpis">
+            <div className="glass kpi">
+              <div className="l">Available</div>
+              <div className="v">{usd(v.availableCents)}</div>
+              <div className="s">Paid {shortDay(v.nextPayout)}</div>
+            </div>
+            <div className="glass kpi">
+              <div className="l">In escrow</div>
+              <div className="v">{usd(v.escrowCents)}</div>
+              <div className="s">Released after review</div>
+            </div>
+            <div className="glass kpi">
+              <div className="l">Earned this month</div>
+              <div className="v">{usd(month.reduce((s, o) => s + net(o), 0))}</div>
+              <div className="s">{month.length} sales</div>
+            </div>
+            <div className="glass kpi">
+              <div className="l">Paid out this year</div>
+              <div className="v">{usd(paidYear.reduce((s, p) => s + p.amountCents, 0))}</div>
+              <div className="s">{paidYear.length} payouts</div>
+            </div>
           </div>
-          <div className="g-grid2">
-            <GlassCard as="section">
-              <h2>Where we send your earnings</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-                {store.payoutLabel ?? 'Not set yet. Add it so your weekly payouts can be sent.'}
-              </p>
-              <p className="g-tag">
-                PayPal, Payoneer, Wise or a bank transfer anywhere.{store.country === 'BD' ? ' bKash is open to you because your country is Bangladesh.' : ''} We email you whenever this changes.
-              </p>
-              <div style={{ marginTop: 12 }}>
-                <AdminForm
-                  endpoint="/api/seller/payout"
-                  submit="Save payout details"
-                  openLabel={store.payoutLabel ? 'Change' : 'Add payout details'}
-                  tone="line"
-                  fields={[
-                    { name: 'method', label: 'How you want to be paid', kind: 'select', options: payoutMethodsFor(store.country).map(([m, l]) => [m, l]) },
-                    {
-                      name: 'account',
-                      label: 'Account',
-                      kind: 'text',
-                      required: true,
-                      hint: 'For a bank: IBAN or account number, bank name and account holder. For PayPal, Payoneer or Wise: the email of that account. For bKash: your account number.',
-                    },
-                  ]}
-                />
+          {(v.pendingCents > 0 || v.debtCents > 0) && (
+            <section className="glass card" role="status">
+              <div className="li" style={{ fontSize: 14 }}>
+                <span style={{ flex: 1 }}>On the 7-day hold after the buyer accepted</span>
+                <b style={{ fontWeight: 500 }}>{usd(v.pendingCents)}</b>
               </div>
-              {!store.country && (
-                <p className="g-tag" style={{ marginTop: 8 }}>
-                  Add your country in <Link href="/dashboard/seller/account">Account</Link> first.
-                </p>
+              {v.debtCents > 0 && (
+                <div className="li" style={{ fontSize: 14 }}>
+                  <span style={{ flex: 1 }}>Owed back after a refund or fee, taken from your next earnings</span>
+                  <b style={{ fontWeight: 500 }}>{usd(v.debtCents)}</b>
+                </div>
               )}
-            </GlassCard>
-            <GlassCard as="section" id="verify">
-              <h2>Identity verification</h2>
-              {ver.status === 'approved' && (
-                <p style={{ marginTop: 8 }}>
-                  <StatusPill tone="ok">Verified</StatusPill> {ver.docType ? DOC[ver.docType] : ''}
-                </p>
-              )}
-              {ver.status === 'pending' && (
-                <p style={{ marginTop: 8 }}>
-                  <StatusPill tone="wait">Being checked</StatusPill> We will tell you when it is done.
-                </p>
-              )}
-              {(ver.status === 'none' || ver.status === 'rejected') && (
+            </section>
+          )}
+          <div className="grid2">
+            <section className="glass card" id="verify" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="row">
+                <h2>Identity</h2>
+                <span className={`status ${ver.status === 'approved' ? 'st-ok' : ver.status === 'pending' ? 'st-wait' : ver.status === 'rejected' ? 'st-bad' : 'st-draft'}`}>
+                  {ver.status === 'approved' ? 'Verified' : ver.status === 'pending' ? 'Being checked' : ver.status === 'rejected' ? 'Not accepted' : 'Not sent'}
+                </span>
+              </div>
+              <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
+                We need a passport, national ID card or driver licence once, before the first payout. Only our finance team can see it; buyers never do.
+              </p>
+              {ver.status === 'approved' || ver.status === 'pending' ? (
+                <div className="grid2" style={{ gap: 10 }}>
+                  <div style={DROP}>
+                    {ver.docType ? DOC[ver.docType] : 'Document'}
+                    <div className="tag">Uploaded ✓</div>
+                  </div>
+                  <div style={DROP}>
+                    Check
+                    <div className="tag">{ver.status === 'approved' ? 'Done ✓' : 'We will tell you when it is done'}</div>
+                  </div>
+                </div>
+              ) : (
                 <>
                   {ver.status === 'rejected' && (
-                    <p style={{ marginTop: 8 }}>
-                      <StatusPill tone="bad">Not accepted</StatusPill> {ver.note ?? 'Please send a clearer picture.'}
-                    </p>
+                    <div className="tag" style={{ color: '#7A2E24' }}>
+                      {ver.note ?? 'Please send a clearer picture.'}
+                    </div>
                   )}
-                  <p className="g-tag" style={{ marginTop: 8 }}>
-                    Needed before your first payout. A passport, national ID card or driver licence. Only our finance team sees it, and it is never shown to buyers.
-                  </p>
-                  <div style={{ marginTop: 12 }}>
-                    <VerificationForm />
-                  </div>
+                  <VerificationForm />
                 </>
               )}
-            </GlassCard>
+            </section>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <PayoutMethodForm methods={payoutMethodsFor(store.country).map(([m, l]) => [m, l] as [string, string])} current={store.payoutLabel} />
+              {!store.country && (
+                <div className="tag">
+                  Add your country in <Link href="/dashboard/seller/account">Account</Link> first, so the right methods show.
+                </div>
+              )}
+            </div>
           </div>
-          <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
-            <h2 style={{ padding: '0 14px 6px' }}>Payouts</h2>
-            <DataTable<Payout>
-              caption="Payouts"
-              rows={v.payouts}
-              rowKey={(p) => p.id}
-              empty={`No payouts yet. ${PAYOUT_TEXT}`}
-              columns={[
-                { key: 'week', label: 'Week of', cell: (p) => shortDay(p.weekStart) },
-                { key: 'method', label: 'Method', cell: (p) => p.method },
-                { key: 'amount', label: 'Amount', cell: (p) => usd(p.amountCents) },
-                {
-                  key: 'status',
-                  label: 'Status',
-                  cell: (p) => (
-                    <StatusPill tone={p.status === 'paid' ? 'ok' : p.status === 'failed' ? 'bad' : 'info'}>
-                      {p.status === 'paid' ? 'Paid' : p.status === 'failed' ? 'Failed' : p.status === 'exported' ? 'Being sent' : 'Scheduled'}
-                    </StatusPill>
-                  ),
-                },
-              ]}
-            />
-          </GlassCard>
+          <section className="glass" style={{ padding: '8px 8px 4px' }}>
+            <div className="row" style={{ padding: '14px 14px 4px' }}>
+              <h2>Statement · {monthName}</h2>
+              <span className="tag" style={{ margin: 0 }}>
+                How each sale is split
+              </span>
+            </div>
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Order</th>
+                    <th>Website</th>
+                    <th>Price</th>
+                    <th>Coupon</th>
+                    <th>Platform {PLAN_FEE_TEXT}</th>
+                    <th>You {PLAN_KEEP_TEXT}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {month.length ? (
+                    month.map((o) => (
+                      <tr key={o.id}>
+                        <td>{shortDate(o.fundedAt!)}</td>
+                        <td style={{ fontWeight: 500 }}>
+                          <Link href={`/orders/${o.id}`} prefetch={false}>
+                            {orderCode(o.id)}
+                          </Link>
+                        </td>
+                        <td>{plainWords(o.title)}</td>
+                        <td>{usd(o.priceCents)}</td>
+                        <td className="muted">—</td>
+                        <td>{usd(o.feeCents)}</td>
+                        <td>{usd(net(o))}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="muted">
+                        No paid sales this month yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section className="glass" style={{ padding: '8px 8px 4px' }}>
+            <div className="row" style={{ padding: '14px 14px 4px' }}>
+              <h2>Payout history</h2>
+            </div>
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>
+                      <span className="hidden-label">Reference</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {v.payouts.length ? (
+                    v.payouts.map((p) => (
+                      <tr key={p.id}>
+                        <td>{shortDay(p.weekStart)}</td>
+                        <td>{usd(p.amountCents)}</td>
+                        <td>{p.method}</td>
+                        <td>
+                          <span className={`status ${p.status === 'paid' ? 'st-ok' : p.status === 'failed' ? 'st-bad' : 'st-info'}`}>
+                            {p.status === 'paid' ? 'Paid' : p.status === 'failed' ? 'Failed' : p.status === 'exported' ? 'Being sent' : 'Scheduled'}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }} className="tag">
+                          {p.reference ?? ''}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="muted">
+                        No payouts yet. {PAYOUT_TEXT}.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </>
       )}
     </SellerShell>

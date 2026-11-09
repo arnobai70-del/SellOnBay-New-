@@ -59,10 +59,10 @@ describe('page words an admin can rewrite', () => {
     expect(pageWordsProblem({ heading: 'Sell <b>now</b>', intro: '', body: '' }, spec)).toMatch(/< and >/);
     expect(pageWordsProblem({ heading: '', intro: 'x'.repeat(PAGE_WORDS_MAX.intro + 1), body: '' }, spec)).toMatch(/intro/);
     expect(pageWordsProblem({ heading: '', intro: '', body: 'a whole new page' }, spec)).toMatch(/only its heading/); // /sell has no plain text body
-    expect(await setPageWords('admin-1', '/browse', { heading: 'x', intro: '', body: '' })).toMatchObject({ ok: false, status: 404 }); // built from live parts
+    expect(await setPageWords('admin-1', '/cart', { heading: 'x', intro: '', body: '' })).toMatchObject({ ok: false, status: 404 }); // not a listed page
     expect(await setPageWords('admin-1', '/dashboard/admin', { heading: 'x', intro: '', body: '' })).toMatchObject({ ok: false, status: 404 });
     expect(await setPageWords('admin-1', '/terms', { heading: '', intro: '', body: 'x'.repeat(PAGE_WORDS_MAX.body + 1) })).toMatchObject({ ok: false, status: 400 });
-    expect(await setPageWords('admin-1', '/find', { heading: '', intro: '', body: '' })).toMatchObject({ ok: false, status: 409 });
+    expect(await setPageWords('admin-1', '/sellers', { heading: '', intro: '', body: '' })).toMatchObject({ ok: false, status: 409 });
   });
 });
 

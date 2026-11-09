@@ -10,7 +10,7 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
   const [error, setError] = useState('');
   return (
     <form
-      className="g-stack"
+      className="sob-stack"
       onSubmit={async (e) => {
         e.preventDefault();
         setState('busy');
@@ -36,12 +36,12 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
       </Field>
       <Field label="Phone" name="phone" type="tel" defaultValue={phone} placeholder="+44 20 7946 0958" autoComplete="tel" hint="With your country code. Sellers never see it." />
       <Field label="Company (for invoices)" name="company" defaultValue={company} maxLength={120} autoComplete="organization" error={error || undefined} />
-      <div className="g-row" style={{ justifyContent: 'flex-start' }}>
+      <div className="row" style={{ justifyContent: 'flex-start' }}>
         <Button type="submit" disabled={state === 'busy'}>
           {state === 'busy' ? 'Saving' : 'Save details'}
         </Button>
         {state === 'saved' && (
-          <span className="g-tag" role="status">
+          <span className="tag" role="status">
             Saved
           </span>
         )}

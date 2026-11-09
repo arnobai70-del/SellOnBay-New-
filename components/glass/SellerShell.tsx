@@ -10,6 +10,8 @@ export async function SellerShell({
   subtitle,
   actions,
   handle,
+  file,
+  head,
   children,
 }: {
   viewer: { id: string; name: string; role: string } | null;
@@ -18,12 +20,16 @@ export async function SellerShell({
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
   handle?: string;
+  file?: string;
+  head?: boolean;
   children: React.ReactNode;
 }) {
   const counts = viewer ? await sellerBadges(viewer.id) : { badges: {}, unread: 0 };
   return (
     <DashboardShell
       role="seller"
+      file={file}
+      head={head}
       active={active}
       title={title}
       subtitle={subtitle}
@@ -35,22 +41,18 @@ export async function SellerShell({
       unread={counts.unread}
       sideCard={
         <>
-          {handle && (
-            <>
-              <div style={{ fontWeight: 500 }}>Your public store</div>
-              <div className="g-tag">sellonbay.com/sellers/{handle}</div>
-              <div style={{ marginTop: 8 }}>
-                <Link href={`/sellers/${handle}`}>View store</Link>
-              </div>
-            </>
-          )}
-          <div style={{ marginTop: 8 }}>
-            <Link href="/dashboard/buyer">Switch to buying</Link>
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 500 }}>Your public store</div>
+          <div className="tag">{handle ? `sellonbay.com/sellers/${handle}` : 'Choose your store name in Store & analytics'}</div>
+          <Link className="btn sm ghost" href={handle ? `/sellers/${handle}` : '/dashboard/seller/store'} prefetch={false} style={{ marginTop: 10 }}>
+            {handle ? 'View store' : 'Set up store'}
+          </Link>{' '}
+          <Link className="tag" href="/dashboard/buyer" prefetch={false} style={{ display: 'block', marginTop: 8 }}>
+            Switch to buying
+          </Link>
         </>
       }
     >
-      {viewer ? children : <p className="g-muted">The dashboard needs an account. There are no accounts in demo mode.</p>}
+      {viewer ? children : <p className="muted">The dashboard needs an account. There are no accounts in demo mode.</p>}
     </DashboardShell>
   );
 }

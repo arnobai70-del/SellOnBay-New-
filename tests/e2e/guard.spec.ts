@@ -30,10 +30,10 @@ test.describe('abuse hardening', () => {
   });
 
   test('the security and risk pages are for admins only', async ({ page }) => {
-    await page.goto(`${REAL}/dashboard/admin/security`);
+    await page.goto(`${REAL}/admin/security/blocks`);
     await expect(page).toHaveURL(/\/login/);
     await expect(page.getByText('Shared connections and devices')).toHaveCount(0);
-    await page.goto(`${REAL}/dashboard/admin/risk`);
+    await page.goto(`${REAL}/admin/security/risk`);
     await expect(page).toHaveURL(/\/login/);
     await expect(page.getByText('Emergency switch')).toHaveCount(0);
   });
@@ -54,7 +54,7 @@ test.describe('new versions', () => {
       (await request.post(`${REAL}/api/listings/some-product/versions`, { data: { version: '1.1', changelog: 'Fixes a bug in login.', fileUrl: 'https://example.com/a.zip' } })).status(),
     );
     expect([401, 403, 404]).toContain((await request.post(`${REAL}/api/admin/versions/${id}/decide`, { data: { decision: 'approve', filesChecked: true } })).status());
-    await page.goto(`${REAL}/dashboard/admin/versions`);
+    await page.goto(`${REAL}/admin/listings/versions`);
     await expect(page).toHaveURL(/\/login/);
   });
 });
@@ -68,7 +68,7 @@ test.describe('repository access routes', () => {
       [`/api/admin/repo/${id}`, { action: 'confirm', note: 'Trying it out.' }],
     ] as const)
       expect([401, 403, 404]).toContain((await request.post(`${REAL}${url}`, { data })).status());
-    await page.goto(`${REAL}/dashboard/admin/repo`);
+    await page.goto(`${REAL}/admin/listings/repo`);
     await expect(page).toHaveURL(/\/login/);
   });
 });
@@ -76,11 +76,11 @@ test.describe('repository access routes', () => {
 test.describe('settings', () => {
   test('the route refuses a visitor, and the page needs an admin', async ({ request, page }) => {
     expect([401, 403, 404]).toContain((await request.post(`${REAL}/api/admin/settings`, { data: { priceMaxCents: 100000, reason: 'Trying it out.' } })).status());
-    await page.goto(`${REAL}/dashboard/admin/settings`);
+    await page.goto(`${REAL}/admin/settings/platform`);
     await expect(page).toHaveURL(/\/login/);
   });
   test('the launch check page needs an admin', async ({ page }) => {
-    await page.goto(`${REAL}/dashboard/admin/launch`);
+    await page.goto(`${REAL}/admin/settings/launch`);
     await expect(page).toHaveURL(/\/login/);
   });
 });

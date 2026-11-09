@@ -13,15 +13,15 @@ export default async function YourData() {
   const pending = requests.find((r) => r.kind === 'delete' && r.status === 'pending');
   return (
     <div className="wrap">
-      <div className="page-head">
+      <div className="sob-page-head">
         <h1>Your data</h1>
         <p>See what we hold about you, or ask us to delete your account.</p>
       </div>
-      <div className="prose" style={{ paddingBottom: 80 }}>
+      <div className="sob-prose" style={{ paddingBottom: 80 }}>
         <h2>Download a copy</h2>
         <p>A file with your profile, orders, messages and the rest of what we hold about you. Other people appear only as ids.</p>
         <p>
-          <a className="btn btn-blue" href="/api/account/export" download>
+          <a className="btn" href="/api/account/export" download>
             Download my data
           </a>
         </p>
@@ -31,7 +31,7 @@ export default async function YourData() {
           We remove your name, payout details, developer profile and notifications, and lock the sign-in. Payments, orders and accounting records stay because the law makes us keep them, but they no
           longer point to a named person. You cannot undo this. We cannot delete while an order, a dispute or a payout is still open.
         </p>
-        {pending ? <p className="chip amber">We have your request and will process it soon.</p> : <DeleteAccount />}
+        {pending ? <p className="status st-wait">We have your request and will process it soon.</p> : <DeleteAccount />}
         {requests.length > 0 && (
           <>
             <h2>Your requests</h2>

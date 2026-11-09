@@ -1,24 +1,24 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { AdminForm } from '@/components/AdminForm';
 import { SourceUpload } from '@/components/SourceUpload';
-import { Button } from '@/components/glass/Button';
-import { DataTable } from '@/components/glass/DataTable';
-import { GlassCard } from '@/components/glass/GlassCard';
+import { SaleCell } from '@/components/glass/SaleCell';
 import { BetaSwitch } from '@/components/glass/SellerForms';
 import { SellerShell } from '@/components/glass/SellerShell';
-import { StatusPill, type PillTone } from '@/components/glass/StatusPill';
-import { sellerDashboard, type SellerListing } from '@/lib/dashboard';
+import { UploadSection } from '@/components/glass/UploadSection';
+import { sellerDashboard } from '@/lib/dashboard';
 import { listFiles } from '@/lib/files/store';
 import { usd } from '@/lib/glass/orderStatus';
+import { draftsFor } from '@/lib/drafts';
 import { sellerListingFlags, sellerSales, storeProfile } from '@/lib/glass/seller';
-import { SaleCell } from '@/components/glass/SaleCell';
 import { plainWords } from '@/lib/glass/words';
+import { orderStore } from '@/lib/orders/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'My websites', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const STATUS: Record<string, [string, PillTone]> = { live: ['Live', 'ok'], in_review: ['In review', 'wait'], rejected: ['Sent back', 'bad'], paused: ['Paused', 'draft'] };
+const STATUS: Record<string, [string, string]> = { live: ['Live', 'st-ok'], in_review: ['In review', 'st-info'], rejected: ['Changes requested', 'st-wait'], paused: ['Paused', 'st-draft'] };
 const FILE_STATE: Record<string, string> = {
   awaiting_upload: 'Not uploaded yet',
   checking: 'Being checked',
@@ -29,115 +29,172 @@ const FILE_STATE: Record<string, string> = {
   purged: 'Removed',
 };
 
-/* The seller's listings: status, price, the beta offer, edits, new versions, and the private source files buyers receive. */
-export default async function SellerWebsites() {
+/*
+ * design-reference/seller-websites.html: the seller's listings with their sales, rating, status and the reviewer's note, then "Upload a new
+ * website". Kept from before: the sale price (/api/seller/listings/sale), free during the beta, new versions, drafts and the private source files.
+ * The top bar's search filters the listings (?q=).
+ */
+export default async function SellerWebsites({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const viewer = await requireViewer({ path: '/dashboard/seller/websites', roles: ['seller', 'admin'] });
-  const [v, flags, files, store, sales] = viewer
-    ? await Promise.all([sellerDashboard(viewer.id), sellerListingFlags(viewer.id), listFiles({ uploadedBy: viewer.id }), storeProfile(viewer.id, viewer.name), sellerSales(viewer.id)])
-    : [null, new Map<string, { betaFree: boolean }>(), [], null, new Map()];
+  const q = ((await searchParams).q ?? '').trim().toLowerCase().slice(0, 80);
+  const [v, flags, files, store, sales, drafts, orders] = viewer
+    ? await Promise.all([
+        sellerDashboard(viewer.id),
+        sellerListingFlags(viewer.id),
+        listFiles({ uploadedBy: viewer.id }),
+        storeProfile(viewer.id, viewer.name),
+        sellerSales(viewer.id),
+        draftsFor(viewer.id),
+        (async () => (await (await orderStore()).forUser(viewer.id)).filter((o) => o.sellerId === viewer.id))(),
+      ])
+    : [null, new Map<string, { betaFree: boolean }>(), [], null, new Map(), [], []];
   const myFiles = files.filter((f) => f.purpose !== 'delivery' && f.purpose !== 'revision').slice(0, 12);
+  const soldOf = (slug: string) => orders.filter((o) => o.productKey === slug && (o.fundedAt || o.state === 'beta_approved')).length;
+  const listings = (v?.listings ?? []).filter((l) => !q || l.name.toLowerCase().includes(q) || l.slug.includes(q));
   return (
-    <SellerShell
-      viewer={viewer}
-      active="websites"
-      title="My websites"
-      subtitle="Every listing is checked by a person before it goes live. A change to a link or a file sends it back for review."
-      handle={store?.username ? store.handle : undefined}
-      actions={<Button href="/dashboard/seller/websites/new">Upload website</Button>}
-    >
+    <SellerShell viewer={viewer} active="websites" file="seller-websites" title="My websites" head={false} handle={store?.username ? store.handle : undefined}>
+      <div className="row">
+        <div>
+          <h1>My websites</h1>
+          <div className="tag">Your listings, reviewer feedback and new uploads. A change to a link or a file sends a listing back for review.</div>
+        </div>
+      </div>
       {v && (
-        <>
-          <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
-            <DataTable<SellerListing>
-              caption="Your listings"
-              rows={v.listings}
-              rowKey={(l) => l.slug}
-              empty="No listings yet. Upload your first website to start selling."
-              columns={[
-                {
-                  key: 'name',
-                  label: 'Website',
-                  cell: (l) => (
-                    <>
-                      <b>{plainWords(l.name)}</b>
-                      {l.reviewNote && <div className="g-tag">Reviewer note: {l.reviewNote}</div>}
-                      {l.digital && l.versions.length > 0 && <div className="g-tag">Versions: {l.versions.map((x) => `${x.version} (${x.status.replace('_', ' ')})`).join(', ')}</div>}
-                    </>
-                  ),
-                },
-                { key: 'price', label: 'Price', cell: (l) => usd(l.priceCents) },
-                { key: 'delivery', label: 'Delivery', cell: (l) => l.delivery },
-                { key: 'rating', label: 'Rating', cell: (l) => (l.ratingCount ? `${l.ratingAvg} (${l.ratingCount})` : 'None yet') },
-                {
-                  key: 'status',
-                  label: 'Status',
-                  cell: (l) => {
-                    const [label, tone] = STATUS[l.status] ?? [l.status, 'draft'];
-                    return <StatusPill tone={tone}>{label}</StatusPill>;
-                  },
-                },
-                { key: 'sale', label: 'Sale', cell: (l) => <SaleCell slug={l.slug} sale={sales.get(l.slug) ?? null} endpoint="/api/seller/listings/sale" /> },
-                { key: 'beta', label: 'Free during beta', cell: (l) => <BetaSwitch slug={l.slug} name={plainWords(l.name)} on={!!flags.get(l.slug)?.betaFree} /> },
-                {
-                  key: 'actions',
-                  label: 'Actions',
-                  hideLabel: true,
-                  cell: (l) => (
-                    <div className="g-row" style={{ justifyContent: 'flex-start', gap: 8 }}>
-                      <Button variant="ghost" size="sm" href={`/dashboard/seller/websites/new?edit=${encodeURIComponent(l.slug)}`} aria-label={`Edit ${plainWords(l.name)}`}>
-                        Edit
-                      </Button>
-                      {l.status === 'live' && (
-                        <Button variant="ghost" size="sm" href={`/websites/${encodeURIComponent(l.slug)}`}>
-                          View
-                        </Button>
-                      )}
-                      {l.digital && l.status === 'live' && (
-                        <AdminForm
-                          endpoint={`/api/listings/${l.slug}/versions`}
-                          openLabel="New version"
-                          submit="Send for review"
-                          tone="line"
-                          fields={[
-                            { name: 'version', label: 'Version number, for example 1.1', kind: 'text', required: true },
-                            { name: 'changelog', label: 'What changed (buyers see this)', kind: 'textarea', required: true },
-                            { name: 'fileUrl', label: 'Private link to the new files (https)', kind: 'text', required: true },
-                          ]}
-                        />
-                      )}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </GlassCard>
-          <GlassCard as="section" id="files">
-            <h2>Source files</h2>
-            <p className="g-tag">
-              Buyers get exactly the file SellOnBay approved, from private storage, only after the order is funded or approved. A change is a new upload and a new version; an approved file never
-              changes.
-            </p>
-            <div style={{ marginTop: 12 }}>
-              <SourceUpload listings={v.listings.filter((l) => l.status !== 'rejected').map((l) => ({ slug: l.slug, name: plainWords(l.name) }))} />
+        <section className="glass" style={{ padding: '8px 8px 4px' }}>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Website</th>
+                  <th>Price</th>
+                  <th>Sales</th>
+                  <th>Rating</th>
+                  <th>Status</th>
+                  <th>Reviewer note</th>
+                  <th>Sale</th>
+                  <th>Free in beta</th>
+                  <th>
+                    <span className="hidden-label">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {listings.map((l) => {
+                  const [label, tone] = STATUS[l.status] ?? [l.status, 'st-draft'];
+                  return (
+                    <tr key={l.slug}>
+                      <td style={{ fontWeight: 500 }}>
+                        {plainWords(l.name)}
+                        <div className="tag">Delivery {l.delivery}</div>
+                        {l.digital && l.versions.length > 0 && <div className="tag">Versions: {l.versions.map((x) => `${x.version} (${x.status.replace('_', ' ')})`).join(', ')}</div>}
+                      </td>
+                      <td>{usd(l.priceCents)}</td>
+                      <td>{soldOf(l.slug)}</td>
+                      <td>{l.ratingCount ? l.ratingAvg : '—'}</td>
+                      <td>
+                        <span className={`status ${tone}`}>{label}</span>
+                      </td>
+                      <td className={l.reviewNote ? undefined : 'muted'} style={l.reviewNote ? { color: '#6E4B12' } : undefined}>
+                        {l.reviewNote ?? '—'}
+                      </td>
+                      <td>
+                        <SaleCell slug={l.slug} sale={sales.get(l.slug) ?? null} endpoint="/api/seller/listings/sale" />
+                      </td>
+                      <td>
+                        <BetaSwitch slug={l.slug} name={plainWords(l.name)} on={!!flags.get(l.slug)?.betaFree} />
+                      </td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', textAlign: 'left' }}>
+                          <Link
+                            className={l.status === 'rejected' ? 'btn sm' : 'btn sm ghost'}
+                            href={`/dashboard/seller/websites/new?edit=${encodeURIComponent(l.slug)}`}
+                            prefetch={false}
+                            aria-label={`Edit ${plainWords(l.name)}`}
+                          >
+                            {l.status === 'rejected' ? 'Fix & resubmit' : 'Edit'}
+                          </Link>
+                          {l.status === 'live' && (
+                            <Link className="btn sm ghost" href={`/websites/${encodeURIComponent(l.slug)}`} prefetch={false}>
+                              View
+                            </Link>
+                          )}
+                          {l.digital && l.status === 'live' && (
+                            <AdminForm
+                              endpoint={`/api/listings/${l.slug}/versions`}
+                              openLabel="New version"
+                              submit="Send for review"
+                              tone="line"
+                              fields={[
+                                { name: 'version', label: 'Version number, for example 1.1', kind: 'text', required: true },
+                                { name: 'changelog', label: 'What changed (buyers see this)', kind: 'textarea', required: true },
+                                { name: 'fileUrl', label: 'Private link to the new files (https)', kind: 'text', required: true },
+                              ]}
+                            />
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {drafts.map((d) => (
+                  <tr key={d.slug}>
+                    <td style={{ fontWeight: 500 }}>{d.name}</td>
+                    <td>—</td>
+                    <td>0</td>
+                    <td>—</td>
+                    <td>
+                      <span className="status st-draft">Draft</span>
+                    </td>
+                    <td className="muted">Not submitted</td>
+                    <td />
+                    <td />
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <Link className="btn sm ghost" href={`/dashboard/seller/websites/new?draft=${encodeURIComponent(d.slug)}`} prefetch={false}>
+                        Continue
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+                {!listings.length && !drafts.length && (
+                  <tr>
+                    <td colSpan={9} className="muted">
+                      {q ? 'No listing matches that search.' : 'No listings yet. Upload your first website below to start selling.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+      <UploadSection viewer={viewer} />
+      {v && (
+        <section className="glass card" id="files">
+          <h2>Source files</h2>
+          <div className="tag">
+            Buyers get exactly the file SellOnBay approved, from private storage, only after the order is funded or approved. A change is a new upload and a new version; an approved file never
+            changes.
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <SourceUpload listings={v.listings.filter((l) => l.status !== 'rejected').map((l) => ({ slug: l.slug, name: plainWords(l.name) }))} />
+          </div>
+          {myFiles.map((f) => (
+            <div key={f.id} className="li" style={{ alignItems: 'flex-start', fontSize: 14 }}>
+              <span style={{ flex: 1 }}>
+                {f.originalName}
+                {((f.checks as { problems?: string[] }).problems ?? []).slice(0, 2).map((p, i) => (
+                  <span key={i} className="tag" style={{ display: 'block' }}>
+                    {p}
+                  </span>
+                ))}
+              </span>
+              <span className="tag" style={{ margin: 0 }}>
+                {FILE_STATE[f.state] ?? f.state}
+                {f.reviewNote ? ` · ${f.reviewNote}` : ''}
+              </span>
             </div>
-            {myFiles.map((f) => (
-              <div key={f.id} className="g-li" style={{ alignItems: 'flex-start' }}>
-                <span style={{ flex: 1 }}>
-                  {f.originalName}
-                  {((f.checks as { problems?: string[] }).problems ?? []).slice(0, 2).map((p, i) => (
-                    <span key={i} className="g-tag" style={{ display: 'block' }}>
-                      {p}
-                    </span>
-                  ))}
-                </span>
-                <span className="g-tag">
-                  {FILE_STATE[f.state] ?? f.state}
-                  {f.reviewNote ? ` · ${f.reviewNote}` : ''}
-                </span>
-              </div>
-            ))}
-          </GlassCard>
-        </>
+          ))}
+        </section>
       )}
     </SellerShell>
   );

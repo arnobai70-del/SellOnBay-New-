@@ -60,8 +60,8 @@ export function MaintenanceForm({
 
   const id = (s: string) => `mm-${module}-${s}`;
   return (
-    <form className="mm-form" onSubmit={send}>
-      <label className="mm-switch" htmlFor={id('on')}>
+    <form className="sob-mm-form" onSubmit={send}>
+      <label className="sob-mm-switch" htmlFor={id('on')}>
         <input id={id('on')} type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} />
         Under maintenance
       </label>
@@ -70,7 +70,7 @@ export function MaintenanceForm({
       <small className="muted">
         {text.length}/{max}
       </small>
-      <div className="mm-times">
+      <div className="sob-mm-times">
         <span>
           <label htmlFor={id('start')}>Start (optional, your time)</label>
           <input id={id('start')} type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -80,11 +80,11 @@ export function MaintenanceForm({
           <input id={id('end')} type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
         </span>
       </div>
-      <button className="btn btn-dark btn-sm" type="submit" disabled={busy}>
+      <button className="btn sm" type="submit" disabled={busy}>
         {busy ? 'Saving…' : 'Save'}
       </button>
       {msg && (
-        <p className={msg.ok ? 'adm-ok' : 'form-err'} role={msg.ok ? 'status' : 'alert'}>
+        <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>
           {msg.text}
         </p>
       )}

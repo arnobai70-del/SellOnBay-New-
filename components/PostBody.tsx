@@ -25,11 +25,11 @@ function Inlines({ c }: { c: Inline[] }) {
             return <code key={i}>{n.v}</code>;
           case 'a':
             return n.external ? (
-              <a key={i} className="link-u" href={n.href} rel="noopener noreferrer">
+              <a key={i} className="sob-link" href={n.href} rel="noopener noreferrer">
                 <Inlines c={n.c} />
               </a>
             ) : (
-              <Link key={i} className="link-u" href={n.href}>
+              <Link key={i} className="sob-link" href={n.href}>
                 <Inlines c={n.c} />
               </Link>
             );
@@ -83,11 +83,11 @@ export function PostBody({ blocks }: { blocks: Block[] }) {
           }
           case 'img':
             // eslint-disable-next-line @next/next/no-img-element -- pictures in posts come from any https address the admin gives; next/image needs a fixed list of hosts
-            return <img key={i} className="post-img" src={b.src} alt={b.alt} loading="lazy" decoding="async" />;
+            return <img key={i} className="sob-post-img" src={b.src} alt={b.alt} loading="lazy" decoding="async" />;
           case 'video':
             // YouTube and Vimeo players need scripts and their own origin inside the frame; the frame still cannot reach our page.
             return b.kind === 'embed' ? (
-              <div key={i} className="post-video">
+              <div key={i} className="sob-post-video">
                 <iframe
                   src={b.src}
                   title={b.title}
@@ -99,10 +99,10 @@ export function PostBody({ blocks }: { blocks: Block[] }) {
                 />
               </div>
             ) : (
-              <video key={i} className="post-video-file" src={b.src} title={b.title} controls preload="metadata" playsInline />
+              <video key={i} className="sob-post-video-file" src={b.src} title={b.title} controls preload="metadata" playsInline />
             );
           case 'hr':
-            return <hr key={i} className="post-hr" />;
+            return <hr key={i} className="sob-post-hr" />;
         }
       })}
     </>

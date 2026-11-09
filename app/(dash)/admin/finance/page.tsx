@@ -1,29 +1,51 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdminForm } from '@/components/AdminForm';
 import { AdminShell } from '@/components/glass/AdminShell';
-import { DataTable } from '@/components/glass/DataTable';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { Kpi } from '@/components/glass/Kpi';
-import { StatusPill } from '@/components/glass/StatusPill';
-import { PAYOUT_TEXT, PLAN_FEE_TEXT } from '@/lib/config';
+import { auditList } from '@/lib/admin/audit';
+import { DAY_MS, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT } from '@/lib/config';
+import { verificationOf } from '@/lib/glass/admin';
 import { usd } from '@/lib/glass/orderStatus';
+import { plainWords } from '@/lib/glass/words';
 import { acct } from '@/lib/ledger';
 import { ledgerStore } from '@/lib/ledgerStore';
-import { listPayouts, type Payout } from '@/lib/payouts';
+import { orderStore } from '@/lib/orders/store';
+import { orderCode } from '@/lib/payments/rules';
+import { listRefunds } from '@/lib/payments/store';
+import { listPayouts } from '@/lib/payouts';
+import { paypalConfigured } from '@/lib/providers/payment';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Finance and payouts', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
+const TABS = [
+  ['payouts', 'Payouts'],
+  ['ledger', 'Ledger'],
+  ['refunds', 'Refunds'],
+  ['reconciliation', 'Reconciliation'],
+] as const;
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+
 /*
- * Finance: what the ledger holds by kind of account (a reconciliation view: money in escrow, owed to sellers, held back, owed back, earned), and the
- * weekly payouts. Read only here; the CSV, marking paid and the PayPal button stay at the payouts tool. Beta orders are $0 and never touch the ledger.
+ * design-reference/admin-finance.html, from the double-entry ledger (lib/ledger.ts) and the weekly payouts (lib/payouts.ts). The payout queue
+ * keeps every action of the payouts tool: the CSV for a week, Mark paid with the transfer reference, Failed, and PayPal send and check. Beta
+ * orders are $0 and never touch the ledger.
  */
-export default async function AdminFinance() {
+export default async function AdminFinance({ searchParams }: { searchParams: Promise<{ tab?: string; from?: string; to?: string }> }) {
   const viewer = await requireViewer({ path: '/admin/finance', roles: ['admin'], scope: 'finance' });
+  const sp = await searchParams;
+  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'payouts';
+  const now = Date.now();
+  const to = DAY.test(sp.to ?? '') ? sp.to! : iso(now);
+  const from = DAY.test(sp.from ?? '') ? sp.from! : iso(Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1));
+  const fromMs = Date.parse(from + 'T00:00:00Z');
+  const toMs = Date.parse(to + 'T00:00:00Z') + DAY_MS;
   const L = await ledgerStore();
   const sum = async (prefix: string) => (await L.balances(prefix)).reduce((s, b) => s + Math.max(0, b.holds), 0);
-  const [escrow, pending, available, reserve, debt, held, refundDue, revenue, payouts] = await Promise.all([
+  const [escrow, pending, available, reserve, debt, held, refundDue, revenue, payouts, orders, refunds, log] = await Promise.all([
     sum('order_escrow:'),
     sum('seller_pending:'),
     sum('seller_available:'),
@@ -33,64 +55,340 @@ export default async function AdminFinance() {
     sum('buyer_refund_due:'),
     L.balance(acct.revenue),
     listPayouts({}),
+    (async () => (await orderStore()).changedSince(fromMs))(),
+    listRefunds({}),
+    auditList(200),
   ]);
+  const paypal = paypalConfigured();
   const toSend = payouts.filter((p) => p.status === 'scheduled' || p.status === 'exported');
+  const nid = await verificationOf(toSend.map((p) => p.sellerId));
+  const cashIn = orders.filter((o) => o.fundedAt && o.fundedAt >= fromMs && o.fundedAt < toMs).reduce((s, o) => s + o.priceCents, 0);
+  const paidOut = payouts.filter((p) => p.paidAt && p.paidAt >= fromMs && p.paidAt < toMs).reduce((s, p) => s + p.amountCents, 0);
+  const refunded = refunds.filter((r) => r.status === 'paid').reduce((s, r) => s + (r.paidAt && r.paidAt >= fromMs && r.paidAt < toMs ? r.amountCents : 0), 0);
+  const owed = pending + available + reserve;
+  const total = Math.max(1, escrow + owed + revenue);
+  const share = (n: number) => `${Math.round((n / total) * 100)}%`;
+  const lastPay = log.find((a) => a.action.startsWith('payout_') || a.action.startsWith('payment_'));
+  const weeks = [...new Set(toSend.filter((p) => p.status === 'scheduled').map((p) => p.weekStart))];
+  const query = (t: string) => `/admin/finance?${new URLSearchParams({ ...(t !== 'payouts' ? { tab: t } : {}), ...(sp.from ? { from } : {}), ...(sp.to ? { to } : {}) })}`;
+  const lines: [string, number][] = [
+    ['Buyer money in escrow', escrow],
+    ['Sellers, on the 7-day hold', pending],
+    ['Sellers, available for payout', available],
+    ['Sellers, reserve', reserve],
+    ['Owed by sellers after refunds', debt],
+    ['Reported payments held, not matched to an order yet', held],
+    ['Refunds owed to buyers', refundDue],
+    ['Platform revenue', revenue],
+  ];
   return (
-    <AdminShell viewer={viewer} active="finance" title="Finance & payouts" subtitle={`Platform fee ${PLAN_FEE_TEXT}. ${PAYOUT_TEXT}.`}>
-      <div className="g-kpis">
-        <Kpi label="In escrow" value={usd(escrow)} note="Paid, not accepted yet" />
-        <Kpi label="Owed to sellers" value={usd(pending + available + reserve)} note={`${usd(available)} ready for Thursday`} />
-        <Kpi label="Platform revenue" value={usd(revenue)} note="Fees on accepted orders" />
-        <Kpi label="To send" value={toSend.length} note={usd(toSend.reduce((s, p) => s + p.amountCents, 0))} />
-      </div>
-      <GlassCard as="section">
-        <h2>Reconciliation</h2>
-        <p className="g-tag">From the double-entry ledger. Check each line against the bank, wallet and provider statements.</p>
-        {(
-          [
-            ['Buyer money in escrow', escrow],
-            ['Sellers, on the 7-day hold', pending],
-            ['Sellers, available for payout', available],
-            ['Sellers, reserve', reserve],
-            ['Owed by sellers after refunds', debt],
-            ['Reported payments held, not matched to an order yet', held],
-            ['Refunds owed to buyers', refundDue],
-            ['Platform revenue', revenue],
-          ] as const
-        ).map(([label, n]) => (
-          <div key={label} className="g-li">
-            <span style={{ flex: 1 }}>{label}</span>
-            <b>{usd(n)}</b>
+    <AdminShell viewer={viewer} active="finance" file="admin-finance" title="Finance & payouts" head={false}>
+      <div className="row">
+        <div>
+          <h1>Finance &amp; payouts</h1>
+          <div className="tag">
+            Double-entry ledger, escrow balance, seller payouts and reconciliation · fee {PLAN_FEE_TEXT} · {PAYOUT_TEXT}
           </div>
-        ))}
-      </GlassCard>
-      <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
-        <div className="g-row" style={{ padding: '0 14px 6px' }}>
-          <h2>Payouts</h2>
-          <Link href="/dashboard/admin/payouts">CSV, mark paid, send by PayPal</Link>
         </div>
-        <DataTable<Payout>
-          caption="Payouts"
-          rows={payouts.slice(0, 100)}
-          rowKey={(p) => p.id}
-          empty="No payouts yet."
-          columns={[
-            { key: 'week', label: 'Payout day', cell: (p) => p.weekStart },
-            { key: 'seller', label: 'Seller', cell: (p) => p.sellerName },
-            { key: 'method', label: 'Method', cell: (p) => p.method },
-            { key: 'amount', label: 'Amount', cell: (p) => usd(p.amountCents) },
-            {
-              key: 'status',
-              label: 'Status',
-              cell: (p) => (
-                <StatusPill tone={p.status === 'paid' ? 'ok' : p.status === 'failed' ? 'bad' : 'info'}>
-                  {p.status === 'paid' ? 'Paid' : p.status === 'failed' ? 'Failed' : p.status === 'exported' ? 'Being sent' : 'Scheduled'}
-                </StatusPill>
-              ),
-            },
-          ]}
-        />
-      </GlassCard>
+        <form action="/admin/finance" method="get" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          {tab !== 'payouts' && <input type="hidden" name="tab" value={tab} />}
+          <label htmlFor="fr" className="hidden-label">
+            From
+          </label>
+          <input id="fr" name="from" className="input" type="date" defaultValue={from} style={{ width: 'auto' }} />{' '}
+          <label htmlFor="to" className="hidden-label">
+            To
+          </label>
+          <input id="to" name="to" className="input" type="date" defaultValue={to} style={{ width: 'auto' }} />{' '}
+          <button className="btn ghost" type="submit">
+            Apply
+          </button>
+        </form>
+      </div>
+      <div className="kpis">
+        <div className="glass kpi">
+          <div className="l">Cash in</div>
+          <div className="v">{usd(cashIn)}</div>
+          <div className="s">Paid orders in these dates</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Cash out</div>
+          <div className="v">{usd(paidOut + refunded)}</div>
+          <div className="s">Payouts + refunds</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Held in escrow</div>
+          <div className="v">{usd(escrow)}</div>
+          <div className="s">Not yet earned</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Owed to sellers</div>
+          <div className="v">{usd(owed)}</div>
+          <div className="s">{usd(available)} ready for Thursday</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Platform income</div>
+          <div className="v">{usd(revenue)}</div>
+          <div className="s">{PLAN_FEE_TEXT} share + domains</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Reconciliation</div>
+          <div className="v">{usd(held)}</div>
+          <div className="s">{held ? <span className="status st-wait">To match</span> : <span className="status st-ok">Match</span>}</div>
+        </div>
+      </div>
+      <div className="seg" role="tablist" aria-label="Finance section" style={{ alignSelf: 'flex-start' }}>
+        {TABS.map(([k, l]) => (
+          <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={query(k)} prefetch={false}>
+            {l}
+          </Link>
+        ))}
+      </div>
+
+      {tab === 'payouts' && (
+        <section className="glass" style={{ padding: '8px 8px 4px' }}>
+          <div className="row" style={{ padding: '14px 14px 4px' }}>
+            <div>
+              <h2>Payout queue</h2>
+              <div className="tag">Only sellers with a verified identity and payout method can be paid. Download a week&apos;s CSV, send, then mark each one paid.</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {weeks.length ? (
+                weeks.map((w) => (
+                  <form key={w} method="post" action={`/api/admin/payouts/csv?week=${w}`}>
+                    <button type="submit" className="btn">
+                      Pay all ready · CSV {w}
+                    </button>
+                  </form>
+                ))
+              ) : (
+                <Link className="btn ghost" href="/admin/finance/payouts" prefetch={false}>
+                  Every payout
+                </Link>
+              )}
+            </div>
+          </div>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Seller</th>
+                  <th>Orders</th>
+                  <th>Earned ({PLAN_KEEP_TEXT})</th>
+                  <th>Method</th>
+                  <th>Identity</th>
+                  <th>Status</th>
+                  <th>
+                    <span className="hidden-label">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {toSend.length ? (
+                  toSend.map((p) => {
+                    const id = nid.get(p.sellerId);
+                    return (
+                      <tr key={p.id}>
+                        <td style={{ fontWeight: 500 }}>
+                          {p.sellerName}
+                          <div className="tag">Payout day {p.weekStart}</div>
+                        </td>
+                        <td>{p.orderIds.length}</td>
+                        <td>{usd(p.amountCents)}</td>
+                        <td>{p.method || 'Not set'}</td>
+                        <td>
+                          <span className={`status ${id === 'approved' ? 'st-ok' : id === 'rejected' ? 'st-bad' : 'st-wait'}`}>
+                            {id === 'approved' ? 'Verified' : id === 'rejected' ? 'Rejected' : id ? 'Pending' : 'Not sent'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status ${p.status === 'exported' ? 'st-wait' : 'st-info'}`}>{p.status === 'exported' ? 'Being sent' : 'Ready'}</span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', textAlign: 'left' }}>
+                            {paypal && p.method === 'paypal' && !p.reference?.startsWith('paypal:') && (
+                              <AdminForm
+                                endpoint={`/api/admin/payouts/${p.id}/paypal`}
+                                fixed={{ action: 'send' }}
+                                fields={[]}
+                                openLabel="Pay now"
+                                submit={`Send ${usd(p.amountCents)} to ${p.account}`}
+                                tone="blue"
+                              />
+                            )}
+                            {paypal && p.status === 'exported' && p.reference?.startsWith('paypal:') && (
+                              <AdminForm endpoint={`/api/admin/payouts/${p.id}/paypal`} fixed={{ action: 'check' }} fields={[]} openLabel="Check PayPal" submit="Ask PayPal now" tone="line" />
+                            )}
+                            {p.status === 'exported' && !p.reference?.startsWith('paypal:') && (
+                              <>
+                                <AdminForm
+                                  endpoint={`/api/admin/payouts/${p.id}/paid`}
+                                  openLabel="Mark paid"
+                                  submit="I sent it"
+                                  tone="blue"
+                                  fields={[{ name: 'reference', label: 'Transfer reference from Wise, Payoneer or the bank', kind: 'text', required: true }]}
+                                />
+                                <AdminForm
+                                  endpoint={`/api/admin/payouts/${p.id}/fail`}
+                                  openLabel="Failed"
+                                  submit="Mark failed"
+                                  tone="line"
+                                  fields={[{ name: 'note', label: 'What went wrong', kind: 'textarea' }]}
+                                />
+                              </>
+                            )}
+                            {p.status === 'scheduled' && !(paypal && p.method === 'paypal') && (
+                              <span className="tag" style={{ margin: 0 }}>
+                                Download the CSV first
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="muted">
+                      No payouts waiting. {PAYOUT_TEXT}.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {(tab === 'ledger' || tab === 'reconciliation') && (
+        <section className="glass card">
+          <div className="row" style={{ marginBottom: 6 }}>
+            <h2>{tab === 'ledger' ? 'Ledger balances' : 'Reconciliation'}</h2>
+            <span className="tag" style={{ margin: 0 }}>
+              Check each line against the bank, wallet and provider statements
+            </span>
+          </div>
+          {lines.map(([label, n]) => (
+            <div key={label} className="li" style={{ fontSize: 14 }}>
+              <span style={{ flex: 1 }}>{label}</span>
+              <b style={{ fontWeight: 500 }}>{usd(n)}</b>
+            </div>
+          ))}
+          {tab === 'reconciliation' && (
+            <div className="li" style={{ fontSize: 14 }}>
+              <span style={{ flex: 1 }}>Reported payments to match</span>
+              <Link className="btn sm ghost" href="/admin/orders" prefetch={false}>
+                Payments to verify
+              </Link>
+            </div>
+          )}
+        </section>
+      )}
+
+      {tab === 'refunds' && (
+        <section className="glass" style={{ padding: '8px 8px 4px' }}>
+          <div className="row" style={{ padding: '14px 14px 4px' }}>
+            <h2>Refunds</h2>
+            <Link className="btn sm ghost" href="/admin/orders#refunds" prefetch={false}>
+              Approve or record refunds
+            </Link>
+          </div>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Amount</th>
+                  <th>Kind</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {refunds.length ? (
+                  refunds.slice(0, 100).map((r) => (
+                    <tr key={r.id}>
+                      <td style={{ fontWeight: 500 }}>{orderCode(r.orderId)}</td>
+                      <td>{usd(r.amountCents)}</td>
+                      <td>{r.kind}</td>
+                      <td>{plainWords(r.reason)}</td>
+                      <td>
+                        <span className={`status ${r.status === 'paid' ? 'st-ok' : r.status === 'cancelled' ? 'st-draft' : 'st-wait'}`}>{r.status}</span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="muted">
+                      No refunds.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <div className="grid2">
+        <section className="glass card">
+          <div className="row" style={{ marginBottom: 8 }}>
+            <h2>Where the money is</h2>
+            <span className="tag" style={{ margin: 0 }}>
+              From the ledger
+            </span>
+          </div>
+          <div
+            style={{ display: 'flex', height: 16, borderRadius: 999, overflow: 'hidden', margin: '10px 0 14px', background: '#E1EAEF' }}
+            role="img"
+            aria-label={`Escrow ${share(escrow)}, owed to sellers ${share(owed)}, platform income ${share(revenue)}`}
+          >
+            <span style={{ width: share(escrow), background: '#9FC9E3' }} />
+            <span style={{ width: share(owed), background: '#7FBFA9' }} />
+            <span style={{ width: share(revenue), background: '#B9B0E0' }} />
+          </div>
+          {(
+            [
+              ['#9FC9E3', 'Held in escrow', escrow],
+              ['#7FBFA9', 'Owed to sellers', owed],
+              ['#B9B0E0', 'Platform income', revenue],
+            ] as const
+          ).map(([c, l, n]) => (
+            <div key={l} className="li" style={{ fontSize: 14 }}>
+              <span style={{ width: 10, height: 10, borderRadius: 3, background: c }} />
+              <span style={{ flex: 1 }}>{l}</span>
+              <span>{usd(n)}</span>
+            </div>
+          ))}
+        </section>
+        <section className="glass card">
+          <h2>Audit</h2>
+          <div className="li" style={{ fontSize: 14 }}>
+            <span style={{ flex: 1 }}>Ledger entries</span>
+            <span className="status st-ok">Keyed, never below zero</span>
+          </div>
+          <div className="li" style={{ fontSize: 14 }}>
+            <span style={{ flex: 1 }}>Last payment action</span>
+            <span className="muted">{lastPay ? `${when(lastPay.at)} · ${lastPay.action.replace(/_/g, ' ')}` : 'None yet'}</span>
+          </div>
+          <div className="li" style={{ fontSize: 14 }}>
+            <span style={{ flex: 1 }}>Edits to posted entries</span>
+            <span className="muted">Not allowed · reverse instead</span>
+          </div>
+          <div className="li" style={{ fontSize: 14 }}>
+            <span style={{ flex: 1 }}>Export for accountant</span>
+            <Link className="btn sm ghost" href="/admin/reports" prefetch={false}>
+              Sales PDF
+            </Link>
+          </div>
+          <div className="li" style={{ fontSize: 14 }}>
+            <span style={{ flex: 1 }}>Every payout, by week and method</span>
+            <Link className="btn sm ghost" href="/admin/finance/payouts" prefetch={false}>
+              Open
+            </Link>
+          </div>
+        </section>
+      </div>
     </AdminShell>
   );
 }

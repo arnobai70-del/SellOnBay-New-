@@ -4,27 +4,12 @@ import { useState } from 'react';
 import { OAuthButtons } from './OAuthButtons';
 import { Turnstile } from './Turnstile';
 import { authenticate, requestReset } from '@/app/(bare)/login/actions';
-import { PAYOUT_HOLD_DAYS, REVIEW_HOURS } from '@/lib/config';
 import type { OAuthProvider } from '@/lib/supabase/oauth';
 
 const ROLES = [
-  { key: 'buyer', title: 'I want a site', note: 'Pick one and go live on my domain.' },
-  { key: 'seller', title: 'I sell sites', note: 'List what I built and get paid.' },
+  { key: 'buyer', title: 'I want a website', note: 'Pick one and go live on my domain.' },
+  { key: 'seller', title: 'I sell websites', note: 'List what I built and get paid.' },
 ] as const;
-
-/* The order card on the left: what happens to a buyer's money, or to a seller's sale, step by step. */
-const JOURNEY = {
-  buyer: { title: 'Your order', domain: 'yourname.com', steps: ['Paid into escrow', 'Live on your domain', `${REVIEW_HOURS} hours to check it`, 'Seller paid after you accept'] },
-  seller: { title: 'Your sale', domain: 'Payout', steps: ['Buyer pays into escrow', 'You deliver the site', 'Buyer accepts', `Paid ${PAYOUT_HOLD_DAYS} days later`] },
-} as const;
-
-function RoleIcon({ k }: { k: 'buyer' | 'seller' }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {k === 'buyer' ? <path d="M6 7h12l-1 13H7L6 7zM9 7a3 3 0 0 1 6 0" /> : <path d="M4 10l1.5-5h13L20 10M4 10v9h16v-9M4 10h16M9 19v-5h6v5" />}
-    </svg>
-  );
-}
 
 /* Real sign-in when Supabase keys are set, otherwise the old demo redirect. */
 export function AuthClient({
@@ -67,98 +52,73 @@ export function AuthClient({
     </>
   );
 
+  const NOTE: React.CSSProperties = { padding: '10px 14px', borderRadius: 12, background: '#FBF3E3', border: '1px solid #F0DDB4', color: '#6E4B12', fontSize: 13, lineHeight: 1.5 };
+  const LINK: React.CSSProperties = { background: 'none', border: 0, padding: 0, cursor: 'pointer', color: '#1A5444', fontSize: 13, fontFamily: 'inherit' };
+  // design-reference/signin.html: one glass card, the Sign in / Create account tabs, the fields, then the other ways in.
   return (
-    <div className="auth" data-auth>
-      <div className="art auth-art">
-        <h2>{signup ? 'Your site is one domain away.' : 'Everything you bought or sold, in one place.'}</h2>
-        <div className="auth-card" key={signup ? role : 'signin'} aria-hidden="true">
-          <div className="auth-card-top">
-            <b>{JOURNEY[signup ? role : 'buyer'].title}</b>
-            <span>{JOURNEY[signup ? role : 'buyer'].domain}</span>
-          </div>
-          <ol>
-            {JOURNEY[signup ? role : 'buyer'].steps.map((t, n) => (
-              <li key={t} className={n < 2 ? 'done' : n === 2 ? 'now' : ''}>
-                <i />
-                {t}
-              </li>
-            ))}
-          </ol>
-        </div>
-        <ul className="auth-trust">
-          <li>Money held in escrow on every order</li>
-          {codeRequired && <li>Sellers sign in with an authenticator code</li>}
-        </ul>
-      </div>
-      <div className="form">
-        <h1 style={{ fontSize: '2.4rem' }}>{mode === 'forgot' ? 'Reset your password' : signup ? 'Create your account' : 'Welcome back'}</h1>
-        <p className="muted" style={{ marginTop: 8 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }} data-auth>
+      <div className="glass" style={{ width: '100%', maxWidth: 440, padding: 36, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h1 style={{ fontSize: 30 }}>{mode === 'forgot' ? 'Reset your password' : signup ? 'Create your account' : 'Welcome back'}</h1>
+        <div className="muted" style={{ fontSize: 14, marginTop: -6 }}>
           {mode === 'forgot'
             ? 'Enter your email and we will send you a link to choose a new password.'
             : signup
-              ? 'Two minutes and you can pick a site or list your own.'
+              ? 'Buy safely with escrow, or sell and keep your share.'
               : 'Sign in to see your orders and messages.'}
-        </p>
-        {!signup && next?.startsWith('/dashboard/admin') && (
-          <div className="note" style={{ marginTop: 16 }}>
-            <span>
-              You are opening the <b>admin area</b>. {codeRequired ? 'Sign in, then enter the code from your authenticator app.' : 'Sign in to continue.'}
-            </span>
+        </div>
+        {mode !== 'forgot' && (
+          <div className="seg" role="tablist" aria-label="Sign in or create an account">
+            <button type="button" role="tab" aria-selected={!signup} className={!signup ? 'on' : ''} onClick={() => setMode('signin')}>
+              Sign in
+            </button>
+            <button type="button" role="tab" aria-selected={signup} className={signup ? 'on' : ''} onClick={() => setMode('signup')}>
+              Create account
+            </button>
+          </div>
+        )}
+        {!signup && (next?.startsWith('/admin') || next?.startsWith('/dashboard/admin')) && (
+          <div style={NOTE}>
+            You are opening the <b>admin area</b>. {codeRequired ? 'Sign in, then enter the code from your authenticator app.' : 'Sign in to continue.'}
           </div>
         )}
         {!signup && next?.startsWith('/dashboard/seller') && (
-          <div className="note" style={{ marginTop: 16 }}>
-            <span>
-              You are opening the <b>seller dashboard</b>. Sign in to continue.
-            </span>
+          <div style={NOTE}>
+            You are opening the <b>seller dashboard</b>. Sign in to continue.
           </div>
         )}
-
         {mode === 'forgot' ? (
           <>
             {sent ? (
-              <div className="note" style={{ marginTop: 24 }}>
-                <span>If that email has an account, a reset link is on its way. Check your inbox and spam folder.</span>
-              </div>
+              <div style={NOTE}>If that email has an account, a reset link is on its way. Check your inbox and spam folder.</div>
             ) : (
-              <form action={requestReset} onSubmit={bot ? afterSend : undefined}>
+              <form action={requestReset} onSubmit={bot ? afterSend : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="field">
                   <label htmlFor="f-mail">Email</label>
-                  <input id="f-mail" name="email" type="email" required autoComplete="email" />
+                  <input id="f-mail" name="email" className="input" type="email" placeholder="you@example.com" required autoComplete="email" />
                 </div>
                 {botCheck}
-                <button className="btn btn-blue btn-lg" type="submit" disabled={bot && !token} style={{ width: '100%', marginTop: 24 }}>
+                <button className="btn" type="submit" disabled={bot && !token}>
                   Send reset link
                 </button>
               </form>
             )}
-            <p style={{ marginTop: 20 }} className="muted">
-              <button
-                type="button"
-                style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, textDecoration: 'underline' }}
-                onClick={() => setMode('signin')}
-              >
-                Back to sign in
-              </button>
-            </p>
+            <button type="button" style={{ ...LINK, alignSelf: 'flex-start' }} onClick={() => setMode('signin')}>
+              Back to sign in
+            </button>
           </>
         ) : (
           <>
             {(signup || !live) && (
-              <div role="radiogroup" aria-label="What brings you here" className="auth-roles">
+              <div className="seg" role="radiogroup" aria-label="What brings you here">
                 {ROLES.map((r) => (
-                  <button key={r.key} type="button" role="radio" aria-checked={role === r.key} onClick={() => setRole(r.key)} className="auth-role">
-                    <span className="auth-role-ico">
-                      <RoleIcon k={r.key} />
-                    </span>
-                    <b>{r.title}</b>
-                    <span className="muted">{r.note}</span>
+                  <button key={r.key} type="button" role="radio" aria-checked={role === r.key} className={role === r.key ? 'on' : ''} onClick={() => setRole(r.key)} title={r.note}>
+                    {r.title}
                   </button>
                 ))}
               </div>
             )}
-
             <form
+              style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
               {...(live
                 ? { action: authenticate, onSubmit: bot ? afterSend : undefined }
                 : {
@@ -174,12 +134,12 @@ export function AuthClient({
               {signup && (
                 <div className="field">
                   <label htmlFor="a-name">Your name</label>
-                  <input id="a-name" name="name" required autoComplete="name" />
+                  <input id="a-name" name="name" className="input" required autoComplete="name" />
                 </div>
               )}
               <div className="field">
                 <label htmlFor="a-mail">Email</label>
-                <input id="a-mail" name="email" type="email" required autoComplete="email" />
+                <input id="a-mail" name="email" className="input" type="email" placeholder="you@example.com" required autoComplete="email" />
               </div>
               <div className="field">
                 <label htmlFor="a-pass">Password</label>
@@ -187,80 +147,59 @@ export function AuthClient({
                   <input
                     id="a-pass"
                     name="password"
+                    className="input"
                     type={show ? 'text' : 'password'}
                     minLength={8}
                     required
-                    style={{ width: '100%', paddingRight: 64 }}
+                    style={{ paddingRight: 64 }}
                     autoComplete={signup ? 'new-password' : 'current-password'}
                   />
                   <button
                     type="button"
-                    className="pw-toggle"
                     onClick={() => setShow((v) => !v)}
                     aria-pressed={show}
-                    style={{
-                      position: 'absolute',
-                      right: 14,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 0,
-                      cursor: 'pointer',
-                      color: 'var(--mute)',
-                      fontWeight: 600,
-                      fontSize: 14,
-                    }}
+                    style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 0, cursor: 'pointer', color: '#566C78', fontSize: 13 }}
                   >
                     {show ? 'Hide' : 'Show'}
                   </button>
                 </div>
-                {signup && <small>At least 8 characters.</small>}
-                {!signup && live && (
-                  <button
-                    type="button"
-                    onClick={() => setMode('forgot')}
-                    style={{ background: 'none', border: 0, padding: '11px 0', minHeight: 44, cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, fontSize: 14 }}
-                  >
-                    Forgot password?
-                  </button>
-                )}
+                {signup && <div className="tag">At least 8 characters.</div>}
               </div>
+              {!signup && live && (
+                <button type="button" onClick={() => setMode('forgot')} style={{ ...LINK, alignSelf: 'flex-end', marginTop: -6 }}>
+                  Forgot password?
+                </button>
+              )}
               {error && (
-                <p role="alert" style={{ color: 'var(--rose)', marginTop: 12 }}>
+                <p role="alert" style={{ color: '#7A2E24', margin: 0, fontSize: 14 }}>
                   {error}
                 </p>
               )}
               {botCheck}
-              <button className="btn btn-blue btn-lg" type="submit" disabled={bot && !token} style={{ width: '100%', marginTop: 24 }}>
+              <button className="btn" type="submit" disabled={bot && !token}>
                 {signup ? 'Create account' : 'Sign in'}
               </button>
               {signup && (
-                <p className="muted" style={{ marginTop: 12, fontSize: 14 }}>
+                <div className="tag" style={{ margin: 0 }}>
                   By creating an account you accept our terms of service and privacy policy.
-                </p>
+                </div>
               )}
             </form>
-
-            {live && (oauth.length > 0 || appleExisting) && <OAuthButtons next={next} providers={oauth} appleExisting={appleExisting} />}
-
-            <p style={{ marginTop: 20 }} className="muted">
-              {signup ? 'Already have an account? ' : 'New to SellOnBay? '}
-              <button
-                type="button"
-                style={{ background: 'none', border: 0, padding: '11px 0', minHeight: 44, cursor: 'pointer', color: 'var(--cobalt)', fontWeight: 600, textDecoration: 'underline' }}
-                onClick={() => setMode(signup ? 'signin' : 'signup')}
-              >
-                {signup ? 'Sign in' : 'Create an account'}
-              </button>
-            </p>
+            {live && (oauth.length > 0 || appleExisting) && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#566C78' }}>
+                  <span style={{ flex: 1, height: 1, background: '#DCE7EC' }} />
+                  or
+                  <span style={{ flex: 1, height: 1, background: '#DCE7EC' }} />
+                </div>
+                <OAuthButtons next={next} providers={oauth} appleExisting={appleExisting} />
+              </>
+            )}
           </>
         )}
-
-        {codeRequired && (
-          <p className="muted" style={{ marginTop: 8, fontSize: '14.5px' }}>
-            Sellers and admins sign in with a code from an authenticator app.
-          </p>
-        )}
+        <div className="tag" style={{ margin: 0 }}>
+          Money is held in escrow on every order.{codeRequired ? ' Sellers and admins sign in with a code from an authenticator app.' : ''}
+        </div>
       </div>
     </div>
   );

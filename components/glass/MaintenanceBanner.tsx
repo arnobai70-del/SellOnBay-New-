@@ -6,7 +6,7 @@ export async function MaintenanceBanner() {
   if (!soon.length) return null;
   const at = (t: number) => new Date(t).toISOString().slice(11, 16) + ' UTC';
   return (
-    <p className="g-banner g-banner-warn" role="status">
+    <p className="sob-note sob-note-warn" role="status">
       {soon
         .slice(0, 2)
         .map((s) => `${s.label} will pause for maintenance at ${at(s.startAt)}.`)

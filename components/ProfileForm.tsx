@@ -12,7 +12,7 @@ export function ProfileForm({ name }: { name: string }) {
   const clean = text.trim();
   return (
     <form
-      className="adm-form"
+      style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       onSubmit={async (e) => {
         e.preventDefault();
         if (busy) return;
@@ -35,18 +35,18 @@ export function ProfileForm({ name }: { name: string }) {
     >
       <div className="field">
         <label htmlFor="pf-name">Your name</label>
-        <input id="pf-name" value={text} onChange={(e) => (setText(e.target.value), setSaved(false))} maxLength={80} autoComplete="name" required />
+        <input id="pf-name" className="input" value={text} onChange={(e) => (setText(e.target.value), setSaved(false))} maxLength={80} autoComplete="name" required />
       </div>
-      <button className="btn btn-blue btn-sm" type="submit" disabled={busy || clean.length < 2 || clean === name}>
+      <button className="btn sm" type="submit" disabled={busy || clean.length < 2 || clean === name}>
         {busy ? 'Saving...' : 'Save'}
       </button>
       {saved && (
-        <p className="muted" role="status">
+        <p className="tag" style={{ margin: 0 }} role="status">
           Saved.
         </p>
       )}
       {err && (
-        <p className="form-err" role="alert">
+        <p className="tag" style={{ margin: 0, color: '#7A2E24' }} role="alert">
           {err}
         </p>
       )}

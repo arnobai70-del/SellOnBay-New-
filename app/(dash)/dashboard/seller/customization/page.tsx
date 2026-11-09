@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { DataTable } from '@/components/glass/DataTable';
-import { GlassCard } from '@/components/glass/GlassCard';
 import { SellerShell } from '@/components/glass/SellerShell';
-import { StatusPill, type PillTone } from '@/components/glass/StatusPill';
-import { CONFIG } from '@/lib/config';
-import { sellerDashboard, type SellerView } from '@/lib/dashboard';
+import { CONFIG, PLAN_KEEP_TEXT } from '@/lib/config';
+import { sellerDashboard } from '@/lib/dashboard';
 import { usd } from '@/lib/glass/orderStatus';
 import { storeProfile } from '@/lib/glass/seller';
 import { plainWords } from '@/lib/glass/words';
@@ -14,51 +11,203 @@ import { requireViewer } from '@/lib/supabase/viewer';
 export const metadata: Metadata = { title: 'Customization', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-const STATE: Record<string, [string, PillTone]> = { pending: ['Waiting for buyer', 'wait'], funded: ['Funded, start work', 'ok'], declined: ['Declined', 'bad'], cancelled: ['Taken back', 'draft'] };
+const STATE: Record<string, [string, string]> = {
+  pending: ['Waiting for buyer', 'st-wait'],
+  funded: ['Funded, start work', 'st-ok'],
+  declined: ['Declined', 'st-bad'],
+  cancelled: ['Taken back', 'st-draft'],
+};
 
-/* Extra work on an order: the seller sends it from the order page, the buyer pays it into escrow, and work starts only once it shows Funded. */
+/*
+ * design-reference/seller-customization.html. Custom work here is extra work on an order: the seller sends it from the order page (title, price,
+ * more days, only before delivery), the buyer pays it into escrow, and work starts only once it shows Funded (lib/orders/extra.ts).
+ */
 export default async function SellerCustomization() {
   const viewer = await requireViewer({ path: '/dashboard/seller/customization', roles: ['seller', 'admin'] });
   const [v, store] = viewer ? await Promise.all([sellerDashboard(viewer.id), storeProfile(viewer.id, viewer.name)]) : [null, null];
-  type Row = SellerView['extras'][number];
   const x = CONFIG.extraWork;
+  const yearFrom = Date.UTC(new Date().getUTCFullYear(), 0, 1);
+  const extras = v?.extras ?? [];
+  const waiting = extras.filter((e) => e.request.state === 'pending');
+  const funded = extras.filter((e) => e.request.state === 'funded');
+  const earned = funded.filter((e) => (e.request.fundedAt ?? 0) >= yearFrom).reduce((s, e) => s + e.request.priceCents - e.request.feeCents, 0);
+  const canSend = (v?.toDeliver ?? []).filter(({ order: o }) => ['funded', 'in_delivery'].includes(o.state));
   return (
-    <SellerShell viewer={viewer} active="customization" title="Customization" subtitle="Paid changes on top of an order. The buyer pays into escrow before you start.">
+    <SellerShell viewer={viewer} active="customization" file="seller-customization" title="Customization" head={false}>
+      <div className="row">
+        <div>
+          <h1>Customization</h1>
+          <div className="tag">Paid changes on top of an order, held in escrow. The buyer pays before you start.</div>
+        </div>
+        {store && (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 14 }}>Accepting requests</span>
+            <Link
+              className={store.customAvailable ? 'sw on' : 'sw'}
+              href="/dashboard/seller/store#profile"
+              prefetch={false}
+              aria-label={`Accepting customization requests: ${store.customAvailable ? 'on' : 'off'}. Change it in your store profile`}
+            />
+          </div>
+        )}
+      </div>
       {v && store && (
         <>
-          <GlassCard as="section">
-            <h2>How it works</h2>
-            <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-              Open an order and send an extra work request with a title, a price from {usd(x.minCents)} to {usd(x.maxCents)} and {x.minDays} to {x.maxDays} more days. Only before you deliver. Start
-              when it shows Funded.
-            </p>
-            <p className="g-tag" style={{ marginTop: 8 }}>
-              Your store {store.customAvailable ? 'shows' : 'does not show'} &ldquo;Available for customization&rdquo;. <Link href="/dashboard/seller/store">Change it</Link>
-            </p>
-          </GlassCard>
-          <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
-            <h2 style={{ padding: '0 14px 6px' }}>Extra work you sent</h2>
-            <DataTable<Row>
-              caption="Extra work you sent"
-              rows={v.extras}
-              rowKey={(r) => r.request.id}
-              empty="No extra work requests yet."
-              columns={[
-                { key: 'title', label: 'Work', cell: ({ request }) => request.title },
-                { key: 'order', label: 'Order', cell: ({ order }) => <Link href={`/orders/${order.id}`}>{plainWords(order.title)}</Link> },
-                { key: 'price', label: 'Price', cell: ({ request }) => usd(request.priceCents) },
-                { key: 'days', label: 'More days', cell: ({ request }) => `+${request.addDays}` },
-                {
-                  key: 'state',
-                  label: 'Status',
-                  cell: ({ request }) => {
-                    const [label, tone] = STATE[request.state] ?? [request.state, 'draft'];
-                    return <StatusPill tone={tone}>{label}</StatusPill>;
-                  },
-                },
-              ]}
-            />
-          </GlassCard>
+          <div className="kpis">
+            <div className="glass kpi">
+              <div className="l">Waiting for buyers</div>
+              <div className="v">{waiting.length}</div>
+              <div className="s">Sent, not paid yet</div>
+            </div>
+            <div className="glass kpi">
+              <div className="l">Active projects</div>
+              <div className="v">{funded.length}</div>
+              <div className="s">Funded, start work</div>
+            </div>
+            <div className="glass kpi">
+              <div className="l">Earned from custom work</div>
+              <div className="v">{usd(earned)}</div>
+              <div className="s">This year · {PLAN_KEEP_TEXT}</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            <section className="glass card" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="row">
+                <h2>How it works</h2>
+                <span className="status st-info">Escrow</span>
+              </div>
+              <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
+                Open an order and send extra work with a title, a price from {usd(x.minCents)} to {usd(x.maxCents)} and {x.minDays} to {x.maxDays} more days. Only before you deliver. Start when it
+                shows Funded.
+              </p>
+              <div className="tag" style={{ margin: 0 }}>
+                Your store {store.customAvailable ? 'shows' : 'does not show'} &ldquo;Available for customization&rdquo;. <Link href="/dashboard/seller/store#profile">Change it</Link>
+              </div>
+            </section>
+            <section className="glass card" style={{ flex: '999 1 440px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="row">
+                <h2>Send extra work</h2>
+                <span className="tag" style={{ margin: 0 }}>
+                  Buyer pays into escrow
+                </span>
+              </div>
+              {canSend.length ? (
+                canSend.map(({ order: o }) => (
+                  <div key={o.id} className="li" style={{ fontSize: 14 }}>
+                    <span style={{ flex: 1 }}>{plainWords(o.title)}</span>
+                    <Link className="btn sm ghost" href={`/orders/${o.id}#extra`} prefetch={false}>
+                      Send an offer
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <p className="muted" style={{ margin: 0, fontSize: 14 }}>
+                  No order can take extra work right now: it is offered on an order you have not delivered yet.
+                </p>
+              )}
+            </section>
+          </div>
+          <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} aria-disabled="true">
+            <div className="row">
+              <h2>Your offer</h2>
+              <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span className="status st-draft">Coming soon</span>
+                <span className="tag" style={{ margin: 0 }}>
+                  Buyer pays into escrow per milestone
+                </span>
+              </span>
+            </div>
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Milestone</th>
+                    <th>Days</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <label className="hidden-label" htmlFor="mt0">
+                        Milestone
+                      </label>
+                      <input id="mt0" className="input" placeholder="For example: new colours and logo" disabled style={{ minHeight: 38 }} />
+                    </td>
+                    <td style={{ width: 90 }}>
+                      <label className="hidden-label" htmlFor="md0">
+                        Days
+                      </label>
+                      <input id="md0" className="input" placeholder="2" disabled style={{ minHeight: 38 }} />
+                    </td>
+                    <td style={{ width: 110 }}>
+                      <label className="hidden-label" htmlFor="mp0">
+                        Price
+                      </label>
+                      <input id="mp0" className="input" placeholder="$40" disabled style={{ minHeight: 38 }} />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="row">
+              <button className="btn sm ghost" type="button" disabled>
+                + Add milestone
+              </button>
+              <button className="btn" type="button" disabled>
+                Send offer
+              </button>
+            </div>
+            <div className="tag" style={{ margin: 0 }}>
+              Offers in milestones are coming soon. Until then, send extra work on an order above.
+            </div>
+          </section>
+          <section className="glass" style={{ padding: '8px 8px 4px' }}>
+            <div className="row" style={{ padding: '14px 14px 4px' }}>
+              <h2>Extra work you sent</h2>
+            </div>
+            <div className="tbl">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Work</th>
+                    <th>Order</th>
+                    <th>Price</th>
+                    <th>More days</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extras.length ? (
+                    extras.map(({ order, request }) => {
+                      const [label, tone] = STATE[request.state] ?? [request.state, 'st-draft'];
+                      return (
+                        <tr key={request.id}>
+                          <td style={{ fontWeight: 500 }}>{request.title}</td>
+                          <td>
+                            <Link href={`/orders/${order.id}`} prefetch={false}>
+                              {plainWords(order.title)}
+                            </Link>
+                          </td>
+                          <td>{usd(request.priceCents)}</td>
+                          <td>+{request.addDays}</td>
+                          <td>
+                            <span className={`status ${tone}`}>{label}</span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="muted">
+                        No extra work yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </>
       )}
     </SellerShell>

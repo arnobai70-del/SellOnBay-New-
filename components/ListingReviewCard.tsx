@@ -8,18 +8,18 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 /* One listing waiting for review: what the seller wrote, the links, the price (with a way to fix it) and the decision. */
 export function ListingReviewCard({ l }: { l: QueueListing }) {
   return (
-    <div className="adm-card cat-card" data-cat={catForCategory(l.category)}>
+    <div className="sob-item sob-cat-card" data-cat={catForCategory(l.category)}>
       <h3>{l.name}</h3>
       <div className="meta">
         <span>by {l.seller}</span>
-        <span className="cat-tag">{l.category}</span>
+        <span className="sob-cat-tag">{l.category}</span>
         <span>{l.platform}</span>
         <span>{money(l.priceCents)}</span>
         <span>{l.licence ?? 'no licence type'}</span>
         {l.hasTrial && <span>has a trial copy</span>}
       </div>
       <p>{l.description}</p>
-      <ul className="checks">
+      <ul className="sob-checks">
         {l.includes.map((i) => (
           <li key={i}>{i}</li>
         ))}
@@ -41,10 +41,10 @@ export function ListingReviewCard({ l }: { l: QueueListing }) {
           </a>
         )}
         <Link href={`/product/${l.slug}`}>Listing page</Link>
-        <Link href={`/dashboard/admin/seo/product?slug=${encodeURIComponent(l.slug)}`}>Edit price and details</Link>
+        <Link href={`/admin/seo/product?slug=${encodeURIComponent(l.slug)}`}>Edit price and details</Link>
       </div>
       {l.thirdParty.length > 0 && <p className="muted">Third-party code: {l.thirdParty.map((t) => `${t.name} (${t.licence})`).join(', ')}</p>}
-      <div className="adm-btns" data-decisions>
+      <div className="sob-acts" data-decisions>
         <AdminForm
           endpoint={`/api/admin/listings/${l.slug}/decide`}
           fixed={{ decision: 'approve' }}
@@ -72,7 +72,7 @@ export function ListingReviewCard({ l }: { l: QueueListing }) {
           openLabel="Send back for changes"
           tone="line"
         />
-        <Link className="btn btn-gold btn-sm" href={`/dashboard/admin/seo/product?slug=${encodeURIComponent(l.slug)}`}>
+        <Link className="btn sm" href={`/admin/seo/product?slug=${encodeURIComponent(l.slug)}`}>
           Edit the whole listing
         </Link>
       </div>

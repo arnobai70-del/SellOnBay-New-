@@ -266,7 +266,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
   };
 
   const tool = (label: string, run: () => void, active = false, text = label) => (
-    <button type="button" className={`g-tool${active ? ' on' : ''}`} aria-label={label} aria-pressed={active} title={label} onMouseDown={(e) => e.preventDefault()} onClick={run}>
+    <button type="button" className={`sob-tool${active ? ' on' : ''}`} aria-label={label} aria-pressed={active} title={label} onMouseDown={(e) => e.preventDefault()} onClick={run}>
       {text}
     </button>
   );
@@ -274,11 +274,11 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
   const words = counts?.words ?? 0;
 
   return (
-    <div className="g-editor">
-      <div className="g-editor-main">
+    <div className="sob-editor">
+      <div className="sob-editor-main">
         <Field label="Title" value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={120} />
         {editor && (
-          <div className="g-toolbar" role="toolbar" aria-label="Formatting">
+          <div className="sob-toolbar" role="toolbar" aria-label="Formatting">
             {tool('Undo', () => editor.chain().focus().undo().run(), false, '↶')}
             {tool('Redo', () => editor.chain().focus().redo().run(), false, '↷')}
             {[1, 2, 3, 4].map((l) =>
@@ -299,8 +299,8 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             {tool('Underline', () => editor.chain().focus().toggleUnderline().run(), editor.isActive('underline'), 'U')}
             {tool('Strike', () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike'), 'S')}
             {tool('Highlight', () => editor.chain().focus().toggleHighlight({ color: '#fbefd9' }).run(), editor.isActive('highlight'), 'Mark')}
-            <label className="g-tool" title="Text colour">
-              <span className="g-sr">Text colour</span>A
+            <label className="sob-tool" title="Text colour">
+              <span className="hidden-label">Text colour</span>A
               <input type="color" onChange={(e) => editor.chain().focus().setColor(e.target.value).run()} style={{ width: 18, height: 18, border: 0, padding: 0, marginLeft: 4 }} />
             </label>
             {(['left', 'center', 'right'] as const).map((a) => tool(`Align ${a}`, () => editor.chain().focus().setTextAlign(a).run(), editor.isActive({ textAlign: a }), a[0].toUpperCase()))}
@@ -334,10 +334,10 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             <input ref={galleryRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden onChange={(e) => void addGallery(e.target.files)} />
           </div>
         )}
-        <div className="g-editor-wrap">
+        <div className="sob-editor-wrap">
           <EditorContent editor={editor} />
           {slash && slashList.length > 0 && (
-            <ul className="g-sx-pop g-glass g-slash" role="listbox" aria-label="Blocks">
+            <ul className="sob-sx-pop glass sob-slash" role="listbox" aria-label="Blocks">
               {slashList.map((b, i) => (
                 <li key={b.key} role="option" aria-selected={i === slash.i} className={i === slash.i ? 'on' : undefined}>
                   <a
@@ -347,23 +347,23 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
                       runRef.current(b);
                     }}
                   >
-                    <span className="g-sx-t">{b.label}</span>
+                    <span className="sob-sx-t">{b.label}</span>
                   </a>
                 </li>
               ))}
             </ul>
           )}
         </div>
-        <p className="g-tag">
+        <p className="tag">
           {words} words · {Math.max(1, Math.round(words / 220))} min read · {dirty ? 'Unsaved changes' : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : 'Saved'}
         </p>
       </div>
 
-      <aside className="g-editor-side g-stack">
-        <div className="g-glass g-card g-stack">
+      <aside className="sob-editor-side sob-stack">
+        <div className="glass card sob-stack">
           <h2>Publish</h2>
-          <p className="g-tag">State: {f.status}</p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+          <p className="tag">State: {f.status}</p>
+          <div className="row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             <Button variant="ghost" size="sm" onClick={() => void save('draft')}>
               Save draft
             </Button>
@@ -386,12 +386,12 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             </a>
           )}
           {msg && (
-            <p role={msg.ok ? 'status' : 'alert'} className={msg.ok ? 'g-tag' : 'g-field-e'}>
+            <p role={msg.ok ? 'status' : 'alert'} className={msg.ok ? 'tag' : 'sob-err'}>
               {msg.text}
             </p>
           )}
         </div>
-        <div className="g-glass g-card g-stack">
+        <div className="glass card sob-stack">
           <h2>Details</h2>
           <Field label="Address (slug)" value={f.slug} onChange={(e) => set('slug', e.target.value.toLowerCase())} hint="Small letters, numbers and dashes. Empty: made from the title." />
           <Field as="select" label="Category" value={f.category} onChange={(e) => set('category', e.target.value)}>
@@ -430,7 +430,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           </div>
           <Field label="Cover alt text" value={f.coverAlt} onChange={(e) => set('coverAlt', e.target.value)} maxLength={150} />
         </div>
-        <div className="g-glass g-card g-stack">
+        <div className="glass card sob-stack">
           <h2>Search and sharing</h2>
           <Field label="SEO title" value={f.metaTitle} onChange={(e) => set('metaTitle', e.target.value)} maxLength={70} hint={`${f.metaTitle.length} of about 60 shown`} />
           <Field
@@ -443,13 +443,13 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           />
           <Field label="Share picture (OG image)" value={f.ogImage} onChange={(e) => set('ogImage', e.target.value)} hint="Empty: the cover is used." />
           <Field label="Canonical address" value={f.canonical} onChange={(e) => set('canonical', e.target.value)} hint="Only when the guide first appeared elsewhere." />
-          <div className="g-li">
+          <div className="li">
             <span style={{ flex: 1 }}>Hide from search engines (noindex)</span>
             <Switch label="Hide from search engines" checked={f.noindex} onChange={(on) => set('noindex', on)} />
           </div>
         </div>
         {f.id && (
-          <div className="g-glass g-card g-stack">
+          <div className="glass card sob-stack">
             <h2>History</h2>
             {revs === null ? (
               <Button variant="ghost" size="sm" onClick={() => void loadRevisions()}>
@@ -457,17 +457,17 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
               </Button>
             ) : revs.length ? (
               revs.map((r) => (
-                <div key={r.id} className="g-li">
+                <div key={r.id} className="li">
                   <span style={{ flex: 1 }}>
                     {new Date(r.at).toLocaleString()} · {r.words} words{r.autosave ? ' · autosave' : ''}
                   </span>
-                  <button type="button" className="g-sx-link" onClick={() => void restore(r.id)}>
+                  <button type="button" className="sob-sx-link" onClick={() => void restore(r.id)}>
                     Restore
                   </button>
                 </div>
               ))
             ) : (
-              <p className="g-tag">No versions yet.</p>
+              <p className="tag">No versions yet.</p>
             )}
           </div>
         )}

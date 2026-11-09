@@ -10,7 +10,7 @@ export function PlanButton({ week }: { week: string }) {
   return (
     <div style={{ margin: '12px 0' }}>
       <button
-        className="btn btn-blue btn-sm"
+        className="btn sm"
         type="button"
         disabled={busy}
         onClick={async () => {

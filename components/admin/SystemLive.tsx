@@ -43,8 +43,8 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
   const peak = Math.max(1, ...(s.errors?.counts.byHour ?? [0]));
   return (
     <>
-      <div className="dp sys-head">
-        <span className={`sys-chip ${s.overall}`}>
+      <div className="glass card sob-sec sob-sys-head">
+        <span className={`sob-sys-chip ${s.overall}`}>
           <i />
           {OVERALL[s.overall]}
         </span>
@@ -53,10 +53,10 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         </small>
       </div>
 
-      <div className="sys-grid" aria-label="Services">
+      <div className="sob-sys-grid" aria-label="Services">
         {s.services.map((v) => (
-          <div key={v.key} className={`sys-tile ${v.tone}`}>
-            <span className="sys-tile-h">
+          <div key={v.key} className={`sob-sys-tile ${v.tone}`}>
+            <span className="sob-sys-tile-h">
               <i className={`dot ${v.tone}`} aria-hidden="true" />
               {v.label}
             </span>
@@ -66,11 +66,11 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         ))}
       </div>
 
-      <div className="sys-two">
-        <div className="dp">
+      <div className="sob-sys-two">
+        <div className="glass card sob-sec">
           <h2>This app</h2>
-          <p className="sub">The site&apos;s own process. Shared hosting does not show the host&apos;s CPU, load or disk, so they are not listed.</p>
-          <dl className="sys-dl">
+          <p className="tag">The site&apos;s own process. Shared hosting does not show the host&apos;s CPU, load or disk, so they are not listed.</p>
+          <dl className="sob-sys-dl">
             <dt>Memory in use</dt>
             <dd>{s.app.rssMb} MB</dd>
             <dt>JavaScript heap</dt>
@@ -85,9 +85,9 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             <dd>{s.build.builtAt ? when(Date.parse(s.build.builtAt)) : 'Not recorded'}</dd>
           </dl>
         </div>
-        <div className="dp">
+        <div className="glass card sob-sec">
           <h2>Database</h2>
-          <dl className="sys-dl">
+          <dl className="sob-sys-dl">
             <dt>Answers in</dt>
             <dd>{s.database.latencyMs === null ? 'Not answering' : `${s.database.latencyMs} ms`}</dd>
             <dt>Size</dt>
@@ -97,7 +97,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
               {conns === null ? (
                 'Not recorded (migration 0073)'
               ) : (
-                <span className="sys-meter">
+                <span className="sob-sys-meter">
                   <span className={`bar ${meterTone(conns)}`} style={{ width: `${Math.min(100, conns)}%` }} />
                   <span>
                     {s.database.connections} of {s.database.maxConnections} ({conns}%)
@@ -117,13 +117,13 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         </div>
       </div>
 
-      <div className="dp">
+      <div className="glass card sob-sec">
         <h2>Errors</h2>
         {!s.errors ? (
-          <p className="sub">Not recorded yet: apply migration 0072.</p>
+          <p className="tag">Not recorded yet: apply migration 0072.</p>
         ) : (
           <>
-            <div className="sys-nums">
+            <div className="sob-sys-nums">
               <span>
                 <b>{s.errors.counts.lastHour}</b> last hour
               </span>
@@ -134,14 +134,14 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
                 <b>{s.errors.counts.lastWeek}</b> last 7 days
               </span>
             </div>
-            <div className="sys-chart" role="img" aria-label={`Errors per hour over the last 24 hours, ${s.errors.counts.lastDay} in all`}>
+            <div className="sob-sys-chart" role="img" aria-label={`Errors per hour over the last 24 hours, ${s.errors.counts.lastDay} in all`}>
               {s.errors.counts.byHour.map((n, i) => (
                 <span key={i} style={{ height: `${Math.max(2, (n / peak) * 100)}%` }} className={n ? 'on' : ''} title={`${n} errors, ${23 - i} h ago`} />
               ))}
             </div>
             {s.errors.kinds.length > 0 && (
-              <div className="adm-table-wrap">
-                <table className="adm-table">
+              <div className="tbl">
+                <table className="">
                   <thead>
                     <tr>
                       <th>Where</th>
@@ -169,16 +169,16 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         )}
       </div>
 
-      <div className="dp">
+      <div className="glass card sob-sec">
         <h2>Scheduled jobs</h2>
-        <ul className="lst">
+        <ul className="sob-list">
           {s.jobs.map((j) => (
             <li key={j.job}>
-              <div className="grow">
+              <div className="sob-grow">
                 <b>{j.job === 'orders' ? 'Orders (every few minutes)' : 'Payouts (weekly)'}</b>
                 <small>Last good run {ago(j.lastGoodAt, s.at)}</small>
               </div>
-              <span className={`chip ${j.stale ? 'st-pink' : j.lastGoodAt ? 'st-mint' : 'st-plain'}`}>
+              <span className={`status ${j.stale ? 'st-bad' : j.lastGoodAt ? 'st-ok' : 'st-draft'}`}>
                 <i />
                 {j.stale ? 'Stopped' : j.lastGoodAt ? 'On time' : 'Not run yet'}
               </span>
@@ -186,10 +186,10 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           ))}
         </ul>
         {s.runs === null ? (
-          <p className="sub">Run history is not recorded yet: apply migration 0071.</p>
+          <p className="tag">Run history is not recorded yet: apply migration 0071.</p>
         ) : s.runs.length > 0 ? (
-          <div className="adm-table-wrap">
-            <table className="adm-table">
+          <div className="tbl">
+            <table className="">
               <thead>
                 <tr>
                   <th>Job</th>
@@ -211,13 +211,13 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             </table>
           </div>
         ) : (
-          <p className="sub">No runs recorded yet.</p>
+          <p className="tag">No runs recorded yet.</p>
         )}
       </div>
 
-      <div className="dp">
+      <div className="glass card sob-sec">
         <h2>Domain and safety</h2>
-        <dl className="sys-dl">
+        <dl className="sob-sys-dl">
           <dt>Certificate</dt>
           <dd>{s.safety.sslDays === null ? 'Not checked (no https address)' : `${s.safety.sslDays} days left`}</dd>
           <dt>Required settings</dt>

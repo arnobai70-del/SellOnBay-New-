@@ -70,14 +70,14 @@ export default async function MaintenanceSettings() {
     <AdminShell viewer={viewer} active="settings" title="Maintenance" subtitle="Close one area while the rest of the site stays live. Every change is in the audit log.">
       <GlassCard as="section">
         <h2>Areas</h2>
-        <p className="g-tag">The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.</p>
+        <p className="tag">The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.</p>
         {ORDER.map((k) => {
           const m = modules.find((x) => x.key === k)!;
           return (
-            <div key={k} className="g-li" style={{ flexWrap: 'wrap', gap: 8 }}>
+            <div key={k} className="li" style={{ flexWrap: 'wrap', gap: 8 }}>
               <span style={{ flex: '1 1 220px' }}>
                 <b>{MODULES[k].label}</b>
-                <span className="g-tag" style={{ display: 'block' }}>
+                <span className="tag" style={{ display: 'block' }}>
                   Still works: {MODULES[k].keeps}
                 </span>
               </span>
@@ -89,9 +89,9 @@ export default async function MaintenanceSettings() {
       </GlassCard>
       <GlassCard as="section">
         <h2>Single pages</h2>
-        <p className="g-tag">An address closes that page and everything under it, for example /domains or /guides/old-post.</p>
+        <p className="tag">An address closes that page and everything under it, for example /domains or /guides/old-post.</p>
         {pages.map((p) => (
-          <div key={p.path} className="g-li" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <div key={p.path} className="li" style={{ flexWrap: 'wrap', gap: 8 }}>
             <code style={{ flex: '1 1 200px' }}>{p.path}</code>
             {state(p.active, p.enabled)}
             <AdminForm endpoint="/api/admin/maintenance/page" openLabel="Change" submit="Save" tone="line" fixed={{ path: p.path }} fields={fields(p)} />
@@ -110,7 +110,7 @@ export default async function MaintenanceSettings() {
       </GlassCard>
       <GlassCard as="section">
         <h2>Testers</h2>
-        <p className="g-tag">
+        <p className="tag">
           Signed-in Super Admins can always use a closed area. These addresses can too, but only when the host&apos;s address header is trusted (CLIENT_IP_HEADER or TRUSTED_PROXY_HOPS), so nobody can
           pretend to be one.
         </p>

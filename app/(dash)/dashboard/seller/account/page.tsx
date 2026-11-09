@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { Button } from '@/components/glass/Button';
+import Link from 'next/link';
+import { signOut } from '@/app/(bare)/login/actions';
 import { DetailsForm } from '@/components/glass/DetailsForm';
-import { GlassCard } from '@/components/glass/GlassCard';
 import { SellerShell } from '@/components/glass/SellerShell';
 import { ProfileForm } from '@/components/ProfileForm';
 import { supabaseConfigured } from '@/lib/supabase/env';
@@ -11,6 +11,10 @@ import { requireViewer } from '@/lib/supabase/viewer';
 export const metadata: Metadata = { title: 'Account and security', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
+/*
+ * design-reference/seller-account.html: name, country and contact details (the country decides the payout methods), sign-in safety (seller pages
+ * always ask for the authenticator code), this device, selling preferences (kept in the store profile), the emails we send, buying and your data.
+ */
 export default async function SellerAccount() {
   const viewer = await requireViewer({ path: '/dashboard/seller/account', roles: ['seller', 'admin'] });
   let d = { country: '', phone: '', company: '' };
@@ -19,52 +23,109 @@ export default async function SellerAccount() {
     d = { country: data?.country ?? '', phone: data?.phone ?? '', company: data?.company ?? '' };
   }
   return (
-    <SellerShell viewer={viewer} active="account" title="Account & security" subtitle="Your details, the authenticator code and your data">
-      <div className="g-grid2">
-        <GlassCard as="section">
-          <h2>Your name</h2>
-          <div style={{ marginTop: 12 }}>
-            <ProfileForm name={viewer?.name ?? ''} />
-          </div>
-        </GlassCard>
-        <GlassCard as="section">
-          <h2>Country and contact details</h2>
-          <p className="g-tag" style={{ marginTop: 4 }}>
-            Your country decides which payout methods you can use. Buyers never see your phone or email.
-          </p>
-          <div style={{ marginTop: 12 }}>
-            <DetailsForm {...d} />
-          </div>
-        </GlassCard>
-        <GlassCard as="section">
-          <h2>Sign-in safety</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-            Seller pages always ask for your authenticator code, so a password alone never reaches your listings or payouts.
-          </p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
-            <Button variant="ghost" href="/account/sign-in">
-              Sign-in methods
-            </Button>
-            <Button variant="ghost" href="/signin?mode=forgot">
-              Change password
-            </Button>
-          </div>
-        </GlassCard>
-        <GlassCard as="section">
-          <h2>Buying</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-            Your account can buy too. Your purchases are on the buyer dashboard.
-          </p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', marginTop: 14 }}>
-            <Button variant="ghost" href="/dashboard/buyer">
-              Buyer dashboard
-            </Button>
-            <Button variant="ghost" href="/account/privacy">
-              Your data
-            </Button>
-          </div>
-        </GlassCard>
+    <SellerShell viewer={viewer} active="account" file="seller-account" title="Account & security" head={false}>
+      <div className="row">
+        <div>
+          <h1>Account &amp; security</h1>
+          <div className="tag">Profile, sign-in safety and notification settings</div>
+        </div>
       </div>
+      <div className="grid2">
+        <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <h2>Profile &amp; billing</h2>
+          <ProfileForm name={viewer?.name ?? ''} />
+          <DetailsForm {...d} />
+          <div className="tag" style={{ margin: 0 }}>
+            Buyers never see your phone or email. Your country decides which payout methods you can use; payout details live in Earnings &amp; payouts.
+          </div>
+        </section>
+        <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <h2 style={{ marginBottom: 6 }}>Sign-in safety</h2>
+          <div className="li">
+            <div style={{ flex: 1, fontSize: 14 }}>
+              <b style={{ fontWeight: 500 }}>Two-factor login</b>
+              <div className="tag">Seller pages always ask for your authenticator code</div>
+            </div>
+            <span className="status st-ok">On</span>
+          </div>
+          <div className="li">
+            <div style={{ flex: 1, fontSize: 14 }}>
+              <b style={{ fontWeight: 500 }}>Password</b>
+              <div className="tag">We email you a link to set a new one</div>
+            </div>
+            <Link className="btn sm ghost" href="/signin?mode=forgot" prefetch={false}>
+              Change
+            </Link>
+          </div>
+          <div className="li">
+            <div style={{ flex: 1, fontSize: 14 }}>
+              <b style={{ fontWeight: 500 }}>Sign-in methods</b>
+              <div className="tag">Link Google or an email link to your account</div>
+            </div>
+            <Link className="btn sm ghost" href="/account/sign-in" prefetch={false}>
+              Manage
+            </Link>
+          </div>
+        </section>
+      </div>
+      <section className="glass card">
+        <div className="row" style={{ marginBottom: 6 }}>
+          <h2>Where you&apos;re signed in</h2>
+          {viewer && (
+            <form action={signOut}>
+              <button className="btn sm warn" type="submit">
+                Sign out
+              </button>
+            </form>
+          )}
+        </div>
+        <div className="li">
+          <div style={{ flex: 1, fontSize: 14 }}>
+            <b style={{ fontWeight: 500 }}>This browser</b>
+            <div className="tag">Active now. Other devices are not listed yet; changing your password signs them out.</div>
+          </div>
+          <span className="status st-ok">This device</span>
+        </div>
+      </section>
+      <div className="grid2">
+        <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <h2>Selling preferences</h2>
+          <div className="row" style={{ fontSize: 14, minHeight: 40 }}>
+            <span>Pause my store, reply time and the customization badge</span>
+            <Link className="btn sm ghost" href="/dashboard/seller/store#profile" prefetch={false}>
+              Store profile
+            </Link>
+          </div>
+          <div className="tag" style={{ margin: 0 }}>
+            While paused, your websites stay visible but cannot be bought.
+          </div>
+        </section>
+        <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <h2 style={{ marginBottom: 6 }}>Emails</h2>
+          {['New sale and payout emails', 'Dispute and question alerts', 'Listing decisions'].map((l) => (
+            <div key={l} className="row" style={{ fontSize: 14, minHeight: 40 }}>
+              <span>{l}</span>
+              <span className="status st-ok">Always sent</span>
+            </div>
+          ))}
+        </section>
+      </div>
+      <section className="glass card">
+        <div className="row">
+          <div>
+            <h2>Buying and your data</h2>
+            <div className="tag">Your account can buy too. Download a copy of your data, or ask us to delete your account.</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Link className="btn sm ghost" href="/dashboard/buyer" prefetch={false}>
+              Buyer dashboard
+            </Link>
+            <Link className="btn sm ghost" href="/account/privacy" prefetch={false}>
+              Your data
+            </Link>
+          </div>
+        </div>
+      </section>
     </SellerShell>
   );
 }

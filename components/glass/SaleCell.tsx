@@ -14,7 +14,7 @@ export function SaleCell({ slug, sale, endpoint }: { slug: string; sale: SaleSta
         <StatusPill tone={sale.running ? 'ok' : 'info'}>
           {sale.running ? (sale.kind === 'launch' ? 'Launch' : 'Sale') : 'Planned'} · {usd(sale.saleCents)}
         </StatusPill>
-        <span className="g-tag">
+        <span className="tag">
           {utc(sale.startsAt)} to {utc(sale.endsAt)} UTC
         </span>
         <ActionButton endpoint={endpoint} label="Stop" tone="line" body={{ slug, action: 'cancel', saleId: sale.id }} />

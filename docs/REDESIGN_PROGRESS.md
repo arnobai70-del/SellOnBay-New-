@@ -91,13 +91,13 @@ None. Filled on 2026-11-09 with the owner's words (see `docs/DECISIONS.md`, "Pay
 
 ## Phase 3: done
 
-Cart in the browser priced by the server, free beta checkout (honest notice, no card or bank form), success page, `$0` order with no ledger row (an `order_events` row instead), sales and buyer emails, admin approve or decline at `/dashboard/admin/beta`, files after approval, feedback after 7 days, a review from the order page, and the sign-in screens at `/signin`, `/two-factor`, `/reset-password`, `/verify-email` with 301s keeping the query. Checked on the real database: the whole flow end to end, ledger unchanged (580 lines before and after), no files before approval, a decline needs a reason, one `main` per page.
+Cart in the browser priced by the server, free beta checkout (honest notice, no card or bank form), success page, `$0` order with no ledger row (an `order_events` row instead), sales and buyer emails, admin approve or decline at `/admin/orders/beta`, files after approval, feedback after 7 days, a review from the order page, and the sign-in screens at `/signin`, `/two-factor`, `/reset-password`, `/verify-email` with 301s keeping the query. Checked on the real database: the whole flow end to end, ledger unchanged (580 lines before and after), no files before approval, a decline needs a reason, one `main` per page.
 
 Fixed on the way: tables of 0075 and 0076 had no server grants (contact form and beta both failed on the real database; 0077 and a test), a wrong condition hid the cart button, two `main` landmarks on the beta order page, the redirect to `/signin?mode=forgot` lost its query.
 
 Not done: verify-email is the link Supabase sends, not a typed code; the test-card form and demo controls are retired in Phase 7; the admin tab moves into Orders & payments in Phase 6.
 
-What to click: sign in at `/signin` as a buyer, open a website, Add to cart, Go to checkout, send the form; then as admin open `/dashboard/admin/beta` and Approve; back as the buyer open the order from the dashboard and Download files.
+What to click: sign in at `/signin` as a buyer, open a website, Add to cart, Go to checkout, send the form; then as admin open `/admin/orders/beta` and Approve; back as the buyer open the order from the dashboard and Download files.
 
 ## Phase 3 plan (as written before the phase)
 

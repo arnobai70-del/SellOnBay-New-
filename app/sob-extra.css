@@ -1,0 +1,336 @@
+/*
+ * What the design files do not have, in their style (owner, 2026-11-09): the tokens the site search and social row use, the free-beta and
+ * maintenance notices, tabs that are links, and controls added for features the owner asked for. Everything else is app/sob.css.
+ */
+.sob-p,
+.sob-d {
+  --g-ground: #edf3f6;
+  --g-text: #2b4250;
+  --g-text-2: #3d5563;
+  --g-muted: #566c78;
+  --g-line: #dce7ec;
+  --g-line-2: #d3e2e9;
+  --g-rule: rgba(220, 231, 236, 0.9);
+  --g-mint: #cdebdf;
+  --g-mint-hover: #bde3d4;
+  --g-mint-tx: #1a5444;
+  --g-mint-tx-hover: #13453a;
+  --g-accent: #5fa88f;
+  --g-focus: #7fbfa9;
+  --g-ok-bg: #e2f3ec;
+  --g-ok-tx: #1a5444;
+  --g-wait-bg: #fbefd9;
+  --g-wait-tx: #6e4b12;
+  --g-bad-bg: #f6e3e0;
+  --g-bad-tx: #7a2e24;
+  --g-info-bg: #ddeaf6;
+  --g-info-tx: #24476b;
+  --g-draft-bg: #e8eef2;
+  --g-draft-tx: #3d5563;
+  --g-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: block;
+  min-height: 100vh;
+}
+.sob-note {
+  margin: 0;
+  padding: 8px 16px;
+  background: #ddeaf6;
+  color: #24476b;
+  font-size: 13px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.sob-note-warn {
+  background: #fbefd9;
+  color: #6e4b12;
+}
+.sob-p .seg a,
+.sob-d .seg a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #566c78;
+  text-decoration: none;
+  transition:
+    background 0.35s,
+    color 0.35s,
+    box-shadow 0.35s;
+}
+.sob-p .seg a.on,
+.sob-d .seg a.on {
+  background: #fff;
+  color: #2b4250;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(43, 66, 80, 0.08);
+}
+
+/*
+ * The older admin, buyer and seller tools (moved into the design's dashboard, owner 2026-11-09) keep some layouts the design files have no class for.
+ * These take their look from the design's own .li, .tag, .input and .status, so the tools read like the rest of the dashboard.
+ */
+:is(.sob-d, .sob-p) .sob-hd {
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+:is(.sob-d, .sob-p) .sob-hd h2 + .tag,
+:is(.sob-d, .sob-p) .sob-hd h3 + .tag {
+  margin-top: 4px;
+}
+:is(.sob-d, .sob-p) .sob-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+:is(.sob-d, .sob-p) .sob-list > li,
+:is(.sob-d, .sob-p) .sob-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(220, 231, 236, 0.9);
+  font-size: 14px;
+}
+:is(.sob-d, .sob-p) .sob-list > li:first-child,
+:is(.sob-d, .sob-p) .sob-item:first-child {
+  border-top: 0;
+}
+:is(.sob-d, .sob-p) .sob-item {
+  flex-direction: column;
+  align-items: stretch;
+}
+:is(.sob-d, .sob-p) .sob-grow {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+:is(.sob-d, .sob-p) .sob-grow small,
+:is(.sob-d, .sob-p) .sob-item small {
+  font-size: 12px;
+  color: #566c78;
+}
+:is(.sob-d, .sob-p) .sob-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+:is(.sob-d, .sob-p) .sob-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+:is(.sob-d, .sob-p) .sob-err {
+  color: #7a2e24;
+  font-size: 13px;
+}
+:is(.sob-d, .sob-p) .sob-ok {
+  color: #1a5444;
+  font-size: 13px;
+}
+:is(.sob-d, .sob-p) .sob-note-box,
+:is(.sob-d, .sob-p) .sob-alert {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fbefd9;
+  color: #6e4b12;
+  font-size: 14px;
+}
+:is(.sob-d, .sob-p) .sob-kv {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) minmax(0, 1fr);
+  gap: 6px 16px;
+  font-size: 14px;
+}
+:is(.sob-d, .sob-p) .sob-prose {
+  font-size: 14px;
+  line-height: 1.6;
+}
+:is(.sob-d, .sob-p) .field input:not([type='checkbox']):not([type='radio']):not([type='file']),
+:is(.sob-d, .sob-p) .field select,
+:is(.sob-d, .sob-p) .field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid #d3e2e9;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0 14px;
+  font: 14px var(--font-inter);
+  color: #2b4250;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+:is(.sob-d, .sob-p) .field textarea {
+  padding: 12px 14px;
+  min-height: 96px;
+  resize: vertical;
+}
+:is(.sob-d, .sob-p) .field input:focus,
+:is(.sob-d, .sob-p) .field select:focus,
+:is(.sob-d, .sob-p) .field textarea:focus {
+  outline: none;
+  border-color: #7fbfa9;
+  box-shadow: 0 0 0 4px rgba(127, 191, 169, 0.18);
+}
+:is(.sob-d, .sob-p) .field small {
+  display: block;
+  font-size: 12px;
+  color: #566c78;
+  margin-top: 4px;
+}
+:is(.sob-d, .sob-p) .sob-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+:is(.sob-d, .sob-p) .sob-label {
+  display: block;
+  font-size: 13px;
+  color: #3d5563;
+  margin-bottom: 6px;
+}
+/* The design's list buttons (.tk) and quick actions used as links: no underline, same box. */
+:is(.sob-d, .sob-p) a.tk,
+:is(.sob-d, .sob-p) a.rt,
+:is(.sob-d, .sob-p) a.role,
+:is(.sob-d, .sob-p) a.pm,
+:is(.sob-d, .sob-p) a.sw,
+:is(.sob-d, .sob-p) a.post,
+:is(.sob-d, .sob-p) a.catl,
+:is(.sob-d, .sob-p) a.cat,
+:is(.sob-d, .sob-p) a.fopt,
+:is(.sob-d, .sob-p) a.pg,
+:is(.sob-d, .sob-p) a.lic,
+:is(.sob-d, .sob-p) a.tab,
+:is(.sob-d, .sob-p) a.qa,
+:is(.sob-d, .sob-p) a.btn,
+:is(.sob-d, .sob-p) a.chk {
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+/* The one listing form (components/SellForm.tsx) inside the design's "Upload a new website" card (design-reference/seller-websites.html). */
+:is(.sob-d, .sob-p) .sob-split {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+:is(.sob-d, .sob-p) .sob-panel {
+  flex: 999 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+:is(.sob-d, .sob-p) .sob-sum {
+  flex: 1 1 260px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #dce7ec;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:is(.sob-d, .sob-p) .sob-sum h2 {
+  font-size: 17px !important;
+}
+:is(.sob-d, .sob-p) .sob-tot {
+  padding-top: 10px;
+  border-top: 1px solid #dee8ed;
+  font-weight: 500;
+}
+:is(.sob-d, .sob-p) .sob-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+:is(.sob-d, .sob-p) .sob-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:is(.sob-d, .sob-p) .sob-checks li::before {
+  content: '✓ ';
+  color: #3f8f77;
+}
+:is(.sob-d, .sob-p) .sob-upbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #566c78;
+}
+:is(.sob-d, .sob-p) .sob-upbar i {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #7fbfa9;
+}
+:is(.sob-d, .sob-p) .sob-strength {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #dce7ec;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+:is(.sob-d, .sob-p) .sob-strength ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #566c78;
+}
+:is(.sob-d, .sob-p) .sob-strength li.on {
+  color: #1a5444;
+}
+:is(.sob-d, .sob-p) .sob-clean {
+  align-items: flex-start;
+}
+:is(.sob-d, .sob-p) .sob-shots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+:is(.sob-d, .sob-p) .sob-shots img {
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #dce7ec;
+}
+:is(.sob-d, .sob-p) .field select,
+:is(.sob-d, .sob-p) .field input,
+:is(.sob-d, .sob-p) .field textarea {
+  font-family: var(--font-inter);
+}
+/* A switch drawn as a link (it opens the place where the setting is changed) shows like the design's .sw. */
+:is(.sob-d, .sob-p) a.sw {
+  display: inline-block;
+}
+
+/* A section of an older tool page inside the design shell, and a plain text link. */
+:is(.sob-p, .sob-d) .sob-sec {
+  margin-top: 20px;
+}
+:is(.sob-p, .sob-d) .sob-link {
+  color: #1a5444;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

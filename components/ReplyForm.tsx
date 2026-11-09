@@ -19,19 +19,24 @@ export function ReplyForm({ id }: { id: string }) {
     setDone(true);
   }
 
-  if (done) return <p className="ask-ok">Reply sent.</p>;
+  if (done)
+    return (
+      <p className="tag" style={{ margin: 0 }}>
+        Reply sent.
+      </p>
+    );
   return (
-    <form className="reply-form" onSubmit={send}>
-      <label className="sr" htmlFor={`reply-${id}`}>
+    <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+      <label className="hidden-label" htmlFor={`reply-${id}`}>
         Your reply
       </label>
-      <textarea id={`reply-${id}`} rows={2} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} placeholder="Write your answer" />
+      <textarea id={`reply-${id}`} className="input" rows={2} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} placeholder="Write your answer" />
       {msg && (
-        <p className="form-err" role="alert">
+        <p className="tag" style={{ margin: 0, color: '#7A2E24' }} role="alert">
           {msg}
         </p>
       )}
-      <button className="btn btn-blue btn-sm" type="submit" disabled={busy || text.trim().length < 2}>
+      <button className="btn sm" type="submit" disabled={busy || text.trim().length < 2}>
         {busy ? 'Sending…' : 'Reply'}
       </button>
     </form>

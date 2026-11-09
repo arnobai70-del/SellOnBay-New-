@@ -1,20 +1,20 @@
 import type { Metadata } from 'next';
-import { PriceTag } from '@/components/glass/PriceTag';
-import { pageCopy } from '@/lib/content/copy';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Button } from '@/components/glass/Button';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { StatusPill } from '@/components/glass/StatusPill';
-import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { JsonLd } from '@/components/JsonLd';
 import { PageExtras } from '@/components/PageExtras';
 import { TrackView } from '@/components/TrackView';
+import { PriceTag } from '@/components/glass/PriceTag';
+import { PublicFrame } from '@/components/glass/PublicFrame';
+import { ShotGallery } from '@/components/glass/ShotGallery';
+import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { betaEligible } from '@/lib/beta/rules';
-import { BUGFIX_DAYS, REVIEW_HOURS } from '@/lib/config';
-import { examplesBuyable } from '@/lib/examples';
-import { deliveryText } from '@/lib/deliveryTime';
 import { visibleProduct } from '@/lib/catalog';
+import { BUGFIX_DAYS, REVIEW_HOURS } from '@/lib/config';
+import { pageCopy } from '@/lib/content/copy';
+import { pkgOffered } from '@/lib/data';
+import { deliveryText } from '@/lib/deliveryTime';
+import { examplesBuyable } from '@/lib/examples';
 import { categoryPath, publicSellers, publicWebsites, websiteCategories, websitePath } from '@/lib/glass/catalog';
 import { publicListing } from '@/lib/glass/words';
 import { ratingOf, reviewsFor } from '@/lib/reviews';
@@ -47,153 +47,271 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return f.ctl.canonical ? m : { ...m, alternates: { ...m.alternates, canonical }, openGraph: { ...m.openGraph, url: canonical } };
 }
 
+const TINTS = ['#D3EEE4', '#DDEAF6', '#E6E2F4', '#F1E8DD'];
+const initials = (n: string) =>
+  n
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('') || 'S';
+const SHIELD = 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z';
+
+/*
+ * design-reference/website.html: the screenshots, overview, what is included, a domain and customization, reviews, and the buy box with the two
+ * licences (owner, 2026-11-09: Standard is one end website for you or one client; Extended by quotation), buyer protection and the seller.
+ * In the free beta the button asks for the website (the cart); with live payments it buys into escrow (checkout).
+ */
 export default async function Website({ params }: Props) {
   const { slug } = await params;
   const f = await find(slug);
   if (!f) notFound();
   const p = f.product;
-  const [cats, reviews, rating, settings, sites, sellers] = await Promise.all([websiteCategories(), reviewsFor(p.id), ratingOf(p.id), getSettings(), publicWebsites(), publicSellers()]);
+  const [cats, reviews, rating, settings, sites, sellers, copy] = await Promise.all([
+    websiteCategories(),
+    reviewsFor(p.id),
+    ratingOf(p.id),
+    getSettings(),
+    publicWebsites(),
+    publicSellers(),
+    pageCopy('website'),
+  ]);
   const hub = cats.of(p);
   const url = SITE_URL + websitePath(p.id);
   const seller = sellers.find((s) => s.websites.some((w) => w.id === p.id));
   const related = sites.filter((x) => x.id !== p.id && hub && cats.of(x)?.slug === hub.slug).slice(0, 3);
   const beta = settings.paymentsMode === 'beta_free';
   const requestable = p.sellerId ? betaEligible(p) : examplesBuyable();
-  const copy = await pageCopy('website'); // the words around every listing (Admin › Content › Pages)
+  const live = sites.find((x) => x.id === p.id) ?? p;
+  const tint = TINTS[[...p.id].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
+  const custom = pkgOffered(p, 'custom');
   return (
-    <div style={{ paddingTop: 32 }}>
+    <PublicFrame file="website">
       <TrackView id={p.id} />
-      <nav aria-label="Breadcrumb" className="g-tag" style={{ marginBottom: 12 }}>
-        <Link href="/websites">Websites</Link>
+      <div className="muted" style={{ fontSize: 13, padding: '32px 0 20px' }}>
+        <Link href="/websites" style={{ color: '#566C78' }} prefetch={false}>
+          Websites
+        </Link>
         {hub && (
           <>
             {' / '}
-            <Link href={categoryPath(hub.slug)}>{hub.name.replace(/ Websites$/, '')}</Link>
+            <Link href={categoryPath(hub.slug)} style={{ color: '#566C78' }} prefetch={false}>
+              {hub.name.replace(/ Websites$/, '')}
+            </Link>
           </>
         )}
         {' / '}
-        {p.name}
-      </nav>
-      <div className="g-layout-buy">
-        <div className="g-stack" style={{ minWidth: 0 }}>
-          <GlassCard pad={false} rise={false} style={{ padding: 12 }}>
-            <div className="g-thumb g-preview">
-              {p.shots?.[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element -- seller screenshots are served from our own private route, in any size
-                <img src={p.shots[0]} alt={`${p.name} screenshot`} />
-              ) : (
-                <>
-                  <span className="g-tb" />
-                  <span className="g-ln" />
-                  <span className="g-ln g-ln-s" />
-                  <span className="g-blk" />
-                </>
-              )}
-            </div>
-          </GlassCard>
-          <GlassCard as="section" rise={false}>
-            <h2>About this website</h2>
-            <p className="g-muted" style={{ marginTop: 8, fontSize: 15, lineHeight: 1.65 }}>
-              {p.desc}
-            </p>
-            {p.inc.length > 0 && (
-              <>
-                <h3 style={{ marginTop: 18 }}>{copy.t('labels', 'included')}</h3>
-                <ul className="g-list">
-                  {p.inc.map((x) => (
-                    <li key={x}>✓ {x}</li>
-                  ))}
-                </ul>
-              </>
+        <span style={{ color: '#2B4250' }}>{p.name}</span>
+      </div>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div style={{ flex: '999 1 560px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <ShotGallery shots={p.shots ?? []} name={p.name} tint={tint} />
+          <div style={{ marginTop: 18, borderBottom: '1px solid #D9E5EB' }} role="tablist" aria-label="About this website">
+            <a className="tab on" href="#overview" role="tab">
+              Overview
+            </a>
+            <a className="tab" href="#features" role="tab">
+              Features
+            </a>
+            <a className="tab" href="#reviews" role="tab">
+              Reviews
+            </a>
+          </div>
+          <div id="overview" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 6 }}>
+            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65 }}>{p.desc}</p>
+            {p.does && p.does.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+                {p.does.map((x) => (
+                  <div key={x} className="li">
+                    <span aria-hidden="true">✓</span> {x}
+                  </div>
+                ))}
+              </div>
             )}
-          </GlassCard>
-          <GlassCard as="section" rise={false} id="reviews">
-            <h2>Reviews</h2>
+          </div>
+          <div id="features" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14, marginTop: 10 }}>
+            <div className="glass" style={{ padding: 22 }}>
+              <div style={{ fontSize: 17, marginBottom: 10 }}>{copy.t('labels', 'included')}</div>
+              {(p.inc.length ? p.inc : ['Source files', 'Setup guide']).map((x, i, a) => (
+                <div key={x} className="li" style={i < a.length - 1 ? { marginBottom: 8 } : undefined}>
+                  <span aria-hidden="true">✓</span> {x}
+                </div>
+              ))}
+            </div>
+            <div className="glass" style={{ padding: 22 }}>
+              <div style={{ fontSize: 17, marginBottom: 10 }}>To run it you need</div>
+              {[p.stack ? `Hosting that runs ${p.stack}` : 'Hosting for the website', 'Or ask the seller for setup help when you order', 'A domain (you can add one below)'].map((x, i, a) => (
+                <div key={x} className="li" style={i < a.length - 1 ? { marginBottom: 8 } : undefined}>
+                  <span aria-hidden="true">·</span> {x}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div
+            className="glass"
+            style={{ marginTop: 4, padding: '20px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', borderColor: '#CFE9DF' }}
+          >
+            <div>
+              <div style={{ fontSize: 17 }}>Add a domain</div>
+              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
+                Registered in your own name and connected to this website for you
+              </div>
+            </div>
+            <Link className="btn" href="/domains" prefetch={false}>
+              Find a domain
+            </Link>
+          </div>
+          <div className="glass" style={{ marginTop: 4, padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 17 }}>Need this website customized?</div>
+              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
+                {beta ? 'Paid custom work is available after the beta.' : 'Work with the seller, paid through escrow.'}
+              </div>
+            </div>
+            {!beta && custom ? (
+              <Link className="btn" href={`/checkout?id=${encodeURIComponent(p.id)}&pkg=custom`} prefetch={false}>
+                Request customization
+              </Link>
+            ) : seller ? (
+              <Link className="btn ghost" href={`/sellers/${seller.handle}`} prefetch={false}>
+                Seller&apos;s store
+              </Link>
+            ) : null}
+          </div>
+          <section id="reviews" className="glass" style={{ padding: 22, marginTop: 4 }}>
+            <div style={{ fontSize: 17, marginBottom: 6 }}>Reviews</div>
             {reviews.length ? (
               <>
-                <p className="g-muted" style={{ marginTop: 6, fontSize: 14 }}>
+                <div className="muted" style={{ fontSize: 14 }}>
                   ★ {rating.avg.toFixed(1)} from {rating.count} verified {rating.count === 1 ? 'buyer' : 'buyers'}
-                </p>
+                </div>
                 {reviews.slice(0, 5).map((r) => (
-                  <div key={r.orderId} className="g-li" style={{ display: 'block' }}>
+                  <div key={r.orderId} className="li" style={{ display: 'block' }}>
                     <div style={{ fontSize: 14, fontWeight: 500 }}>
-                      {'★'.repeat(r.rating)} <span className="g-muted">{r.who}</span>
+                      {'★'.repeat(r.rating)} <span className="muted">{r.who}</span>
                     </div>
-                    <p className="g-muted" style={{ marginTop: 4, fontSize: 14 }}>
+                    <p className="muted" style={{ margin: '4px 0 0', fontSize: 14 }}>
                       {r.body}
                     </p>
                   </div>
                 ))}
               </>
             ) : (
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+              <p className="muted" style={{ margin: 0, fontSize: 14 }}>
                 No reviews yet. Only buyers who received this website can review it.
               </p>
             )}
-          </GlassCard>
+          </section>
         </div>
-        <div className="g-stack g-sticky">
-          <GlassCard as="section" rise={false}>
-            <h1>{p.name}</h1>
-            {p.stack && <div className="g-tag">{p.stack}</div>}
-            <div style={{ fontSize: 30, fontWeight: 300, marginTop: 10 }}>
-              <PriceTag p={sites.find((x) => x.id === p.id) ?? p} big />
+        <aside style={{ flex: '1 1 320px', maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="glass" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <h1 style={{ fontSize: 26 }}>{p.name}</h1>
+              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
+                {[p.stack, seller ? `by ${seller.name}` : null, deliveryText({ days: p.days, hours: p.hours })].filter(Boolean).join(' · ')}
+              </div>
             </div>
-            <div className="g-tag">Standard licence · one website, one domain · {deliveryText({ days: p.days, hours: p.hours })}</div>
+            <div style={{ fontSize: 40, fontWeight: 300 }}>
+              <PriceTag p={live} big />
+            </div>
             {beta && requestable && (
-              <p style={{ marginTop: 10 }}>
-                <StatusPill tone="info">Free during beta</StatusPill>
-              </p>
+              <span className="status st-info" style={{ alignSelf: 'flex-start' }}>
+                Free during beta
+              </span>
             )}
-            <div className="g-stack" style={{ marginTop: 14, gap: 8 }}>
-              {!beta ? (
-                <Button href={`/checkout?id=${encodeURIComponent(p.id)}`}>Buy with escrow</Button>
-              ) : requestable ? (
-                <Button href={`/cart?add=${encodeURIComponent(p.id)}`}>{copy.t('labels', 'cart')}</Button>
-              ) : (
-                <Button disabled>{copy.t('labels', 'after')}</Button>
-              )}
-              {p.demo && (
-                <Button variant="ghost" href={`/preview/${p.id}`} target="_blank" rel="noopener">
-                  {copy.t('labels', 'demo')}
-                </Button>
-              )}
+            <div className="lic on" role="radio" aria-checked="true">
+              <span>
+                <span style={{ display: 'block', fontWeight: 500 }}>Standard</span>
+                <span className="tag" style={{ display: 'block' }}>
+                  One end website, for you or one client
+                </span>
+              </span>
+              <span>${p.price}</span>
+            </div>{' '}
+            <Link className="lic" href="/legal/licenses" prefetch={false} role="radio" aria-checked="false">
+              <span>
+                <span style={{ display: 'block', fontWeight: 500 }}>Extended</span>
+                <span className="tag" style={{ display: 'block' }}>
+                  Several clients, resale or SaaS
+                </span>
+              </span>
+              <span className="tag" style={{ margin: 0 }}>
+                {beta ? 'After beta' : 'Quotation'}
+              </span>
+            </Link>{' '}
+            {p.demo && (
+              <Link className="btn ghost full" href={`/preview/${p.id}`} target="_blank" rel="noopener">
+                {copy.t('labels', 'demo')}
+              </Link>
+            )}{' '}
+            <Link href="/legal/licenses" style={{ fontSize: 13, textAlign: 'center' }} prefetch={false}>
+              Compare licenses
+            </Link>{' '}
+            {!beta ? (
+              <Link className="btn full" href={`/checkout?id=${encodeURIComponent(p.id)}`}>
+                Buy with escrow
+              </Link>
+            ) : requestable ? (
+              <Link className="btn full" href={`/cart?add=${encodeURIComponent(p.id)}`}>
+                {copy.t('labels', 'cart')}
+              </Link>
+            ) : (
+              <button className="btn full" type="button" disabled>
+                {copy.t('labels', 'after')}
+              </button>
+            )}
+            <div className="tag" style={{ textAlign: 'center' }}>
+              One-time purchase · Seller paid after your approval
             </div>
-            <p className="g-tag" style={{ marginTop: 10 }}>
-              Extended licence and customization: {beta ? 'available after beta' : 'ask for a quotation'}. <Link href="/legal/licenses">Compare licences</Link>
-            </p>
-          </GlassCard>
-          <GlassCard as="section" rise={false}>
-            <h2>Buyer protection</h2>
-            <ul className="g-list">
-              <li>✓ Payment held in escrow until you approve</li>
-              <li>✓ {REVIEW_HOURS} hours to review files and setup</li>
-              <li>✓ {BUGFIX_DAYS}-day bug-fix guarantee after you accept</li>
-              <li>✓ Domain registered in your own name</li>
-            </ul>
-          </GlassCard>
+          </div>
+          <div className="glass" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontWeight: 500 }}>Buyer protection</div>
+            <div className="li">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" aria-hidden="true">
+                <path d={SHIELD} />
+              </svg>
+              Payment held in escrow until you approve
+            </div>
+            <div className="li">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+              {REVIEW_HOURS} hours to review files and setup, then a {BUGFIX_DAYS}-day bug-fix guarantee
+            </div>
+            <div className="li">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
+              </svg>
+              Domain registered in your own name
+            </div>
+          </div>
           {seller && (
-            <GlassCard as="section" rise={false} className="g-row">
-              <div>
-                <h3>{seller.name}</h3>
-                <div className="g-tag">
+            <div className="glass" style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <span className="avatar" style={{ background: '#E6E2F4' }} aria-hidden="true">
+                {initials(seller.name)}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 500 }}>{seller.name}</div>
+                <div className="tag">
                   {seller.reviews > 0 ? `★ ${seller.rating.toFixed(1)} · ` : ''}
                   {seller.websites.length} {seller.websites.length === 1 ? 'website' : 'websites'}
+                  {seller.replyTime ? ` · ${seller.replyTime}` : ''}
                 </div>
               </div>
-              <Button variant="ghost" size="sm" href={`/sellers/${seller.handle}`}>
+              <Link className="btn ghost" href={`/sellers/${seller.handle}`} style={{ padding: '0 16px' }} prefetch={false}>
                 Store
-              </Button>
-            </GlassCard>
+              </Link>
+            </div>
           )}
-        </div>
+        </aside>
       </div>
       {related.length > 0 && (
-        <section className="g-sec">
-          <h2>More like this</h2>
-          <div className="g-grid3" style={{ marginTop: 18 }}>
+        <section className="sec">
+          <h2 style={{ fontSize: 28, marginBottom: 18 }}>More like this</h2>
+          <div className="grid3">
             {related.map((x) => (
-              <WebsiteCard key={x.id} p={x} reveal />
+              <WebsiteCard key={x.id} p={x} />
             ))}
           </div>
         </section>
@@ -224,6 +342,6 @@ export default async function Website({ params }: Props) {
         }}
       />
       <PageExtras path={listingPath(p.id)} urlPath={websitePath(p.id)} name={p.name} description={p.desc} defaultFaqs={productFaqs(p)} />
-    </div>
+    </PublicFrame>
   );
 }

@@ -60,16 +60,16 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
 
   return (
     <div className="pay">
-      <div className="pay-bar">
-        <Link href={back} className="pay-back">
+      <div className="sob-pay-bar">
+        <Link href={back} className="sob-pay-back">
           &lsaquo; Back
         </Link>
-        <span className="pay-test">Demo gateway. No real money moves.</span>
+        <span className="sob-pay-test">Demo gateway. No real money moves.</span>
       </div>
-      <div className="pay-grid">
-        <aside className="pay-sum" aria-label="Order summary">
-          <p className="pay-for">Pay SellOnBay</p>
-          <p className="pay-total">{money(totalCents)}</p>
+      <div className="sob-pay-grid">
+        <aside className="sob-pay-sum" aria-label="Order summary">
+          <p className="sob-pay-for">Pay SellOnBay</p>
+          <p className="sob-pay-total">{money(totalCents)}</p>
           <h1>{title}</h1>
           <ul>
             {lines.map(([l, c]) => (
@@ -79,7 +79,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
               </li>
             ))}
           </ul>
-          <div className="pay-hold">
+          <div className="sob-pay-hold">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
             </svg>
@@ -87,9 +87,9 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
           </div>
         </aside>
 
-        <form className="pay-form" onSubmit={pay} noValidate>
+        <form className="sob-pay-form" onSubmit={pay} noValidate>
           <h2>Pay with card</h2>
-          <div className="pay-tests" role="group" aria-label="Test cards">
+          <div className="sob-pay-tests" role="group" aria-label="Test cards">
             <span>Try a test card</span>
             {Object.entries(TEST_CARDS).map(([n, t]) => (
               <button key={n} type="button" onClick={() => fill(n)} title={t.note}>
@@ -119,7 +119,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
               </label>
             </>
           ) : (
-            <div className="pay-otp">
+            <div className="sob-pay-otp">
               <b>Confirm with your bank</b>
               <p>
                 Your bank sent a code. In this demo the code is <code>{DEMO_OTP}</code>.
@@ -131,14 +131,14 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
             </div>
           )}
           {err && (
-            <p className="form-err" role="alert">
+            <p className="sob-err" role="alert">
               {err}
             </p>
           )}
-          <button className="btn btn-blue btn-lg" type="submit" disabled={busy}>
+          <button className="btn" type="submit" disabled={busy}>
             {busy ? 'Processing…' : step === 'otp' ? 'Confirm and pay ' + money(totalCents) : 'Pay ' + money(totalCents)}
           </button>
-          <p className="pay-fine">Demo only. We refuse real card numbers.</p>
+          <p className="sob-pay-fine">Demo only. We refuse real card numbers.</p>
         </form>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { orderStore } from './orders/store';
 import { createAdminClient } from './supabase/server';
 
 /*
- * Posts (blog and guides) written by admins at /dashboard/admin/seo. Each has its own address (slug), meta title and meta description, so it can
+ * Posts (blog and guides) written by admins at /admin/seo. Each has its own address (slug), meta title and meta description, so it can
  * rank on its own in search. Drafts are visible only in the admin panel; published posts are at /blog/<slug>, in the sitemap and in the feed.
  * Stored in `posts` (migration 0048) and in memory without a database.
  */

@@ -1,91 +1,206 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ActionButton } from '@/components/ActionButton';
-import { AdminForm } from '@/components/AdminForm';
 import { AdminShell } from '@/components/glass/AdminShell';
-import { DataTable } from '@/components/glass/DataTable';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { StatusPill } from '@/components/glass/StatusPill';
+import { CouponForm, CouponSwitch } from '@/components/glass/CouponTools';
 import { usd } from '@/lib/glass/orderStatus';
-import { couponLive, couponSplit, type Coupon } from '@/lib/marketing/coupons';
+import { couponLive, couponSplit } from '@/lib/marketing/coupons';
 import { getSettings } from '@/lib/settings';
 import { savedCoupons } from '@/lib/site/contentStore';
+import { supabaseConfigured } from '@/lib/supabase/env';
+import { createAdminClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = { title: 'Marketing', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-/* Coupons (the platform pays the discount; sellers always get their share of the list price), and the ways to the other growth tools. */
+const nice = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+/* Emails the queue sent this month (lib/emailQueue.ts), for the design's "Emails sent" figure. */
+async function emailsWaiting(): Promise<number | null> {
+  if (!supabaseConfigured) return null;
+  const { count, error } = await createAdminClient().from('email_outbox').select('id', { count: 'exact', head: true }).in('status', ['pending', 'sending']);
+  return error ? null : (count ?? 0);
+}
+async function emailsSent(since: number): Promise<number | null> {
+  if (!supabaseConfigured) return null;
+  const { count, error } = await createAdminClient().from('email_outbox').select('id', { count: 'exact', head: true }).eq('status', 'sent').gte('sent_at', new Date(since).toISOString());
+  return error ? null : (count ?? 0);
+}
+
+/*
+ * design-reference/admin-marketing.html. Coupons work (/api/admin/coupons: add, turn on or off, remove); SellOnBay pays the discount, so the seller
+ * always gets their share of the list price. Bulletins and campaigns are not built yet: their cards stay, and say so.
+ */
 export default async function AdminMarketing() {
   const viewer = await requireViewer({ path: '/admin/marketing', roles: ['admin'], scope: 'content' });
-  const [coupons, settings] = await Promise.all([savedCoupons(0), getSettings()]);
-  const today = new Date().toISOString().slice(0, 10);
+  const now = Date.now();
+  const monthFrom = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1);
+  const [coupons, settings, sent, waiting] = await Promise.all([savedCoupons(0), getSettings(), emailsSent(monthFrom), emailsWaiting()]);
+  const today = new Date(now).toISOString().slice(0, 10);
   const example = couponSplit(4900, 10);
+  const live = coupons.filter((c) => couponLive(c, today));
   return (
-    <AdminShell viewer={viewer} active="marketing" title="Marketing" subtitle="Coupons, promotions, SEO and visitors">
-      <GlassCard as="section">
-        <h2>Coupons</h2>
-        <p className="g-tag">
-          SellOnBay pays the discount: on a $49 website with 10% off, the buyer pays {usd(example.buyerPays)}, the seller still gets {usd(example.seller)} and SellOnBay keeps {usd(example.platform)}.
-          {settings.paymentsMode === 'beta_free' ? ' Coupons apply at checkout once live payments start; in the beta nothing is charged.' : ''}
-        </p>
-        <div style={{ marginTop: 12 }}>
-          <AdminForm
-            endpoint="/api/admin/coupons"
-            openLabel="Add a coupon"
-            submit="Add coupon"
-            tone="line"
-            fixed={{ action: 'add' }}
-            fields={[
-              { name: 'code', label: 'Code (letters, numbers, dashes)', kind: 'text', required: true, max: 24 },
-              { name: 'percentOff', label: 'Percent off (1 to 90)', kind: 'text', required: true },
-              { name: 'endsOn', label: 'Last day (YYYY-MM-DD, optional)', kind: 'text' },
-              { name: 'maxUses', label: 'Most uses (optional)', kind: 'text' },
-            ]}
-          />
+    <AdminShell viewer={viewer} active="marketing" file="admin-marketing" title="Marketing" head={false}>
+      <div className="row">
+        <div>
+          <h1>Marketing</h1>
+          <div className="tag">Coupons, seller bulletins and email campaigns</div>
         </div>
-      </GlassCard>
-      <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
-        <DataTable<Coupon>
-          caption="Coupons"
-          rows={coupons}
-          rowKey={(c) => c.code}
-          empty="No coupons yet."
-          columns={[
-            { key: 'code', label: 'Code', cell: (c) => <b>{c.code}</b> },
-            { key: 'off', label: 'Off', cell: (c) => `${c.percentOff}%` },
-            { key: 'ends', label: 'Last day', cell: (c) => c.endsOn ?? 'No end' },
-            { key: 'uses', label: 'Most uses', cell: (c) => c.maxUses ?? 'No limit' },
-            { key: 'state', label: 'State', cell: (c) => (couponLive(c, today) ? <StatusPill tone="ok">On</StatusPill> : <StatusPill tone="draft">Off</StatusPill>) },
-            {
-              key: 'act',
-              label: 'Actions',
-              hideLabel: true,
-              cell: (c) => (
-                <span style={{ display: 'flex', gap: 8 }}>
-                  <ActionButton endpoint="/api/admin/coupons" label={c.active ? 'Turn off' : 'Turn on'} tone="line" body={{ action: 'toggle', code: c.code }} />
-                  <ActionButton endpoint="/api/admin/coupons" label="Remove" tone="line" body={{ action: 'remove', code: c.code }} />
-                </span>
-              ),
-            },
-          ]}
-        />
-      </GlassCard>
-      <GlassCard as="section">
-        <h2>More growth tools</h2>
+      </div>
+      <div className="kpis">
+        <div className="glass kpi">
+          <div className="l">Active coupons</div>
+          <div className="v">{live.length}</div>
+          <div className="s">{coupons.length} in all</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Discount given</div>
+          <div className="v">$0</div>
+          <div className="s">{settings.paymentsMode === 'beta_free' ? 'Free beta: nothing is charged' : 'From coupons'}</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Emails sent</div>
+          <div className="v">{sent === null ? '—' : sent.toLocaleString('en-US')}</div>
+          <div className="s">This month, by the email queue</div>
+        </div>
+        <div className="glass kpi">
+          <div className="l">Emails waiting</div>
+          <div className="v">{waiting === null ? '—' : waiting}</div>
+          <div className="s">In the queue, retried by the scheduled job</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <section className="glass" style={{ flex: '999 1 440px', minWidth: 0, padding: '8px 8px 4px' }}>
+          <div className="row" style={{ padding: '14px 14px 4px' }}>
+            <h2>Coupons &amp; offers</h2>
+            <span className="tag" style={{ margin: 0 }}>
+              $49 with 10% off: buyer pays {usd(example.buyerPays)}, seller gets {usd(example.seller)}
+            </span>
+          </div>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Discount</th>
+                  <th>Applies to</th>
+                  <th>Most uses</th>
+                  <th>Ends</th>
+                  <th>On</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coupons.length ? (
+                  coupons.map((c) => (
+                    <tr key={c.code}>
+                      <td style={{ fontWeight: 500, letterSpacing: '.04em' }}>{c.code}</td>
+                      <td>{c.percentOff}%</td>
+                      <td>All websites</td>
+                      <td>{c.maxUses ?? 'No limit'}</td>
+                      <td>{c.endsOn ? (c.endsOn < today ? 'Ended' : nice(c.endsOn)) : 'No end'}</td>
+                      <td>
+                        <CouponSwitch code={c.code} on={c.active} />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="muted">
+                      No coupons yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <CouponForm />
+      </div>
+      <div className="grid2">
+        <section className="glass card" id="bulletin" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <h2>Business bulletin</h2>
+          <div>
+            <div style={{ fontSize: 13, color: '#3D5563', marginBottom: 6 }}>Send to</div>
+            <div className="seg">
+              <button type="button" className="on" disabled>
+                All sellers
+              </button>
+              <button type="button" disabled>
+                All buyers
+              </button>
+              <button type="button" disabled>
+                Everyone
+              </button>
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="bt">Title</label>
+            <input id="bt" className="input" placeholder="e.g. Thursday payouts" disabled />
+          </div>
+          <div className="field">
+            <label htmlFor="bm">Message</label>
+            <textarea id="bm" className="input" placeholder="Write the notice…" disabled />
+          </div>
+          <div className="tag" style={{ margin: 0 }}>
+            Bulletins to everyone are not built yet. Each person still gets their own notifications and emails.
+          </div>
+        </section>
+        <section className="glass" style={{ padding: '8px 8px 4px' }}>
+          <div className="row" style={{ padding: '14px 14px 4px' }}>
+            <h2>Campaigns</h2>
+            <Link className="btn sm ghost" href="/admin/marketing/promotions" prefetch={false}>
+              Promotions
+            </Link>
+          </div>
+          <div className="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Campaign</th>
+                  <th>Channel</th>
+                  <th>Sent</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: 500 }}>Order updates and domain renewal reminders</td>
+                  <td>Email</td>
+                  <td>{sent === null ? '—' : sent}</td>
+                  <td>Automatic</td>
+                </tr>
+                <tr>
+                  <td colSpan={4} className="muted">
+                    No marketing campaigns yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <section className="glass card">
+        <div className="row">
+          <h2>More growth tools</h2>
+        </div>
         {(
           [
-            ['Promotions', '/dashboard/admin/promotions'],
-            ['SEO and blog', '/dashboard/admin/seo'],
-            ['Site builder', '/dashboard/admin/site'],
-            ['Visitors', '/admin/visitors'],
+            ['Promotions', 'Seller promotion plans and featured spots', '/admin/marketing/promotions'],
+            ['SEO and guides', 'Titles, descriptions, Search Console', '/admin/seo'],
+            ['Site builder', 'Menu, footer and page blocks', '/admin/content/site'],
+            ['Visitors', 'Who opens what', '/admin/visitors'],
           ] as const
-        ).map(([l, h]) => (
-          <div key={h} className="g-li">
-            <Link href={h}>{l}</Link>
+        ).map(([l, t, h]) => (
+          <div key={h} className="li" style={{ fontSize: 14 }}>
+            <span style={{ flex: 1 }}>
+              {l} <span className="muted">· {t}</span>
+            </span>
+            <Link className="btn sm ghost" href={h} prefetch={false}>
+              Open
+            </Link>
           </div>
         ))}
-      </GlassCard>
+      </section>
     </AdminShell>
   );
 }

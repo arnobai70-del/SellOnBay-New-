@@ -166,7 +166,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
       state: rank >= 3 ? 'done' : invited ? 'now' : 'next',
       extra:
         invited && rank < 3 ? (
-          <button className="btn btn-blue btn-sm" disabled={busy === 'confirm-access'} onClick={() => act('confirm-access')}>
+          <button className="btn sm" disabled={busy === 'confirm-access'} onClick={() => act('confirm-access')}>
             {busy === 'confirm-access' ? 'One moment...' : 'I can open the repository'}
           </button>
         ) : null,
@@ -183,7 +183,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
       state: rank >= 3 ? 'done' : 'now',
       extra:
         rank === 2 || rank === 1 ? (
-          <div className="ord-bar" role="progressbar" aria-valuenow={build} aria-valuemin={0} aria-valuemax={100}>
+          <div className="sob-ord-bar" role="progressbar" aria-valuenow={build} aria-valuemin={0} aria-valuemax={100}>
             <i style={{ width: (rank === 1 ? 4 : Math.max(4, build)) + '%' }} />
           </div>
         ) : null,
@@ -211,9 +211,9 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
   steps.push({ t: `${first} is paid`, d: rank === 4 && p.payoutAfter ? `In the weekly payout after ${day(p.payoutAfter)}` : '7 days after you accept', state: rank === 4 ? 'done' : 'next' });
 
   return (
-    <div className="wrap ord">
+    <div className="wrap sob-ord">
       {paidNow && (
-        <div className="ord-ok" role="status">
+        <div className="sob-ord-ok" role="status">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M5 12l5 5 9-10" />
           </svg>
@@ -223,9 +223,9 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           </div>
         </div>
       )}
-      <div className="ord-head">
+      <div className="sob-ord-head">
         <div>
-          <span className={'chip ' + (stage === 'accepted' ? 'mint' : stage === 'delivered' ? 'amber' : 'blue')}>
+          <span className={'status ' + (stage === 'accepted' ? 'st-ok' : stage === 'delivered' ? 'st-wait' : 'st-info')}>
             <i />
             {
               {
@@ -245,9 +245,9 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           </p>
         </div>
       </div>
-      <div className="ord-grid">
+      <div className="sob-ord-grid">
         <div>
-          <ol className="ord-tl">
+          <ol className="sob-ord-tl">
             {steps.map((s) => (
               <li key={s.t} className={'st-' + s.state}>
                 <i aria-hidden="true">
@@ -267,28 +267,28 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           </ol>
 
           {rank >= 3 && (
-            <div className="ord-live">
+            <div className="sob-ord-live">
               {live && !hire ? (
                 <>
-                  <div className="ord-win">
+                  <div className="sob-ord-win">
                     <i />
                     <i />
                     <i />
                     <span>{live}</span>
                   </div>
-                  <div className="ord-live-b">
+                  <div className="sob-ord-live-b">
                     <b>{kind === 'host' ? 'Your app is live' : 'Your site is live'}</b>
                     <p>Open it, click around, and make sure it is what you paid for.</p>
-                    <Link className="btn btn-blue btn-sm" href={`/preview/${o.productId}`} target="_blank">
+                    <Link className="btn sm" href={`/preview/${o.productId}`} target="_blank">
                       Open the site
                     </Link>
                   </div>
                 </>
               ) : (
-                <div className="ord-live-b">
+                <div className="sob-ord-live-b">
                   <b>{hire ? 'Your delivery' : dl ? 'Your files' : kind === 'store' ? 'Your test build' : 'Your installers'}</b>
                   {dl && files.length > 0 && (
-                    <ul className="ord-files">
+                    <ul className="sob-ord-files">
                       {files.map(([n, sz]) => (
                         <li key={n}>
                           <i />
@@ -308,24 +308,24 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                           : `Download links for ${(o.oses ?? []).join(', ') || 'your computers'} are in messages.`}
                   </p>
                   {dl && (
-                    <div className="ord-dl">
+                    <div className="sob-ord-dl">
                       {dlink ? (
                         <>
-                          <a className="btn btn-blue btn-sm" href={dlink.url}>
+                          <a className="btn sm" href={dlink.url}>
                             Download
                           </a>
-                          <code className="ord-key" aria-label="Licence key">
+                          <code className="sob-ord-key" aria-label="Licence key">
                             {dlink.licenseKey}
                           </code>
                           <small>Link expires {new Date(dlink.expiresAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.</small>
                         </>
                       ) : null}
-                      <button className="btn btn-line btn-sm" type="button" disabled={busy === 'files'} onClick={getFiles}>
+                      <button className="btn ghost sm" type="button" disabled={busy === 'files'} onClick={getFiles}>
                         {busy === 'files' ? 'One moment…' : dlink ? 'Get a new link' : 'Get my files'}
                       </button>
                     </div>
                   )}
-                  <Link className={dl ? 'link-u' : 'btn btn-blue btn-sm'} href="/messages">
+                  <Link className={dl ? 'sob-link' : 'btn sm'} href="/messages">
                     {dl ? 'Ask the seller a question' : 'Open messages'}
                   </Link>
                 </div>
@@ -334,36 +334,36 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
 
           {stage === 'delivered' && (
-            <div className="ord-act">
+            <div className="sob-ord-act">
               <label className="check" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexBasis: '100%', margin: '0 0 10px' }}>
                 <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ marginTop: 4 }} />
                 <span className="muted">{ACCEPT_TEXT}</span>
               </label>
-              <button className="btn btn-gold btn-lg" disabled={busy === 'accept' || !agreed} onClick={() => act('accept')}>
+              <button className="btn" disabled={busy === 'accept' || !agreed} onClick={() => act('accept')}>
                 {busy === 'accept' ? 'Accepting…' : 'Accept and release payment'}
               </button>
-              <Link className="btn btn-line btn-lg" href="/help#refunds">
+              <Link className="btn ghost" href="/help#refunds">
                 Something is wrong
               </Link>
             </div>
           )}
           {stage === 'accepted' && (
-            <div className="ord-done">
+            <div className="sob-ord-done">
               <b>All done.</b>
               <p>Your source files are released and you have a 7-day bug-fix guarantee{p.bugfixUntil ? ` until ${day(p.bugfixUntil)}` : ''}.</p>
               {o.certificate && (
-                <a className="btn btn-line btn-sm" href={`/api/demo/orders/${o.id}/certificate`} download>
+                <a className="btn ghost sm" href={`/api/demo/orders/${o.id}/certificate`} download>
                   Download your handover certificate
                 </a>
               )}
             </div>
           )}
           {NOTE[o.state] && (
-            <div className="ord-done" role="status">
+            <div className="sob-ord-done" role="status">
               <b>{NOTE[o.state][0]}</b>
               <p>{NOTE[o.state][1]}</p>
               {o.state === 'overdue' && (
-                <button className="btn btn-line btn-sm" disabled={busy === 'cancel'} onClick={() => act('cancel')}>
+                <button className="btn ghost sm" disabled={busy === 'cancel'} onClick={() => act('cancel')}>
                   {busy === 'cancel' ? 'Cancelling...' : 'Cancel and get a full refund'}
                 </button>
               )}
@@ -371,13 +371,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
           {o.paidAt && (
             <p className="muted">
-              <a className="link-u" href={`/api/demo/orders/${o.id}/evidence`} download>
+              <a className="sob-link" href={`/api/demo/orders/${o.id}/evidence`} download>
                 Download the full record of this order (PDF)
               </a>
             </p>
           )}
           {o.repo && (o.repo.revoke || (o.repo.invitedAt && o.state === 'in_delivery')) && (
-            <div className="panel" data-repo>
+            <div className="glass card" data-repo>
               <h2 style={{ fontSize: '1.2rem' }}>Repository access</h2>
               {o.repo.invitedAt && o.state === 'in_delivery' && (
                 <p>
@@ -400,9 +400,9 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             </div>
           )}
           {o.info && (
-            <div className="panel" data-info>
+            <div className="glass card" data-info>
               <h2 style={{ fontSize: '1.2rem' }}>About this product</h2>
-              <dl className="facts-list">
+              <dl className="sob-list">
                 <div>
                   <dt>What it needs</dt>
                   <dd>{o.info.requirements ?? 'No special requirements listed.'}</dd>
@@ -411,7 +411,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                   <dt>Documentation</dt>
                   <dd>
                     {o.info.docsUrl ? (
-                      <a className="link-u" href={o.info.docsUrl} target="_blank" rel="noopener noreferrer nofollow">
+                      <a className="sob-link" href={o.info.docsUrl} target="_blank" rel="noopener noreferrer nofollow">
                         Read the guide
                       </a>
                     ) : (
@@ -452,13 +452,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             </div>
           )}
           {o.held && (
-            <p className="panel" role="status">
+            <p className="glass card" role="status">
               This order is waiting for a short safety check by our team. Your money is safe in escrow. The seller starts, and your files are released, as soon as it is cleared. The delivery timer is
               paused until then.
             </p>
           )}
           {err && (
-            <p className="form-err" role="alert">
+            <p className="sob-err" role="alert">
               {err}
             </p>
           )}
@@ -469,7 +469,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
 
           {o.canReview && (
-            <div className="panel ord-dispute">
+            <div className="glass card sob-ord-dispute">
               <h2 style={{ fontSize: '1.2rem' }}>Leave a review</h2>
               <p className="muted">Only buyers can review, so other people can trust it. Keep contact details and links out.</p>
               <div className="field">
@@ -486,13 +486,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <label htmlFor="rv-note">What was it like? (optional)</label>
                 <textarea id="rv-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} />
               </div>
-              <button className="btn btn-blue btn-sm" type="button" disabled={busy === 'review'} onClick={sendReview}>
+              <button className="btn sm" type="button" disabled={busy === 'review'} onClick={sendReview}>
                 {busy === 'review' ? 'Sending...' : 'Post review'}
               </button>
             </div>
           )}
           {o.review && (
-            <div className="ord-done" role="status">
+            <div className="sob-ord-done" role="status">
               <b>Thanks for your review.</b>
               <p>
                 {'★'.repeat(o.review.rating)} {o.review.body}
@@ -500,7 +500,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             </div>
           )}
           {o.dispute && (
-            <div className="ord-done" role="status">
+            <div className="sob-ord-done" role="status">
               <b>{o.dispute.status === 'decided' ? 'Problem decided' : 'Problem reported'}</b>
               <p>
                 {o.dispute.status === 'decided'
@@ -512,12 +512,12 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             </div>
           )}
           {o.canDispute && !showDispute && (
-            <button className="btn btn-line btn-sm" type="button" onClick={() => setShowDispute(true)}>
+            <button className="btn ghost sm" type="button" onClick={() => setShowDispute(true)}>
               Report a problem
             </button>
           )}
           {showDispute && (
-            <div className="panel ord-dispute">
+            <div className="glass card sob-ord-dispute">
               <h2 style={{ fontSize: '1.2rem' }}>Report a problem</h2>
               <p className="muted">Payment stays held while we look. Say what is wrong in your own words. Keep contact details out, we decide here.</p>
               <div className="field">
@@ -534,21 +534,21 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <label htmlFor="d-detail">What happened (at least 20 characters)</label>
                 <textarea id="d-detail" rows={4} value={detail} onChange={(e) => setDetail(e.target.value)} maxLength={2000} />
               </div>
-              <div className="ord-extra-btns">
-                <button className="btn btn-blue btn-sm" type="button" disabled={busy === 'dispute' || detail.trim().length < 20} onClick={openDispute}>
+              <div className="sob-ord-extra-btns">
+                <button className="btn sm" type="button" disabled={busy === 'dispute' || detail.trim().length < 20} onClick={openDispute}>
                   {busy === 'dispute' ? 'Sending...' : 'Send report'}
                 </button>
-                <button className="btn btn-line btn-sm" type="button" onClick={() => setShowDispute(false)}>
+                <button className="btn ghost sm" type="button" onClick={() => setShowDispute(false)}>
                   Cancel
                 </button>
               </div>
             </div>
           )}
           {o.extras.length > 0 && (
-            <div className="ord-extras" id="extra" aria-label="Extra work">
+            <div className="sob-ord-extras" id="extra" aria-label="Extra work">
               <b>Extra work</b>
               {o.extras.map((x) => (
-                <div className="ord-extra" key={x.id}>
+                <div className="sob-ord-extra" key={x.id}>
                   <div>
                     <span>{x.title}</span>
                     <small>
@@ -557,11 +557,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                     </small>
                   </div>
                   {x.state === 'pending' && (
-                    <div className="ord-extra-btns">
-                      <button className="btn btn-blue btn-sm" disabled={busy === 'extra:' + x.id} onClick={() => extraAct(x.id, 'approve')}>
+                    <div className="sob-ord-extra-btns">
+                      <button className="btn sm" disabled={busy === 'extra:' + x.id} onClick={() => extraAct(x.id, 'approve')}>
                         Approve and pay {money(x.priceCents)}
                       </button>
-                      <button className="btn btn-line btn-sm" disabled={busy === 'extra:' + x.id} onClick={() => extraAct(x.id, 'decline')}>
+                      <button className="btn ghost sm" disabled={busy === 'extra:' + x.id} onClick={() => extraAct(x.id, 'decline')}>
                         Decline
                       </button>
                     </div>
@@ -577,7 +577,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
 
           {o.events.length > 0 && (
-            <details className="ord-log">
+            <details className="sob-ord-log">
               <summary>Order history</summary>
               <ul>
                 {o.events.map((e, i) => (
@@ -590,24 +590,24 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
 
           {!o.real && stage !== 'accepted' && stage !== 'awaiting_payment' && stage !== 'cancelled' && (
-            <div className="ord-demo">
+            <div className="sob-ord-demo">
               <div>
                 <b>Demo controls</b>
                 <span>Real {hire ? 'developers' : 'sellers'} take 1 to 7 days and you get 48 hours to review. Here you can jump ahead.</span>
               </div>
               {['funded', 'in_delivery', 'overdue'].includes(o.state) && o.kind === 'site' && (
-                <button className="btn btn-line btn-sm" disabled={busy === 'demo-extra'} onClick={demoExtra}>
+                <button className="btn ghost sm" disabled={busy === 'demo-extra'} onClick={demoExtra}>
                   Pretend the seller asks for extra work
                 </button>
               )}
-              <button className="btn btn-line btn-sm" disabled={busy === 'skip'} onClick={() => act('skip')}>
+              <button className="btn ghost sm" disabled={busy === 'skip'} onClick={() => act('skip')}>
                 {stage === 'delivered' ? 'Skip the 48 hours' : 'Skip to delivery'}
               </button>
             </div>
           )}
         </div>
 
-        <aside className="panel sum ord-rcpt" aria-label="Receipt">
+        <aside className="glass card sum sob-ord-rcpt" aria-label="Receipt">
           <h2>Receipt</h2>
           {o.lines.map(([l, c]) => (
             <div className="line" key={l}>
@@ -615,12 +615,12 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               <b>{money(c)}</b>
             </div>
           ))}
-          <div className="tot">
+          <div className="sob-tot">
             <span>Total</span>
             <b>{money(o.totalCents)}</b>
           </div>
           {o.payment && (
-            <p className="ord-pay">
+            <p className="sob-ord-pay">
               Paid with {o.payment.brand} ending {o.payment.last4}
               <br />
               <small>{o.payment.ref}</small>

@@ -41,17 +41,18 @@ export function ResetClient() {
   };
 
   return (
-    <div className="auth">
-      <div className="form" style={{ gridColumn: '1/-1', maxWidth: 460, margin: '0 auto' }}>
-        <h1 style={{ fontSize: '2.4rem' }}>Choose a new password</h1>
-        <p className="muted" style={{ marginTop: 8 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
+      <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
+        <h1 style={{ fontSize: 30, fontWeight: 400 }}>Choose a new password</h1>
+        <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
           You will be signed in right after.
         </p>
-        <form onSubmit={submit}>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="field">
             <label htmlFor="r-pw">New password</label>
             <div style={{ position: 'relative' }}>
               <input
+                className="input"
                 id="r-pw"
                 type={show ? 'text' : 'password'}
                 value={pw}
@@ -85,18 +86,18 @@ export function ResetClient() {
           </div>
           <div className="field">
             <label htmlFor="r-pw2">Type it again</label>
-            <input id="r-pw2" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} required autoComplete="new-password" />
+            <input className="input" id="r-pw2" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} required autoComplete="new-password" />
           </div>
           {error && (
-            <p role="alert" style={{ color: 'var(--rose)', marginTop: 12 }}>
+            <p role="alert" style={{ color: '#7A2E24', margin: 0 }}>
               {error}
             </p>
           )}
-          <button className="btn btn-blue btn-lg" type="submit" disabled={busy} style={{ width: '100%', marginTop: 24 }}>
+          <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
             {busy ? 'Saving' : 'Save password'}
           </button>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

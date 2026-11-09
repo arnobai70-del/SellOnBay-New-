@@ -1,10 +1,8 @@
-'use client';
 import Link from 'next/link';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment } from 'react';
 import { signOut } from '@/app/(bare)/login/actions';
 import { BRAND_NAME } from '@/lib/brand';
 import { ROLE_MENUS, type GlassRole } from '@/lib/glass/nav';
-import { Button } from './Button';
 import { GlassPage } from './GlassPage';
 
 const initials = (name: string) =>
@@ -15,17 +13,21 @@ const initials = (name: string) =>
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('') || 'U';
 
+/* The avatar colour of each role in the design files (admin.html, buyer.html, seller-dashboard.html). */
+const AV: Record<GlassRole, string> = { admin: '#E6E2F4', buyer: '#DDEAF6', seller: '#E6E2F4' };
+
 /*
- * The sidebar and top bar for all three roles, with the same main props as the old DashShell so pages can move over one at a time. `title` is the page's only h1.
- * `search` and `sideCard` are empty places for what later phases add (global search, the switch to selling, the public store link, system health).
+ * The sidebar and top bar of design-reference/admin.html, buyer.html and seller-dashboard.html, ported as they are: .side with .mi items and .grp
+ * headings, the side card, and the .topbar with search, the main button, notifications, language and the person. `file` is the design file the page
+ * is ported from, so its own rules apply. `title` is the page's only h1.
  */
 export function DashboardShell({
   role,
+  file,
   active,
   title,
   subtitle,
   actions,
-  search,
   sideCard,
   children,
   name,
@@ -34,14 +36,16 @@ export function DashboardShell({
   badges,
   unread = 0,
   hideCta = false,
+  search,
+  head = true,
 }: {
   role: GlassRole;
+  file?: string;
   /* The key of the current menu item in lib/glass/nav.ts. */
   active: string;
   title: string;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
-  search?: React.ReactNode;
   sideCard?: React.ReactNode;
   children: React.ReactNode;
   name?: string;
@@ -52,112 +56,115 @@ export function DashboardShell({
   unread?: number;
   /* Hide the top bar's main button (the admin's manual order while the free beta runs). */
   hideCta?: boolean;
+  /* Where the top bar's search goes (a GET form with q), and what it says. */
+  search?: { action: string; placeholder: string };
+  /* Draw the page's heading row (h1, subtitle, actions); a page that ports its own heading row turns it off. */
+  head?: boolean;
 }) {
   const menu = ROLE_MENUS[role];
   const shown = name || 'Your account';
-  const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
   // Only an admin may look at the other dashboards.
   const others = signedIn && viewerRole === 'admin' ? (['admin', 'seller', 'buyer'] as const).filter((r) => r !== role) : [];
-
-  // The phone menu: Escape closes it and the page behind does not scroll while it is open.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('keydown', onKey);
-    document.documentElement.classList.add('sheet-open');
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.documentElement.classList.remove('sheet-open');
-    };
-  }, [open]);
-
+  const find = search ?? menu.search;
   return (
-    <GlassPage>
-      <div className={'g-shell' + (open ? ' g-shell-open' : '')}>
-        <aside className="g-glass g-side" id="g-dash-menu" aria-label={`${menu.label} menu`}>
-          <Link className="g-logo" href="/">
-            <span className="g-dot" aria-hidden="true" />
-            {BRAND_NAME} <span className="g-tag">{menu.label}</span>
+    <GlassPage kind="d" file={file ?? menu.file}>
+      <div className="shell">
+        <aside className="glass side" aria-label={`${menu.label} menu`}>
+          <Link className="logo" href="/" prefetch={false}>
+            <span className="dot" aria-hidden="true" />
+            {BRAND_NAME}{' '}
+            <span className="tag" style={{ margin: '0 0 0 2px' }}>
+              {menu.label}
+            </span>
           </Link>
-          <button className="g-iconbtn g-side-x" type="button" aria-label="Close menu" onClick={close}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-          <nav aria-label={`${menu.label} pages`}>
-            {menu.groups.map((g) => (
-              <Fragment key={g.name ?? 'main'}>
-                {g.name && <div className="g-grp">{g.name}</div>}
-                {g.items.map((i) => {
-                  const waiting = badges?.[i.key] ?? 0;
-                  return (
-                    <Link key={i.key} className="g-mi" href={i.href} aria-current={i.key === active ? 'page' : undefined} onClick={close}>
-                      <span>{i.label}</span>
-                      {waiting > 0 && (
-                        <span className="g-cnt" aria-label={`${waiting} new`}>
-                          {waiting}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </Fragment>
-            ))}
-            {others.length > 0 && <div className="g-grp">Switch view</div>}
-            {others.map((r) => (
-              <Link key={r} className="g-mi" href={ROLE_MENUS[r].home} onClick={close}>
-                <span>{ROLE_MENUS[r].label} view</span>
-              </Link>
-            ))}
-          </nav>
-          {sideCard && <div className="g-side-card">{sideCard}</div>}
-          {signedIn && (
-            <form className="g-side-ft" action={signOut}>
-              <Button type="submit" variant="ghost" size="sm">
-                Sign out
-              </Button>
-            </form>
-          )}
-        </aside>
-        {open && <button className="g-scrim" type="button" aria-hidden="true" tabIndex={-1} onClick={close} />}
-        <div className="g-col">
-          <header className="g-glass g-top">
-            <button className="g-iconbtn g-menu-btn" type="button" aria-label="Open menu" aria-expanded={open} aria-controls="g-dash-menu" onClick={() => setOpen((o) => !o)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              </svg>
-            </button>
-            {search ? <div className="g-top-search">{search}</div> : <div className="g-top-gap" />}
-            {!hideCta && <Button href={menu.cta.href}>{menu.cta.label}</Button>}
-            <Link className="g-iconbtn" href={menu.notifications} aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M6 9a6 6 0 0 1 12 0c0 6 2 8 2 8H4s2-2 2-8M10 21a2 2 0 0 0 4 0" />
-              </svg>
-              {unread > 0 && (
-                <span className="g-iconbtn-b" aria-hidden="true">
-                  {unread}
-                </span>
-              )}
+          {menu.groups.map((g) => (
+            <Fragment key={g.name ?? 'main'}>
+              {g.name && <div className="grp">{g.name}</div>}
+              {g.items.map((i) => {
+                const waiting = badges?.[i.key] ?? 0;
+                return (
+                  <Link key={i.key} className={i.key === active ? 'mi on' : 'mi'} href={i.href} prefetch={false} aria-current={i.key === active ? 'page' : undefined}>
+                    <span>{i.label}</span>
+                    {waiting > 0 && (
+                      <span className="cnt" aria-label={`${waiting} waiting`}>
+                        {waiting}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </Fragment>
+          ))}
+          {others.length > 0 && <div className="grp">Switch view</div>}
+          {others.map((r) => (
+            <Link key={r} className="mi" href={ROLE_MENUS[r].home} prefetch={false}>
+              <span>{ROLE_MENUS[r].label} view</span>
             </Link>
-            <div className="g-me" title={`${shown} · ${menu.label}`}>
-              <span className="g-av" aria-hidden="true">
+          ))}
+          <div style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
+            {sideCard}
+            {signedIn && (
+              <form action={signOut} style={{ marginTop: sideCard ? 8 : 0 }}>
+                <button type="submit" className="tag" style={{ display: 'block', margin: 0, padding: 0, border: 0, background: 'none', cursor: 'pointer', color: '#1A5444' }}>
+                  Sign out
+                </button>
+              </form>
+            )}
+          </div>
+        </aside>
+        <div className="col">
+          <header className="glass topbar">
+            <form className="gsearch" action={find.action} method="get" role="search">
+              <label htmlFor="gs" className="hidden-label">
+                {role === 'admin' ? 'Search everything' : 'Search'}
+              </label>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input id="gs" name="q" placeholder={find.placeholder} enterKeyHint="search" />
+              <kbd>Ctrl K</kbd>
+            </form>
+            {!hideCta && (
+              <Link className="btn" href={menu.cta.href} prefetch={false}>
+                {menu.cta.label}
+              </Link>
+            )}
+            <Link className="iconbtn" href={menu.notifications} prefetch={false} aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
+                <path d="M10 21a2 2 0 0 0 4 0" />
+              </svg>
+              {unread > 0 && <span className="b">{unread}</span>}
+            </Link>
+            <label htmlFor="lang" className="hidden-label">
+              Language
+            </label>
+            <select id="lang" className="input" style={{ width: 'auto', minWidth: 110, borderRadius: 999 }} defaultValue="en">
+              <option value="en">English</option>
+            </select>
+            <div className="me">
+              <span className="av" style={{ background: AV[role] }} aria-hidden="true">
                 {initials(shown)}
               </span>
-              <div className="g-me-t">
-                <div className="g-me-n">{shown}</div>
-                <div className="g-tag">{menu.label}</div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{shown}</div>
+                <div className="tag" style={{ margin: 0 }}>
+                  {menu.label}
+                </div>
               </div>
             </div>
           </header>
-          <main id="main" className="g-stack">
-            <div className="g-row">
-              <div>
-                <h1>{title}</h1>
-                {subtitle && <div className="g-tag">{subtitle}</div>}
+          <main id="main" style={{ display: 'contents' }}>
+            {head && (
+              <div className="row">
+                <div>
+                  <h1>{title}</h1>
+                  {subtitle && <div className="tag">{subtitle}</div>}
+                </div>
+                {actions}
               </div>
-              {actions}
-            </div>
+            )}
             {children}
           </main>
         </div>

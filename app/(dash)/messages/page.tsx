@@ -17,26 +17,26 @@ export default async function Messages({ searchParams }: { searchParams: Promise
   const orders = id ? (await (await orderStore()).forUser(id)).filter((o) => !!o.fundedAt && o.state !== 'cancelled' && o.state !== 'refunded') : [];
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role={role} active="messages" title="Messages">
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>Your order chats</h2>
-            <p className="sub">Each paid order has its messages with SellOnBay here, and the earlier buyer and seller chat to read. Emails, phone numbers, links and outside payments are blocked.</p>
+            <p className="tag">Each paid order has its messages with SellOnBay here, and the earlier buyer and seller chat to read. Emails, phone numbers, links and outside payments are blocked.</p>
           </div>
         </div>
         {!supabaseConfigured && <p className="muted">In demo mode there are no accounts, so each order has its chat on its own order page, under the timeline.</p>}
         {supabaseConfigured && orders.length === 0 && <p className="muted">No chats yet. Once you buy something, or a buyer pays for your listing, the chat for that order shows up here.</p>}
-        <ul className="lst">
+        <ul className="sob-list">
           {orders.map((o) => (
             <li key={o.id}>
               <span className="av">{o.title[0]?.toUpperCase()}</span>
-              <div className="grow">
+              <div className="sob-grow">
                 <b>{o.title}</b>
                 <small>
                   You are the {roleIn(o, id)} · order {o.id.slice(0, 8).toUpperCase()} · {o.state.replace('_', ' ')}
                 </small>
               </div>
-              <Link className="btn btn-line btn-sm" href={`/messages/${o.id}?view=${role}`}>
+              <Link className="btn ghost sm" href={`/messages/${o.id}?view=${role}`}>
                 Open chat
               </Link>
             </li>

@@ -34,29 +34,29 @@ export function MfaClient({ next }: { next: string }) {
   };
 
   return (
-    <div className="auth">
-      <div className="form" style={{ gridColumn: '1/-1', maxWidth: 460, margin: '0 auto' }}>
-        <h1 style={{ fontSize: '2.4rem' }}>Enter your code</h1>
-        <p className="muted" style={{ marginTop: 8 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
+      <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
+        <h1 style={{ fontSize: 30, fontWeight: 400 }}>Enter your code</h1>
+        <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
           {qr ? 'Scan this with an authenticator app, then enter the 6-digit code.' : 'Open your authenticator app and enter the 6-digit code.'}
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {qr && <img src={qr} alt="QR code for your authenticator app" width={180} height={180} style={{ marginTop: 20 }} />}
-        <form onSubmit={verify}>
+        <form onSubmit={verify} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="field">
             <label htmlFor="mfa-code">Code</label>
-            <input id="mfa-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
+            <input className="input" id="mfa-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
           </div>
           {error && (
-            <p role="alert" style={{ color: 'var(--rose)', marginTop: 12 }}>
+            <p role="alert" style={{ color: '#7A2E24', margin: 0 }}>
               {error}
             </p>
           )}
-          <button className="btn btn-blue btn-lg" type="submit" disabled={!factorId} style={{ width: '100%', marginTop: 24 }}>
+          <button className="btn" type="submit" disabled={!factorId} style={{ width: '100%' }}>
             Continue
           </button>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

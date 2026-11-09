@@ -15,14 +15,14 @@ export default async function PagesAdmin() {
     <AdminShell viewer={viewer} active="pages" title="Pages" subtitle="Edit the words, buttons and sections of the public pages. Listings, prices and sellers come from the live data.">
       <GlassCard as="section">
         {PAGES.map((p) => (
-          <div key={p.key} className="g-li">
+          <div key={p.key} className="li">
             <span style={{ flex: 1 }}>
               <b>{p.label}</b>
-              <span className="g-tag" style={{ display: 'block' }}>
+              <span className="tag" style={{ display: 'block' }}>
                 {p.legal ? 'Versioned legal document, published by a Super Admin' : p.path.startsWith('/') ? p.path : `${p.label}, on every page`}
               </span>
             </span>
-            {p.legal ? <Link href="/dashboard/admin/legal">Open legal documents</Link> : <Link href={`/admin/content/pages/edit?key=${p.key}`}>Edit</Link>}
+            {p.legal ? <Link href="/admin/settings/legal">Open legal documents</Link> : <Link href={`/admin/content/pages/edit?key=${p.key}`}>Edit</Link>}
           </div>
         ))}
       </GlassCard>

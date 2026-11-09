@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { AuthClient } from '@/components/AuthClient';
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import { authenticatorRequired } from '@/lib/auth/authenticator';
 import { signInOptions } from '@/lib/auth/socialService';
 import { liveSiteKey } from '@/lib/bot/turnstile';
+import { BRAND_NAME } from '@/lib/brand';
 import { supabaseConfigured } from '@/lib/supabase/env';
 
 export const metadata: Metadata = {
@@ -12,12 +15,21 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-/* The sign-in logic is unchanged (components/AuthClient.tsx and its server actions): every safety check stays. Only the look and the address moved. */
+/*
+ * design-reference/signin.html: the logo alone on top, then the card. The sign-in logic is unchanged (components/AuthClient.tsx and its server
+ * actions): every safety check stays.
+ */
 export default async function SignIn({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; sent?: string; mode?: string }> }) {
   const { error, next, sent, mode } = await searchParams;
   const social = await signInOptions(); // providers switched on in Supabase AND by SellOnBay's flags; Apple only as a secondary link
   return (
-    <div className="g-auth">
+    <PublicFrame file="signin" chrome={false}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+        <Link className="logo" href="/" style={{ padding: '18px 0' }} prefetch={false}>
+          <span className="dot" aria-hidden="true" />
+          {BRAND_NAME}
+        </Link>
+      </div>
       <AuthClient
         live={supabaseConfigured}
         error={error}
@@ -29,6 +41,6 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
         appleExisting={social.appleExisting}
         codeRequired={authenticatorRequired()}
       />
-    </div>
+    </PublicFrame>
   );
 }

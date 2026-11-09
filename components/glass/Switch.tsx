@@ -17,7 +17,7 @@ export function Switch({ label, checked, defaultChecked = false, onChange, disab
   return (
     <button
       type="button"
-      className="g-sw"
+      className={on ? 'sw on' : 'sw'}
       role="switch"
       aria-checked={on}
       aria-label={label}
@@ -26,8 +26,6 @@ export function Switch({ label, checked, defaultChecked = false, onChange, disab
         if (checked === undefined) setOwn(!on);
         onChange?.(!on);
       }}
-    >
-      <span className="g-sw-t" />
-    </button>
+    />
   );
 }

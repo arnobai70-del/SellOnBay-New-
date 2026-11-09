@@ -128,17 +128,17 @@ export function SearchBox({
             go(r.href);
           }}
         >
-          <span className="g-sx-t">
+          <span className="sob-sx-t">
             <Marked text={r.title} q={typed} />
           </span>
-          {r.sub && <span className="g-sx-s">{r.sub}</span>}
+          {r.sub && <span className="sob-sx-s">{r.sub}</span>}
         </a>
       </li>
     );
   };
 
   return (
-    <div className={`g-sx${compact ? ' g-sx-compact' : ''}`} ref={box}>
+    <div className={`sob-sx${compact ? ' sob-sx-compact' : ''}`} ref={box}>
       <form
         action={action}
         method="get"
@@ -151,12 +151,12 @@ export function SearchBox({
           } else if (typed) saveRecent(typed);
         }}
       >
-        <label className="g-sr" htmlFor={`${id}-q`}>
+        <label className="hidden-label" htmlFor={`${id}-q`}>
           {label}
         </label>
         <input
           id={`${id}-q`}
-          className="g-input"
+          className="input"
           name="q"
           type="search"
           autoComplete="off"
@@ -194,14 +194,14 @@ export function SearchBox({
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-        <button className="g-btn g-btn-sm" type="submit">
+        <button className="btn sm" type="submit">
           Search
         </button>
       </form>
       {open && all.length > 0 && (
-        <div className="g-sx-pop g-glass" id={`${id}-list`} role="listbox" aria-label="Search suggestions">
+        <div className="sob-sx-pop glass" id={`${id}-list`} role="listbox" aria-label="Search suggestions">
           {shown && !shown.total && (
-            <div className="g-sx-none">
+            <div className="sob-sx-none">
               <p>No results for &ldquo;{typed}&rdquo;.</p>
               {shown.didYouMean.length > 0 && (
                 <p>
@@ -209,7 +209,7 @@ export function SearchBox({
                   {shown.didYouMean.map((s, i) => (
                     <span key={s}>
                       {i > 0 && ', '}
-                      <button type="button" className="g-sx-link" onClick={() => setQ(s)}>
+                      <button type="button" className="sob-sx-link" onClick={() => setQ(s)}>
                         {s}
                       </button>
                     </span>
@@ -221,11 +221,11 @@ export function SearchBox({
           )}
           {sections.map(([name, list]) => (
             <div key={name}>
-              <div className="g-sx-h">{name}</div>
+              <div className="sob-sx-h">{name}</div>
               <ul>{list.map((r) => item(r, `${name}-${r.href}`))}</ul>
             </div>
           ))}
-          {seeAll.length > 0 && <ul className="g-sx-all">{seeAll.map((r) => item(r, 'all'))}</ul>}
+          {seeAll.length > 0 && <ul className="sob-sx-all">{seeAll.map((r) => item(r, 'all'))}</ul>}
         </div>
       )}
     </div>

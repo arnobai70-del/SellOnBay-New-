@@ -44,10 +44,10 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
           after your payment is verified and SellOnBay approves the release.
         </p>
         {attempts.length > 0 && (
-          <ul className="lst" style={{ marginTop: 16 }}>
+          <ul className="sob-lst" style={{ marginTop: 16 }}>
             {attempts.map((a) => (
               <li key={a.id}>
-                <div className="grow">
+                <div className="sob-grow">
                   <b>
                     {(a.amountClaimedCents / 100).toFixed(2)} {a.currency}, reference {a.reference}
                   </b>
@@ -98,7 +98,7 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
         <p className="muted" style={{ marginTop: 12 }}>
           Your order is awaiting payment and will not be delivered or funded until a real checkout is available.
         </p>
-        <Link href={back} className="btn btn-blue" style={{ marginTop: 24 }}>
+        <Link href={back} className="btn" style={{ marginTop: 24 }}>
           Return to listing
         </Link>
       </div>

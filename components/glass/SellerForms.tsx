@@ -31,7 +31,7 @@ export function BetaSwitch({ slug, name, on }: { slug: string; name: string; on:
           }
         }}
       />
-      <span className="g-tag" role={error ? 'alert' : undefined}>
+      <span className="tag" role={error ? 'alert' : undefined}>
         {error || (value ? 'On' : 'Off')}
       </span>
     </span>
@@ -62,7 +62,7 @@ export function SellSwitch() {
         {busy ? 'Switching' : 'Switch to selling'}
       </Button>
       {error && (
-        <div className="g-field-e" role="alert">
+        <div className="tag" style={{ color: '#7A2E24' }} role="alert">
           {error}
         </div>
       )}
@@ -77,7 +77,7 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
   const [error, setError] = useState('');
   return (
     <form
-      className="g-stack"
+      className="sob-stack"
       onSubmit={async (e) => {
         e.preventDefault();
         setState('busy');
@@ -116,25 +116,25 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
         <option>Within 24 hours</option>
         <option>Within 2 days</option>
       </Field>
-      <div className="g-li">
+      <div className="li">
         <span style={{ flex: 1 }}>Show &ldquo;Available for customization&rdquo;</span>
         <Switch label="Available for customization" checked={v.customAvailable} onChange={(on) => setV({ ...v, customAvailable: on })} />
       </div>
-      <div className="g-li">
+      <div className="li">
         <span style={{ flex: 1 }}>Pause my store (vacation)</span>
         <Switch label="Pause my store" checked={v.storePaused} onChange={(on) => setV({ ...v, storePaused: on })} />
       </div>
       {error && (
-        <div className="g-field-e" role="alert">
+        <div className="tag" style={{ color: '#7A2E24' }} role="alert">
           {error}
         </div>
       )}
-      <div className="g-row" style={{ justifyContent: 'flex-start' }}>
+      <div className="row" style={{ justifyContent: 'flex-start' }}>
         <Button type="submit" disabled={state === 'busy'}>
           {state === 'busy' ? 'Saving' : 'Save profile'}
         </Button>
         {state === 'saved' && (
-          <span className="g-tag" role="status">
+          <span className="tag" role="status">
             Saved
           </span>
         )}
@@ -150,7 +150,7 @@ export function VerificationForm() {
   const [error, setError] = useState('');
   return (
     <form
-      className="g-stack"
+      className="sob-stack"
       encType="multipart/form-data"
       onSubmit={async (e) => {
         e.preventDefault();

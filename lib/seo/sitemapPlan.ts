@@ -3,7 +3,6 @@ import { publishedPosts } from '../posts';
 import { SITE_URL } from '../site';
 import { DEFAULT_CONTROLS, inSitemap } from './controls';
 import { allControls } from './controlStore';
-import { legacyPublic } from '../legacy';
 import { allHubViews, allocation, hubProductPath, hubPublicPath, realListings } from './hubStore';
 import { HUBS, hubPath, isHubPath } from './hubs';
 import { listingPath } from './listingMeta';
@@ -25,28 +24,6 @@ export type SitemapEntry = {
   lastModified?: Date;
   changeFrequency: 'weekly' | 'monthly';
 };
-
-async function legacyPlan(): Promise<SitemapEntry[]> {
-  const ctl = await allControls();
-  const entry = (path: string, kind: SitemapEntry['kind'], extra: Partial<SitemapEntry> = {}): SitemapEntry => ({
-    url: SITE_URL + path,
-    path,
-    group: kind === 'category' || kind === 'product' ? 'primary' : 'additional',
-    kind,
-    changeFrequency: 'weekly',
-    ...extra,
-  });
-  const out: SitemapEntry[] = [entry('', 'home')];
-  for (const p of SEO_PAGES) if (!isHubPath(p.path) && inSitemap(p.path, ctl[p.path] ?? DEFAULT_CONTROLS)) out.push(entry(p.path, 'page'));
-  for (const x of await categoryPages()) out.push(entry(`/${x.copy.group}/${x.copy.slug}`, 'category'));
-  // The five template hubs: only when published, allowed in search, and holding enough real listings to be more than a thin page.
-  const alloc = await allocation();
-  for (const v of await allHubViews()) if (v.indexable && inSitemap(hubPath(v.hub), ctl[hubPath(v.hub)] ?? DEFAULT_CONTROLS)) out.push(entry(hubPublicPath(v.hub, alloc), 'category'));
-  // Sellers' live listings only: the example listings are never submitted to search engines. An admin can close or unlist any of them.
-  for (const p of await realListings()) if (inSitemap(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS)) out.push(entry(listingPath(p.id), 'product'));
-  for (const p of (await publishedPosts(1000)).filter((q) => !q.noindex)) out.push(entry(`/blog/${p.slug}`, 'post', { lastModified: new Date(p.updatedAt), changeFrequency: 'monthly' }));
-  return out.filter((e, i, a) => a.findIndex((r) => r.url === e.url) === i);
-}
 
 export const sitemapCounts = (plan: SitemapEntry[]) => ({
   primary: plan.filter((e) => e.group === 'primary').length,
@@ -96,5 +73,5 @@ async function primary(): Promise<{ entries: SitemapEntry[]; gate: Gate }> {
 export const publicationGate = async (): Promise<Gate> => (await primary()).gate;
 
 export async function sitemapPlan(): Promise<SitemapEntry[]> {
-  return legacyPublic() ? legacyPlan() : (await primary()).entries;
+  return (await primary()).entries;
 }

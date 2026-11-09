@@ -2,7 +2,7 @@ import { FaqList } from '@/components/FaqList';
 import { JsonLd } from '@/components/JsonLd';
 import { PageBlocks } from '@/components/PageBlocks';
 import { PostBody } from '@/components/PostBody';
-import { TallCard } from '@/components/TallCard';
+import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { parseMarkdown } from '@/lib/markdown';
 import { notFound } from 'next/navigation';
 import { faqJsonLd, isPublic, pageJsonLd, publishedFaqs } from '@/lib/seo/controls';
@@ -60,7 +60,7 @@ export async function PageExtras({
   const touched = top.length + bottom.length > 0 || blocks.length > 0 || related.length > 0 || faqs.length > 0 || !!c.ogImage || !!c.canonical;
   if (!touched) return null;
   return (
-    <section className="wrap faq-page" aria-label="More about this page">
+    <section className="sec" aria-label="More about this page" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {meta && <JsonLd data={meta} />}
       {faq && <JsonLd data={faq} />}
       {c.ogImage && (
@@ -74,16 +74,16 @@ export async function PageExtras({
       )}
       <PageBlocks blocks={top} listings={blockListings} />
       {blocks.length > 0 && (
-        <div className="prose">
+        <div className="glass card sob-prose">
           <PostBody blocks={blocks} />
         </div>
       )}
       {related.length > 0 && (
         <>
           <h2>Related</h2>
-          <div className="grid tall-grid">
+          <div className="grid3">
             {related.map((p) => (
-              <TallCard key={p.id} p={p} />
+              <WebsiteCard key={p.id} p={p} />
             ))}
           </div>
         </>

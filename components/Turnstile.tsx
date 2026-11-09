@@ -39,5 +39,5 @@ export function Turnstile({ onToken, siteKey = SITE_KEY }: { onToken: (t: string
       if (id && window.turnstile) window.turnstile.remove(id);
     };
   }, [onToken, siteKey]);
-  return <div ref={box} className="turnstile" />;
+  return <div ref={box} className="sob-turnstile" />;
 }

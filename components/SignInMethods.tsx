@@ -22,18 +22,18 @@ export function SignInMethods({ rows, canLink }: { rows: Row[]; canLink: boolean
   }
   return (
     <div>
-      <ul className="list" data-signin-methods>
+      <ul className="sob-list" data-signin-methods>
         {rows.map((r) => (
           <li key={r.provider}>
-            <div className="grow">
+            <div className="sob-grow">
               <b>{r.label}</b> {r.linked ? <span className="muted">· linked{r.since ? ` since ${r.since}` : ''}</span> : <span className="muted">· not linked</span>}
             </div>
             {r.linked && r.provider !== 'email' ? (
-              <button type="button" className="btn btn-line btn-sm" disabled={!!busy} onClick={() => send('unlink', r.provider)}>
+              <button type="button" className="btn ghost sm" disabled={!!busy} onClick={() => send('unlink', r.provider)}>
                 {busy === r.provider ? 'Removing...' : 'Remove'}
               </button>
             ) : !r.linked && canLink && r.available ? (
-              <button type="button" className="btn btn-blue btn-sm" disabled={!!busy} onClick={() => send('link', r.provider)}>
+              <button type="button" className="btn sm" disabled={!!busy} onClick={() => send('link', r.provider)}>
                 {busy === r.provider ? 'Opening...' : 'Link'}
               </button>
             ) : !r.linked ? (

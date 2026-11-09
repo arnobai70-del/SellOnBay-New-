@@ -80,13 +80,13 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
   }
 
   return (
-    <section className="chat2" aria-label="Messages about this order" id="messages">
+    <section className="sob-chat2" aria-label="Messages about this order" id="messages">
       <h2>Messages</h2>
-      <p className="muted chat2-safe">Keep it here. Emails, phone numbers, links and paying outside {'SellOnBay'} are blocked, so both of you stay protected.</p>
-      <div className="chat2-list" ref={box} role="log" aria-live="polite">
+      <p className="muted sob-chat2-safe">Keep it here. Emails, phone numbers, links and paying outside {'SellOnBay'} are blocked, so both of you stay protected.</p>
+      <div className="sob-chat2-list" ref={box} role="log" aria-live="polite">
         {msgs.length === 0 && <p className="muted">No messages yet. Say hello.</p>}
         {msgs.map((m) => (
-          <div key={m.id} className={'chat2-msg ' + (m.role === me ? 'me' : 'them')}>
+          <div key={m.id} className={'sob-chat2-msg ' + (m.role === me ? 'me' : 'them')}>
             <small>
               {m.role === me ? 'You' : m.role === 'seller' ? 'Seller' : 'Buyer'} · {new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </small>
@@ -95,12 +95,12 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
         ))}
       </div>
       {open ? (
-        <form onSubmit={send} className="chat2-form">
-          <label className="sr-only" htmlFor={`chat-${orderId}`}>
+        <form onSubmit={send} className="sob-chat2-form">
+          <label className="hidden-label" htmlFor={`chat-${orderId}`}>
             Your message
           </label>
           <textarea id={`chat-${orderId}`} rows={2} value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} placeholder="Write a message" />
-          <button className="btn btn-blue btn-sm" type="submit" disabled={busy || !text.trim()}>
+          <button className="btn sm" type="submit" disabled={busy || !text.trim()}>
             {busy ? 'Sending...' : 'Send'}
           </button>
         </form>
@@ -108,7 +108,7 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
         <p className="muted">This chat is read only. Write to SellOnBay in Messages with SellOnBay instead.</p>
       )}
       {err && (
-        <p className="form-err" role="alert">
+        <p className="sob-err" role="alert">
           {err}
         </p>
       )}

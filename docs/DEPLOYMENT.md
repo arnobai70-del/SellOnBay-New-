@@ -138,7 +138,7 @@ If a destructive step is really needed, take a backup, get the owner's written a
 2. Back up production: `npm run db:backup` (see RUNBOOK "Backups"), and the dashboard backup if the plan has one. Keep the backup outside GitHub (the repository is public).
 3. Apply the missing files in order, one at a time (`supabase db push`, or paste each into the SQL editor). Stop at the first error and do not continue.
 4. Apply the migrations **before** deploying the code that needs them. Every file only adds, so the old code keeps working on the new database. A few features check for their table and fall back to this server's memory until it exists: orders, admin settings, SEO words and module maintenance. Other features expect their migration to be there.
-5. After the migration, open `/dashboard/admin/launch` and `/dashboard/admin/maintenance`. The maintenance screen must no longer say "Saved in this server's memory only".
+5. After the migration, open `/admin/settings/launch` and `/admin/settings/maintenance/modules`. The maintenance screen must no longer say "Saved in this server's memory only".
 
 ## 5. Deploying the site (only with permission)
 
@@ -169,7 +169,7 @@ Each release:
 
 Both copies read the same database, so module maintenance applies to both within 10 seconds (the cache in `lib/maintenance/state.ts`). Orders and payments are written by whichever copy gets the request, through the same state machine and ledger, so a switch does not lose or double them.
 
-Environment variables are set on the host, never in GitHub. `/dashboard/admin/launch` lists which ones are set (names only, never values).
+Environment variables are set on the host, never in GitHub. `/admin/settings/launch` lists which ones are set (names only, never values).
 
 ## 6. Rolling back
 

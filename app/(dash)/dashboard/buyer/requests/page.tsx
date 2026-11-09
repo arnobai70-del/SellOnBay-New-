@@ -15,11 +15,11 @@ export default async function BuyerRequests() {
   const products = await productNames(list.map((r) => r.productId));
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="buyer" active="buyer-requests" title="Your requests">
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>Requests and quotations</h2>
-            <p className="sub">Every purchase starts as a request. SellOnBay replies with a question or a quotation; you pay only after you accept a quotation.</p>
+            <p className="tag">Every purchase starts as a request. SellOnBay replies with a question or a quotation; you pay only after you accept a quotation.</p>
           </div>
         </div>
         {!viewer && <p className="muted">Requests need an account. There are no accounts in demo mode.</p>}
@@ -28,12 +28,12 @@ export default async function BuyerRequests() {
             No requests yet. Open a product and choose <b>Request to buy</b>.
           </p>
         )}
-        <ul className="lst" data-requests>
+        <ul className="sob-list" data-requests>
           {list.map((r) => {
-            const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'chip'];
+            const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
             return (
               <li key={r.id}>
-                <div className="grow">
+                <div className="sob-grow">
                   <b>
                     <Link href={`/dashboard/buyer/requests/${r.id}`}>{requestTitle(r, products)}</Link>
                   </b>

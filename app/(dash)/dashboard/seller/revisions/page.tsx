@@ -40,23 +40,23 @@ export default async function SellerRevisions() {
   );
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller-revisions" title="Revisions">
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>Revisions to do</h2>
-            <p className="sub">SellOnBay checks each request with the buyer and tells you what to change. Your revised work goes to SellOnBay first, then to the buyer.</p>
+            <p className="tag">SellOnBay checks each request with the buyer and tells you what to change. Your revised work goes to SellOnBay first, then to the buyer.</p>
           </div>
         </div>
         {todo.length === 0 ? (
           <p className="muted">Nothing to do right now.</p>
         ) : (
-          <ul className="list" data-seller-revisions>
+          <ul className="sob-list" data-seller-revisions>
             {todo.map((r) => {
               const o = orders.get(r.orderId);
               const mine = files.filter((f) => f.orderId === r.orderId);
               return (
                 <li key={r.id}>
-                  <div className="grow">
+                  <div className="sob-grow">
                     <b>{o?.title ?? 'Order'}</b> · {r.kind ? KIND_TEXT[r.kind] : ''} · asked {day(r.createdAt)}
                     <p>{r.description}</p>
                     {r.decisionNote && <p className="muted">SellOnBay: {r.decisionNote}</p>}
@@ -84,11 +84,11 @@ export default async function SellerRevisions() {
         )}
       </div>
 
-      <div className="dp">
-        <div className="hd">
+      <div className="glass card sob-sec">
+        <div className="row sob-hd">
           <div>
             <h2>Revision terms of your listings</h2>
-            <p className="sub">
+            <p className="tag">
               What each listing includes after delivery: how many changes, for how long, what counts as a change, and the price of an extra one. Faults in what you delivered are always fixed free and
               never counted. SellOnBay approves the terms before they go into quotations.
             </p>
@@ -97,10 +97,10 @@ export default async function SellerRevisions() {
         {terms.length === 0 ? (
           <p className="muted">You have no listings yet.</p>
         ) : (
-          <ul className="list">
+          <ul className="sob-list">
             {terms.map(({ l, approved, proposed, rejected }) => (
               <li key={l.slug} data-policy={l.slug}>
-                <div className="grow">
+                <div className="sob-grow">
                   <b>{l.name}</b>
                   <p className="muted">
                     {approved

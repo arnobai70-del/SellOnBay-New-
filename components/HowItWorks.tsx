@@ -15,18 +15,18 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   const b = imageFor('clinic-desk');
   if (mode === 'buy' && n === 0) {
     return (
-      <div className="hv hv-stack" aria-hidden="true">
+      <div className="sob-hv sob-hv-stack" aria-hidden="true">
         {b && (
-          <div className="hv-img back">
+          <div className="sob-hv-img back">
             <Image src={b.src} alt="" fill sizes="160px" style={{ objectFit: 'cover', objectPosition: 'top' }} />
           </div>
         )}
         {a && (
-          <div className="hv-img front">
+          <div className="sob-hv-img front">
             <Image src={a.src} alt="" fill sizes="180px" style={{ objectFit: 'cover', objectPosition: 'top' }} />
           </div>
         )}
-        <span className="chip mint hv-chip">
+        <span className="chip mint sob-hv-chip">
           <i />
           12 sites ready
         </span>
@@ -35,11 +35,11 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   }
   if (mode === 'buy' && n === 1) {
     return (
-      <div className="hv hv-domain" aria-hidden="true">
-        <div className="hv-url">
-          <span className="hv-type">yourbusiness.com</span>
+      <div className="sob-hv sob-hv-domain" aria-hidden="true">
+        <div className="sob-hv-url">
+          <span className="sob-hv-type">yourbusiness.com</span>
         </div>
-        <span className="chip mint hv-live">
+        <span className="chip mint sob-hv-live">
           <i />
           Live on your domain
         </span>
@@ -48,36 +48,36 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   }
   if (mode === 'buy') {
     return (
-      <div className="hv" aria-hidden="true">
-        <div className="hv-card">
-          <div className="hv-row">
+      <div className="sob-hv" aria-hidden="true">
+        <div className="sob-hv-card">
+          <div className="sob-hv-row">
             <b>Saffron Table</b>
-            <span className="chip amber">
+            <span className="status st-wait">
               <i />
               Ready to review
             </span>
           </div>
-          <div className="hv-timer">47:59:12</div>
+          <div className="sob-hv-timer">47:59:12</div>
           <small className="muted">left to check it</small>
-          <span className="btn btn-gold btn-sm">Accept site</span>
+          <span className="btn sm">Accept site</span>
         </div>
       </div>
     );
   }
   if (n === 0) {
     return (
-      <div className="hv" aria-hidden="true">
-        <div className="hv-card">
-          <div className="hv-row">
+      <div className="sob-hv" aria-hidden="true">
+        <div className="sob-hv-card">
+          <div className="sob-hv-row">
             <b>Your price</b>
             <b>{money(39)}</b>
           </div>
-          <div className="hv-slider">
+          <div className="sob-hv-slider">
             <i />
           </div>
-          <div className="hv-row">
+          <div className="sob-hv-row">
             <span className="muted">You keep {pct(10_000 - CONFIG.plans.free.commissionBps)} (free plan)</span>
-            <b className="hv-green">{money(planNetCents(3900) / 100)}</b>
+            <b className="sob-hv-green">{money(planNetCents(3900) / 100)}</b>
           </div>
         </div>
       </div>
@@ -85,20 +85,20 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   }
   if (n === 1) {
     return (
-      <div className="hv hv-checks" aria-hidden="true">
-        <span className="chip mint">
+      <div className="sob-hv sob-hv-checks" aria-hidden="true">
+        <span className="status st-ok">
           <i />
           Checked
         </span>
-        <span className="chip mint">
+        <span className="status st-ok">
           <i />
           Original: 97%
         </span>
-        <span className="chip mint">
+        <span className="status st-ok">
           <i />
           Demo works
         </span>
-        <span className="chip blue">
+        <span className="status st-info">
           <i />
           Approved in 24 hours
         </span>
@@ -106,16 +106,16 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
     );
   }
   return (
-    <div className="hv" aria-hidden="true">
-      <div className="hv-card">
+    <div className="sob-hv" aria-hidden="true">
+      <div className="sob-hv-card">
         <small className="muted">Available to withdraw</small>
-        <div className="hv-timer">{money(642)}</div>
-        <div className="hv-bars">
+        <div className="sob-hv-timer">{money(642)}</div>
+        <div className="sob-hv-bars">
           {BARS.map((h, i) => (
             <i key={i} style={{ height: h + '%' }} />
           ))}
         </div>
-        <span className="chip blue">
+        <span className="status st-info">
           <i />
           Paid every Thursday
         </span>
@@ -137,11 +137,11 @@ export function HowItWorks({
 }) {
   const [mode, setMode] = useState<Mode>(initial);
   return (
-    <div className="hiw">
-      <div className="hiw-head">
+    <div className="sob-hiw">
+      <div className="sob-hiw-head">
         <h2>{title}</h2>
         {toggle && (
-          <div className="seg hiw-seg" role="group" aria-label="Who is this for">
+          <div className="seg sob-hiw-seg" role="group" aria-label="Who is this for">
             <button type="button" aria-pressed={mode === 'buy'} onClick={() => setMode('buy')}>
               I&apos;m buying
             </button>
@@ -151,27 +151,27 @@ export function HowItWorks({
           </div>
         )}
       </div>
-      <div className="hiw-grid" key={mode}>
+      <div className="sob-hiw-grid" key={mode}>
         {steps[mode].map((s, n) => (
-          <div className="hiw-card" key={s.t} style={{ animationDelay: n * 70 + 'ms' }}>
-            <div className="hiw-vis">
+          <div className="sob-hiw-card" key={s.t} style={{ animationDelay: n * 70 + 'ms' }}>
+            <div className="sob-hiw-vis">
               <Visual mode={mode} n={n} />
             </div>
-            <div className="hiw-txt">
-              <span className="hiw-n">{n + 1}</span>
+            <div className="sob-hiw-txt">
+              <span className="sob-hiw-n">{n + 1}</span>
               <h3>{s.t}</h3>
               <p>{s.d}</p>
             </div>
           </div>
         ))}
       </div>
-      <div className="hiw-cta">
+      <div className="sob-hiw-cta">
         {mode === 'buy' ? (
-          <Link className="btn btn-blue" href="/">
+          <Link className="btn" href="/">
             Find a template
           </Link>
         ) : (
-          <Link className="btn btn-blue" href="/sell/new">
+          <Link className="btn" href="/sell/new">
             List your first site
           </Link>
         )}

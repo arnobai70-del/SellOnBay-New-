@@ -3,9 +3,7 @@ import Link from 'next/link';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { SearchBox } from '@/components/glass/SearchBox';
 import { smartSearch, type Result } from '@/lib/glass/search';
-import { legacyPublic } from '@/lib/legacy';
 import { highlight } from '@/lib/searchCore';
-import { LegacySearch } from './LegacySearch';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Search', robots: { index: false, follow: true } };
@@ -24,7 +22,6 @@ function Marked({ text, q }: { text: string; q: string }) {
 
 /* Every result of the smart search, grouped by type (owner, 2026-11-08). Server-rendered, so it works without JavaScript. */
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string; kind?: string }> }) {
-  if (legacyPublic()) return <LegacySearch searchParams={searchParams} />;
   const sp = await searchParams;
   const q = (typeof sp.q === 'string' ? sp.q : '').trim().slice(0, 80);
   const r = await smartSearch(q, 30);
@@ -38,10 +35,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     ] as [string, Result[]][]
   ).filter(([, l]) => l.length);
   return (
-    <div className="g-stack">
-      <div className="g-head">
+    <div className="sob-stack">
+      <div className="sob-head">
         <h1>{q ? <>Results for &ldquo;{q}&rdquo;</> : 'Search'}</h1>
-        <div className="g-glass g-search">
+        <div className="glass sob-search">
           <SearchBox defaultValue={q} />
         </div>
       </div>
@@ -73,20 +70,20 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             {name} ({list.length})
           </h2>
           {list.map((x) => (
-            <div key={x.href} className="g-li" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: 2 }}>
+            <div key={x.href} className="li" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: 2 }}>
               <Link href={x.href}>
                 <Marked text={x.title} q={q} />
               </Link>
-              {x.sub && <span className="g-tag">{x.sub}</span>}
+              {x.sub && <span className="tag">{x.sub}</span>}
             </div>
           ))}
         </GlassCard>
       ))}
       <GlassCard as="section">
         <h2>Popular categories</h2>
-        <div className="g-chips" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
+        <div className="sob-chips" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
           {r.popular.map((c) => (
-            <Link key={c.href} className="g-chip" href={c.href}>
+            <Link key={c.href} className="sob-chip" href={c.href}>
               {c.title}
             </Link>
           ))}

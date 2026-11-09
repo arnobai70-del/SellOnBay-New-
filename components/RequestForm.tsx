@@ -76,8 +76,8 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
   }
 
   return (
-    <form className="req-form" onSubmit={send} data-request-form>
-      <section className="req-sec">
+    <form className="sob-req-form" onSubmit={send} data-request-form>
+      <section className="sob-req-sec">
         <h2>What you want</h2>
         <fieldset>
           <legend>Package</legend>
@@ -112,7 +112,7 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
         ) : null}
       </section>
 
-      <section className="req-sec">
+      <section className="sob-req-sec">
         <h2>How you will use it</h2>
         <label htmlFor="rq-use">Your business and what the product is for</label>
         <textarea id="rq-use" required minLength={10} maxLength={1000} rows={4} value={use} onChange={(e) => setUse(e.target.value)} />
@@ -122,7 +122,7 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
       </section>
 
       {(p.needsDomain || p.needsAppName || p.needsOses || p.needsGithub) && (
-        <section className="req-sec">
+        <section className="sob-req-sec">
           <h2>Delivery details</h2>
           {p.needsDomain && (
             <>
@@ -156,9 +156,9 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
         </section>
       )}
 
-      <section className="req-sec">
+      <section className="sob-req-sec">
         <h2>Business details (optional)</h2>
-        <div className="req-grid">
+        <div className="sob-req-grid">
           <div>
             <label htmlFor="rq-co">Company</label>
             <input id="rq-co" maxLength={120} value={company} onChange={(e) => setCompany(e.target.value)} />
@@ -174,8 +174,8 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
         </div>
       </section>
 
-      <section className="req-sec req-sum">
-        <dl className="kv">
+      <section className="sob-req-sec sob-req-sum">
+        <dl className="sob-kv">
           <dt>Listed price for this choice</dt>
           <dd>{tier === 'single_project' ? money(listed) : 'Quoted by SellOnBay'}</dd>
           <dt>Delivery</dt>
@@ -190,7 +190,7 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
             <span>{error}</span>
           </p>
         )}
-        <button className="btn btn-blue btn-lg" type="submit" disabled={busy || !consent}>
+        <button className="btn" type="submit" disabled={busy || !consent}>
           {busy ? 'Sending...' : 'Send request'}
         </button>
       </section>

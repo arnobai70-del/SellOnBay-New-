@@ -77,7 +77,7 @@ export function PageControlsForm({
   const cardDesc = c.ogDescription || shown.description;
 
   return (
-    <form className="adm-form" onSubmit={save}>
+    <form className="sob-form" onSubmit={save}>
       <div className="field">
         <label htmlFor="pc-status">Publication</label>
         <select id="pc-status" value={locked ? 'published' : c.status} disabled={locked} onChange={(e) => set('status', e.target.value as PageControls['status'])}>
@@ -87,15 +87,15 @@ export function PageControlsForm({
         </select>
         <small>{locked ? 'The home page, legal and support pages always stay public.' : 'Publishing and search are separate: a published page can still be kept out of search below.'}</small>
       </div>
-      <label className="adm-check">
+      <label className="chk">
         <input type="checkbox" checked={c.index} onChange={(e) => set('index', e.target.checked)} />
         <span>Let search engines list this page (off = noindex)</span>
       </label>
-      <label className="adm-check">
+      <label className="chk">
         <input type="checkbox" checked={c.follow} onChange={(e) => set('follow', e.target.checked)} />
         <span>Let search engines follow its links (off = nofollow)</span>
       </label>
-      <label className="adm-check">
+      <label className="chk">
         <input type="checkbox" checked={c.sitemap} onChange={(e) => set('sitemap', e.target.checked)} />
         <span>Put it in sitemap.xml (only when it is also published and listed)</span>
       </label>
@@ -137,14 +137,14 @@ export function PageControlsForm({
           Empty = the meta description. {c.ogDescription.length} / {CONTROL_MAX.ogDescription}
         </small>
       </div>
-      <div className="pe-serp" aria-label="Share card preview">
+      <div className="sob-pe-serp" aria-label="Share card preview">
         {c.ogImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.ogImage} alt={c.ogImageAlt} style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8 }} />
         )}
-        <span className="pe-sd">{shown.host}</span>
-        <span className="pe-st">{cardTitle}</span>
-        <span className="pe-sd">{cardDesc}</span>
+        <span className="sob-pe-sd">{shown.host}</span>
+        <span className="sob-pe-st">{cardTitle}</span>
+        <span className="sob-pe-sd">{cardDesc}</span>
       </div>
 
       <h4>Keywords</h4>
@@ -160,7 +160,7 @@ export function PageControlsForm({
           <small>
             Ideas from this page&rsquo;s own words (click to add):{' '}
             {ideas.map((k) => (
-              <button key={k} type="button" className="btn btn-line btn-sm" style={{ margin: '2px 4px 2px 0' }} onClick={() => set('keywords', c.keywords ? `${c.keywords}, ${k}` : k)}>
+              <button key={k} type="button" className="btn ghost sm" style={{ margin: '2px 4px 2px 0' }} onClick={() => set('keywords', c.keywords ? `${c.keywords}, ${k}` : k)}>
                 {k}
               </button>
             ))}
@@ -183,7 +183,7 @@ export function PageControlsForm({
       ) : (
         <div className="field">
           {listings.map((l) => (
-            <label className="adm-check" key={l.id}>
+            <label className="chk" key={l.id}>
               <input
                 type="checkbox"
                 checked={c.related.includes(l.id)}
@@ -198,11 +198,11 @@ export function PageControlsForm({
       )}
 
       <h4>Structured data</h4>
-      <label className="adm-check">
+      <label className="chk">
         <input type="checkbox" checked={c.schema} onChange={(e) => set('schema', e.target.checked)} />
         <span>Write WebPage data (name, address, description and picture) when this page has text, questions, related listings or a picture saved</span>
       </label>
-      <label className="adm-check">
+      <label className="chk">
         <input type="checkbox" checked={c.faqSchema} onChange={(e) => set('faqSchema', e.target.checked)} />
         <span>Write FAQ data from the published questions below</span>
       </label>
@@ -210,7 +210,7 @@ export function PageControlsForm({
       <h4>Questions and answers</h4>
       <small>Published questions show on the page and go into its FAQ data from this same list. Drafts show nowhere. Google may or may not show them as rich results.</small>
       {c.faqs.map((f, i) => (
-        <div className="adm-card" key={i}>
+        <div className="sob-item" key={i}>
           <div className="field">
             <label htmlFor={`pc-q${i}`}>Question {i + 1}</label>
             <input id={`pc-q${i}`} value={f.q} onChange={(e) => setFaq(i, { q: e.target.value })} maxLength={CONTROL_MAX.question} />
@@ -219,19 +219,19 @@ export function PageControlsForm({
             <label htmlFor={`pc-a${i}`}>Answer</label>
             <textarea id={`pc-a${i}`} rows={3} value={f.a} onChange={(e) => setFaq(i, { a: e.target.value })} maxLength={CONTROL_MAX.answer} />
           </div>
-          <label className="adm-check">
+          <label className="chk">
             <input type="checkbox" checked={!!f.draft} onChange={(e) => setFaq(i, { draft: e.target.checked })} />
             <span>Draft (hidden)</span>
           </label>
-          <div className="adm-btns">
-            <button className="btn btn-line btn-sm" type="button" onClick={() => move(i, -1)} disabled={i === 0}>
+          <div className="sob-acts">
+            <button className="btn ghost sm" type="button" onClick={() => move(i, -1)} disabled={i === 0}>
               Move up
             </button>
-            <button className="btn btn-line btn-sm" type="button" onClick={() => move(i, 1)} disabled={i === c.faqs.length - 1}>
+            <button className="btn ghost sm" type="button" onClick={() => move(i, 1)} disabled={i === c.faqs.length - 1}>
               Move down
             </button>
             <button
-              className="btn btn-line btn-sm"
+              className="btn ghost sm"
               type="button"
               onClick={() =>
                 set(
@@ -246,10 +246,10 @@ export function PageControlsForm({
         </div>
       ))}
       {suggested && suggested.length > 0 && c.faqs.length === 0 && (
-        <div className="adm-btns">
+        <div className="sob-acts">
           <small>This page shows {suggested.length} questions by itself, made from its own details. Start from them to change or remove any.</small>
           <button
-            className="btn btn-line btn-sm"
+            className="btn ghost sm"
             type="button"
             onClick={() =>
               set(
@@ -263,16 +263,16 @@ export function PageControlsForm({
         </div>
       )}
       {missing && <small>Every question needs an answer before you save. Delete an empty one.</small>}
-      <div className="adm-btns">
-        <button className="btn btn-line btn-sm" type="button" disabled={c.faqs.length >= CONTROL_MAX.faqs} onClick={() => set('faqs', [...c.faqs, { q: '', a: '', draft: true }])}>
+      <div className="sob-acts">
+        <button className="btn ghost sm" type="button" disabled={c.faqs.length >= CONTROL_MAX.faqs} onClick={() => set('faqs', [...c.faqs, { q: '', a: '', draft: true }])}>
           Add a question
         </button>
-        <button className="btn btn-dark btn-sm" type="submit" disabled={busy || missing}>
+        <button className="btn sm" type="submit" disabled={busy || missing}>
           {busy ? 'One moment...' : 'Save publishing, search, text and questions'}
         </button>
       </div>
       {msg && (
-        <p className={msg.ok ? 'ok' : 'err'} role="status">
+        <p className={msg.ok ? 'ok' : 'sob-err'} role="status">
           {msg.text}
         </p>
       )}

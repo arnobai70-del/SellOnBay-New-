@@ -15,7 +15,7 @@ describe('what Google may see of an address', () => {
     expect(gaPage(`/pay/${UUID}`).path).toBe('/pay/[id]');
     expect(gaPage(`/messages/${UUID}`).path).toBe('/messages/[id]');
     expect(gaPage(`/dashboard/buyer/requests/${UUID}`).path).toBe('/dashboard/buyer/requests/[id]');
-    expect(gaPage('/dashboard/admin/seo/post', 'slug=secret-draft').path).toBe('/dashboard/admin/seo/post');
+    expect(gaPage('/admin/seo/post', 'slug=secret-draft').path).toBe('/admin/seo/post');
     expect(gaPage('/reset-password', 'code=abc123').path).toBe('/reset-password');
     expect(gaPage('/login', 'next=/orders/abc').path).toBe('/login');
     expect(gaPage('/checkout', 'id=my-listing').path).toBe('/checkout');

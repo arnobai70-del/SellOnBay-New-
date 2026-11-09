@@ -1,7 +1,7 @@
 export function Bars({ data, prefix = '', label }: { data: [string, number][]; prefix?: string; label: string }) {
   const max = Math.max(...data.map((d) => d[1]));
   return (
-    <div className="bars" aria-label={label}>
+    <div className="sob-bars" aria-label={label}>
       {data.map(([l, v]) => (
         <div key={l}>
           <b>
@@ -25,7 +25,7 @@ export function Spark({ vals, color = '#2B3DFF' }: { vals: number[]; color?: str
   const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
   return (
     <span>
-      <svg className="spark" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <svg className="sob-spark" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
         <path d={`${d}L${w} ${h}L0 ${h}Z`} fill={color} opacity=".12" />
         <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>

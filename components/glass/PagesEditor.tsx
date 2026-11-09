@@ -38,7 +38,7 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
     setStamp(Date.now());
   };
   useEffect(() => {
-    if (stamp && frame.current && previewPath) frame.current.src = `${previewPath}${previewPath.includes('?') ? '&' : '?'}draft=1&t=${stamp}`;
+    if (stamp && frame.current && previewPath) frame.current.src = `/api/admin/preview?path=${encodeURIComponent(previewPath)}&t=${stamp}`;
   }, [stamp, previewPath]);
 
   const setText = (id: string, v: string) => setDoc((d) => ({ ...d, text: { ...d.text, [id]: v } }));
@@ -57,20 +57,20 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
   };
 
   return (
-    <div className="g-editor">
-      <div className="g-editor-main">
+    <div className="sob-editor">
+      <div className="sob-editor-main">
         {sections.map((s) => (
-          <section key={s.key} className="g-glass g-card g-stack">
-            <div className="g-row">
+          <section key={s.key} className="glass card sob-stack">
+            <div className="row">
               <h2>{s.label}</h2>
               {!s.locked && (
                 <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
                   {def.reorder && (
                     <>
-                      <button type="button" className="g-tool" aria-label={`Move ${s.label} up`} onClick={() => move(s.key, -1)}>
+                      <button type="button" className="sob-tool" aria-label={`Move ${s.label} up`} onClick={() => move(s.key, -1)}>
                         ↑
                       </button>
-                      <button type="button" className="g-tool" aria-label={`Move ${s.label} down`} onClick={() => move(s.key, 1)}>
+                      <button type="button" className="sob-tool" aria-label={`Move ${s.label} down`} onClick={() => move(s.key, 1)}>
                         ↓
                       </button>
                     </>
@@ -98,7 +98,7 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
           </section>
         ))}
         {def.seo && (
-          <section className="g-glass g-card g-stack">
+          <section className="glass card sob-stack">
             <h2>Search and sharing</h2>
             <Field
               label="SEO title"
@@ -112,11 +112,11 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
           </section>
         )}
       </div>
-      <aside className="g-editor-side g-stack">
-        <div className="g-glass g-card g-stack">
+      <aside className="sob-editor-side sob-stack">
+        <div className="glass card sob-stack">
           <h2>Publish</h2>
-          <p className="g-tag">{draft ? 'A draft is waiting.' : 'No draft.'} Another admin publishes your draft, or a Super Admin.</p>
-          <div className="g-row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+          <p className="tag">{draft ? 'A draft is waiting.' : 'No draft.'} Another admin publishes your draft, or a Super Admin.</p>
+          <div className="row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             <Button variant="ghost" size="sm" onClick={() => void call('draft', { doc })}>
               Save draft
             </Button>
@@ -130,21 +130,21 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
             )}
           </div>
           {msg && (
-            <p role={msg.ok ? 'status' : 'alert'} className={msg.ok ? 'g-tag' : 'g-field-e'}>
+            <p role={msg.ok ? 'status' : 'alert'} className={msg.ok ? 'tag' : 'sob-err'}>
               {msg.text}
             </p>
           )}
         </div>
         {previewPath && (
-          <div className="g-glass g-card g-stack">
+          <div className="glass card sob-stack">
             <h2>Live preview</h2>
-            <iframe ref={frame} title="Preview" src={`${previewPath}${previewPath.includes('?') ? '&' : '?'}draft=1`} className="g-preview" />
-            <a href={`${previewPath}${previewPath.includes('?') ? '&' : '?'}draft=1`} target="_blank" rel="noopener">
+            <iframe ref={frame} title="Preview" src={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} className="sob-preview" />
+            <a href={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} target="_blank" rel="noopener">
               Open the preview
             </a>
           </div>
         )}
-        <div className="g-glass g-card g-stack">
+        <div className="glass card sob-stack">
           <h2>History</h2>
           {history === null ? (
             <Button variant="ghost" size="sm" onClick={() => void loadHistory()}>
@@ -152,17 +152,17 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
             </Button>
           ) : history.length ? (
             history.map((h) => (
-              <div key={h.version} className="g-li">
+              <div key={h.version} className="li">
                 <span style={{ flex: 1 }}>
                   Version {h.version} · {new Date(h.at).toLocaleString()}
                 </span>
-                <button type="button" className="g-sx-link" onClick={() => window.confirm('Make this version live again?') && void call('restore', { version: h.version })}>
+                <button type="button" className="sob-sx-link" onClick={() => window.confirm('Make this version live again?') && void call('restore', { version: h.version })}>
                   Restore
                 </button>
               </div>
             ))
           ) : (
-            <p className="g-tag">Nothing published yet: the page shows its built-in words.</p>
+            <p className="tag">Nothing published yet: the page shows its built-in words.</p>
           )}
         </div>
       </aside>

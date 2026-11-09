@@ -45,7 +45,7 @@ export default async function AdminVisitors() {
       {ga.state === 'not_connected' && (
         <GlassCard as="section">
           <h2>Connect GA4</h2>
-          <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
             Add GA4_PROPERTY_ID (the property&apos;s number) and GA4_SERVICE_ACCOUNT_JSON (a service account key with Viewer access to the property) to the server environment. Then visitors,
             countries, pages, devices and clicked sections show here. Clicks by section need a custom dimension &quot;section&quot; (event scope) in GA4.
           </p>
@@ -54,14 +54,14 @@ export default async function AdminVisitors() {
       {ga.state === 'error' && (
         <GlassCard as="section" role="alert">
           <h2>Google Analytics did not answer</h2>
-          <p className="g-muted" style={{ marginTop: 8 }}>
+          <p className="muted" style={{ marginTop: 8 }}>
             {ga.note}
           </p>
         </GlassCard>
       )}
       {ga.state === 'ok' && (
         <>
-          <div className="g-kpis">
+          <div className="kpis">
             <Kpi label="Today" value={ga.report.today} note="Users" />
             <Kpi label="Last 7 days" value={ga.report.last7} note={trend(ga.report.trend7)} />
             <Kpi label="Last 30 days" value={ga.report.last30} note={trend(ga.report.trend30)} />
@@ -70,9 +70,9 @@ export default async function AdminVisitors() {
           <GlassCard as="section">
             <h2>Users a day, last 30 days</h2>
             {ga.report.daily.some((d) => d.users > 0) && <Bars label="Users a day" data={ga.report.daily.slice(30).map((d) => [short(d.day), d.users] as [string, number])} />}
-            <p className="g-tag">From Google Analytics, {new Date(ga.fetchedAt).toISOString().slice(11, 16)} UTC. Refreshed every 15 minutes.</p>
+            <p className="tag">From Google Analytics, {new Date(ga.fetchedAt).toISOString().slice(11, 16)} UTC. Refreshed every 15 minutes.</p>
           </GlassCard>
-          <div className="g-grid2">
+          <div className="grid2">
             <GlassCard as="section">
               <h2>Top countries</h2>
               {ga.report.countries.some((c) => c.n > 0) && <Bars label="Users by country" data={ga.report.countries.slice(0, 8).map((c) => [c.name, c.n] as [string, number])} />}
@@ -82,7 +82,7 @@ export default async function AdminVisitors() {
               <h2>Devices</h2>
               <NamedTable caption="Devices" rows={ga.report.devices} label="Device" />
               <h2 style={{ marginTop: 16 }}>Clicked sections</h2>
-              {Array.isArray(ga.sections) ? <NamedTable caption="Clicked sections" rows={ga.sections} label="Section" value="Clicks" /> : <p className="g-tag">{ga.sections.note}</p>}
+              {Array.isArray(ga.sections) ? <NamedTable caption="Clicked sections" rows={ga.sections} label="Section" value="Clicks" /> : <p className="tag">{ga.sections.note}</p>}
             </GlassCard>
           </div>
           <GlassCard as="section">
@@ -93,16 +93,16 @@ export default async function AdminVisitors() {
       )}
       <GlassCard as="section">
         <h2>Our own count (approximate)</h2>
-        <p className="g-tag">
+        <p className="tag">
           Counted on our server without cookies: the page and the country a day, nothing about a person. Browsers that ask not to be tracked are not counted. A country shows when the host&apos;s geo
           header is trusted (FIRST_PARTY_COUNTRY_TRUSTED), else &quot;--&quot;.
         </p>
-        <div className="g-kpis" style={{ marginTop: 10 }}>
+        <div className="kpis" style={{ marginTop: 10 }}>
           <Kpi label="Page opens, 30 days" value={own.total.toLocaleString('en-US')} note="Approximate" />
           <Kpi label="Today" value={own.days.find((d) => d.day === dayOf(now))?.n ?? 0} note="Approximate" />
         </div>
         {own.days.some((d) => d.n > 0) && <Bars label="Page opens a day" data={own.days.map((d) => [short(d.day), d.n] as [string, number])} />}
-        <div className="g-grid2" style={{ marginTop: 10 }}>
+        <div className="grid2" style={{ marginTop: 10 }}>
           <NamedTable caption="Pages, our count" rows={own.pages.map((p) => ({ name: p.path, n: p.n }))} label="Page" value="Opens" />
           <NamedTable
             caption="Countries, our count"

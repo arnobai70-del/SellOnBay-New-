@@ -1,4 +1,5 @@
 import 'server-only';
+import { BRAND_NAME } from '../brand';
 import { priceDisplays } from '../prices/service';
 import { platformOf } from '../apps';
 import type { Product } from '../data';
@@ -64,6 +65,10 @@ const slugName = (name: string) =>
 /* A chosen username, or an address made from the name and a piece of the id, so two people with one name never share it. Pure. */
 export const sellerHandle = (username: string | null | undefined, name: string, id: string) => username || `${slugName(name) || 'seller'}-${id.replace(/-/g, '').slice(0, 6)}`;
 
+/* SellOnBay's own store among the sellers. */
+export const PLATFORM_KEY = 'platform';
+export const PLATFORM_HANDLE = 'sellonbay';
+
 type ProfileRow = {
   user_id: string;
   display_name: string | null;
@@ -83,13 +88,13 @@ export async function publicSellers(): Promise<PublicSeller[]> {
   const sites = await publicWebsites();
   const groups = new Map<string, Product[]>();
   for (const p of sites) {
-    if (p.ownerType === 'platform') continue; // SellOnBay's own listings are not a seller's store
-    const key = p.sellerId ?? `name:${p.seller}`;
+    // SellOnBay's own listings are one official store (owner, 2026-11-09: /sellers showed nothing while every live listing was SellOnBay's own).
+    const key = p.ownerType === 'platform' ? PLATFORM_KEY : (p.sellerId ?? `name:${p.seller}`);
     groups.set(key, [...(groups.get(key) ?? []), p]);
   }
   const profiles = new Map<string, ProfileRow>();
   if (supabaseConfigured && groups.size) {
-    const ids = [...groups.keys()].filter((k) => !k.startsWith('name:'));
+    const ids = [...groups.keys()].filter((k) => !k.startsWith('name:') && k !== PLATFORM_KEY);
     // '*' so the page keeps working before migration 0075 adds the store fields; only the fields named below are ever used.
     const { data } = ids.length ? await createAdminClient().from('seller_profiles').select('*').in('user_id', ids) : { data: [] };
     for (const r of (data ?? []) as ProfileRow[]) profiles.set(r.user_id, r);
@@ -97,27 +102,30 @@ export async function publicSellers(): Promise<PublicSeller[]> {
   return [...groups.entries()]
     .map(([key, websites]) => {
       const r = profiles.get(key);
-      const name = r?.display_name || websites[0].seller;
+      const own = key === PLATFORM_KEY;
+      const name = own ? BRAND_NAME : r?.display_name || websites[0].seller;
       const rated = websites.filter((w) => w.reviews > 0);
       const reviews = rated.reduce((s, w) => s + w.reviews, 0);
       return {
         key,
-        handle: sellerHandle(
-          r?.username,
-          name,
-          key
-            .replace(/^name:/, 'x')
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, ''),
-        ),
+        handle: own
+          ? PLATFORM_HANDLE
+          : sellerHandle(
+              r?.username,
+              name,
+              key
+                .replace(/^name:/, 'x')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, ''),
+            ),
         name,
-        headline: r?.headline ?? '',
-        about: r?.bio ?? '',
+        headline: own ? `The official ${BRAND_NAME} store` : (r?.headline ?? ''),
+        about: own ? `Full-stack websites built and checked by the ${BRAND_NAME} team, sold with the same escrow and review as every other website.` : (r?.bio ?? ''),
         skills: r?.skills ?? [],
         customAvailable: !!r?.custom_available,
         replyTime: r?.reply_time ?? '',
         country: r?.country ?? null,
-        verified: !!r?.id_verified,
+        verified: own || !!r?.id_verified,
         joined: r?.created_at ?? null,
         websites,
         rating: reviews ? rated.reduce((s, w) => s + w.rating * w.reviews, 0) / reviews : 0,

@@ -13,7 +13,7 @@ Only with the owner's permission. The full order, the checks to run first and th
 
 ## Scheduled job
 
-`POST /api/cron/orders` with `Authorization: Bearer $CRON_SECRET`, every 5 to 10 minutes. It runs `runDueJobs`: auto-accept after the review window, mark late orders `overdue`, end the 7-day payout hold, and make sure the ledger and certificates match every open order. It is safe to run twice. Orders are also brought up to date whenever somebody opens them. Each run of either job writes its finish time (`app_settings`, key `heartbeat:orders` or `heartbeat:payouts`); `/dashboard/admin/launch` shows both times and marks Scheduled jobs as to do when the orders job has not finished for 30 minutes or the payout job for 8 days (`CONFIG.cron`).
+`POST /api/cron/orders` with `Authorization: Bearer $CRON_SECRET`, every 5 to 10 minutes. It runs `runDueJobs`: auto-accept after the review window, mark late orders `overdue`, end the 7-day payout hold, and make sure the ledger and certificates match every open order. It is safe to run twice. Orders are also brought up to date whenever somebody opens them. Each run of either job writes its finish time (`app_settings`, key `heartbeat:orders` or `heartbeat:payouts`); `/admin/settings/launch` shows both times and marks Scheduled jobs as to do when the orders job has not finished for 30 minutes or the payout job for 8 days (`CONFIG.cron`).
 
 ## Orders and money
 
@@ -24,25 +24,25 @@ Only with the owner's permission. The full order, the checks to run first and th
 
 ## Disputes (built)
 
-The buyer reports a problem on the order page (during the review window, or in the 7 days after accepting). The order is held (`disputed`): no auto-accept, no payout. The seller replies within 48 hours (`POST /api/disputes/[id]/reply`), you decide within 5 days at `/dashboard/admin/disputes`: refund in full, refund part (taken from the seller's share), ask the seller to fix, or reject and pay the seller. A decision moves the order and the ledger, tells both sides, and is written to the audit log. Three rejected disputes flag the buyer (`profiles.flagged`, a database trigger). Refunds are told to the payment provider through `PaymentProvider.refund` (fake today: no real money moves until D1).
+The buyer reports a problem on the order page (during the review window, or in the 7 days after accepting). The order is held (`disputed`): no auto-accept, no payout. The seller replies within 48 hours (`POST /api/disputes/[id]/reply`), you decide within 5 days at `/admin/support/disputes`: refund in full, refund part (taken from the seller's share), ask the seller to fix, or reject and pay the seller. A decision moves the order and the ledger, tells both sides, and is written to the audit log. Three rejected disputes flag the buyer (`profiles.flagged`, a database trigger). Refunds are told to the payment provider through `PaymentProvider.refund` (fake today: no real money moves until D1).
 
 ## Payout day (Sunday, built; money is sent by hand)
 
-1. The Sunday job (`POST /api/cron/payouts` with `CRON_SECRET`) or the button on `/dashboard/admin/payouts` makes the week's batch: one payout per seller, from orders whose 7-day hold ended. Sellers with no payout method or account on file are left out and listed with the reason.
+1. The Sunday job (`POST /api/cron/payouts` with `CRON_SECRET`) or the button on `/admin/finance/payouts` makes the week's batch: one payout per seller, from orders whose 7-day hold ended. Sellers with no payout method or account on file are left out and listed with the reason.
 2. Download the CSV (this locks the batch as "exported"). Send each transfer with Payoneer, Wise or the bank.
 3. Mark each payout paid with the transfer reference. That moves the ledger (`seller_available` to `payout_out`) and the orders to `paid_out`, tells the seller, and is written to the audit log. If a transfer fails, mark it failed and the orders go into the next batch.
 
 ## Abuse reports and hosted demos
 
-Reports come in at `/report-abuse`. Open reports are at `/dashboard/admin/abuse`: suspend (pauses the listing the link points to) or dismiss. Never serve seller files with `allow-same-origin`. 
+Reports come in at `/report-abuse`. Open reports are at `/admin/support/abuse`: suspend (pauses the listing the link points to) or dismiss. Never serve seller files with `allow-same-origin`. 
 
 ## Security page (abuse hardening)
 
-`/dashboard/admin/security` shows accounts that share a connection or device, connections that keep hitting a limit, and active blocks. Offices and families share connections: look at the accounts before blocking. Set `GUARD_SALT` (long random value) before launch; changing it later forgets old hashes and breaks existing blocks. Limits are in `lib/config.ts` (`limits`). The daily cron (`POST /api/cron/orders`) purges events older than 90 days.
+`/admin/security/blocks` shows accounts that share a connection or device, connections that keep hitting a limit, and active blocks. Offices and families share connections: look at the accounts before blocking. Set `GUARD_SALT` (long random value) before launch; changing it later forgets old hashes and breaks existing blocks. Limits are in `lib/config.ts` (`limits`). The daily cron (`POST /api/cron/orders`) purges events older than 90 days.
 
 ## Risk page (metrics, emergency switch, held orders, clean-up)
 
-`/dashboard/admin/risk`. Check it daily: the table shows the last 14 days and flags an unusual rise (alerts also arrive as admin notifications). During a flood of fake buyers turn on "Pause checkout for new buyers" (turn it off again when it is over; both are in the audit log). Orders from new or flagged buyers appear under "waiting for a safety check": look at the buyer and the payment, then release or cancel. Clean-up bans fake accounts and removes their reviews and reports, but keeps all evidence. Keep the audit log, `order_events`, `download_events` and `security_events` if you ever need a lawyer's notice.
+`/admin/security/risk`. Check it daily: the table shows the last 14 days and flags an unusual rise (alerts also arrive as admin notifications). During a flood of fake buyers turn on "Pause checkout for new buyers" (turn it off again when it is over; both are in the audit log). Orders from new or flagged buyers appear under "waiting for a safety check": look at the buyer and the payment, then release or cancel. Clean-up bans fake accounts and removes their reviews and reports, but keeps all evidence. Keep the audit log, `order_events`, `download_events` and `security_events` if you ever need a lawyer's notice.
 
 ## Module maintenance (migration 0049)
 
@@ -105,7 +105,7 @@ The full set of timed drills (restore, point-in-time recovery, rollback, mainten
 - [x] No `dangerouslySetInnerHTML` (a unit test fails if one appears)
 - [x] Uploaded files: type and size limits, random names, never served from the app origin with scripts (hosted demos are sandboxed)
 - [x] Webhooks: signature checked, age checked, each event processed once
-- [x] Audit log for every admin action (`audit_log`, append-only, `/dashboard/admin/audit`)
+- [x] Audit log for every admin action (`audit_log`, append-only, `/admin/security/audit`)
 - [ ] Daily database backups, and a restore tested once (above; timed drills in `docs/RECOVERY_DRILL.md`)
 - [x] Dependency audit: CI fails on a high or critical advisory in a production dependency (`npm audit --omit=dev --audit-level=high`); Dependabot is enabled (`.github/`).
 - [x] Privacy: cookie notice, data export and delete request flow (`/account/privacy`, admins process deletions under Accounts), retention note on the Privacy page
@@ -119,7 +119,7 @@ The full set of timed drills (restore, point-in-time recovery, rollback, mainten
 
 ## Health check
 
-`GET /api/health` answers `{"ok":true}` with status 200 while the app is up. Point the host's health check and an uptime monitor at it. It never shows keys or database state; the launch check page (`/dashboard/admin/launch`) is for that.
+`GET /api/health` answers `{"ok":true}` with status 200 while the app is up. Point the host's health check and an uptime monitor at it. It never shows keys or database state; the launch check page (`/admin/settings/launch`) is for that.
 
 ## More operations
 

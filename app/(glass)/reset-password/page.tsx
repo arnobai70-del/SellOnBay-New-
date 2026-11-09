@@ -1,3 +1,4 @@
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { ResetClient } from '@/components/ResetClient';
@@ -14,8 +15,8 @@ export default async function ResetPassword() {
   } = await (await createClient()).auth.getUser();
   if (!user) redirect('/signin?error=' + encodeURIComponent('That reset link has expired. Request a new one.'));
   return (
-    <div className="g-auth">
+    <PublicFrame file="account-access">
       <ResetClient />
-    </div>
+    </PublicFrame>
   );
 }

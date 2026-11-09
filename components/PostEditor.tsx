@@ -15,7 +15,7 @@ type Draft = Pick<Post, 'title' | 'slug' | 'metaTitle' | 'metaDescription' | 'ex
 const EMPTY: Draft = { title: '', slug: '', metaTitle: '', metaDescription: '', excerpt: '', body: '', coverUrl: '', coverAlt: '', status: 'draft', noindex: false };
 
 function Count({ n, good, max }: { n: number; good: number; max: number }) {
-  return <small className={n > good ? 'pe-over' : 'muted'}>{`${n} / ${good} shown in Google (max ${max})`}</small>;
+  return <small className={n > good ? 'sob-pe-over' : 'muted'}>{`${n} / ${good} shown in Google (max ${max})`}</small>;
 }
 
 /* Line marks the toolbar can set or clear at the start of each chosen line. */
@@ -131,7 +131,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
     setD(next);
     setMsg({ ok: true, text: status === 'published' ? 'Saved and published.' : 'Saved as a draft.' });
-    if (!post) router.replace(`/dashboard/admin/seo/post?id=${j.id}`);
+    if (!post) router.replace(`/admin/seo/post?id=${j.id}`);
     else router.refresh();
   }
 
@@ -140,13 +140,13 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     setBusy(true);
     const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: post.id }) });
     setBusy(false);
-    if (r.ok) router.replace('/dashboard/admin/seo');
+    if (r.ok) router.replace('/admin/seo');
     else setMsg({ ok: false, text: 'Could not delete the post.' });
   }
 
   return (
-    <div className="pe">
-      <div className="pe-main">
+    <div className="sob-pe">
+      <div className="sob-pe-main">
         <div className="field">
           <label htmlFor="pe-title">Title (the heading on the page)</label>
           <input id="pe-title" value={d.title} maxLength={LIMITS.title} onChange={(e) => set('title', e.target.value)} />
@@ -189,9 +189,9 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
           </div>
         )}
         <div className="field">
-          <div className="pe-bodyhead">
+          <div className="sob-pe-bodyhead">
             <label htmlFor="pe-body">Post</label>
-            <div className="pe-tabs" role="group" aria-label="Write or preview">
+            <div className="sob-pe-tabs" role="group" aria-label="Write or preview">
               <button type="button" aria-pressed={view === 'write'} onClick={() => setView('write')}>
                 Write
               </button>
@@ -202,7 +202,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
           </div>
           {view === 'write' ? (
             <>
-              <div className="pe-tools" role="toolbar" aria-label="Formatting">
+              <div className="sob-pe-tools" role="toolbar" aria-label="Formatting">
                 {TOOLS.map(([label, title, run]) => (
                   <button key={label} type="button" title={title} aria-label={title} onClick={run}>
                     {label}
@@ -230,61 +230,61 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
                   }}
                 />
               </div>
-              <textarea ref={area} id="pe-body" className="pe-body" rows={22} value={d.body} maxLength={LIMITS.body} onChange={(e) => set('body', e.target.value)} />
+              <textarea ref={area} id="pe-body" className="sob-pe-body" rows={22} value={d.body} maxLength={LIMITS.body} onChange={(e) => set('body', e.target.value)} />
               <small className="muted">
                 The title above is the page&apos;s H1, so headings in the post start at H2. Pictures: PNG, JPEG, WebP or GIF up to 5 MB. Videos: YouTube, Vimeo or an .mp4 / .webm link.
               </small>
             </>
           ) : (
-            <div className="pe-preview post">
-              <div className="prose">{d.body.trim() ? <PostBody blocks={parseMarkdown(d.body)} /> : <p className="muted">Nothing written yet.</p>}</div>
+            <div className="sob-pe-preview post">
+              <div className="sob-prose">{d.body.trim() ? <PostBody blocks={parseMarkdown(d.body)} /> : <p className="muted">Nothing written yet.</p>}</div>
             </div>
           )}
         </div>
-        <label className="adm-check">
+        <label className="chk">
           <input type="checkbox" checked={d.noindex} onChange={(e) => set('noindex', e.target.checked)} />
           <span>Keep this post out of Google (noindex)</span>
         </label>
-        <div className="adm-btns">
-          <button className="btn btn-dark btn-sm" type="button" disabled={busy} onClick={() => save('published')}>
+        <div className="sob-acts">
+          <button className="btn sm" type="button" disabled={busy} onClick={() => save('published')}>
             {d.status === 'published' ? 'Save changes' : 'Publish'}
           </button>
-          <button className="btn btn-line btn-sm" type="button" disabled={busy} onClick={() => save('draft')}>
+          <button className="btn ghost sm" type="button" disabled={busy} onClick={() => save('draft')}>
             {d.status === 'published' ? 'Unpublish (back to draft)' : 'Save draft'}
           </button>
           {post && d.status === 'published' && (
-            <a className="btn btn-line btn-sm" href={`/blog/${d.slug}`} target="_blank" rel="noopener">
+            <a className="btn ghost sm" href={`/blog/${d.slug}`} target="_blank" rel="noopener">
               View post
             </a>
           )}
           {post && (
-            <button className="btn btn-line btn-sm" type="button" disabled={busy} onClick={remove}>
+            <button className="btn ghost sm" type="button" disabled={busy} onClick={remove}>
               Delete
             </button>
           )}
         </div>
         {msg && (
-          <p className={msg.ok ? 'adm-ok' : 'form-err'} role={msg.ok ? 'status' : 'alert'}>
+          <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>
             {msg.text}
           </p>
         )}
       </div>
-      <aside className="pe-side">
+      <aside className="sob-pe-side">
         <b>How it looks in Google</b>
-        <div className="pe-serp">
-          <span className="pe-url">{`${siteUrl.replace(/^https?:\/\//, '')} › blog › ${d.slug || '...'}`}</span>
-          <span className="pe-st">{shownTitle}</span>
-          <span className="pe-sd">{shownDesc}</span>
+        <div className="sob-pe-serp">
+          <span className="sob-pe-url">{`${siteUrl.replace(/^https?:\/\//, '')} › blog › ${d.slug || '...'}`}</span>
+          <span className="sob-pe-st">{shownTitle}</span>
+          <span className="sob-pe-sd">{shownDesc}</span>
         </div>
         <b>SEO check</b>
         {hints.length ? (
-          <ul className="pe-hints">
+          <ul className="sob-pe-hints">
             {hints.map((h) => (
               <li key={h}>{h}</li>
             ))}
           </ul>
         ) : (
-          <p className="adm-ok">Looks good.</p>
+          <p className="sob-ok">Looks good.</p>
         )}
       </aside>
     </div>

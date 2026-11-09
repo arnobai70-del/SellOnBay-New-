@@ -23,7 +23,15 @@ export function VisitTracker() {
   const query = useSearchParams().toString();
 
   useEffect(() => {
-    if (!quiet()) send({ p: path, q: query });
+    if (quiet()) return;
+    // Sent with sendBeacon once the page has loaded, so it never competes with the page's own requests.
+    const go = () => send({ p: path, q: query });
+    if (document.readyState === 'complete') {
+      const t = window.setTimeout(go, 0);
+      return () => window.clearTimeout(t);
+    }
+    window.addEventListener('load', go, { once: true });
+    return () => window.removeEventListener('load', go);
   }, [path, query]);
 
   useEffect(() => {

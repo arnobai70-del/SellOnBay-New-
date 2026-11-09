@@ -1,103 +1,54 @@
 import Link from 'next/link';
-import { pageCopy } from '@/lib/content/copy';
-import { Button } from '@/components/glass/Button';
-import { Field } from '@/components/glass/Field';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { SearchBox } from '@/components/glass/SearchBox';
-import { rankWebsites } from '@/lib/glass/search';
-import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { PageExtras } from '@/components/PageExtras';
-import { browse, browseHref, readQuery, SORTS, SORT_LABEL } from '@/lib/glass/browse';
-import { CATEGORY_SLUGS, publicWebsites, websiteCategories } from '@/lib/glass/catalog';
-import { HUBS } from '@/lib/seo/hubs';
+import { PublicFrame } from '@/components/glass/PublicFrame';
+import { WebsitesBrowser } from '@/components/glass/WebsitesBrowser';
+import { pageCopy } from '@/lib/content/copy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 
-export const dynamic = 'force-dynamic';
 export const generateMetadata = () => pageMetadata('/websites', { alternates: { canonical: '/websites' } });
 
+/*
+ * design-reference/websites.html: the heading and search (the site's smart search ranks the words), then the browser with its filters. A domain
+ * chosen on /domains comes along (?domain=): the buyer adds it at checkout.
+ */
 export default async function Websites({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const q = readQuery(await searchParams, CATEGORY_SLUGS);
-  const [sites, cats, words] = await Promise.all([publicWebsites(), websiteCategories(), pageWords('/websites')]);
-  const r = browse(sites, q, (p) => cats.of(p)?.slug ?? null, q.q ? await rankWebsites(q.q) : undefined);
-  const hub = HUBS.find((h) => h.slug === q.category);
-  const copy = await pageCopy('websites'); // Admin › Content › Pages; empty fields keep the page's own words
+  const raw = await searchParams;
+  const [words, copy] = await Promise.all([pageWords('/websites'), pageCopy('websites')]);
+  const q = typeof raw.q === 'string' ? raw.q.slice(0, 100) : '';
+  const domain = typeof raw.domain === 'string' ? raw.domain.replace(/[^a-z0-9.-]/gi, '').slice(0, 80) : '';
   return (
-    <>
-      <div className="g-head">
-        <h1>{copy.t('head', 'heading', words.heading)}</h1>
-        <div className="g-glass g-search">
-          <SearchBox action="/websites" label="Search websites" placeholder="Search full-stack websites" defaultValue={q.q} hidden={q.category ? { category: q.category } : {}} />
-        </div>
-      </div>
-      <div className="g-layout">
-        <GlassCard as="aside" rise={false} aria-label="Filters">
-          <h2>Filters</h2>
-          <nav aria-label="Category" style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Link className="g-mi" href={browseHref(q, { category: '' })} aria-current={q.category ? undefined : 'page'}>
-              All websites
-            </Link>
-            {HUBS.map((h) => (
-              <Link key={h.slug} className="g-mi" href={browseHref(q, { category: h.slug })} aria-current={q.category === h.slug ? 'page' : undefined}>
-                {h.name.replace(/ Websites$/, '')}
-              </Link>
-            ))}
-          </nav>
-          <form className="g-stack" action="/websites" method="get" style={{ marginTop: 16 }}>
-            {q.q && <input type="hidden" name="q" value={q.q} />}
-            {q.category && <input type="hidden" name="category" value={q.category} />}
-            <Field label="Lowest price ($)" name="min" inputMode="decimal" defaultValue={q.min ?? ''} />
-            <Field label="Highest price ($)" name="max" inputMode="decimal" defaultValue={q.max ?? ''} />
-            <label style={{ display: 'flex', gap: 10, alignItems: 'center', minHeight: 40, fontSize: 14 }}>
-              <input type="checkbox" name="rated" value="1" defaultChecked={q.rated} style={{ width: 18, height: 18 }} />4 stars and up
-            </label>
-            <Field as="select" label="Sort by" name="sort" defaultValue={q.sort}>
-              {SORTS.map((s) => (
-                <option key={s} value={s}>
-                  {SORT_LABEL[s]}
-                </option>
-              ))}
-            </Field>
-            <Button type="submit" variant="ghost">
-              Apply
-            </Button>
-          </form>
-        </GlassCard>
-        <section aria-label="Websites">
-          <p className="g-muted" style={{ fontSize: 14, marginBottom: 12 }} role="status">
-            {r.total} {r.total === 1 ? 'website' : 'websites'} · {hub ? hub.name.replace(/ Websites$/, '') : 'All websites'}
-          </p>
-          {r.items.length ? (
-            <div className="g-grid3">
-              {r.items.map((p) => (
-                <WebsiteCard key={p.id} p={p} />
-              ))}
-            </div>
-          ) : (
-            <GlassCard>
-              <h2>Nothing matches yet</h2>
-              <p className="g-muted" style={{ marginTop: 8, fontSize: 14 }}>
-                Try fewer filters, or see every website.
-              </p>
-              <div style={{ marginTop: 14 }}>
-                <Button variant="ghost" href="/websites">
-                  Clear filters
-                </Button>
-              </div>
-            </GlassCard>
-          )}
-          {r.pages > 1 && (
-            <nav className="g-pager" aria-label="Pages">
-              {Array.from({ length: r.pages }, (_, i) => i + 1).map((n) => (
-                <Link key={n} className="g-chip" href={browseHref(q, { page: n })} aria-current={n === r.page ? 'true' : undefined}>
-                  {n}
-                </Link>
-              ))}
-            </nav>
-          )}
-        </section>
-      </div>
+    <PublicFrame file="websites">
+      <header style={{ padding: '56px 0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <h1 style={{ fontSize: 40, fontWeight: 300 }}>{copy.t('head', 'heading', words.heading)}</h1>
+        <form action="/websites" method="get" role="search" className="glass" style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 8px 8px 20px', borderRadius: 999 }}>
+          {typeof raw.category === 'string' && raw.category && <input type="hidden" name="category" value={raw.category} />}
+          <label htmlFor="s" className="hidden-label">
+            Search websites
+          </label>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            id="s"
+            name="q"
+            defaultValue={q}
+            placeholder="Search full-stack websites…"
+            style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
+          />{' '}
+          <button className="btn" type="submit">
+            Search
+          </button>
+        </form>
+        {domain && (
+          <div className="tag" role="status" style={{ margin: 0 }}>
+            Pick a website for <b style={{ fontWeight: 500 }}>{domain}</b>: you add the domain when you request it. <Link href="/domains">Change the domain</Link>
+          </div>
+        )}
+      </header>
+      <WebsitesBrowser raw={raw} />
       <PageExtras path="/websites" />
-    </>
+    </PublicFrame>
   );
 }

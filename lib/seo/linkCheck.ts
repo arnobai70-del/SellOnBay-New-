@@ -78,7 +78,7 @@ export async function runLinkCheck(adminId: string | null, origin: string): Prom
   else mem.saved = report;
   await audit(adminId, 'seo_link_check', 'settings', KEY, { checked: report.checked, broken: report.broken.length });
   try {
-    revalidatePath('/dashboard/admin/seo');
+    revalidatePath('/admin/seo');
   } catch {
     // outside a request (tests)
   }

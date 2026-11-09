@@ -59,7 +59,7 @@ export function PageWordsForm({
 
   const blocks = hasBody && w.body.trim() ? parseMarkdown(w.body) : [];
   return (
-    <form className="sob-form pw-form" onSubmit={save}>
+    <form className="sob-form sob-pw-form" onSubmit={save}>
       <div className="field">
         <label htmlFor="pw-heading">Page heading</label>
         <input id="pw-heading" value={w.heading} onChange={set('heading')} maxLength={max.heading} placeholder={builtIn.heading} />
@@ -81,7 +81,7 @@ export function PageWordsForm({
           <label htmlFor="pw-body">Page text</label>
           <textarea
             id="pw-body"
-            className="pw-body"
+            className="sob-pw-body"
             rows={22}
             value={w.body}
             onChange={set('body')}
@@ -116,7 +116,7 @@ export function PageWordsForm({
         </p>
       )}
       {blocks.length > 0 && (
-        <div className="pw-preview">
+        <div className="sob-pw-preview">
           <b>Preview of the page text</b>
           <div className="sob-prose">
             <PostBody blocks={blocks} />

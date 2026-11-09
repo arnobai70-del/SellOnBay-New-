@@ -29,15 +29,15 @@ export default async function YourProfile() {
   const home = viewer?.role === 'seller' ? '/dashboard/seller' : viewer?.role === 'admin' ? '/admin' : '/dashboard/buyer';
   return (
     <div className="wrap">
-      <div className="page-head">
+      <div className="sob-page-head">
         <h1>Your profile</h1>
         <p>The name we use for you on orders, receipts and messages.</p>
       </div>
-      <div className="prose" style={{ paddingBottom: 80 }}>
+      <div className="sob-prose" style={{ paddingBottom: 80 }}>
         {!supabaseConfigured ? (
           <p className="muted">In demo mode there are no accounts, so there is no profile to change.</p>
         ) : failed ? (
-          <p className="form-err" role="alert">
+          <p className="sob-err" role="alert">
             Could not load your profile just now. Reload the page to try again.
           </p>
         ) : (
@@ -51,7 +51,7 @@ export default async function YourProfile() {
           </>
         )}
         <p style={{ marginTop: 24 }}>
-          <Link className="btn btn-line btn-sm" href={home}>
+          <Link className="btn ghost sm" href={home}>
             Back to your dashboard
           </Link>
         </p>

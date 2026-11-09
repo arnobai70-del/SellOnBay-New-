@@ -35,12 +35,25 @@ export function TawkChat() {
       s.setAttribute('crossorigin', '*');
       document.body.appendChild(s);
     };
-    const idle = (w as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-    if (idle) idle(load, { timeout: 4000 });
-    else {
-      const t = window.setTimeout(load, 2500);
-      return () => window.clearTimeout(t);
-    }
+    // Owner speed rule (2026-11-09): the chat loads 4 seconds after the page, or at the first scroll or touch, whichever comes first.
+    let done = false;
+    const once = () => {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      window.removeEventListener('scroll', once);
+      window.removeEventListener('pointerdown', once);
+      load();
+    };
+    const timer = window.setTimeout(once, 4000);
+    window.addEventListener('scroll', once, { passive: true, once: true });
+    window.addEventListener('pointerdown', once, { passive: true, once: true });
+    return () => {
+      done = true;
+      window.clearTimeout(timer);
+      window.removeEventListener('scroll', once);
+      window.removeEventListener('pointerdown', once);
+    };
   }, []);
   return null;
 }

@@ -8,18 +8,18 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 /* One listing waiting for review: what the seller wrote, the links, the price (with a way to fix it) and the decision. */
 export function ListingReviewCard({ l }: { l: QueueListing }) {
   return (
-    <div className="sob-item cat-card" data-cat={catForCategory(l.category)}>
+    <div className="sob-item sob-cat-card" data-cat={catForCategory(l.category)}>
       <h3>{l.name}</h3>
       <div className="meta">
         <span>by {l.seller}</span>
-        <span className="cat-tag">{l.category}</span>
+        <span className="sob-cat-tag">{l.category}</span>
         <span>{l.platform}</span>
         <span>{money(l.priceCents)}</span>
         <span>{l.licence ?? 'no licence type'}</span>
         {l.hasTrial && <span>has a trial copy</span>}
       </div>
       <p>{l.description}</p>
-      <ul className="checks">
+      <ul className="sob-checks">
         {l.includes.map((i) => (
           <li key={i}>{i}</li>
         ))}

@@ -101,7 +101,7 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             <h2>Log</h2>
           </div>
         </div>
-        <ul className="tl2">
+        <ul className="sob-tl2">
           {events.map((e, i) => (
             <li key={i}>
               <b>

@@ -51,7 +51,7 @@ export default async function Redirects() {
         {list.length === 0 && <p className="muted">No redirects yet.</p>}
         {list.map((r) => (
           <div className="sob-item" key={r.from}>
-            <div className="seo-row">
+            <div className="sob-seo-row">
               <div>
                 <h3>{r.from}</h3>
                 <span className="muted">

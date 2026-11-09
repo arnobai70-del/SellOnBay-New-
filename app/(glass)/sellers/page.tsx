@@ -27,7 +27,10 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
   const tagsOf = (s: (typeof all)[number]) => [...new Set([...s.skills, ...s.websites.map((w) => w.stack).filter((x): x is string => !!x)])];
   const counts = new Map<string, number>();
   for (const s of all) for (const t of tagsOf(s)) counts.set(t, (counts.get(t) ?? 0) + 1);
-  const skills = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([t]) => t);
+  const skills = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([t]) => t);
   const term = String(q).trim().toLowerCase();
   const list = all.filter(
     (s) => (!term || `${s.name} ${s.headline} ${tagsOf(s).join(' ')}`.toLowerCase().includes(term)) && (custom !== '1' || s.customAvailable) && (!skill || tagsOf(s).includes(skill)),

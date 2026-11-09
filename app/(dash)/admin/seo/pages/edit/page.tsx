@@ -62,10 +62,10 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             {isListing ? 'All listings' : 'All pages'}
           </Link>
         </div>
-        <h3 className="pw-h">In Google</h3>
-        <div className="pe-serp">
-          <span className="pe-st">{s.title || `${page.title} · ${SITE_NAME}`}</span>
-          <span className="pe-sd">{s.description || page.description || 'The site-wide description (this page has none of its own yet).'}</span>
+        <h3 className="sob-pw-h">In Google</h3>
+        <div className="sob-pe-serp">
+          <span className="sob-pe-st">{s.title || `${page.title} · ${SITE_NAME}`}</span>
+          <span className="sob-pe-sd">{s.description || page.description || 'The site-wide description (this page has none of its own yet).'}</span>
         </div>
         {home ? (
           <p className="tag">

@@ -27,7 +27,7 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
   const open = revisions.some((r) => OPEN_REVISION.includes(r.status));
   const releasedAt = o.releaseApprovedAt ?? o.deliveredAt ?? o.createdAt;
   return (
-    <section className="dp" aria-labelledby={`rev-${orderId}`} data-revisions={orderId}>
+    <section className="sob-dp" aria-labelledby={`rev-${orderId}`} data-revisions={orderId}>
       <div className="hd">
         <div>
           <h2 id={`rev-${orderId}`}>Changes and fixes</h2>
@@ -40,10 +40,10 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
         </div>
       </div>
       {revisions.length > 0 && (
-        <ul className="list">
+        <ul className="sob-list">
           {[...revisions].reverse().map((r) => (
             <li key={r.id} data-rev={r.status}>
-              <div className="grow">
+              <div className="sob-grow">
                 <b>{STATUS_TEXT[r.status]}</b> · asked {day(r.createdAt)}
                 {r.kind ? ` · ${KIND_TEXT[r.kind]}` : ''}
                 <p className="muted">{r.description}</p>
@@ -51,7 +51,7 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
                 {r.status === 'delivered' && r.deliveryNote && <p>What changed: {r.deliveryNote}</p>}
               </div>
               {r.status === 'delivered' && (
-                <div className="act-row">
+                <div className="sob-act-row">
                   {r.fileId && <RevisionDownload orderId={orderId} revisionId={r.id} />}
                   <AdminForm
                     endpoint={`/api/orders/${orderId}/revisions/${r.id}`}

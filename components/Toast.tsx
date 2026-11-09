@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={show}>
       {children}
-      <div className={'toast' + (on ? ' show' : '')} role="status">
+      <div className={'sob-toast' + (on ? ' show' : '')} role="status">
         {msg}
       </div>
     </Ctx.Provider>

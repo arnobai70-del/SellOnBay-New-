@@ -32,10 +32,10 @@ export default async function MaintenanceManager() {
             {source === 'memory' && <p className="sob-err">Saved in this server&rsquo;s memory only: the database table is not there yet (run migration 0049), so a restart forgets these settings.</p>}
           </div>
         </div>
-        <div className="seo-pages">
+        <div className="sob-seo-pages">
           {modules.map((m) => (
             <div className="sob-item" key={m.key} id={`module-${m.key}`}>
-              <div className="seo-row">
+              <div className="sob-seo-row">
                 <div>
                   <h3>{MODULES[m.key].label}</h3>
                   <small className="muted">Still works while closed: {MODULES[m.key].keeps}</small>

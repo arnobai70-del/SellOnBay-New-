@@ -84,7 +84,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
               </p>
             </div>
           </div>
-          <table className="q-lines">
+          <table className="sob-q-lines">
             <thead>
               <tr>
                 <th>Item</th>
@@ -159,7 +159,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
             <h2>What happened</h2>
           </div>
         </div>
-        <ul className="tl2">
+        <ul className="sob-tl2">
           {timeline.map((t, i) => (
             <li key={i}>
               <b>{t.text}</b>

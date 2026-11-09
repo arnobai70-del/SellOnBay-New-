@@ -19,11 +19,11 @@ export function RevisionDownload({ orderId, revisionId }: { orderId: string; rev
   }
   return (
     <span>
-      <button type="button" className="btn btn-line btn-sm" onClick={go} disabled={busy}>
+      <button type="button" className="btn ghost sm" onClick={go} disabled={busy}>
         {busy ? 'Getting the link...' : 'Download the revised files'}
       </button>
       {err && (
-        <span className="form-err" role="alert">
+        <span className="sob-err" role="alert">
           {' '}
           {err}
         </span>

@@ -43,8 +43,8 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
   const peak = Math.max(1, ...(s.errors?.counts.byHour ?? [0]));
   return (
     <>
-      <div className="glass card sob-sec sys-head">
-        <span className={`sys-chip ${s.overall}`}>
+      <div className="glass card sob-sec sob-sys-head">
+        <span className={`sob-sys-chip ${s.overall}`}>
           <i />
           {OVERALL[s.overall]}
         </span>
@@ -53,10 +53,10 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         </small>
       </div>
 
-      <div className="sys-grid" aria-label="Services">
+      <div className="sob-sys-grid" aria-label="Services">
         {s.services.map((v) => (
-          <div key={v.key} className={`sys-tile ${v.tone}`}>
-            <span className="sys-tile-h">
+          <div key={v.key} className={`sob-sys-tile ${v.tone}`}>
+            <span className="sob-sys-tile-h">
               <i className={`dot ${v.tone}`} aria-hidden="true" />
               {v.label}
             </span>
@@ -66,11 +66,11 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         ))}
       </div>
 
-      <div className="sys-two">
+      <div className="sob-sys-two">
         <div className="glass card sob-sec">
           <h2>This app</h2>
           <p className="tag">The site&apos;s own process. Shared hosting does not show the host&apos;s CPU, load or disk, so they are not listed.</p>
-          <dl className="sys-dl">
+          <dl className="sob-sys-dl">
             <dt>Memory in use</dt>
             <dd>{s.app.rssMb} MB</dd>
             <dt>JavaScript heap</dt>
@@ -87,7 +87,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         </div>
         <div className="glass card sob-sec">
           <h2>Database</h2>
-          <dl className="sys-dl">
+          <dl className="sob-sys-dl">
             <dt>Answers in</dt>
             <dd>{s.database.latencyMs === null ? 'Not answering' : `${s.database.latencyMs} ms`}</dd>
             <dt>Size</dt>
@@ -97,7 +97,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
               {conns === null ? (
                 'Not recorded (migration 0073)'
               ) : (
-                <span className="sys-meter">
+                <span className="sob-sys-meter">
                   <span className={`bar ${meterTone(conns)}`} style={{ width: `${Math.min(100, conns)}%` }} />
                   <span>
                     {s.database.connections} of {s.database.maxConnections} ({conns}%)
@@ -123,7 +123,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           <p className="tag">Not recorded yet: apply migration 0072.</p>
         ) : (
           <>
-            <div className="sys-nums">
+            <div className="sob-sys-nums">
               <span>
                 <b>{s.errors.counts.lastHour}</b> last hour
               </span>
@@ -134,7 +134,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
                 <b>{s.errors.counts.lastWeek}</b> last 7 days
               </span>
             </div>
-            <div className="sys-chart" role="img" aria-label={`Errors per hour over the last 24 hours, ${s.errors.counts.lastDay} in all`}>
+            <div className="sob-sys-chart" role="img" aria-label={`Errors per hour over the last 24 hours, ${s.errors.counts.lastDay} in all`}>
               {s.errors.counts.byHour.map((n, i) => (
                 <span key={i} style={{ height: `${Math.max(2, (n / peak) * 100)}%` }} className={n ? 'on' : ''} title={`${n} errors, ${23 - i} h ago`} />
               ))}
@@ -217,7 +217,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
 
       <div className="glass card sob-sec">
         <h2>Domain and safety</h2>
-        <dl className="sys-dl">
+        <dl className="sob-sys-dl">
           <dt>Certificate</dt>
           <dd>{s.safety.sslDays === null ? 'Not checked (no https address)' : `${s.safety.sslDays} days left`}</dd>
           <dt>Required settings</dt>

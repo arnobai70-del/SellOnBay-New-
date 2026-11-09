@@ -266,7 +266,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
   };
 
   const tool = (label: string, run: () => void, active = false, text = label) => (
-    <button type="button" className={`g-tool${active ? ' on' : ''}`} aria-label={label} aria-pressed={active} title={label} onMouseDown={(e) => e.preventDefault()} onClick={run}>
+    <button type="button" className={`sob-tool${active ? ' on' : ''}`} aria-label={label} aria-pressed={active} title={label} onMouseDown={(e) => e.preventDefault()} onClick={run}>
       {text}
     </button>
   );
@@ -274,11 +274,11 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
   const words = counts?.words ?? 0;
 
   return (
-    <div className="g-editor">
-      <div className="g-editor-main">
+    <div className="sob-editor">
+      <div className="sob-editor-main">
         <Field label="Title" value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={120} />
         {editor && (
-          <div className="g-toolbar" role="toolbar" aria-label="Formatting">
+          <div className="sob-toolbar" role="toolbar" aria-label="Formatting">
             {tool('Undo', () => editor.chain().focus().undo().run(), false, '↶')}
             {tool('Redo', () => editor.chain().focus().redo().run(), false, '↷')}
             {[1, 2, 3, 4].map((l) =>
@@ -299,7 +299,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             {tool('Underline', () => editor.chain().focus().toggleUnderline().run(), editor.isActive('underline'), 'U')}
             {tool('Strike', () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike'), 'S')}
             {tool('Highlight', () => editor.chain().focus().toggleHighlight({ color: '#fbefd9' }).run(), editor.isActive('highlight'), 'Mark')}
-            <label className="g-tool" title="Text colour">
+            <label className="sob-tool" title="Text colour">
               <span className="hidden-label">Text colour</span>A
               <input type="color" onChange={(e) => editor.chain().focus().setColor(e.target.value).run()} style={{ width: 18, height: 18, border: 0, padding: 0, marginLeft: 4 }} />
             </label>
@@ -334,10 +334,10 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             <input ref={galleryRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden onChange={(e) => void addGallery(e.target.files)} />
           </div>
         )}
-        <div className="g-editor-wrap">
+        <div className="sob-editor-wrap">
           <EditorContent editor={editor} />
           {slash && slashList.length > 0 && (
-            <ul className="g-sx-pop glass g-slash" role="listbox" aria-label="Blocks">
+            <ul className="sob-sx-pop glass sob-slash" role="listbox" aria-label="Blocks">
               {slashList.map((b, i) => (
                 <li key={b.key} role="option" aria-selected={i === slash.i} className={i === slash.i ? 'on' : undefined}>
                   <a
@@ -347,7 +347,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
                       runRef.current(b);
                     }}
                   >
-                    <span className="g-sx-t">{b.label}</span>
+                    <span className="sob-sx-t">{b.label}</span>
                   </a>
                 </li>
               ))}
@@ -359,7 +359,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
         </p>
       </div>
 
-      <aside className="g-editor-side sob-stack">
+      <aside className="sob-editor-side sob-stack">
         <div className="glass card sob-stack">
           <h2>Publish</h2>
           <p className="tag">State: {f.status}</p>
@@ -461,7 +461,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
                   <span style={{ flex: 1 }}>
                     {new Date(r.at).toLocaleString()} · {r.words} words{r.autosave ? ' · autosave' : ''}
                   </span>
-                  <button type="button" className="g-sx-link" onClick={() => void restore(r.id)}>
+                  <button type="button" className="sob-sx-link" onClick={() => void restore(r.id)}>
                     Restore
                   </button>
                 </div>

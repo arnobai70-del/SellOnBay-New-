@@ -30,7 +30,7 @@ export default async function DailyReport({ searchParams }: { searchParams: Prom
               Days run on UTC time.
             </p>
           </div>
-          <div className="an-range">
+          <div className="sob-an-range">
             <Link href="/admin/visitors/details" className="btn ghost sm">
               All visitors
             </Link>
@@ -71,13 +71,13 @@ export default async function DailyReport({ searchParams }: { searchParams: Prom
             <h2>What drew people</h2>
           </div>
         </div>
-        <h3 className="an-h">Most opened products</h3>
+        <h3 className="sob-an-h">Most opened products</h3>
         <TopTable rows={r.products} what="Product" link={(k) => `/product/${k}`} />
-        <h3 className="an-h">Most opened categories</h3>
+        <h3 className="sob-an-h">Most opened categories</h3>
         <TopTable rows={r.categories} what="Category" />
-        <h3 className="an-h">Product attraction</h3>
+        <h3 className="sob-an-h">Product attraction</h3>
         <AttractionTable rows={r.attraction} />
-        <h3 className="an-h">Most opened pages</h3>
+        <h3 className="sob-an-h">Most opened pages</h3>
         <TopTable rows={r.pages.map((p) => ({ ...p, name: p.key }))} what="Page" />
       </div>
     </DashShell>

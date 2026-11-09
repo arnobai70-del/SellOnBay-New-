@@ -7,7 +7,11 @@ import { rankWebsites } from '@/lib/glass/search';
 import { HUBS } from '@/lib/seo/hubs';
 
 type Raw = Record<string, string | string[] | undefined>;
-const many = (v: string | string[] | undefined) => (Array.isArray(v) ? v : v ? [v] : []).flatMap((x) => x.split(',')).filter(Boolean).slice(0, 12);
+const many = (v: string | string[] | undefined) =>
+  (Array.isArray(v) ? v : v ? [v] : [])
+    .flatMap((x) => x.split(','))
+    .filter(Boolean)
+    .slice(0, 12);
 const INCLUDES = [
   ['demo', 'Live demo'],
   ['custom', 'Customization by seller'],
@@ -30,7 +34,9 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
     return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
   };
   const front = count((p) => p.slice(0, 1)).slice(0, 6);
-  const back = count((p) => p.slice(1)).filter((t) => !front.includes(t)).slice(0, 6);
+  const back = count((p) => p.slice(1))
+    .filter((t) => !front.includes(t))
+    .slice(0, 6);
   const filtered = sites.filter((p) => (!tech.length || tech.some((t) => parts(p.stack).includes(t))) && (!inc.includes('demo') || !!p.demo) && (!inc.includes('custom') || pkgOffered(p, 'custom')));
   const r = browse(filtered, q, (p) => cats.of(p)?.slug ?? null, q.q ? await rankWebsites(q.q) : undefined);
   const hub = HUBS.find((h) => h.slug === q.category);

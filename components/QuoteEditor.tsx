@@ -83,8 +83,8 @@ export function QuoteEditor({
   }
 
   return (
-    <div className="q-edit" data-quote-editor>
-      <table className="q-lines">
+    <div className="sob-q-edit" data-quote-editor>
+      <table className="sob-q-lines">
         <thead>
           <tr>
             <th>Line</th>
@@ -137,7 +137,7 @@ export function QuoteEditor({
         {(sellerCents / 100).toFixed(2)}
         {differs ? ' · differs, so a Super Admin must approve it before the buyer sees it' : ''}
       </p>
-      <div className="req-grid">
+      <div className="sob-req-grid">
         <div>
           <label htmlFor="qe-days">Delivery days</label>
           <input id="qe-days" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} />

@@ -36,9 +36,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   ).filter(([, l]) => l.length);
   return (
     <div className="sob-stack">
-      <div className="g-head">
+      <div className="sob-head">
         <h1>{q ? <>Results for &ldquo;{q}&rdquo;</> : 'Search'}</h1>
-        <div className="glass g-search">
+        <div className="glass sob-search">
           <SearchBox defaultValue={q} />
         </div>
       </div>
@@ -81,9 +81,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       ))}
       <GlassCard as="section">
         <h2>Popular categories</h2>
-        <div className="g-chips" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
+        <div className="sob-chips" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
           {r.popular.map((c) => (
-            <Link key={c.href} className="g-chip" href={c.href}>
+            <Link key={c.href} className="sob-chip" href={c.href}>
               {c.title}
             </Link>
           ))}

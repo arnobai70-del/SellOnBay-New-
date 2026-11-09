@@ -35,7 +35,7 @@ export default async function Categories() {
         </div>
         {views.map((v) => (
           <div className="sob-item" key={v.hub.slug}>
-            <div className="seo-row">
+            <div className="sob-seo-row">
               <div>
                 <h3>{v.hub.name}</h3>
                 <a className="muted" href={hubPublicPath(v.hub, a)} target="_blank" rel="noopener">
@@ -96,7 +96,7 @@ export default async function Categories() {
           const now = hubOf({ id: p.id, cat: p.cat, platform: platformOf(p) }, a);
           return (
             <div className="sob-item" key={p.id}>
-              <div className="seo-row">
+              <div className="sob-seo-row">
                 <div>
                   <h3>{p.name}</h3>
                   <span className="muted">

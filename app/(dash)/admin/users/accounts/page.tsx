@@ -57,7 +57,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
         {users.length === 0 && <p className="muted">No accounts to show.</p>}
         {users.length > 0 && (
           <div className="tbl">
-            <table className="stack">
+            <table className="sob-stack">
               <thead>
                 <tr>
                   <th>Name</th>

@@ -1,6 +1,7 @@
-import '@/app/glass.css';
 import '@/app/sob.css';
 import '@/app/sob-extra.css';
+import '@/app/sob-parts.css';
+import { CookieNotice } from '@/components/CookieNotice';
 import { inter } from './font';
 
 /*
@@ -11,6 +12,7 @@ export function GlassPage({ kind = 'p', file, children }: { kind?: 'p' | 'd'; fi
   return (
     <div className={`sob-${kind} ${inter.variable}`} data-sob={file}>
       <div className="page">{children}</div>
+      <CookieNotice />
     </div>
   );
 }

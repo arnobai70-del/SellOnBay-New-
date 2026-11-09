@@ -58,7 +58,7 @@ export default async function Sellers() {
           </div>
         </div>
         <div className="tbl">
-          <table className="stack">
+          <table className="sob-stack">
             <thead>
               <tr>
                 <th>Plan</th>

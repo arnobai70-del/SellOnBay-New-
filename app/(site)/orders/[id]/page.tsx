@@ -49,7 +49,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
         <div className="wrap" style={{ paddingBottom: 48 }}>
           {o.fundedAt && (
             <p>
-              <a className="btn btn-line btn-sm" href={`/api/orders/${o.id}/receipt`}>
+              <a className="btn ghost sm" href={`/api/orders/${o.id}/receipt`}>
                 Download receipt (PDF)
               </a>
             </p>

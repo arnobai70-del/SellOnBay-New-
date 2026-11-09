@@ -324,3 +324,13 @@
 :is(.sob-d, .sob-p) a.sw {
   display: inline-block;
 }
+
+/* A section of an older tool page inside the design shell, and a plain text link. */
+:is(.sob-p, .sob-d) .sob-sec {
+  margin-top: 20px;
+}
+:is(.sob-p, .sob-d) .sob-link {
+  color: #1a5444;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

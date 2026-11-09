@@ -29,10 +29,10 @@ export default async function SeoListings() {
           </Link>
         </div>
         {rows.length === 0 && <p className="muted">No live listings yet.</p>}
-        <div className="seo-pages">
+        <div className="sob-seo-pages">
           {rows.map((r) => (
             <div className="sob-item" key={r.path}>
-              <div className="seo-row">
+              <div className="sob-seo-row">
                 <div>
                   <h3>{r.name}</h3>
                   <a className="muted" href={r.path} target="_blank" rel="noopener">
@@ -45,9 +45,9 @@ export default async function SeoListings() {
                   {r.changed ? 'Changed' : 'Automatic'}
                 </span>
               </div>
-              <div className="pe-serp">
-                <span className="pe-st">{r.title}</span>
-                <span className="pe-sd">{r.description}</span>
+              <div className="sob-pe-serp">
+                <span className="sob-pe-st">{r.title}</span>
+                <span className="sob-pe-sd">{r.description}</span>
               </div>
               <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(r.path)}`} style={{ justifySelf: 'start' }}>
                 Edit title and description

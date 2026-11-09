@@ -10,7 +10,7 @@ export function DeleteAccount() {
   const [err, setErr] = useState('');
   return (
     <form
-      className="adm-form"
+      className="sob-form"
       onSubmit={async (e) => {
         e.preventDefault();
         if (busy) return;
@@ -33,11 +33,11 @@ export function DeleteAccount() {
         <label htmlFor="del-confirm">Type DELETE to confirm</label>
         <input id="del-confirm" value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" />
       </div>
-      <button className="btn btn-dark btn-sm" type="submit" disabled={busy || text !== 'DELETE'}>
+      <button className="btn warn sm" type="submit" disabled={busy || text !== 'DELETE'}>
         {busy ? 'One moment...' : 'Ask us to delete my account'}
       </button>
       {err && (
-        <p className="form-err" role="alert">
+        <p className="sob-err" role="alert">
           {err}
         </p>
       )}

@@ -27,7 +27,7 @@ export default async function CmsPreview({ searchParams }: { searchParams: Promi
       {!draft ? (
         <p className="muted">There is no draft to preview.</p>
       ) : doc === 'faq' ? (
-        <div className="faq-page">
+        <div className="sob-faq-page">
           {(draft.data as FaqDoc).groups.map((g) => (
             <section key={g.title}>
               <div className="h2">{g.title}</div>

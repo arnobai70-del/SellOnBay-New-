@@ -43,11 +43,11 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
         <Field label="Email" name="email" type="email" required maxLength={254} autoComplete="email" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
-      <Field as="select" label="Topic" name="topic" defaultValue={CONTACT_TOPICS[0]}>
-        {CONTACT_TOPICS.map((t) => (
-          <option key={t}>{t}</option>
-        ))}
-      </Field>
+        <Field as="select" label="Topic" name="topic" defaultValue={CONTACT_TOPICS[0]}>
+          {CONTACT_TOPICS.map((t) => (
+            <option key={t}>{t}</option>
+          ))}
+        </Field>
         <Field label="Order number (optional)" name="orderRef" maxLength={40} placeholder="#SB-…" />
       </div>
       <Field as="textarea" label="Message" name="message" required minLength={10} maxLength={4000} error={error || undefined} />

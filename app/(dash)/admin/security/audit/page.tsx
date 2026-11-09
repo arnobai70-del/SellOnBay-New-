@@ -21,7 +21,7 @@ export default async function Audit() {
         {log.length === 0 && <p className="muted">Nothing yet.</p>}
         {log.length > 0 && (
           <div className="tbl">
-            <table className="stack">
+            <table className="sob-stack">
               <thead>
                 <tr>
                   <th>When</th>

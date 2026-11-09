@@ -31,11 +31,11 @@ export default async function SignInMethodsPage({ searchParams }: { searchParams
   ];
   return (
     <div className="wrap">
-      <div className="page-head">
+      <div className="sob-page-head">
         <h1>Sign-in methods</h1>
         <p>How you sign in to SellOnBay.</p>
       </div>
-      <div className="prose" style={{ paddingBottom: 80 }}>
+      <div className="sob-prose" style={{ paddingBottom: 80 }}>
         {linked && <p className="note">That sign-in is now linked. We sent you an email about it.</p>}
         {!user ? (
           <p className="muted">Sign-in methods need an account. There are none in demo mode.</p>

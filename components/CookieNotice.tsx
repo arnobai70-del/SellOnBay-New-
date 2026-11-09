@@ -30,12 +30,12 @@ export function CookieNotice() {
   };
   if (!show) return null;
   return (
-    <div className="g-ui glass g-cookie" role="region" aria-label="Cookies">
+    <div className="glass sob-cookie" role="region" aria-label="Cookies">
       <p>
         We use the cookies the site needs to work, like keeping you signed in. With your OK we also use Google Analytics to see which pages help, and never for advertising. The live chat (Tawk.to)
         sets its own cookies so a conversation carries on. <Link href="/legal/privacy#cookies">What we store</Link>
       </p>
-      <div className="g-cookie-actions">
+      <div className="sob-cookie-actions">
         <button className="btn ghost sm" type="button" onClick={() => answer('1')}>
           Only what is needed
         </button>

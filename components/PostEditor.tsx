@@ -15,7 +15,7 @@ type Draft = Pick<Post, 'title' | 'slug' | 'metaTitle' | 'metaDescription' | 'ex
 const EMPTY: Draft = { title: '', slug: '', metaTitle: '', metaDescription: '', excerpt: '', body: '', coverUrl: '', coverAlt: '', status: 'draft', noindex: false };
 
 function Count({ n, good, max }: { n: number; good: number; max: number }) {
-  return <small className={n > good ? 'pe-over' : 'muted'}>{`${n} / ${good} shown in Google (max ${max})`}</small>;
+  return <small className={n > good ? 'sob-pe-over' : 'muted'}>{`${n} / ${good} shown in Google (max ${max})`}</small>;
 }
 
 /* Line marks the toolbar can set or clear at the start of each chosen line. */
@@ -145,8 +145,8 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
   }
 
   return (
-    <div className="pe">
-      <div className="pe-main">
+    <div className="sob-pe">
+      <div className="sob-pe-main">
         <div className="field">
           <label htmlFor="pe-title">Title (the heading on the page)</label>
           <input id="pe-title" value={d.title} maxLength={LIMITS.title} onChange={(e) => set('title', e.target.value)} />
@@ -189,9 +189,9 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
           </div>
         )}
         <div className="field">
-          <div className="pe-bodyhead">
+          <div className="sob-pe-bodyhead">
             <label htmlFor="pe-body">Post</label>
-            <div className="pe-tabs" role="group" aria-label="Write or preview">
+            <div className="sob-pe-tabs" role="group" aria-label="Write or preview">
               <button type="button" aria-pressed={view === 'write'} onClick={() => setView('write')}>
                 Write
               </button>
@@ -202,7 +202,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
           </div>
           {view === 'write' ? (
             <>
-              <div className="pe-tools" role="toolbar" aria-label="Formatting">
+              <div className="sob-pe-tools" role="toolbar" aria-label="Formatting">
                 {TOOLS.map(([label, title, run]) => (
                   <button key={label} type="button" title={title} aria-label={title} onClick={run}>
                     {label}
@@ -230,13 +230,13 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
                   }}
                 />
               </div>
-              <textarea ref={area} id="pe-body" className="pe-body" rows={22} value={d.body} maxLength={LIMITS.body} onChange={(e) => set('body', e.target.value)} />
+              <textarea ref={area} id="pe-body" className="sob-pe-body" rows={22} value={d.body} maxLength={LIMITS.body} onChange={(e) => set('body', e.target.value)} />
               <small className="muted">
                 The title above is the page&apos;s H1, so headings in the post start at H2. Pictures: PNG, JPEG, WebP or GIF up to 5 MB. Videos: YouTube, Vimeo or an .mp4 / .webm link.
               </small>
             </>
           ) : (
-            <div className="pe-preview post">
+            <div className="sob-pe-preview post">
               <div className="sob-prose">{d.body.trim() ? <PostBody blocks={parseMarkdown(d.body)} /> : <p className="muted">Nothing written yet.</p>}</div>
             </div>
           )}
@@ -269,16 +269,16 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
           </p>
         )}
       </div>
-      <aside className="pe-side">
+      <aside className="sob-pe-side">
         <b>How it looks in Google</b>
-        <div className="pe-serp">
-          <span className="pe-url">{`${siteUrl.replace(/^https?:\/\//, '')} › blog › ${d.slug || '...'}`}</span>
-          <span className="pe-st">{shownTitle}</span>
-          <span className="pe-sd">{shownDesc}</span>
+        <div className="sob-pe-serp">
+          <span className="sob-pe-url">{`${siteUrl.replace(/^https?:\/\//, '')} › blog › ${d.slug || '...'}`}</span>
+          <span className="sob-pe-st">{shownTitle}</span>
+          <span className="sob-pe-sd">{shownDesc}</span>
         </div>
         <b>SEO check</b>
         {hints.length ? (
-          <ul className="pe-hints">
+          <ul className="sob-pe-hints">
             {hints.map((h) => (
               <li key={h}>{h}</li>
             ))}

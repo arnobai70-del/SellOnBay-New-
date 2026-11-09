@@ -40,7 +40,7 @@ export function OAuthButtons({ next, providers, appleExisting = false }: { next?
       {providers.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(providers.length, 2)}, minmax(0, 1fr))`, gap: 12 }}>
           {providers.map((p) => (
-            <button key={p} type="button" className="btn ghost" style={{ width: "100%" }} onClick={() => go(p)}>
+            <button key={p} type="button" className="btn ghost" style={{ width: '100%' }} onClick={() => go(p)}>
               {p === 'google' && (
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                   {GOOGLE}
@@ -54,7 +54,7 @@ export function OAuthButtons({ next, providers, appleExisting = false }: { next?
       {appleExisting && (
         <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>
           Signed up with Apple?{' '}
-          <button type="button" className="tag" style={{ background: "none", border: 0, padding: 0, cursor: "pointer", color: "#1A5444" }} onClick={() => go('apple')}>
+          <button type="button" className="tag" style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', color: '#1A5444' }} onClick={() => go('apple')}>
             <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
               {APPLE}
             </svg>{' '}

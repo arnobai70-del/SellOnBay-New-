@@ -38,9 +38,9 @@ export default async function SeoPages() {
           </Link>
         </div>
 
-        <div className="seo-pages">
+        <div className="sob-seo-pages">
           <div className="sob-item">
-            <div className="seo-row">
+            <div className="sob-seo-row">
               <div>
                 <h3>Home page</h3>
                 <a className="muted" href="/" target="_blank" rel="noopener">
@@ -67,7 +67,7 @@ export default async function SeoPages() {
             const shownDesc = s.description || p.description;
             return (
               <div className="sob-item" key={p.path}>
-                <div className="seo-row">
+                <div className="sob-seo-row">
                   <div>
                     <h3>{p.name}</h3>
                     <a className="muted" href={p.path} target="_blank" rel="noopener">
@@ -84,9 +84,9 @@ export default async function SeoPages() {
                   {isPublic(p.path, ctl) ? 'Published' : ctl.status === 'draft' ? 'Draft' : 'Archived'} · {ctl.index ? 'Indexable' : 'Noindex'} ·{' '}
                   {inSitemap(p.path, ctl) ? 'In sitemap' : 'Not in sitemap'} · {ctl.faqs.filter((f) => !f.draft).length} questions
                 </p>
-                <div className="pe-serp">
-                  <span className="pe-st">{shownTitle}</span>
-                  <span className="pe-sd">{shownDesc || `${LAYOUT_DESCRIPTION} (this page has none of its own yet).`}</span>
+                <div className="sob-pe-serp">
+                  <span className="sob-pe-st">{shownTitle}</span>
+                  <span className="sob-pe-sd">{shownDesc || `${LAYOUT_DESCRIPTION} (this page has none of its own yet).`}</span>
                 </div>
                 <AdminForm
                   endpoint="/api/admin/seo/pages"

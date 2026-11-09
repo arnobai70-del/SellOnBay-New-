@@ -105,7 +105,7 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
         {weeks.map((w) => (
           <div key={w} className="tbl">
             <h3 style={{ marginTop: 18 }}>Week starting {w}</h3>
-            <table className="stack">
+            <table className="sob-stack">
               <thead>
                 <tr>
                   <th>Seller</th>
@@ -208,7 +208,7 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
         {methods.length === 0 && <p className="muted">No seller has saved a payout method yet. Sellers add it on their dashboard.</p>}
         {methods.length > 0 && (
           <div className="tbl">
-            <table className="stack">
+            <table className="sob-stack">
               <thead>
                 <tr>
                   <th>Seller</th>

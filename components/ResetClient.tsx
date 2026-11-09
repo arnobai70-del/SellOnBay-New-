@@ -41,13 +41,13 @@ export function ResetClient() {
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", padding: "48px 20px 0" }}>
-      <section className="glass ac" style={{ width: "100%", maxWidth: 460 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
+      <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
         <h1 style={{ fontSize: 30, fontWeight: 400 }}>Choose a new password</h1>
         <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
           You will be signed in right after.
         </p>
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="field">
             <label htmlFor="r-pw">New password</label>
             <div style={{ position: 'relative' }}>
@@ -93,7 +93,7 @@ export function ResetClient() {
               {error}
             </p>
           )}
-          <button className="btn" type="submit" disabled={busy} style={{ width: "100%" }}>
+          <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
             {busy ? 'Saving' : 'Save password'}
           </button>
         </form>

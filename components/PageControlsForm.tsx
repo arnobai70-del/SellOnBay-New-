@@ -137,14 +137,14 @@ export function PageControlsForm({
           Empty = the meta description. {c.ogDescription.length} / {CONTROL_MAX.ogDescription}
         </small>
       </div>
-      <div className="pe-serp" aria-label="Share card preview">
+      <div className="sob-pe-serp" aria-label="Share card preview">
         {c.ogImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.ogImage} alt={c.ogImageAlt} style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8 }} />
         )}
-        <span className="pe-sd">{shown.host}</span>
-        <span className="pe-st">{cardTitle}</span>
-        <span className="pe-sd">{cardDesc}</span>
+        <span className="sob-pe-sd">{shown.host}</span>
+        <span className="sob-pe-st">{cardTitle}</span>
+        <span className="sob-pe-sd">{cardDesc}</span>
       </div>
 
       <h4>Keywords</h4>

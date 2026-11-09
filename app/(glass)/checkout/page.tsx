@@ -145,7 +145,12 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
         name={viewer?.name ?? ''}
         email={email}
         summary={summary}
-        steps={['We review your request and email you', 'Once approved, you get the files and the domain steps', `${REVIEW_HOURS} hours to check them and ask for fixes`, 'A week later we ask how it went']}
+        steps={[
+          'We review your request and email you',
+          'Once approved, you get the files and the domain steps',
+          `${REVIEW_HOURS} hours to check them and ask for fixes`,
+          'A week later we ask how it went',
+        ]}
       />
     </PublicFrame>
   );

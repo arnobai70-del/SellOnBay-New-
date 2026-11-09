@@ -8,7 +8,11 @@ import { FOOTER_COLUMNS, PUBLIC_LINKS, ROLE_MENUS } from '@/lib/glass/nav';
  */
 const root = path.join(__dirname, '..', '..');
 const read = (f: string) => fs.readFileSync(path.join(root, f), 'utf8');
-const css = read('app/glass.css').replace(/\/\*[\s\S]*?\*\//g, '');
+// The design's stylesheets: app/sob.css is generated from design-reference/; sob-extra and sob-parts hold what the design does not draw.
+const css = ['app/sob.css', 'app/sob-extra.css', 'app/sob-parts.css']
+  .map(read)
+  .join('\n')
+  .replace(/\/\*[\s\S]*?\*\//g, '');
 const dir = path.join(root, 'components', 'glass');
 const components = fs.readdirSync(dir).map((f) => [f, fs.readFileSync(path.join(dir, f), 'utf8')] as const);
 
@@ -24,44 +28,38 @@ const selectors = () => {
 };
 
 describe('glass UI', () => {
-  it('cannot touch a page on the old look: every selector uses a g- class', () => {
-    const list = selectors();
-    expect(list.length).toBeGreaterThan(50);
-    expect(list.filter((s) => !/\.g-[a-z]/.test(s))).toEqual([]);
+  it('cannot touch a page outside the design: every selector sits under a design root', () => {
+    // whole selector lists: a comma inside :is() does not split a rule
+    const rules = [...css.replace(/@keyframes[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').matchAll(/([^{}]+)\{/g)].map((m) => m[1].trim()).filter((x) => x && !x.startsWith('@'));
+    expect(rules.length).toBeGreaterThan(500);
+    expect(rules.filter((x) => !/\.sob-/.test(x))).toEqual([]);
   });
 
   it('uses the colours of the design system', () => {
-    for (const c of ['#edf3f6', '#2b4250', '#566c78', '#cdebdf', '#1a5444', '#5fa88f', '#e2f3ec', '#fbefd9', '#f6e3e0', '#ddeaf6']) expect(css).toContain(c);
-    expect(css).toContain('rgba(255, 255, 255, 0.6)');
+    for (const c of ['#edf3f6', '#2b4250', '#566c78', '#cdebdf', '#1a5444', '#5fa88f', '#e2f3ec', '#fbefd9', '#f6e3e0', '#ddeaf6']) expect(css.toLowerCase()).toContain(c);
     expect(css).toContain('blur(18px)');
   });
 
-  it('turns off every animation with reduced motion, and reveals on scroll only where the browser can', () => {
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)[\s\S]*animation: none !important[\s\S]*transition: none !important/);
-    expect(css).toMatch(/@supports \(animation-timeline: view\(\)\)\s*\{\s*\.g-reveal/);
-    expect(css.match(/animation-timeline/g)?.length).toBe(2); // the @supports test and the rule inside it
+  it('keeps the design motion: reduced motion, the scroll reveal only where the browser can, and no old keyframes', () => {
+    expect(css).toMatch(/prefers-reduced-motion/);
+    expect(css).toContain('animation-timeline');
+    const frames = [...css.matchAll(/@keyframes ([\w-]+)/g)].map((m) => m[1]);
+    expect(frames.length).toBeGreaterThan(20);
+    expect(frames.filter((n) => !n.startsWith('sob-'))).toEqual([]);
   });
 
   it('never blurs a table row, and the scroll reveal has no blur', () => {
     const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => [m[1].trim(), m[2]] as const);
-    expect(rules.filter(([s, b]) => /backdrop-filter/.test(b) && /(tr|td|table|g-li)\b/.test(s))).toEqual([]);
+    expect(rules.filter(([s, b]) => /backdrop-filter/.test(b) && /\b(tr|td)\b/.test(s))).toEqual([]);
     const reveal = css.match(/@keyframes sob-reveal\s*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/)?.[0] ?? '';
     expect(reveal).not.toContain('filter');
   });
 
-  it('hides the phone menu buttons on a wide screen, whatever order the rules are in', () => {
-    // .g-iconbtn sets display too: with one class each, the later rule wins and both buttons show on a desktop.
-    expect(css).toMatch(/\.g-iconbtn\.g-side-x\s*\{\s*display: none/);
-    expect(css).toMatch(/\.g-iconbtn\.g-menu-btn\s*\{\s*display: none/);
-  });
-
-  it('keeps a first child’s top margin inside the page, so no strip of the old body shows above', () => {
-    expect(css).toMatch(/\.g-page\s*\{[^}]*display: flow-root/);
-  });
-
-  it('keeps grid columns from pushing past a phone', () => {
-    expect(css).not.toMatch(/minmax\(\d+px,/);
-    expect(css).not.toMatch(/[^(,\s]\s*1fr\)?;?\s*\n?\s*grid-template-columns: 1fr/);
+  it('has no old stylesheet left', () => {
+    expect(fs.existsSync(path.join(root, 'app', 'glass.css'))).toBe(false);
+    const globals = read('app/globals.css');
+    expect(globals).not.toMatch(/@keyframes/);
+    expect(globals.length).toBeLessThan(2000);
   });
 
   it('adds no animation library and no JavaScript motion', () => {

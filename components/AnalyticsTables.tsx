@@ -38,7 +38,7 @@ export function DaysTable({ days }: { days: DayLine[] }) {
               {DAY_FIELDS.map(([k]) => (
                 <td key={k}>
                   {k === 'visitors' ? (
-                    <span className="an-bar">
+                    <span className="sob-an-bar">
                       <i style={{ width: `${Math.round((d.visitors / most) * 100)}%` }} />
                       {d.visitors}
                     </span>
@@ -77,7 +77,7 @@ export function CompareTable({ today, before }: { today: DayLine; before: DayLin
                   <b>{today[k]}</b>
                 </td>
                 <td>{before[k]}</td>
-                <td className={diff > 0 ? 'an-up' : diff < 0 ? 'an-down' : 'muted'}>{diff > 0 ? `+${diff}` : diff}</td>
+                <td className={diff > 0 ? 'sob-an-up' : diff < 0 ? 'sob-an-down' : 'muted'}>{diff > 0 ? `+${diff}` : diff}</td>
               </tr>
             );
           })}

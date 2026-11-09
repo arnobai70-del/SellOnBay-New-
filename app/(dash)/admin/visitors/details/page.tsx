@@ -54,7 +54,7 @@ export default async function Visitors({ searchParams }: { searchParams: Promise
             <b>{today.buys}</b>
           </div>
         </div>
-        <h3 className="an-h">Last 14 days</h3>
+        <h3 className="sob-an-h">Last 14 days</h3>
         <DaysTable days={list} />
       </div>
 
@@ -64,7 +64,7 @@ export default async function Visitors({ searchParams }: { searchParams: Promise
             <h2>What draws people</h2>
             <p className="tag">The most opened products, categories and pages for the days you pick.</p>
           </div>
-          <div className="an-range" role="group" aria-label="Days">
+          <div className="sob-an-range" role="group" aria-label="Days">
             {RANGES.map(([n, label]) => (
               <Link key={n} href={`/admin/visitors/details?range=${n}`} className={n === range ? 'btn sm' : 'btn ghost sm'} aria-current={n === range ? 'true' : undefined}>
                 {label}
@@ -72,16 +72,16 @@ export default async function Visitors({ searchParams }: { searchParams: Promise
             ))}
           </div>
         </div>
-        <h3 className="an-h">Most opened products</h3>
+        <h3 className="sob-an-h">Most opened products</h3>
         <TopTable rows={top.products} what="Product" link={(k) => `/product/${k}`} />
-        <h3 className="an-h">Most opened categories</h3>
+        <h3 className="sob-an-h">Most opened categories</h3>
         <TopTable rows={top.categories} what="Category" />
-        <h3 className="an-h">Product attraction</h3>
+        <h3 className="sob-an-h">Product attraction</h3>
         <p className="tag">
           How many different people opened each product, and what share of them clicked Buy. Strong is {strongPct}% or more, fair is {fairPct}% or more; under {minViewers} people is too few to judge.
         </p>
         <AttractionTable rows={top.attraction} />
-        <h3 className="an-h">Most opened pages</h3>
+        <h3 className="sob-an-h">Most opened pages</h3>
         <TopTable rows={top.pages.map((p) => ({ ...p, name: p.key }))} what="Page" />
       </div>
 

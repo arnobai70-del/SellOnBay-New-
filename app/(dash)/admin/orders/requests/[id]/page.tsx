@@ -229,7 +229,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
             <h2>Log</h2>
           </div>
         </div>
-        <ul className="tl2">
+        <ul className="sob-tl2">
           {events.map((e, i) => (
             <li key={i}>
               <b>

@@ -60,7 +60,7 @@ export default async function Disputes() {
               {ev.length > 0 && (
                 <details>
                   <summary>Evidence ({ev.length})</summary>
-                  <ul className="ord-log">
+                  <ul className="sob-ord-log">
                     {ev.map((e) => (
                       <li key={e.id}>
                         <span>{when(e.at)}</span> {e.text}
@@ -72,7 +72,7 @@ export default async function Disputes() {
               {history.length > 0 && (
                 <details>
                   <summary>Order history ({history.length})</summary>
-                  <ul className="ord-log">
+                  <ul className="sob-ord-log">
                     {history.map((h, i) => (
                       <li key={i}>
                         <span>{when(h.at)}</span> {h.event.replace(/_/g, ' ')}

@@ -42,7 +42,7 @@ export async function buyerWebsites(orders: Order[]) {
       return {
         order: o,
         title: plainWords(o.title),
-        seller: p?.ownerType === 'platform' ? 'SellOnBay' : (p?.seller ?? 'SellOnBay'),
+        seller: p?.ownerType === 'platform' && !p.sellerId ? 'SellOnBay' : (p?.seller ?? 'SellOnBay'),
         stack: p?.stack ?? '',
         docsUrl: p?.docsUrl ?? null,
         slug: p?.id ?? null,

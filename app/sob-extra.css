@@ -334,3 +334,55 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Screen-reader-only labels on every design page (the design defines them per file). */
+:is(.sob-p, .sob-d) .hidden-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* The site search in the top bar (owner's extra): one pill on the nav's row; Enter searches, the button stays for screen readers. */
+:is(.sob-p, .sob-d) .sob-sx {
+  position: relative;
+}
+:is(.sob-p, .sob-d) .sob-sx form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+:is(.sob-p, .sob-d) .sob-sx .input {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid #d3e2e9;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0 16px;
+  font: 14px var(--font-inter), system-ui, sans-serif;
+  color: #2b4250;
+  box-sizing: border-box;
+}
+:is(.sob-p, .sob-d) .sob-sx .input:focus {
+  outline: none;
+  border-color: #7fbfa9;
+  box-shadow: 0 0 0 4px rgba(127, 191, 169, 0.18);
+}
+:is(.sob-p, .sob-d) .sob-sx-compact .input {
+  width: 190px;
+  min-height: 40px;
+}
+:is(.sob-p, .sob-d) .sob-sx-compact button[type='submit'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  padding: 0;
+  border: 0;
+}
+@media (max-width: 720px) {
+  :is(.sob-p, .sob-d) .sob-sx-compact .input {
+    width: 140px;
+  }
+}

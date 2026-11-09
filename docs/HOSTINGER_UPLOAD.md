@@ -68,8 +68,8 @@ PayPal Payouts (paying sellers with one click) must be switched on for your PayP
 ## 6. After it is up
 
 1. `/api/health` answers ok. Sign in as the admin (with the authenticator code).
-2. `/dashboard/admin/launch`: shows which keys are set (names only). `/dashboard/admin/maintenance` must not say "memory only".
-3. `/sitemap.xml` and `/robots.txt` open. `/dashboard/admin/seo/links`: run the link check, 0 broken.
+2. `/admin/settings/launch`: shows which keys are set (names only). `/admin/settings/maintenance/modules` must not say "memory only".
+3. `/sitemap.xml` and `/robots.txt` open. `/admin/seo/links`: run the link check, 0 broken.
 4. Search Console and Bing Webmaster Tools: add the site and send `/sitemap.xml`.
 5. The made-up example products are gone by themselves on a live site. A real listing needs a seller: sign up as a seller, list, and approve it in the admin.
 6. Payments are still the test gateway (test cards only) until the real payment provider is built.

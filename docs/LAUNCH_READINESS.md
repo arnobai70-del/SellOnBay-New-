@@ -198,13 +198,13 @@ Sign off each line before the first production deployment of 2.0:
   (needs migration 0069 on staging), privilege snapshot reviewed.
 - [ ] Migrations: the reconciled list from section 1, applied BEFORE the code (every file only adds; `check:migration-safety` green).
 - [ ] Backup taken and restore-verified (section 3) within 24 hours before the migration.
-- [ ] Environment on the host (names only; `/dashboard/admin/launch` shows which are set):
+- [ ] Environment on the host (names only; `/admin/settings/launch` shows which are set):
   - Supabase URL, anon key and service key for production
   - `PAYMENT_WEBHOOK_SECRET`, `CRON_SECRET`, `DELIVERY_SECRET`, `GUARD_SALT`, `ANALYTICS_SALT`
   - Turnstile keys and `NEXT_PUBLIC_SITE_URL=https://sellonbay.com`
   - `NEXT_PUBLIC_GA_ID` as approved
   - `CLIENT_IP_HEADER=cf-connecting-ip` if every request comes through Cloudflare, otherwise `TRUSTED_PROXY_HOPS` = the number of proxies
-    (without one of them a visitor can write their own address and slip past the rate limits; `/dashboard/admin/launch` flags it)
+    (without one of them a visitor can write their own address and slip past the rate limits; `/admin/settings/launch` flags it)
   - NOT set: `SITE_STAGE`, `EXAMPLE_ORDERS`, `LAUNCHBAY_DEMO`, `ENABLE_TEST_CHECKOUT`
 - [ ] Deploy: one instance (pull, `npm ci`, `npm run build`, restart) or blue-green (`deploy/blue-green.sh deploy`), docs/DEPLOYMENT.md
   section 5.

@@ -3,7 +3,7 @@ import { priceDisplays } from '@/lib/prices/service';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BuyersOnly } from '@/components/BuyersOnly';
-import { GlassCard } from '@/components/glass/GlassCard';
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import { RequestForm } from '@/components/RequestForm';
 import { mayBuy } from '@/lib/accounts';
 import { deliveryOf } from '@/lib/apps';
@@ -42,15 +42,17 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
     const problem = supabaseConfigured ? requestableProblem(rp) : 'Requests need an account. There are no accounts in demo mode.';
     const dv = deliveryOf(p);
     return (
-      <>
-        <div className="g-head">
-          <h1>Request to buy {publicListing(p).name}</h1>
-          <p className="g-lead">Tell SellOnBay what you need. We check it and send you a quotation. You pay only after you accept it.</p>
-        </div>
+      <PublicFrame file="checkout">
+        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 8px' }}>Request to buy {publicListing(p).name}</h1>
+        <p className="muted" style={{ margin: '0 0 24px', lineHeight: 1.6 }}>
+          Tell SellOnBay what you need. We check it and send you a quotation. You pay only after you accept it.
+        </p>
         {problem || !rp ? (
-          <GlassCard>
-            <p role="note">{problem ?? 'This product is not available.'}</p>
-          </GlassCard>
+          <div className="glass" style={{ padding: 26 }}>
+            <p role="note" style={{ margin: 0 }}>
+              {problem ?? 'This product is not available.'}
+            </p>
+          </div>
         ) : (
           <RequestForm
             initialPkg={pkg === 'setup' || pkg === 'custom' ? pkg : 'asis'}
@@ -69,7 +71,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
             }}
           />
         )}
-      </>
+      </PublicFrame>
     );
   }
 
@@ -85,65 +87,66 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
   }
   if (!items.length)
     return (
-      <>
-        <div className="g-head">
-          <h1>Checkout</h1>
-        </div>
-        <GlassCard>
-          <h2>Nothing to request yet</h2>
-          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
+      <PublicFrame file="checkout">
+        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>Checkout</h1>
+        <div className="glass" style={{ padding: 26 }}>
+          <h2 style={{ fontSize: 20 }}>Nothing to request yet</h2>
+          <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
             Add a website that is free during beta to your cart first. <Link href="/websites">Browse websites</Link>
           </p>
-        </GlassCard>
-      </>
+        </div>
+      </PublicFrame>
     );
-  return (
+  const summary = (
     <>
-      <div className="g-head">
-        <h1>Checkout</h1>
-      </div>
-      <div className="g-layout-buy">
-        <GlassCard as="section" rise={false}>
-          <h2>Your details</h2>
-          <div style={{ marginTop: 14 }}>
-            <BetaForm ids={items.map((i) => i.id)} name={viewer?.name ?? ''} email={email} />
-          </div>
-        </GlassCard>
-        <div className="sob-stack g-sticky">
-          <GlassCard as="section" rise={false}>
-            <h2>Your request</h2>
-            {items.map((i) => (
-              <div key={i.id} className="li">
-                <span style={{ flex: 1, fontSize: 14 }}>
-                  {i.name}
-                  <span className="tag" style={{ display: 'block' }}>
-                    Standard licence
-                  </span>
-                  {i.dbId && prices.get(i.dbId)?.note && (
-                    <span className="tag" style={{ display: 'block' }}>
-                      {prices.get(i.dbId)!.note}
-                    </span>
-                  )}
-                </span>
-                <s className="muted">${i.price}</s>
-              </div>
-            ))}
-            <div className="li">
-              <b style={{ flex: 1, fontWeight: 500 }}>Total</b>
-              <b style={{ fontWeight: 500 }}>$0.00</b>
+      {items.map((i, n) => (
+        <div key={i.id} style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <span
+            style={{ width: 72, height: 54, borderRadius: 10, background: '#F7FAFB', border: '1px solid #E1EBF0', padding: 6, boxSizing: 'border-box', display: 'flex', gap: 4, flex: 'none' }}
+            aria-hidden="true"
+          >
+            <span style={{ width: 12, borderRadius: 3, background: '#EAF1F4' }} />
+            <span style={{ flex: 1, borderRadius: 3, background: ['#D3EEE4', '#DDEAF6', '#E6E2F4'][n % 3] }} />
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 500 }}>{i.name}</div>
+            <div className="tag">
+              Standard license · by {i.seller}
+              {i.dbId && prices.get(i.dbId)?.note ? ` · ${prices.get(i.dbId)!.note}` : ''}
             </div>
-          </GlassCard>
-          <GlassCard as="section" rise={false}>
-            <h2>What happens next</h2>
-            <ol className="g-list" style={{ paddingLeft: 18, listStyle: 'decimal' }}>
-              <li>We review your request and email you.</li>
-              <li>Once approved, you get the files and the domain steps.</li>
-              <li>You have {REVIEW_HOURS} hours to check them and ask for fixes.</li>
-              <li>A week later we ask how it went.</li>
-            </ol>
-          </GlassCard>
+          </div>
+        </div>
+      ))}
+      <div style={{ borderTop: '1px solid #DEE8ED', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="row">
+          <span className="muted">Websites</span>
+          <s className="muted">${items.reduce((s, i) => s + i.price, 0)}</s>
+        </div>
+        <div className="row">
+          <span className="muted">Domain</span>
+          <span>Checked by hand</span>
+        </div>
+        <div className="row">
+          <span className="muted">Escrow protection</span>
+          <span>Included</span>
         </div>
       </div>
+      <div className="row" style={{ borderTop: '1px solid #DEE8ED', paddingTop: 14, fontSize: 18 }}>
+        <span>Total</span>
+        <span style={{ fontWeight: 500 }}>$0.00</span>
+      </div>
     </>
+  );
+  return (
+    <PublicFrame file="checkout">
+      <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>Checkout</h1>
+      <BetaForm
+        ids={items.map((i) => i.id)}
+        name={viewer?.name ?? ''}
+        email={email}
+        summary={summary}
+        steps={['We review your request and email you', 'Once approved, you get the files and the domain steps', `${REVIEW_HOURS} hours to check them and ask for fixes`, 'A week later we ask how it went']}
+      />
+    </PublicFrame>
   );
 }

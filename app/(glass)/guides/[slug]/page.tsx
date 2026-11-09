@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import { notFound } from 'next/navigation';
 import { JsonLd } from '@/components/JsonLd';
 import { PostBody } from '@/components/PostBody';
@@ -66,7 +67,7 @@ async function GuideHtml({ html }: { html: string }) {
         i % 2 === 0 ? (
           part.trim() && <CleanHtml key={i} html={part} />
         ) : sites.get(part) ? (
-          <div key={i} className="g-guide-site">
+          <div key={i} style={{ maxWidth: 380, margin: '16px 0' }}>
             <WebsiteCard p={sites.get(part)!} />
           </div>
         ) : null,
@@ -84,17 +85,20 @@ export default async function GuidePage(props: Params) {
   const image = p.ogImage || p.coverUrl;
   const abs = (u: string) => (u.startsWith('/') ? SITE_URL + u : u);
   return (
-    <div style={{ paddingTop: 32 }}>
+    <PublicFrame file="guides">
       {preview && (
-        <p className="g-banner g-banner-warn" role="status">
+        <p className="sob-note sob-note-warn" role="status" style={{ marginTop: 16, borderRadius: 14 }}>
           Preview: this guide is {p.status}. Only admins can see it.
         </p>
       )}
-      <nav className="tag" aria-label="Breadcrumb">
+      <nav className="tag" aria-label="Breadcrumb" style={{ marginTop: 32 }}>
         <Link href="/">Home</Link> / <Link href="/guides">Guides</Link>
       </nav>
-      <article className="post">
-        <div className="g-head">
+      <article>
+        <header className="pagehead" style={{ paddingTop: 24 }}>
+          <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
+            {p.category || 'Guide'}
+          </span>
           <h1>{p.title}</h1>
           <p className="tag">
             <time dateTime={published.toISOString()}>{published.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
@@ -102,12 +106,12 @@ export default async function GuidePage(props: Params) {
             {p.bodyHtml ? ` · ${readingMinutes(p.bodyHtml)} min read` : ''}
             {p.category ? ` · ${p.category}` : ''}
           </p>
-        </div>
+        </header>
         {p.coverUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- covers are ours (/blog/media) or any https address the admin gives
-          <img className="post-cover" src={p.coverUrl} alt={p.coverAlt} loading="eager" decoding="async" />
+          <img src={p.coverUrl} style={{ display: 'block', width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 20, marginBottom: 20 }} alt={p.coverAlt} loading="eager" decoding="async" />
         )}
-        <div className="sob-prose">
+        <div className="glass card sob-prose" style={{ padding: 32 }}>
           {p.bodyHtml ? <GuideHtml html={p.bodyHtml} /> : <PostBody blocks={parseMarkdown(p.body)} />}
           {p.tags.length > 0 && <p className="tag">Tags: {p.tags.join(', ')}</p>}
           <p>
@@ -143,6 +147,6 @@ export default async function GuidePage(props: Params) {
           ],
         }}
       />
-    </div>
+    </PublicFrame>
   );
 }

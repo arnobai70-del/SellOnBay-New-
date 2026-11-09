@@ -1,23 +1,24 @@
-import { Button } from '@/components/glass/Button';
-import { pageCopy } from '@/lib/content/copy';
-import { GlassCard } from '@/components/glass/GlassCard';
+import Link from 'next/link';
 import { Earnings } from './Earnings';
 import { PageExtras } from '@/components/PageExtras';
+import { PublicFrame } from '@/components/glass/PublicFrame';
+import { SocialRow } from '@/components/glass/SocialRow';
 import { CONFIG, PAYOUT_FEE_TEXT, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, REVIEW_HOURS } from '@/lib/config';
+import { pageCopy } from '@/lib/content/copy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
-import { SocialRow } from '@/components/glass/SocialRow';
 import { savedSocial } from '@/lib/site/contentStore';
 
+export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/sell', { alternates: { canonical: '/sell' } });
 
 const MIN = CONFIG.sale.priceMinCents / 100;
 const STEPS = [
-  ['Create an account', 'Free. One account can buy and sell.'],
+  ['Create an account', 'Free. Switch between buying and selling any time.'],
   ['Verify your identity', 'A passport, national ID or driver licence, once, before your first payout.'],
   ['Upload your website', 'Code, database, demo link, screenshots and setup guide.'],
   ['We review it', 'A person checks it, and tells you exactly what to fix if something is missing.'],
-  ['Sell and get paid', `${PAYOUT_TEXT}.`],
+  ['Sell and get paid', `Money is released after review. ${PAYOUT_TEXT}.`],
 ];
 const CHECKS = [
   'A working live demo',
@@ -27,86 +28,139 @@ const CHECKS = [
   `Price of at least $${MIN}`,
   'Your own work, no copied brands or code',
 ];
+const NUM: React.CSSProperties = {
+  width: 38,
+  height: 38,
+  borderRadius: '50%',
+  background: '#CDEBDF',
+  color: '#1A5444',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: 500,
+};
 
+/*
+ * design-reference/sell.html. Heading, intro and buttons come from Admin › Content › Pages (pageCopy), else the page's own words; every figure
+ * from lib/config.ts (owner, 2026-11-07: seller 78%, platform 22%, $20 minimum). Payout fee wording: owner, 2026-11-09.
+ */
 export default async function Sell() {
-  const [words, social] = await Promise.all([pageWords('/sell'), savedSocial()]);
-  const copy = await pageCopy('sell'); // Admin › Content › Pages; empty fields keep the page's own words
+  const [words, social, copy] = await Promise.all([pageWords('/sell'), savedSocial(), pageCopy('sell')]);
+  const heading = copy.t('head', 'heading', words.heading);
+  const intro = copy.t('head', 'intro', words.intro ?? '');
+  const [first, ...rest] = heading.split(/(?<=\.)\s+/);
   return (
-    <>
-      <div className="g-head">
-        <h1>{copy.t('head', 'heading', words.heading)}</h1>
-        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
-        <div className="row" style={{ justifyContent: 'flex-start' }}>
-          <Button href="/signin?mode=signup" data-track="start-selling">
-            {copy.t('cta', 'start')}
-          </Button>
-          <Button variant="ghost" href="/legal/seller-agreement">
-            {copy.t('cta', 'agreement')}
-          </Button>
+    <PublicFrame file="sell">
+      <section style={{ padding: '80px 0 24px', display: 'flex', gap: 40, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ flex: '1 1 440px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
+            For developers
+          </span>
+          <h1 style={{ fontSize: 'clamp(38px,5vw,58px)', fontWeight: 300, lineHeight: 1.08 }}>
+            <span className="hl">
+              <span>{first}</span>
+            </span>
+            {rest.length > 0 && (
+              <>
+                {' '}
+                <span className="hl">
+                  <span style={{ animationDelay: '.15s' }}>{rest.join(' ')}</span>
+                </span>
+              </>
+            )}
+          </h1>
+          {intro && (
+            <p className="muted fade-in" style={{ margin: 0, maxWidth: 520, lineHeight: 1.6, fontSize: 17, animationDelay: '.3s' }}>
+              {intro}
+            </p>
+          )}
+          <div className="fade-in" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', animationDelay: '.4s' }}>
+            <Link className="btn" href="/signin?mode=signup" data-track="start-selling">
+              {copy.t('cta', 'start')}
+            </Link>
+            <Link className="btn ghost" href="/legal/seller-agreement" prefetch={false}>
+              {copy.t('cta', 'agreement')}
+            </Link>
+          </div>
         </div>
-      </div>
-      <Earnings />
-      <section className="g-sec">
-        <h2>From upload to payout</h2>
-        <div className="g-grid3" style={{ marginTop: 18 }}>
+        <Earnings />
+      </section>
+      <section className="sec" id="how">
+        <h2 style={{ fontSize: 28, marginBottom: 18 }}>From upload to payout</h2>
+        <div className="grid3">
           {STEPS.map(([t, d], i) => (
-            <GlassCard key={t} reveal>
-              <span className="g-step-n">{i + 1}</span>
-              <h3>{t}</h3>
-              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
+            <div key={t} className="glass card">
+              <div style={NUM}>{i + 1}</div>
+              <div style={{ fontWeight: 500, marginTop: 14 }}>{t}</div>
+              <div className="muted" style={{ fontSize: 14, lineHeight: 1.55, marginTop: 6 }}>
                 {d}
-              </p>
-            </GlassCard>
+              </div>
+            </div>
           ))}
         </div>
       </section>
-      <section className="g-sec grid2">
-        <GlassCard reveal>
-          <h2>What we check before going live</h2>
-          <ul className="g-list">
-            {CHECKS.map((c) => (
-              <li key={c}>✓ {c}</li>
-            ))}
-          </ul>
-        </GlassCard>
-        <GlassCard reveal>
-          <h2>Fees, simply</h2>
-          <div className="li">
-            <span style={{ flex: 1, fontSize: 14 }}>Listing a website</span>Free
+      <section className="sec grid2">
+        <div className="glass card">
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>What we check before going live</h2>
+          {CHECKS.map((c) => (
+            <div key={c} className="rq">
+              <i aria-hidden="true">✓</i> {c}
+            </div>
+          ))}
+        </div>
+        <div className="glass card">
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>Fees, simply</h2>
+          <div className="tbl">
+            <table>
+              <tbody>
+                {(
+                  [
+                    ['Listing a website', 'Free'],
+                    ['Your share of each sale', PLAN_KEEP_TEXT],
+                    ['SellOnBay share', PLAN_FEE_TEXT],
+                    ['Custom work through SellOnBay', `${PLAN_KEEP_TEXT} to you`],
+                    ['Payout fee', 'None from SellOnBay'],
+                  ] as const
+                ).map(([l, v]) => (
+                  <tr key={l}>
+                    <td>{l}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 500 }}>{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="li">
-            <span style={{ flex: 1, fontSize: 14 }}>Your share of each sale</span>
-            {PLAN_KEEP_TEXT}
-          </div>
-          <div className="li">
-            <span style={{ flex: 1, fontSize: 14 }}>SellOnBay share</span>
-            {PLAN_FEE_TEXT}
-          </div>
-          <div className="li">
-            <span style={{ flex: 1, fontSize: 14 }}>Custom work through SellOnBay</span>
-            {PLAN_KEEP_TEXT} to you
-          </div>
-          <div className="li">
-            <span style={{ flex: 1, fontSize: 14 }}>Payout fee</span>None from SellOnBay
-          </div>
-          <p className="tag" style={{ marginTop: 10 }}>
-            {PAYOUT_FEE_TEXT}
-          </p>
-          <p className="tag" style={{ marginTop: 10 }}>
+          <div className="tag">{PAYOUT_FEE_TEXT}</div>
+          <div className="tag">
             {PAYOUT_TEXT}, after the buyer&apos;s {REVIEW_HOURS}-hour review. By PayPal, Payoneer, Wise or bank transfer worldwide.
-          </p>
-        </GlassCard>
+          </div>
+        </div>
       </section>
-      <section className="g-sec">
-        <GlassCard reveal className="row">
-          <h2>{copy.t('cta', 'ready')}</h2>
-          <Button href="/signin?mode=signup" data-track="start-selling">
+      <section className="sec" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <h2 style={{ fontSize: 28, marginBottom: 8 }}>Seller questions</h2>
+        {[
+          ['What do I need to start?', 'An account, an identity document for verification, and a payout account (PayPal, Payoneer, Wise or a bank).'],
+          ['How long does review take?', 'A person checks every website. If something is missing, the reviewer tells you exactly what to fix.'],
+          ['What if a buyer reports a problem?', 'You get a message and a deadline to help. Payment is released once it is solved.'],
+        ].map(([q, a], i) => (
+          <details key={q} className="glass" open={i === 0}>
+            <summary>{q}</summary>
+            <p className="muted" style={{ margin: '10px 0 0', lineHeight: 1.6, fontSize: 14 }}>
+              {a}
+            </p>
+          </details>
+        ))}
+      </section>
+      <section className="sec">
+        <div className="glass card" style={{ padding: 44, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <h2 style={{ fontSize: 32, fontWeight: 300 }}>{copy.t('cta', 'ready')}</h2>
+          <Link className="btn" href="/signin?mode=signup" data-track="start-selling">
             {copy.t('cta', 'create')}
-          </Button>
-        </GlassCard>
+          </Link>
+        </div>
         <SocialRow links={social} label="Sellers community" />
       </section>
       <PageExtras path="/sell" />
-    </>
+    </PublicFrame>
   );
 }

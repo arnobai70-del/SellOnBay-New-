@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Button } from '@/components/glass/Button';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { StatusPill } from '@/components/glass/StatusPill';
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import { WebsiteCard } from '@/components/glass/WebsiteCard';
+import { pkgOffered } from '@/lib/data';
 import { sellerByHandle } from '@/lib/glass/catalog';
 import { getSettings } from '@/lib/settings';
 
-export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ username: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -17,60 +16,138 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `${s.name}: seller store`, description, alternates: { canonical: `/sellers/${s.handle}` }, openGraph: { title: s.name, description, url: `/sellers/${s.handle}` } };
 }
 
+const initials = (n: string) =>
+  n
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('') || 'S';
+
+/*
+ * design-reference/seller.html, for every seller with a live website (SellOnBay's own store too). Customization is asked for on a website of the
+ * seller at checkout (the "With customisation" package), paid through escrow; in the free beta paid custom work waits until live payments.
+ */
 export default async function SellerStore({ params }: Props) {
   const s = await sellerByHandle((await params).username);
   if (!s) notFound();
   const { paymentsMode } = await getSettings();
+  const beta = paymentsMode === 'beta_free';
+  const custom = s.websites.filter((w) => pkgOffered(w, 'custom'));
+  const first = s.name.split(/\s+/)[0];
   return (
-    <div style={{ paddingTop: 40 }}>
-      <GlassCard as="section" rise={false}>
-        <h1>{s.name}</h1>
-        {s.headline && <div className="tag">{s.headline}</div>}
-        <div className="row" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
-          {s.verified && <StatusPill tone="ok">Verified seller</StatusPill>}
-          {s.customAvailable && <StatusPill tone="info">Available for customization</StatusPill>}
+    <PublicFrame file="seller">
+      <section className="glass" style={{ marginTop: 40, padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span
+          style={{ width: 96, height: 96, borderRadius: '50%', background: '#E6E2F4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 400, flex: 'none' }}
+          aria-hidden="true"
+        >
+          {initials(s.name)}
+        </span>
+        <div style={{ flex: '1 1 300px' }}>
+          <h1 style={{ fontSize: 32 }}>{s.name}</h1>
+          {s.headline && (
+            <div className="muted" style={{ marginTop: 6 }}>
+              {s.headline}
+            </div>
+          )}
+          {(s.customAvailable || s.verified) && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13, color: '#1A5444' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3F8F77' }} />
+              {s.customAvailable ? 'Available for customization' : 'Verified seller'}
+            </div>
+          )}
         </div>
-        <p className="muted" style={{ marginTop: 12, fontSize: 14 }}>
-          {s.websites.length} {s.websites.length === 1 ? 'website' : 'websites'} · {s.sold} sold
-          {s.reviews > 0 ? ` · ★ ${s.rating.toFixed(1)} from ${s.reviews} verified ${s.reviews === 1 ? 'buyer' : 'buyers'}` : ''}
-          {s.joined ? ` · member since ${new Date(s.joined).getUTCFullYear()}` : ''}
-        </p>
-        {s.about && (
-          <p className="muted" style={{ marginTop: 12, fontSize: 15, lineHeight: 1.6 }}>
-            {s.about}
-          </p>
-        )}
-        {s.skills.length > 0 && (
-          <div className="row" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
-            {s.skills.map((x) => (
-              <StatusPill key={x} tone="draft">
-                {x}
-              </StatusPill>
-            ))}
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div>
+            <div className="stat">{s.websites.length}</div>
+            <div className="tag">Websites</div>
           </div>
-        )}
-        <div style={{ marginTop: 14 }}>
-          <Button variant="ghost" size="sm" href="/report-abuse">
+          <div>
+            <div className="stat">{s.sold}</div>
+            <div className="tag">Sales</div>
+          </div>
+          <div>
+            <div className="stat">{s.joined ? new Date(s.joined).getUTCFullYear() : '—'}</div>
+            <div className="tag">Member since</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+          <Link className="btn ghost" href="/dashboard/buyer/support?new=1" prefetch={false}>
+            Message
+          </Link>
+          <Link href="/report-abuse" style={{ fontSize: 12, color: '#566C78' }} prefetch={false}>
             Report this seller
-          </Button>
-        </div>
-      </GlassCard>
-      <section className="g-sec">
-        <h2>Websites by {s.name}</h2>
-        <div className="g-grid3" style={{ marginTop: 18 }}>
-          {s.websites.map((p) => (
-            <WebsiteCard key={p.id} p={p} reveal />
-          ))}
+          </Link>
         </div>
       </section>
-      <section className="g-sec">
-        <GlassCard>
-          <h2>Request customization</h2>
-          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-            {paymentsMode === 'beta_free' ? 'Paid custom work is available after beta.' : 'Paid through escrow, like a website. Ask from any website of this seller.'}
-          </p>
-        </GlassCard>
-      </section>
-    </div>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 24 }}>
+        <div style={{ flex: '999 1 560px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div>
+            <h2 style={{ fontSize: 22, marginBottom: 10 }}>About</h2>
+            <p className="muted" style={{ margin: 0, lineHeight: 1.65, fontSize: 15 }}>
+              {s.about || `${s.name} sells full-stack websites on SellOnBay, each with a live demo and escrow protection.`}
+            </p>
+            {s.skills.length > 0 && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+                {s.skills.map((x) => (
+                  <span key={x} className="pill">
+                    {x}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="glass" style={{ padding: 20, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+              <div>
+                <div style={{ fontSize: 38, fontWeight: 300 }}>{s.reviews ? s.rating.toFixed(1) : '—'}</div>
+                <div style={{ color: '#E0A93B', letterSpacing: 2 }} aria-label={s.reviews ? `${s.rating.toFixed(1)} out of 5` : 'No ratings yet'}>
+                  {s.reviews ? '★'.repeat(Math.round(s.rating)) + '☆'.repeat(5 - Math.round(s.rating)) : '☆☆☆☆☆'}
+                </div>
+                <div className="tag">
+                  {s.reviews} verified {s.reviews === 1 ? 'buyer' : 'buyers'}
+                </div>
+              </div>
+              <div style={{ flex: '1 1 260px', fontSize: 14, lineHeight: 1.6 }}>
+                <b style={{ fontWeight: 500 }}>Reviews</b> <span className="muted">· verified buyers only</span>
+                <br />
+                <span className="muted">{s.reviews ? 'Read them on each website page.' : 'No reviews yet. Only buyers who received a website can review it.'}</span>
+              </div>
+            </div>
+            <h2 style={{ fontSize: 22, marginBottom: 16 }}>Websites by {first}</h2>
+            <div className="grid2">
+              {s.websites.map((p) => (
+                <WebsiteCard key={p.id} p={p} />
+              ))}
+            </div>
+          </div>
+        </div>
+        <aside className="glass" style={{ flex: '1 1 300px', maxWidth: 380, padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <h2 style={{ fontSize: 20 }}>Request customization</h2>
+            <div className="muted" style={{ fontSize: 14, marginTop: 6 }}>
+              {beta ? 'Paid custom work is available after the beta.' : 'Paid through escrow, like a website. You pay nothing until you accept a quotation.'}
+            </div>
+          </div>
+          <form action="/checkout" method="get" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <input type="hidden" name="pkg" value="custom" />
+            <div className="field">
+              <label htmlFor="tp">Based on website</label>
+              <select id="tp" name="id" className="input" disabled={beta || !custom.length}>
+                {(custom.length ? custom : s.websites).map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button className="btn" type="submit" style={{ width: '100%' }} disabled={beta || !custom.length}>
+              Send request
+            </button>
+            {!beta && !custom.length && <div className="tag">This seller does not offer customization on a website yet.</div>}
+          </form>
+        </aside>
+      </div>
+    </PublicFrame>
   );
 }

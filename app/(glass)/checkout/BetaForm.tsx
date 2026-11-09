@@ -1,25 +1,32 @@
 'use client';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/glass/Button';
-import { Field } from '@/components/glass/Field';
 import { BETA_NOTICE_TEXT } from '@/lib/config';
 import { COUNTRIES } from '@/lib/countries';
 import { clearCart } from '@/lib/glass/cart';
 
-/* The free beta's payment step: an honest notice and a few questions. There is no card or bank form, and nothing is charged. */
-export function BetaForm({ ids, name, email }: { ids: string[]; name: string; email: string }) {
+const SR: React.CSSProperties = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' };
+
+/*
+ * The checkout of design-reference/checkout.html in the free beta: your details, the domain, and in the payment card an honest notice instead of a
+ * card form (nothing is charged), the summary beside it with the terms box and Send request (/api/beta/requests).
+ */
+export function BetaForm({ ids, name, email, summary, steps }: { ids: string[]; name: string; email: string; summary: React.ReactNode; steps: string[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [own, setOwn] = useState(false);
   return (
     <form
-      className="sob-stack"
+      style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
         setError('');
         const form = Object.fromEntries(new FormData(e.currentTarget));
+        delete form.agree;
+        delete form.own;
         const res = await fetch('/api/beta/requests', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...form, ids }) }).catch(() => null);
         const data = ((await res?.json().catch(() => null)) ?? {}) as { error?: string; orders?: string[] };
         if (res?.ok && data.orders?.length) {
@@ -31,36 +38,105 @@ export function BetaForm({ ids, name, email }: { ids: string[]; name: string; em
         setError(data.error ?? 'Could not send your request. Please try again.');
       }}
     >
-      <p className="status g-pill-info" style={{ whiteSpace: 'normal', padding: '10px 14px', borderRadius: 14, fontSize: 14 }}>
-        {BETA_NOTICE_TEXT}
-      </p>
-      <Field label="Full name" name="name" required maxLength={100} defaultValue={name} autoComplete="name" />
-      <Field label="Email" name="email" type="email" required maxLength={254} defaultValue={email} autoComplete="email" />
-      <Field as="select" label="Country" name="country" required defaultValue="" autoComplete="country">
-        <option value="" disabled>
-          Choose your country
-        </option>
-        {COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.name}
-          </option>
-        ))}
-      </Field>
-      <Field label="Company (optional)" name="company" maxLength={120} autoComplete="organization" />
-      <Field as="textarea" label="What will you use it for?" name="useFor" required minLength={3} maxLength={1000} />
-      <Field
-        label="Domain you want (optional)"
-        name="domain"
-        maxLength={253}
-        placeholder="yourbrand.com"
-        hint="We check availability by hand and register it in your own name."
-        error={error || undefined}
-      />
-      <div>
-        <Button type="submit" disabled={busy}>
-          {busy ? 'Sending' : 'Send request'}
-        </Button>
+      <div style={{ flex: '999 1 520px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div className="glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2 style={{ fontSize: 20 }}>Your details</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+            <div className="field">
+              <label htmlFor="n">Full name</label>
+              <input id="n" name="name" className="input" placeholder="Your name" required maxLength={100} defaultValue={name} autoComplete="name" />
+            </div>
+            <div className="field">
+              <label htmlFor="e">Email</label>
+              <input id="e" name="email" className="input" type="email" placeholder="you@example.com" required maxLength={254} defaultValue={email} autoComplete="email" />
+            </div>
+            <div className="field">
+              <label htmlFor="ct">Country</label>
+              <select id="ct" name="country" className="input" required defaultValue="" autoComplete="country">
+                <option value="" disabled>
+                  Choose your country
+                </option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="co">Company (optional)</label>
+              <input id="co" name="company" className="input" maxLength={120} autoComplete="organization" />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="uf">What will you use it for?</label>
+            <textarea id="uf" name="useFor" className="input" required minLength={3} maxLength={1000} />
+          </div>
+        </div>
+        <div className="glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <h2 style={{ fontSize: 20 }}>Domain</h2>
+            <div className="muted" style={{ fontSize: 14, marginTop: 6 }}>
+              Registered in your own name. You own it, not the seller. We check availability by hand.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <label htmlFor="d" style={SR}>
+              Domain name
+            </label>
+            <input id="d" name="domain" className="input" placeholder="yourbrand.com" maxLength={253} style={{ flex: '1 1 240px' }} />
+            <Link className="btn ghost" href="/domains" prefetch={false}>
+              Find a domain
+            </Link>
+          </div>
+          <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 14, color: '#3D5563', minHeight: 40 }}>
+            <input type="checkbox" name="own" checked={own} onChange={(e) => setOwn(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#3F8F77' }} /> I already have a domain
+          </label>
+          {own && <div className="tag">Write the domain you own above; the seller connects it for you.</div>}
+        </div>
+        <div className="glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2 style={{ fontSize: 20 }}>Payment method</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+            <div className="pay on">
+              <span style={{ fontWeight: 500 }}>Free beta</span>
+              <span className="tag">Nothing is charged</span>
+            </div>
+          </div>
+          <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
+            {BETA_NOTICE_TEXT}
+          </p>
+        </div>
       </div>
+      <aside style={{ flex: '1 1 300px', maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="glass" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {summary}
+          <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: '#3D5563', lineHeight: 1.5 }}>
+            <input type="checkbox" name="agree" required style={{ width: 18, height: 18, accentColor: '#3F8F77', marginTop: 1, flex: 'none' }} />
+            <span>
+              I agree to the <Link href="/legal/terms">Terms</Link>, <Link href="/legal/refunds">Refund policy</Link> and <Link href="/legal/licenses">License</Link>
+            </span>
+          </label>
+          <button className="btn" type="submit" style={{ width: '100%' }} disabled={busy}>
+            {busy ? 'Sending' : 'Send request'}
+          </button>
+          {error && (
+            <div className="tag" style={{ margin: 0, color: '#7A2E24' }} role="alert">
+              {error}
+            </div>
+          )}
+          <Link href="/cart" style={{ fontSize: 13, textAlign: 'center' }} prefetch={false}>
+            Back to cart
+          </Link>
+        </div>
+        <div className="glass" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontWeight: 500 }}>What happens next</div>
+          {steps.map((s, i) => (
+            <div key={s} className="tl">
+              <i style={i ? { background: ['#A9D4C5', '#CDE6DD', '#DCEBE5'][i - 1] } : undefined} /> <span>{s}</span>
+            </div>
+          ))}
+        </div>
+      </aside>
     </form>
   );
 }

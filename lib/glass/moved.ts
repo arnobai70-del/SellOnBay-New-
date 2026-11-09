@@ -16,6 +16,10 @@ const EXACT: Record<string, string> = {
   '/seller-agreement': '/legal/seller-agreement',
   '/acceptable-use': '/legal/acceptable-use',
   '/dmca': '/legal/dmca',
+  // design file addresses that live at another route (owner, 2026-11-09): every design page has a working address
+  '/legal': '/legal/terms',
+  '/order-success': '/checkout/success',
+  '/account-access': '/signin?mode=forgot',
 };
 /* The old /websites/<category> pages. Anything else under /websites is a product. */
 const OLD_CATEGORY_PAGES = ['ecommerce', 'saas', 'business', 'portfolio', 'industry', 'stores', 'landing-pages', 'portfolios', 'restaurants', 'tools', 'health', 'real-estate'];

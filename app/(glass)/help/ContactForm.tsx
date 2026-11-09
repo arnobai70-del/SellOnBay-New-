@@ -22,7 +22,7 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
     );
   return (
     <form
-      className="sob-stack"
+      style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 12 }}
       onSubmit={async (e) => {
         e.preventDefault();
         setState('sending');
@@ -38,20 +38,23 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
         setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Could not send. Please try again.');
       }}
     >
-      <h2>Send us a message</h2>
-      <Field label="Name" name="name" required maxLength={100} autoComplete="name" />
-      <Field label="Email" name="email" type="email" required maxLength={254} autoComplete="email" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+        <Field label="Name" name="name" required maxLength={100} autoComplete="name" />
+        <Field label="Email" name="email" type="email" required maxLength={254} autoComplete="email" />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
       <Field as="select" label="Topic" name="topic" defaultValue={CONTACT_TOPICS[0]}>
         {CONTACT_TOPICS.map((t) => (
           <option key={t}>{t}</option>
         ))}
       </Field>
-      <Field label="Order number (optional)" name="orderRef" maxLength={40} />
+        <Field label="Order number (optional)" name="orderRef" maxLength={40} placeholder="#SB-…" />
+      </div>
       <Field as="textarea" label="Message" name="message" required minLength={10} maxLength={4000} error={error || undefined} />
       {/* A trap for bots: hidden from people and from screen readers. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: -9999, width: 1, height: 1 }} />
       <Turnstile siteKey={siteKey} onToken={setToken} />
-      <div>
+      <div style={{ alignSelf: 'flex-start' }}>
         <Button type="submit" disabled={state === 'sending'}>
           {state === 'sending' ? 'Sending' : 'Send message'}
         </Button>

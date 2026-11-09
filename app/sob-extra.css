@@ -204,6 +204,13 @@
 :is(.sob-d, .sob-p) a.role,
 :is(.sob-d, .sob-p) a.pm,
 :is(.sob-d, .sob-p) a.sw,
+:is(.sob-d, .sob-p) a.post,
+:is(.sob-d, .sob-p) a.catl,
+:is(.sob-d, .sob-p) a.cat,
+:is(.sob-d, .sob-p) a.fopt,
+:is(.sob-d, .sob-p) a.pg,
+:is(.sob-d, .sob-p) a.lic,
+:is(.sob-d, .sob-p) a.tab,
 :is(.sob-d, .sob-p) a.qa,
 :is(.sob-d, .sob-p) a.btn,
 :is(.sob-d, .sob-p) a.chk {

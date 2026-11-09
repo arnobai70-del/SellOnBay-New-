@@ -1,75 +1,135 @@
 import { ContactForm } from './ContactForm';
-import { pageCopy } from '@/lib/content/copy';
-import { GlassCard } from '@/components/glass/GlassCard';
 import { PageExtras } from '@/components/PageExtras';
+import { PublicFrame } from '@/components/glass/PublicFrame';
+import { SocialRow } from '@/components/glass/SocialRow';
 import { liveSiteKey } from '@/lib/bot/turnstile';
 import { publishedFaq } from '@/lib/cms/docStore';
-import { SocialRow } from '@/components/glass/SocialRow';
-import { helpAnchor } from '@/lib/searchCore';
-import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
+import { pageCopy } from '@/lib/content/copy';
 import { faqToShow } from '@/lib/faq';
+import { helpAnchor } from '@/lib/searchCore';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
+import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/help', { alternates: { canonical: '/help' } });
 
+/* The design's tile icons, in the order of the help groups. */
+const TILES: [bg: string, d: string][] = [
+  ['#DDEAF6', 'M3 4h18v14H3zM3 9h18'],
+  ['#F6E0EA', 'M3 7h18v10H3zM7 12h.01'],
+  ['#DCF0E7', 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z'],
+  ['#E6E2F4', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18'],
+  ['#F1E8DD', 'M4 20h16M6 16l6-12 6 12'],
+  ['#E8EEF2', 'M12 4v12M7 11l5 5 5-5M5 20h14'],
+];
+const groupId = (t: string) => 'g-' + helpAnchor(t).replace(/^q-/, '');
+
+/*
+ * design-reference/help.html: the search (the site's smart search, Help results included), the help groups as tiles, every question with its
+ * own address (#q-..., used by search), and contact: the routes and social links an admin set, and the contact form (/api/contact).
+ * Questions come from Admin › CMS, else the built-in ones; the heading from Admin › Content › Pages.
+ */
 export default async function Help() {
-  const [words, saved, routes, social] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial()]);
-  const { groups } = faqToShow(saved?.groups ?? null); // Admin > CMS, else built-in
-  const copy = await pageCopy('help'); // Admin › Content › Pages; empty fields keep the page's own words
+  const [words, saved, routes, social, copy] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial(), pageCopy('help')]);
+  const { groups } = faqToShow(saved?.groups ?? null);
+  const intro = copy.t('head', 'intro', words.intro ?? '');
   return (
-    <>
-      <div className="g-head">
-        <h1>{copy.t('head', 'heading', words.heading)}</h1>
-        {copy.t('head', 'intro', words.intro ?? '') && <p className="g-lead">{copy.t('head', 'intro', words.intro ?? '')}</p>}
-      </div>
-      <div className="sob-stack">
+    <PublicFrame file="help">
+      <section style={{ padding: '80px 0 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 18 }}>
+        <h1 style={{ fontSize: 'clamp(36px,5vw,54px)', fontWeight: 300 }}>
+          <span className="hl">
+            <span>{copy.t('head', 'heading', words.heading)}</span>
+          </span>
+        </h1>
+        {intro && (
+          <p className="muted fade-in" style={{ margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
+            {intro}
+          </p>
+        )}
+        <form
+          className="glass search-glow"
+          action="/search"
+          method="get"
+          role="search"
+          style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 640, padding: '8px 8px 8px 20px', borderRadius: 999, boxSizing: 'border-box' }}
+        >
+          <label htmlFor="hs" className="hidden-label">
+            Search help
+          </label>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            id="hs"
+            name="q"
+            placeholder="e.g. payment, refund, connect domain"
+            style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
+          />{' '}
+          <button className="btn" type="submit">
+            Search
+          </button>
+        </form>
+      </section>
+      <section className="grid3" style={{ paddingTop: 24 }}>
+        {groups.map((g, i) => (
+          <a key={g.title} className="glass cat" href={`#${groupId(g.title)}`}>
+            <span className="i" style={{ background: TILES[i % TILES.length][0] }} aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B4250" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d={TILES[i % TILES.length][1]} />
+              </svg>
+            </span>
+            <b style={{ fontWeight: 500, marginTop: 6 }}>{g.title}</b>
+            <span className="muted" style={{ fontSize: 14 }}>
+              {g.items.length} {g.items.length === 1 ? 'answer' : 'answers'}
+            </span>
+          </a>
+        ))}
+      </section>
+      <section id="articles" className="sec grid2">
         {groups.map((g) => (
-          <GlassCard key={g.title} as="section" rise={false}>
-            <h2>{g.title}</h2>
+          <div key={g.title} id={groupId(g.title)} className="glass card">
+            <h2 style={{ fontSize: 22, marginBottom: 8 }}>{g.title}</h2>
             {g.items.map((f) => (
-              <details key={f.q} id={helpAnchor(f.q)} className="li" style={{ display: 'block' }}>
-                <summary style={{ cursor: 'pointer', fontSize: 15, minHeight: 28 }}>{f.q}</summary>
-                <p className="muted" style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6 }}>
+              <details key={f.q} id={helpAnchor(f.q)}>
+                <summary className="art" style={{ listStyle: 'none', cursor: 'pointer' }}>
+                  {f.q} <span aria-hidden="true">›</span>
+                </summary>
+                <p className="muted" style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.6 }}>
                   {f.a}
                 </p>
               </details>
             ))}
-          </GlassCard>
+          </div>
         ))}
-      </div>
-      <section className="g-sec" id="contact">
-        <div className="grid2">
-          <GlassCard>
-            <h2>{copy.t('contact', 'heading')}</h2>
-            <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
+      </section>
+      <section id="contact" className="sec">
+        <div className="glass card" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <div style={{ flex: '1 1 280px' }}>
+            <h2 style={{ fontSize: 28, fontWeight: 300 }}>{copy.t('contact', 'heading')}</h2>
+            <p className="muted" style={{ margin: '10px 0 0', lineHeight: 1.6 }}>
               {copy.t('contact', 'text')}
             </p>
-            <div className="li" style={{ marginTop: 10 }}>
-              <span style={{ flex: 1, fontSize: 14 }}>Support</span>
-              <a href={`mailto:${routes.support}`}>{routes.support}</a>
-            </div>
-            <div className="li">
-              <span style={{ flex: 1, fontSize: 14 }}>Billing and payouts</span>
-              <a href={`mailto:${routes.billing}`}>{routes.billing}</a>
-            </div>
-            <div className="li">
-              <span style={{ flex: 1, fontSize: 14 }}>Partnerships and seller onboarding</span>
-              <a href={`mailto:${routes.business}`}>{routes.business}</a>
-            </div>
-            <div className="li">
-              <span style={{ flex: 1, fontSize: 14 }}>Abuse, copyright and security</span>
-              <a href={`mailto:${routes.report}`}>{routes.report}</a>
-            </div>
+            {(
+              [
+                ['Support', routes.support],
+                ['Billing and payouts', routes.billing],
+                ['Partnerships', routes.business],
+                ['Abuse and copyright', routes.report],
+              ] as const
+            ).map(([l, e], i) => (
+              <div key={l} className="li" style={{ fontSize: 14, marginTop: i ? 0 : 14 }}>
+                <span className={i ? 'status st-draft' : 'status st-info'}>{l}</span>
+                <a href={`mailto:${e}`}>{e}</a>
+              </div>
+            ))}
             <SocialRow links={social} label="SellOnBay elsewhere" />
-          </GlassCard>
-          <GlassCard>
-            <ContactForm siteKey={liveSiteKey() || undefined} />
-          </GlassCard>
+          </div>
+          <ContactForm siteKey={liveSiteKey() || undefined} />
         </div>
       </section>
       <PageExtras path="/help" />
-    </>
+    </PublicFrame>
   );
 }

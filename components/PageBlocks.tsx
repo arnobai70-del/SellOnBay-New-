@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { FaqList } from '@/components/FaqList';
 import { PostBody } from '@/components/PostBody';
-import { TallCard } from '@/components/TallCard';
+import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { parseMarkdown } from '@/lib/markdown';
 import type { Block } from '@/lib/site/content';
 import type { Product } from '@/lib/data';
@@ -16,7 +16,7 @@ export function PageBlocks({ blocks, listings }: { blocks: Block[]; listings: Pr
             return b.level === 3 ? <h3 key={b.id}>{b.text}</h3> : <h2 key={b.id}>{b.text}</h2>;
           case 'text':
             return (
-              <div key={b.id} className="prose">
+              <div key={b.id} className="glass card sob-prose">
                 <PostBody blocks={parseMarkdown(b.text)} />
               </div>
             );
@@ -30,11 +30,11 @@ export function PageBlocks({ blocks, listings }: { blocks: Block[]; listings: Pr
             return (
               <p key={b.id}>
                 {external ? (
-                  <a className="btn btn-blue" href={b.href} target="_blank" rel="noopener noreferrer nofollow">
+                  <a className="btn" href={b.href} target="_blank" rel="noopener noreferrer nofollow">
                     {b.label}
                   </a>
                 ) : (
-                  <Link className="btn btn-blue" href={b.href}>
+                  <Link className="btn" href={b.href}>
                     {b.label}
                   </Link>
                 )}
@@ -47,9 +47,9 @@ export function PageBlocks({ blocks, listings }: { blocks: Block[]; listings: Pr
             return (
               <div key={b.id}>
                 {b.title && <h2>{b.title}</h2>}
-                <div className="grid tall-grid">
+                <div className="grid3">
                   {items.map((p) => (
-                    <TallCard key={p.id} p={p} />
+                    <WebsiteCard key={p.id} p={p} />
                   ))}
                 </div>
               </div>
@@ -62,7 +62,7 @@ export function PageBlocks({ blocks, listings }: { blocks: Block[]; listings: Pr
               </div>
             );
           case 'divider':
-            return <hr key={b.id} style={{ margin: '28px 0', border: 0, borderTop: '1px solid var(--line, #e3e6ef)' }} />;
+            return <hr key={b.id} style={{ margin: '28px 0', border: 0, borderTop: '1px solid #D9E5EB' }} />;
         }
       })}
     </>

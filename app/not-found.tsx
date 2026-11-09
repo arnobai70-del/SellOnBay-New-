@@ -1,38 +1,60 @@
 import Link from 'next/link';
-import { Button } from '@/components/glass/Button';
-import { GlassCard } from '@/components/glass/GlassCard';
-import { GlassPage } from '@/components/glass/GlassPage';
-import { PublicFooter } from '@/components/glass/PublicFooter';
-import { PublicNav } from '@/components/glass/PublicNav';
+import { PublicFrame } from '@/components/glass/PublicFrame';
 import { pageCopy } from '@/lib/content/copy';
-import { PUBLIC_LINKS } from '@/lib/glass/nav';
+import { HUBS } from '@/lib/seo/hubs';
 
-/* Its words come from Admin › Content › Pages (lib/content/registry.ts, "Page not found"). */
+/*
+ * design-reference/404.html: the error card with search and the ways back; beside it the website categories. Its words come from Admin › Content ›
+ * Pages ("Page not found"). The maintenance card of the same design file is components/MaintenanceNotice.tsx.
+ */
 export default async function NotFound() {
-  const [c, nav, foot] = await Promise.all([pageCopy('not-found'), pageCopy('nav'), pageCopy('footer')]);
+  const c = await pageCopy('not-found');
   return (
-    <GlassPage file="404">
-      <div className="wrap">
-        <PublicNav showCart links={PUBLIC_LINKS.map((l) => ({ ...l, label: nav.t('links', l.href.slice(1), l.label) }))} />
-        <main id="main" className="g-hero">
-          <div className="tag">Error 404</div>
-          <h1>{c.t('main', 'heading')}</h1>
-          <p className="g-lead">{c.t('main', 'text')}</p>
-          <form className="glass g-search" action="/websites" method="get" role="search">
-            <label className="hidden-label" htmlFor="nf-q">
-              Search websites
+    <PublicFrame file="404">
+      <div className="grid2" style={{ paddingTop: 56 }}>
+        <section className="glass card" style={{ padding: 44, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
+          <span className="tag" style={{ margin: 0, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+            Error 404
+          </span>
+          <div className="big" aria-hidden="true">
+            404
+          </div>
+          <h1 style={{ fontSize: 32, fontWeight: 300 }}>{c.t('main', 'heading')}</h1>
+          <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
+            {c.t('main', 'text')}
+          </p>
+          <form action="/search" method="get" role="search" style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 420 }}>
+            <label htmlFor="s4" className="hidden-label">
+              Search
             </label>
-            <input id="nf-q" name="q" placeholder="Search websites" />
-            <Button type="submit">Search</Button>
+            <input id="s4" name="q" className="input" placeholder="Search websites or domains" />
+            <button className="btn" type="submit">
+              Search
+            </button>
           </form>
-          <GlassCard rise={false} className="row">
-            <Link href="/">Home</Link>
-            <Link href="/websites">Browse websites</Link>
-            <Link href="/help">Help center</Link>
-          </GlassCard>
-        </main>
-        <PublicFooter tagline={foot.t('main', 'tagline')} contactTitle={foot.t('main', 'contact')} />
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link className="btn ghost" href="/" prefetch={false}>
+              Home
+            </Link>
+            <Link className="btn ghost" href="/websites" prefetch={false}>
+              Browse websites
+            </Link>
+            <Link className="btn ghost" href="/help" prefetch={false}>
+              Help center
+            </Link>
+          </div>
+        </section>
+        <section className="glass card" style={{ padding: 44, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
+          <span className="tag" style={{ margin: 0, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+            Browse by category
+          </span>
+          {HUBS.map((h) => (
+            <Link key={h.slug} className="btn ghost" href={`/websites/category/${h.slug}`} prefetch={false}>
+              {h.name}
+            </Link>
+          ))}
+        </section>
       </div>
-    </GlassPage>
+    </PublicFrame>
   );
 }

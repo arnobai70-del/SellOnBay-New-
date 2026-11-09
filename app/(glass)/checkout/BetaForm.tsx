@@ -41,7 +41,7 @@ export function BetaForm({ ids, name, email, summary, steps }: { ids: string[]; 
       <div style={{ flex: '999 1 520px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div className="glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <h2 style={{ fontSize: 20 }}>Your details</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 14 }}>
             <div className="field">
               <label htmlFor="n">Full name</label>
               <input id="n" name="name" className="input" placeholder="Your name" required maxLength={100} defaultValue={name} autoComplete="name" />
@@ -96,7 +96,7 @@ export function BetaForm({ ids, name, email, summary, steps }: { ids: string[]; 
         </div>
         <div className="glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <h2 style={{ fontSize: 20 }}>Payment method</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: 12 }}>
             <div className="pay on">
               <span style={{ fontWeight: 500 }}>Free beta</span>
               <span className="tag">Nothing is charged</span>

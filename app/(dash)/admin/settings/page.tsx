@@ -191,7 +191,7 @@ export default async function AdminSettings() {
             Fixed in the code (lib/config.ts); the owner decides changes
           </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px, 100%),1fr))', gap: 14 }}>
           {(
             [
               ['cm', 'Seller share', PLAN_KEEP_TEXT],
@@ -235,7 +235,7 @@ export default async function AdminSettings() {
             Edit home page
           </Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(260px, 100%),1fr))', gap: 14 }}>
           <div className="row" style={{ fontSize: 14 }}>
             <span>SEO titles and descriptions</span>
             <Link className="btn sm ghost" href="/admin/seo/pages" prefetch={false}>

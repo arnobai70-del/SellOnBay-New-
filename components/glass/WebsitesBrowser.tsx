@@ -61,7 +61,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
   );
   return (
     <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <aside className="glass" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label="Filters">
+      <aside className="glass sob-filters" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label="Filters">
         <div style={{ fontSize: 18, padding: '0 12px' }}>Filters</div>
         <div className="flabel" style={{ padding: '0 12px' }}>
           Category
@@ -159,7 +159,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
           </form>
         </div>
         {r.items.length ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: 18 }}>
             {r.items.map((p) => (
               <WebsiteCard key={p.id} p={p} />
             ))}

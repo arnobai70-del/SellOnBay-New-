@@ -132,7 +132,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                 <p className="muted" style={{ margin: '10px 0 0', fontSize: 14, lineHeight: 1.6 }}>
                   {l.description}
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 8, marginTop: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px, 100%),1fr))', gap: 8, marginTop: 14 }}>
                   {checks(l).map(([ok, text]) => (
                     <div key={text} className="ck">
                       <i style={{ background: ok ? '#3F8F77' : '#C2553F' }} aria-hidden="true">

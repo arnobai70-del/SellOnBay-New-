@@ -200,7 +200,7 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
                 Earnings &amp; payouts
               </Link>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
               {(
                 [
                   ['1 · Buyer paid', v.escrowCents, 'Held in escrow', BOX],

@@ -386,3 +386,73 @@
     width: 140px;
   }
 }
+
+/* The top bar's right side (search, cart, sign in) stays on one row next to the menu. */
+:is(.sob-p, .sob-d) .sob-navr {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+/* Space between a page's own blocks and the questions under it, on every page (the design sets it per file; this is the fallback). */
+.sob-p .sec {
+  padding-top: 56px;
+}
+.sob-p details.glass {
+  padding: 16px 20px;
+  border-radius: 16px;
+}
+.sob-p details.glass summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+/* Phones (owner, 2026-11-09): nothing wider than the screen, the menu scrolls sideways, every grid is one column. */
+@media (max-width: 1100px) {
+  :is(.sob-p, .sob-d) .sob-sx-compact .input {
+    width: 150px;
+  }
+}
+@media (max-width: 760px) {
+  .sob-p .wrap {
+    padding: 0 16px;
+  }
+  .sob-p .nav {
+    border-radius: 24px;
+    padding: 10px 12px;
+    row-gap: 8px;
+  }
+  .sob-p .navlinks {
+    order: 3;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  .sob-p .navlinks::-webkit-scrollbar {
+    display: none;
+  }
+  .sob-p .sob-navr {
+    margin-left: auto;
+  }
+  :is(.sob-p, .sob-d) .sob-sx-compact {
+    display: none;
+  }
+  :is(.sob-p, .sob-d) .grid2,
+  :is(.sob-p, .sob-d) .grid3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sob-p .sob-filters {
+    max-width: none !important;
+    flex-basis: 100% !important;
+  }
+  .sob-p .sec {
+    padding-top: 40px;
+  }
+  .sob-p h1 {
+    overflow-wrap: anywhere;
+  }
+  :is(.sob-p, .sob-d) .tbl {
+    overflow-x: auto;
+  }
+}

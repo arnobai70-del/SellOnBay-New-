@@ -119,7 +119,7 @@ export default async function Website({ params }: Props) {
           <div id="overview" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 6 }}>
             <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65 }}>{p.desc}</p>
             {p.does && p.does.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 10 }}>
                 {p.does.map((x) => (
                   <div key={x} className="li">
                     <span aria-hidden="true">✓</span> {x}
@@ -128,7 +128,7 @@ export default async function Website({ params }: Props) {
               </div>
             )}
           </div>
-          <div id="features" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14, marginTop: 10 }}>
+          <div id="features" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 14, marginTop: 10 }}>
             <div className="glass" style={{ padding: 22 }}>
               <div style={{ fontSize: 17, marginBottom: 10 }}>{copy.t('labels', 'included')}</div>
               {(p.inc.length ? p.inc : ['Source files', 'Setup guide']).map((x, i, a) => (

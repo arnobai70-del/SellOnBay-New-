@@ -42,11 +42,11 @@ describe('every admin door names its permission', () => {
     }
   });
   it('every admin page except the overview asks requireViewer for a scope', () => {
-    const pages = walk(path.join(root, 'app', '(dash)', 'dashboard', 'admin'), 'page.tsx');
+    const pages = walk(path.join(root, 'app', '(dash)', 'admin'), 'page.tsx');
     for (const p of pages) {
       const s = fs.readFileSync(p, 'utf8');
       if (!/requireViewer\(/.test(s)) continue;
-      if (path.relative(path.join(root, 'app', '(dash)', 'dashboard', 'admin'), p) === 'page.tsx') continue;
+      if (path.relative(path.join(root, 'app', '(dash)', 'admin'), p) === 'page.tsx' || /^search[\\/]page\.tsx$/.test(path.relative(path.join(root, 'app', '(dash)', 'admin'), p))) continue; // the overview and site search show only what each scope may see
       expect(s, p).toMatch(/roles: \['admin'\], scope: /);
     }
   });

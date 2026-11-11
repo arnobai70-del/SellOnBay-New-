@@ -1,4 +1,5 @@
 import 'server-only';
+import { publicSlug } from './publicSlug';
 import { BRAND_NAME } from '../brand';
 import { priceDisplays } from '../prices/service';
 import { platformOf } from '../apps';
@@ -15,7 +16,7 @@ import { createAdminClient } from '../supabase/server';
 import { supabaseConfigured } from '../supabase/env';
 import { publicListing } from './words';
 
-export const websitePath = (id: string) => `/websites/${id}`;
+export const websitePath = (id: string) => `/websites/${publicSlug(id)}`;
 export const categoryPath = (slug: string) => `/websites/category/${slug}`;
 export const CATEGORY_SLUGS = HUBS.map((h) => h.slug);
 
@@ -84,6 +85,8 @@ type ProfileRow = {
   store_paused?: boolean | null;
 };
 
+const sellerCache = ((globalThis as { __sellerCache?: Map<string, { at: number; rows: ProfileRow[] }> }).__sellerCache ??= new Map());
+
 export async function publicSellers(): Promise<PublicSeller[]> {
   const sites = await publicWebsites();
   const groups = new Map<string, Product[]>();
@@ -97,7 +100,11 @@ export async function publicSellers(): Promise<PublicSeller[]> {
   if (supabaseConfigured && groups.size) {
     const ids = [...groups.keys()].filter((k) => !k.startsWith('name:') && k !== PLATFORM_KEY);
     // '*' so the page keeps working before migration 0075 adds the store fields; only the fields named below are ever used.
-    const { data } = ids.length ? await createAdminClient().from('seller_profiles').select('*').in('user_id', ids) : { data: [] };
+    // Kept for a minute per server copy, like the list of live websites (CONFIG.catalogCacheSeconds): public pages never wait on it twice.
+    const key = ids.sort().join(',');
+    const hit = sellerCache.get(key);
+    const data = hit && Date.now() - hit.at < 60_000 ? hit.rows : ids.length ? ((await createAdminClient().from('seller_profiles').select('*').in('user_id', ids)).data ?? []) : [];
+    if (!hit || hit.rows !== data) sellerCache.set(key, { at: Date.now(), rows: data as ProfileRow[] });
     for (const r of (data ?? []) as ProfileRow[]) profiles.set(r.user_id, r);
   }
   return [...groups.entries()]

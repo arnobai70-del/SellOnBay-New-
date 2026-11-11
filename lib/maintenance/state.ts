@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import { supabaseConfigured, supabaseUrl } from '../supabase/env';
 import { MAINTENANCE_LIMITS, MODULES, isModuleKey, type ModuleKey } from './config';
 
@@ -23,8 +24,9 @@ export type PageRow = { path: string; enabled: boolean; message: string; startAt
 export type Source = 'db' | 'memory';
 
 const CACHE_MS = 10_000;
+const STALE_MS = 5 * 60_000; // an answer older than this is not served even while refreshing: maintenance on or off shows within minutes at worst
 type Cache = { at: number; rows: ModuleRow[]; pages: PageRow[]; allowIps: string[]; source: Source };
-const g = globalThis as { __maintMem?: Map<ModuleKey, ModuleRow>; __maintPages?: Map<string, PageRow>; __maintAllow?: string[]; __maintCache?: Cache };
+const g = globalThis as { __maintMem?: Map<ModuleKey, ModuleRow>; __maintPages?: Map<string, PageRow>; __maintAllow?: string[]; __maintCache?: Cache; __maintRefreshing?: boolean };
 export const memoryRows = (g.__maintMem ??= new Map());
 export const memoryPages = (g.__maintPages ??= new Map());
 export const memoryAllow = (ips?: string[]) => (ips ? (g.__maintAllow = ips) : (g.__maintAllow ?? []));
@@ -85,11 +87,27 @@ const dbConfigured = () => supabaseConfigured && !!process.env.SUPABASE_SERVICE_
 export async function readRows(now = Date.now()): Promise<Cache> {
   const c = g.__maintCache;
   if (c && now - c.at < CACHE_MS) return c;
+  // Speed (owner, 2026-11-11): an expired answer is still served at once while one refresh runs in the background, so no request waits on the
+  // database round trip. Only the very first request on a server copy, or one after forgetRows(), waits.
+  if (c && now - c.at < STALE_MS) {
+    if (!g.__maintRefreshing) {
+      g.__maintRefreshing = true;
+      void loadRows(now, c).finally(() => {
+        g.__maintRefreshing = false;
+      });
+    }
+    return c;
+  }
+  return loadRows(now, c);
+}
+
+async function loadRows(now: number, c: Cache | undefined): Promise<Cache> {
   let next: Cache = { at: now, rows: [...memoryRows.values()], pages: [...memoryPages.values()], allowIps: memoryAllow(), source: 'memory' };
   if (dbConfigured()) {
     try {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-      const get = (q: string) => fetch(`${supabaseUrl}/rest/v1/${q}`, { headers: { apikey: key, authorization: `Bearer ${key}` }, cache: 'no-store', signal: AbortSignal.timeout(2_000) });
+      const get = (q: string) =>
+        fetch(`${supabaseUrl}/rest/v1/${q}`, { headers: { apikey: key, authorization: `Bearer ${key}` }, next: { revalidate: 30, tags: ['maintenance'] }, signal: AbortSignal.timeout(2_000) });
       // '*' so this keeps working before migration 0082 adds banner_minutes; pages and the allow-list are optional (before 0082 they are simply empty).
       const [res, pg, allow] = await Promise.all([
         get('module_maintenance?select=*'),
@@ -110,9 +128,14 @@ export async function readRows(now = Date.now()): Promise<Cache> {
   return next;
 }
 
-/* Forget the cached answer (after a change on this instance). */
+/* Forget the cached answer (after a change on this instance), and the shared fetch cache, so every page sees the change at once. */
 export const forgetRows = () => {
   g.__maintCache = undefined;
+  try {
+    revalidateTag('maintenance', { expire: 0 });
+  } catch {
+    /* outside a request (tests, scripts): only this instance's copy is forgotten */
+  }
 };
 
 /* The row closing this module now, or null when it is open. */

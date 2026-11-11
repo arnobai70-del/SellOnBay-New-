@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MobileToggle } from '@/components/glass/MobileToggle';
 import { WebsiteCard } from './WebsiteCard';
 import { pkgOffered } from '@/lib/data';
 import { browse, readQuery, SORTS, SORT_LABEL, type BrowseQuery } from '@/lib/glass/browse';
@@ -61,71 +62,73 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
   );
   return (
     <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <aside className="glass sob-filters" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label="Filters">
-        <div style={{ fontSize: 18, padding: '0 12px' }}>Filters</div>
-        <div className="flabel" style={{ padding: '0 12px' }}>
-          Category
-        </div>
-        <Link className={q.category ? 'fopt' : 'fopt on'} href={href({ category: '' })} prefetch={false} aria-current={q.category ? undefined : 'page'}>
-          All websites
-        </Link>{' '}
-        {HUBS.map((h) => (
-          <Link key={h.slug} className={q.category === h.slug ? 'fopt on' : 'fopt'} href={href({ category: h.slug })} prefetch={false} aria-current={q.category === h.slug ? 'page' : undefined}>
-            {h.name.replace(/ Websites$/, '')}
-          </Link>
-        ))}
-        <form action="/websites" method="get">
-          {q.q && <input type="hidden" name="q" value={q.q} />}
-          {q.category && <input type="hidden" name="category" value={q.category} />}
-          {q.sort !== 'featured' && <input type="hidden" name="sort" value={q.sort} />}
-          {front.length > 0 && (
-            <>
-              <div className="flabel" style={{ padding: '0 12px' }}>
-                Technology
-              </div>
-              {front.map((t) => check('tech', t, tech.includes(t), t))}
-            </>
-          )}
+      <MobileToggle label="Filters" className="sob-mt-filters">
+        <aside className="glass sob-filters" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label="Filters">
+          <div style={{ fontSize: 18, padding: '0 12px' }}>Filters</div>
           <div className="flabel" style={{ padding: '0 12px' }}>
-            Price
+            Category
           </div>
-          <div style={{ display: 'flex', gap: 8, padding: '0 12px' }}>
-            <div style={{ flex: 1 }}>
-              <label htmlFor="pmin" className="tag" style={{ display: 'block', marginBottom: 4 }}>
-                Min
-              </label>
-              <input id="pmin" name="min" className="input" inputMode="decimal" defaultValue={q.min ?? ''} placeholder="$" />
+          <Link className={q.category ? 'fopt' : 'fopt on'} href={href({ category: '' })} prefetch={false} aria-current={q.category ? undefined : 'page'}>
+            All websites
+          </Link>{' '}
+          {HUBS.map((h) => (
+            <Link key={h.slug} className={q.category === h.slug ? 'fopt on' : 'fopt'} href={href({ category: h.slug })} prefetch={false} aria-current={q.category === h.slug ? 'page' : undefined}>
+              {h.name.replace(/ Websites$/, '')}
+            </Link>
+          ))}
+          <form action="/websites" method="get">
+            {q.q && <input type="hidden" name="q" value={q.q} />}
+            {q.category && <input type="hidden" name="category" value={q.category} />}
+            {q.sort !== 'featured' && <input type="hidden" name="sort" value={q.sort} />}
+            {front.length > 0 && (
+              <>
+                <div className="flabel" style={{ padding: '0 12px' }}>
+                  Technology
+                </div>
+                {front.map((t) => check('tech', t, tech.includes(t), t))}
+              </>
+            )}
+            <div className="flabel" style={{ padding: '0 12px' }}>
+              Price
             </div>
-            <div style={{ flex: 1 }}>
-              <label htmlFor="pmax" className="tag" style={{ display: 'block', marginBottom: 4 }}>
-                Max
-              </label>
-              <input id="pmax" name="max" className="input" inputMode="decimal" defaultValue={q.max ?? ''} placeholder="$" />
-            </div>
-          </div>
-          {back.length > 0 && (
-            <>
-              <div className="flabel" style={{ padding: '0 12px' }}>
-                Backend &amp; database
+            <div style={{ display: 'flex', gap: 8, padding: '0 12px' }}>
+              <div style={{ flex: 1 }}>
+                <label htmlFor="pmin" className="tag" style={{ display: 'block', marginBottom: 4 }}>
+                  Min
+                </label>
+                <input id="pmin" name="min" className="input" inputMode="decimal" defaultValue={q.min ?? ''} placeholder="$" />
               </div>
-              {back.map((t) => check('tech', t, tech.includes(t), t))}
-            </>
-          )}
-          <div className="flabel" style={{ padding: '0 12px' }}>
-            Rating
-          </div>
-          {check('rated', '1', q.rated, '4 stars and up')}
-          <div className="flabel" style={{ padding: '0 12px' }}>
-            Includes
-          </div>
-          {INCLUDES.map(([k, l]) => check('inc', k, inc.includes(k), l))}
-          <div style={{ padding: '14px 12px 0' }}>
-            <button className="btn ghost" type="submit" style={{ width: '100%' }}>
-              Apply filters
-            </button>
-          </div>
-        </form>
-      </aside>
+              <div style={{ flex: 1 }}>
+                <label htmlFor="pmax" className="tag" style={{ display: 'block', marginBottom: 4 }}>
+                  Max
+                </label>
+                <input id="pmax" name="max" className="input" inputMode="decimal" defaultValue={q.max ?? ''} placeholder="$" />
+              </div>
+            </div>
+            {back.length > 0 && (
+              <>
+                <div className="flabel" style={{ padding: '0 12px' }}>
+                  Backend &amp; database
+                </div>
+                {back.map((t) => check('tech', t, tech.includes(t), t))}
+              </>
+            )}
+            <div className="flabel" style={{ padding: '0 12px' }}>
+              Rating
+            </div>
+            {check('rated', '1', q.rated, '4 stars and up')}
+            <div className="flabel" style={{ padding: '0 12px' }}>
+              Includes
+            </div>
+            {INCLUDES.map(([k, l]) => check('inc', k, inc.includes(k), l))}
+            <div style={{ padding: '14px 12px 0' }}>
+              <button className="btn ghost" type="submit" style={{ width: '100%' }}>
+                Apply filters
+              </button>
+            </div>
+          </form>
+        </aside>
+      </MobileToggle>
       <div style={{ flex: '999 1 560px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
           <div className="muted" style={{ fontSize: 14 }} role="status">

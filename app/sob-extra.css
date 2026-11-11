@@ -548,3 +548,291 @@
     min-width: 0;
   }
 }
+
+/* Home hero (owner, 2026-11-11): the heading is there at first paint (it is the LCP element), the rest fades in quickly with no delay. */
+.sob-p[data-sob='index'] main > section:first-child .hl > span {
+  animation: none;
+}
+.sob-p[data-sob='index'] main > section:first-child .fade-in,
+.sob-p[data-sob='index'] main > section:first-child .search-glow {
+  animation-duration: 0.45s;
+  animation-delay: 0s !important;
+}
+
+/*
+ * Speed (owner, 2026-11-11: Chrome froze on / and /domains, and on resize). The two blurred background circles no longer drift: while they moved,
+ * every glass panel had to be blurred again on every frame. Repeated items (cards in a list, domain rows) and the floating hero cards are not
+ * blurred, and on phones nothing is: the look stays, the per-frame work goes.
+ */
+:is(.sob-p, .sob-d)[data-sob] .page::before,
+:is(.sob-p, .sob-d)[data-sob] .page::after {
+  animation: none;
+}
+:is(.sob-p, .sob-d)[data-sob] .floater {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.9);
+}
+:is(.sob-p, .sob-d)[data-sob] a.glass.card,
+:is(.sob-p, .sob-d)[data-sob] .res,
+:is(.sob-p, .sob-d)[data-sob] details.glass,
+:is(.sob-p, .sob-d)[data-sob] .tbl .glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.8);
+}
+@media (max-width: 760px) {
+  :is(.sob-p, .sob-d)[data-sob] .glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* The account button in the public top bar when signed in. */
+:is(.sob-p, .sob-d) .sob-acct {
+  position: relative;
+}
+:is(.sob-p, .sob-d) .sob-acct-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+:is(.sob-p, .sob-d) .sob-acct-btn .av {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #cdebdf;
+  color: #1a5444;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+:is(.sob-p, .sob-d) .sob-acct-btn:focus-visible {
+  outline: 2px solid #5fa88f;
+  outline-offset: 2px;
+}
+:is(.sob-p, .sob-d) .sob-acct-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 60;
+  min-width: 190px;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.97);
+}
+:is(.sob-p, .sob-d) .sob-acct-menu a,
+:is(.sob-p, .sob-d) .sob-acct-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  border-radius: 10px;
+  color: #2b4250;
+  font: 14px var(--font-inter), system-ui, sans-serif;
+  text-decoration: none;
+  line-height: 44px;
+  cursor: pointer;
+}
+:is(.sob-p, .sob-d) .sob-acct-menu a:hover,
+:is(.sob-p, .sob-d) .sob-acct-menu button:hover {
+  background: #e2f3ec;
+  color: #1a5444;
+}
+
+/* Phones, third pass (owner, 2026-11-11): a menu button and sheet in the top bar; filters and dashboard menus behind one button each. */
+:is(.sob-p, .sob-d) .sob-burger,
+:is(.sob-p, .sob-d) .sob-mt-btn {
+  display: none;
+}
+:is(.sob-p, .sob-d) .sob-mt {
+  display: contents;
+}
+@media (max-width: 760px) {
+  .sob-p[data-sob] .nav .sob-navr {
+    order: 1;
+    margin-left: auto;
+  }
+  .sob-p[data-sob] .nav .sob-burger {
+    order: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #d3e2e9;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 0;
+  }
+  .sob-p[data-sob] .sob-burger span,
+  .sob-p[data-sob] .sob-burger span::before,
+  .sob-p[data-sob] .sob-burger span::after {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #2b4250;
+    position: relative;
+    content: '';
+  }
+  .sob-p[data-sob] .sob-burger span::before {
+    position: absolute;
+    top: -6px;
+  }
+  .sob-p[data-sob] .sob-burger span::after {
+    position: absolute;
+    top: 6px;
+  }
+  .sob-p[data-sob] .sob-burger[aria-expanded='true'] span {
+    background: transparent;
+  }
+  .sob-p[data-sob] .sob-burger[aria-expanded='true'] span::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+  .sob-p[data-sob] .sob-burger[aria-expanded='true'] span::after {
+    top: 0;
+    transform: rotate(-45deg);
+  }
+  .sob-p[data-sob] .nav .navlinks {
+    display: none;
+    order: 3;
+    width: 100%;
+    flex-direction: column;
+    overflow: visible;
+    white-space: normal;
+    gap: 2px;
+    padding-top: 6px;
+    border-top: 1px solid #dce7ec;
+  }
+  .sob-p[data-sob] .nav .navlinks.open {
+    display: flex;
+  }
+  .sob-p[data-sob] .nav .navlinks a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+  }
+  /* the filter panel and the dashboard menu: one button, then the panel full width */
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt {
+    display: block;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt-btn {
+    display: inline-flex;
+    min-height: 44px;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt:not(.open) .sob-mt-body {
+    display: none;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt-body > aside {
+    margin-top: 10px;
+    max-width: none !important;
+    width: 100%;
+    flex: none !important;
+  }
+  .sob-d[data-sob] .sob-mt .side {
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+    padding: 14px 12px;
+  }
+  .sob-d[data-sob] .sob-mt .side .grp {
+    display: block;
+  }
+  .sob-d[data-sob] .sob-mt .side .mi {
+    min-height: 44px;
+  }
+  .sob-d[data-sob] .sob-mt .sob-sidecard {
+    margin-top: 10px !important;
+  }
+}
+/* touch screens: every control at least 44px tall */
+@media (pointer: coarse) {
+  :is(.sob-p, .sob-d)[data-sob] :is(.btn, .chip, .pg, .fopt, .mi, .stab, .seg button, .seg a) {
+    min-height: 44px;
+  }
+}
+
+/* A website card on a page whose design file has no card styles (the website page's "More like this"): the card of design-reference/websites.html. */
+:is(.sob-p, .sob-d) a.glass.card {
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.5s;
+}
+:is(.sob-p, .sob-d) a.glass.card:hover {
+  box-shadow: 0 16px 40px rgba(43, 66, 80, 0.1);
+  color: inherit;
+  transform: translateY(-6px);
+}
+:is(.sob-p, .sob-d) a.glass.card .thumb {
+  height: 160px;
+  border-radius: 14px;
+  background: #f7fafb;
+  border: 1px solid #e1ebf0;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+:is(.sob-p, .sob-d) a.glass.card .tb {
+  height: 6px;
+  border-radius: 3px;
+  background: #e3ecf1;
+  flex: none;
+}
+:is(.sob-p, .sob-d) a.glass.card .side {
+  width: 22%;
+  border-radius: 6px;
+  background: #eaf1f4;
+}
+:is(.sob-p, .sob-d) a.glass.card .sq {
+  width: 28px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-block;
+}
+:is(.sob-p, .sob-d) a.glass.card .ln {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: #e1eaef;
+}
+:is(.sob-p, .sob-d) a.glass.card .ln.s {
+  width: 60%;
+}
+:is(.sob-p, .sob-d) a.glass.card .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 14px 4px 4px;
+}

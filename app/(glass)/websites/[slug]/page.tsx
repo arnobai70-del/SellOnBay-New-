@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { publicSlug } from '@/lib/glass/publicSlug';
 import { JsonLd } from '@/components/JsonLd';
 import { PageExtras } from '@/components/PageExtras';
 import { TrackView } from '@/components/TrackView';
@@ -31,7 +32,9 @@ export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ slug: string }> };
 
 async function find(slug: string) {
-  const found = await visibleProduct(slug);
+  // The clean address (no "template", lib/glass/publicSlug.ts) is looked up among the live websites; the database slug still works too.
+  const id = (await publicWebsites()).find((w) => publicSlug(w.id) === slug && w.id !== slug)?.id ?? slug;
+  const found = await visibleProduct(id);
   if (!found) return null;
   const ctl = await pageControls(listingPath(found.product.id));
   if (found.status === 'live' && !isPublic(listingPath(found.product.id), ctl)) return null;
@@ -65,6 +68,7 @@ export default async function Website({ params }: Props) {
   const { slug } = await params;
   const f = await find(slug);
   if (!f) notFound();
+  if (publicSlug(f.product.id) !== slug) permanentRedirect(websitePath(f.product.id)); // an old address with "template" in it
   const p = f.product;
   const [cats, reviews, rating, settings, sites, sellers, copy] = await Promise.all([
     websiteCategories(),

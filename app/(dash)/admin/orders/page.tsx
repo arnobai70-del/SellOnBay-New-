@@ -191,7 +191,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div id="pos" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start', scrollMarginTop: 90 }}>
         <PosForm
           open={settings.paymentsMode === 'live'}
           keepBps={10_000 - CONFIG.flatPlan.commissionBps}

@@ -81,7 +81,7 @@ export async function buildCertificate(d: CertificateData): Promise<Uint8Array> 
     y -= Math.max(1, lines.length) * 14 + 4;
   };
 
-  text('[LAWYER REVIEW] Draft wording. This is a record of a delivery, not legal advice and not a transfer of rights.', { size: 8, color: rgb(0.7, 0.2, 0.2), gap: 10 });
+  text('Draft wording. This is a record of a delivery, not legal advice and not a transfer of rights.', { size: 8, color: rgb(0.7, 0.2, 0.2), gap: 10 });
   text('Handover certificate', { size: 22, f: bold, gap: 4 });
   text(`Order ${d.orderId}`, { size: 10, f: mono, gap: 14 });
 

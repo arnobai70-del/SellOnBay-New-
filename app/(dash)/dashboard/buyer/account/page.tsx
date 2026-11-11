@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * coupons, the emails we send, your data and selling. Preferences per email and a list of other devices are not kept yet; they say so.
  */
 export default async function BuyerAccount() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/account', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/account', roles: ['buyer', 'seller', 'admin'] });
   let d = { country: '', phone: '', company: '' };
   if (viewer && supabaseConfigured) {
     // '*' so the page keeps working before migration 0078; only these three fields are shown.

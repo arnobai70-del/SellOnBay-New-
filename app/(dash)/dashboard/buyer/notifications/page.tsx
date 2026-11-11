@@ -11,7 +11,7 @@ const SHOWN: Group[] = ['all', 'orders', 'websites', 'domains', 'support'];
 
 /* design-reference/buyer-notifications.html: every notice for this buyer, by kind, with a way to what it is about. */
 export default async function BuyerNotifications({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/notifications', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/notifications', roles: ['buyer', 'seller', 'admin'] });
   const raw = (await searchParams).type;
   const group: Group = SHOWN.includes(raw as Group) && Object.hasOwn(GROUPS, raw ?? '') ? (raw as Group) : 'all';
   const list = viewer ? await notificationsFor(viewer.id, 100) : [];

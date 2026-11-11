@@ -8,7 +8,7 @@ export const generateMetadata = () => pageMetadata('/terms', { alternates: { can
 
 export default function Terms() {
   return (
-    <LegalPage path="/terms" stamp="[LAWYER REVIEW] Draft, last updated October 2026. Not final legal advice.">
+    <LegalPage path="/terms" stamp="Draft, last updated October 2026. Not final legal advice.">
       <p>These terms cover your use of SellOnBay, where buyers get ready-made websites and tools set up on their own domain, and sellers list and deliver them.</p>
       {!paypalConfigured() && (
         <p>

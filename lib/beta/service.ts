@@ -153,6 +153,8 @@ export async function requestBeta(buyerId: string, key: string, raw: Partial<Rec
         created_at: new Date(now).toISOString(),
       });
     if (error) {
+      // The database's own reason goes to the server log (no personal data: the code and message only), so a failure can be traced.
+      console.error(JSON.stringify({ event: 'beta_request_save_failed', order: order.id, code: error.code, message: error.message }));
       // Without its answers the order cannot be reviewed: close it, and let the buyer try again.
       await move(order.id, 'beta_declined', { actorId: null, event: 'beta_request_failed', meta: { amount: 0, method: BETA_METHOD }, now }).catch(() => {});
       return fail(500, 'Could not save your request. Please try again.');

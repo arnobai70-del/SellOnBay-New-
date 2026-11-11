@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /* A buyer's purchase and custom development requests, newest first. */
 export default async function BuyerRequests() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/requests', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/requests', roles: ['buyer', 'seller', 'admin'] });
   const list = viewer ? await listRequests({ buyerId: viewer.id }) : [];
   const products = await productNames(list.map((r) => r.productId));
   return (

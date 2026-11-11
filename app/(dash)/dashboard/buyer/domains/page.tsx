@@ -15,7 +15,7 @@ const month = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 's
  * name, so renewing, DNS changes and the transfer code are asked for through Support, and reminders are emailed (lib/config.ts).
  */
 export default async function BuyerDomains() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/domains', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/domains', roles: ['buyer', 'seller', 'admin'] });
   const domains = viewer ? await buyerDomains(viewer.id, await buyerOrders(viewer.id)) : [];
   const now = Date.now();
   const me = viewer?.name ? `${viewer.name.split(' ')[0]} (you)` : 'You';

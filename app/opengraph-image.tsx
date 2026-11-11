@@ -1,28 +1,41 @@
 import { ImageResponse } from 'next/og';
 import { BRAND_DOMAIN, BRAND_NAME } from '@/lib/brand';
-import { CONFIG } from '@/lib/config';
+import { CONFIG, PLAN_KEEP_TEXT } from '@/lib/config';
+import { Mark } from '@/lib/og/Mark';
 
-/* The picture shown when a link to the site is shared (WhatsApp, Facebook, X, LinkedIn). Drawn from the brand colours, no photos. */
-export const alt = `${BRAND_NAME}: ready-made websites, apps and digital products`;
+/*
+ * The picture shown when a link to the site is shared (WhatsApp, Messenger, Facebook, X, LinkedIn): 1200x630 PNG in the Glass UI colours with the
+ * blue SellOnBay mark. A website page draws its own (app/(glass)/websites/[slug]/opengraph-image.tsx).
+ */
+export const alt = `${BRAND_NAME}: full-stack websites, domains and a seller marketplace`;
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default function Image() {
   return new ImageResponse(
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 72, background: '#0F1330', color: '#fff' }}>
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: 72,
+        background: 'linear-gradient(135deg, #EAF4F8 0%, #E3F3EC 55%, #EDF3F6 100%)',
+        color: '#2B4250',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ width: 64, height: 64, borderRadius: 18, background: '#2B3DFF', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', padding: 8 }}>
-          <div style={{ width: 22, height: 22, borderRadius: 11, background: '#FFB52E' }} />
-        </div>
-        <div style={{ fontSize: 44, fontWeight: 800 }}>{BRAND_NAME}</div>
+        <Mark px={72} />
+        <div style={{ fontSize: 46, fontWeight: 700 }}>{BRAND_NAME}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-        <div style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.05, maxWidth: 980 }}>Ready-made websites, apps and digital products.</div>
-        <div style={{ display: 'flex', fontSize: 34, color: '#C9CEF5' }}>
-          {`Live on your own domain in ${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays} days. Payment is held until you accept.`}
+        <div style={{ fontSize: 70, fontWeight: 700, lineHeight: 1.08, maxWidth: 1000 }}>Buy a website. Get a domain. Or sell your own.</div>
+        <div style={{ display: 'flex', fontSize: 32, color: '#566C78', maxWidth: 1000 }}>
+          {`Full-stack websites with a live demo, paid into escrow and checked for ${CONFIG.review.hours} hours. Sellers keep ${PLAN_KEEP_TEXT}.`}
         </div>
       </div>
-      <div style={{ display: 'flex', fontSize: 30, color: '#FFB52E' }}>{BRAND_DOMAIN}</div>
+      <div style={{ display: 'flex', fontSize: 30, color: '#1A5444' }}>{BRAND_DOMAIN}</div>
     </div>,
     size,
   );

@@ -40,6 +40,7 @@ describe('the standard values', () => {
       deliveryHoursOn: true,
       deliveryHourChoices: '6, 12, 18, 36',
       allowedCountries: '', // everywhere (owner, 2026-11-07)
+      monthlyTargetCents: 0, // no target until an admin sets one (owner, 2026-11-11)
     });
     expect(CONFIG.sale).toEqual({ priceMinCents: 2000, priceMaxCents: 7000 });
   });

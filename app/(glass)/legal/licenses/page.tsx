@@ -61,7 +61,7 @@ export default function Licenses() {
       </table>
       <p>
         The Standard licence covers one end website, for yourself or for one client. Several clients, reselling finished websites, or SaaS use need the Extended licence. Neither licence lets you
-        resell or share the source code itself, as a template, kit or copy. A digital product states its own support and update period on its listing, and that period applies to it.
+        resell or share the source code itself, as a starter kit or copy. A digital product states its own support and update period on its listing, and that period applies to it.
       </p>
       <p>During the beta only the Standard licence can be requested. The Extended licence is available after beta, through a quotation.</p>
     </LegalPage>

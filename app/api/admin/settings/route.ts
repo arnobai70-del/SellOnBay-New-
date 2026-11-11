@@ -15,6 +15,7 @@ const schema = z.object({
   priceMinCents: dollars.optional(),
   priceMaxCents: dollars.optional(),
   holdNewBuyerMinCents: dollars.optional(),
+  monthlyTargetCents: dollars.optional(),
   earlyAccessOn: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),
   earlyAccessText: z.string().max(200).optional(),
   showExamples: z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]).optional(),

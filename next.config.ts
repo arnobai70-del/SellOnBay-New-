@@ -75,6 +75,8 @@ const nextConfig: NextConfig = {
   // A second build can live beside the first (a test server with the old public site): NEXT_DIST_DIR=.next-legacy.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   poweredByHeader: false,
+  // Listing screenshots go through next/image (WebP, the size the card needs, kept on disk). Only versioned screenshot paths, never a query string.
+  images: { localPatterns: [{ pathname: '/demo/**/shots/**', search: '' }], formats: ['image/webp'], minimumCacheTTL: 31536000 },
   // server code reads these (lib/admin/system.ts); a commit hash and a time are not secrets
   env: { SOB_BUILD_SHA: buildCommit(), SOB_BUILD_TIME: new Date().toISOString() },
   // `next dev` only: lets a phone on the same Wi-Fi or a quick Cloudflare tunnel load the dev scripts, so menus work there too.

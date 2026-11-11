@@ -124,15 +124,18 @@ test.describe('keyboard and focus', () => {
       expect(unnamed, `${path}: controls without a name`).toEqual([]);
     }
   });
-  test('on a phone the menu is one row the keyboard reaches, and a focused link scrolls into view', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 800 }); // the Glass UI top bar: on phones the links are one row you swipe, no menu sheet
+  test('on a phone the menu button opens the link sheet with the keyboard and Escape closes it', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 }); // phones: a menu button opens the links as a sheet (owner, 2026-11-11)
     await page.goto(BASE + '/');
+    const button = page.locator('nav.nav .sob-burger');
+    await button.focus();
+    await page.keyboard.press('Enter');
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
     const links = page.locator('nav.nav .navlinks a');
     expect(await links.count()).toBeGreaterThan(3);
-    const last = links.last();
-    await last.focus();
-    await expect(last).toBeFocused();
-    await expect(last).toBeInViewport();
+    await expect(links.last()).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 });
 

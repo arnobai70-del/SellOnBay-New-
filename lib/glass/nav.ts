@@ -81,6 +81,7 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
           { key: 'orders', label: 'Orders & payments', href: '/dashboard/buyer/orders' },
           { key: 'websites', label: 'My websites', href: '/dashboard/buyer/websites' },
           { key: 'domains', label: 'Domains', href: '/dashboard/buyer/domains' },
+          { key: 'subscription', label: 'Subscription', href: '/dashboard/buyer/subscription' }, // buyer subscriptions (owner, 2026-11-12)
         ],
       },
       {
@@ -145,6 +146,7 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
         items: [
           { key: 'finance', label: 'Finance & payouts', href: '/admin/finance' },
           { key: 'reports', label: 'Reports', href: '/admin/reports' },
+          { key: 'subscriptions', label: 'Buyer subscriptions', href: '/admin/subscriptions' }, // owner, 2026-11-12
         ],
       },
       { name: 'People', items: [{ key: 'users', label: 'Users & roles', href: '/admin/users' }] },

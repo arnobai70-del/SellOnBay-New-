@@ -1,4 +1,5 @@
 import 'server-only';
+import { sellerSubSettings } from './admin';
 import { auditStrict } from '../admin/audit';
 import { DAY_MS } from '../config';
 import { notify } from '../notify';
@@ -32,6 +33,9 @@ export async function checkListingLimit(sellerId: string): Promise<{ ok: true } 
 /* A seller asks for Pro or Business. Nothing is charged here; an admin takes it from there. */
 export async function requestPlan(sellerId: string, code: string, billing: string): Promise<Result<Subscription>> {
   if (!isPlanCode(code) || code === 'free') return fail(400, 'Choose Pro or Business.');
+  // Admin › Subscription Management (owner, 2026-11-12): with seller subscriptions off, or the plan hidden, no new request; running ones are untouched.
+  const subs = await sellerSubSettings();
+  if (!subs.enabled || !subs.display[code].visible) return fail(409, 'Seller plans are not open right now.');
   if (billing !== 'monthly' && billing !== 'yearly') return fail(400, 'Choose monthly or yearly.');
   if (await openSubscription(sellerId)) return fail(409, 'You already have a plan request or subscription. Message SellOnBay to change it.');
   // Pro and Business are no longer offered (owner, 2026-11-07): on the database currentPlan finds nothing, and that is a plain refusal, not a crash.

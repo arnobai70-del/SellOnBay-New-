@@ -78,7 +78,7 @@ const mem: Mem = (g.__buyerSubs ??= {
   subs: new Map(),
   sels: [],
   pays: [],
-  settings: { enabled: false, intro: '', faq: [] },
+  settings: { enabled: false, intro: '', faq: [], allowedMethods: [] },
 });
 
 async function pg(): Promise<boolean> {
@@ -91,7 +91,7 @@ async function pg(): Promise<boolean> {
 }
 
 /* ---------- settings: the whole feature on or off, and the pricing page's intro and questions (app_settings, no migration) ---------- */
-export type SubSettings = { enabled: boolean; intro: string; faq: { q: string; a: string }[] };
+export type SubSettings = { enabled: boolean; intro: string; faq: { q: string; a: string }[]; allowedMethods: string[] };
 const SETTINGS_KEY = 'buyer_subs:settings';
 export async function subSettings(): Promise<SubSettings> {
   if (!(await pg())) return mem.settings;
@@ -101,6 +101,7 @@ export async function subSettings(): Promise<SubSettings> {
     enabled: v.enabled === true,
     intro: typeof v.intro === 'string' ? v.intro.slice(0, 600) : '',
     faq: Array.isArray(v.faq) ? v.faq.filter((x) => x && typeof x.q === 'string' && typeof x.a === 'string').slice(0, 20) : [],
+    allowedMethods: Array.isArray(v.allowedMethods) ? v.allowedMethods.filter((x): x is string => typeof x === 'string').slice(0, 20) : [],
   };
 }
 export async function saveSubSettings(adminId: string | null, raw: Partial<SubSettings>): Promise<R<SubSettings>> {
@@ -123,6 +124,8 @@ export async function saveSubSettings(adminId: string | null, raw: Partial<SubSe
       .trim()
       .slice(0, 600),
     faq,
+    // The payment methods subscriptions accept (ids from Finance › Payment methods); empty = every active method.
+    allowedMethods: Array.isArray(raw.allowedMethods) ? raw.allowedMethods.filter((x): x is string => typeof x === 'string' && /^[\w-]{1,64}$/.test(x)).slice(0, 20) : [],
   };
   if (await pg()) {
     const { error } = await createAdminClient().from('app_settings').upsert({ key: SETTINGS_KEY, value: next, updated_at: new Date().toISOString() }, { onConflict: 'key' });

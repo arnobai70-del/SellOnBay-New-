@@ -1,10 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { saveSellerSubSettings, sellerSubSettings } from '@/lib/plans/admin';
 import { auditList } from '@/lib/admin/audit';
 import { DAY_MS } from '@/lib/config';
 import { adminSubscriptionAction, checkListingLimit, requestPlan, sellerPlan } from '@/lib/plans/service';
 import { setMemListings, subscriptionEvents } from '@/lib/plans/store';
 
 const seller = () => `seller-${Math.random().toString(36).slice(2, 10)}`;
+
+// Seller subscriptions start off (Admin › Subscription Management, owner 2026-11-12); these tests run with them switched on, as an admin would.
+beforeAll(async () => {
+  const s = await sellerSubSettings();
+  await saveSellerSubSettings('admin-test', { enabled: true, display: s.display as unknown as Record<string, unknown> });
+});
 
 describe('seller plan lifecycle (O-4: admin decides each step)', () => {
   it('a seller starts on Free and may ask for Pro or Business only', async () => {

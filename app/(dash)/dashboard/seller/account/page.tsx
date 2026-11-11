@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { signOut } from '@/app/(bare)/login/actions';
 import { DetailsForm } from '@/components/glass/DetailsForm';
+import { SellerPlanCard } from '@/components/glass/SellerPlanCard';
 import { SellerShell } from '@/components/glass/SellerShell';
 import { ProfileForm } from '@/components/ProfileForm';
 import { supabaseConfigured } from '@/lib/supabase/env';
@@ -126,6 +127,7 @@ export default async function SellerAccount() {
           </div>
         </div>
       </section>
+      {viewer && <SellerPlanCard sellerId={viewer.id} />}
     </SellerShell>
   );
 }

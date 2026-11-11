@@ -23,7 +23,8 @@ export default async function BuyerSubscription() {
   const viewer = await requireViewer({ path: '/dashboard/buyer/subscription', roles: ['buyer', 'seller', 'admin'] });
   const now = Date.now();
   const [subs, plans, sites, methods, settings] = await Promise.all([viewer ? subsOf(viewer.id) : Promise.resolve([]), allPlans(), publicWebsites(), listMethods(true).catch(() => []), subSettings()]);
-  const payMethods = methods.map((m) => ({ label: m.label, instructions: m.instructions }));
+  // Admin › Subscription Management chooses which methods subscriptions accept (none chosen: every active method).
+  const payMethods = methods.filter((m) => !settings.allowedMethods.length || settings.allowedMethods.includes(m.id)).map((m) => ({ label: m.label, instructions: m.instructions }));
   const name = (key: string) => sites.find((s) => s.id === key)?.name ?? key;
   return (
     <BuyerShell viewer={viewer} active="subscription" file="buyer-websites" title="Subscription" subtitle="Your yearly plans, the websites you chose, and your licence and support dates.">

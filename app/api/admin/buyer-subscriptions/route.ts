@@ -18,6 +18,7 @@ const schema = z.discriminatedUnion('action', [
       .array(z.object({ q: z.string().max(200), a: z.string().max(1200) }))
       .max(20)
       .default([]),
+    allowedMethods: z.array(z.string().max(64)).max(20).default([]),
   }),
   z.object({ action: z.literal('payment'), id: z.string().uuid(), verified: z.boolean() }),
   z.object({

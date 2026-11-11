@@ -204,18 +204,31 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
   );
 }
 
-export function SubSettingsForm({ enabled, intro, faq }: { enabled: boolean; intro: string; faq: { q: string; a: string }[] }) {
+export function SubSettingsForm({
+  enabled,
+  intro,
+  faq,
+  allowedMethods = [],
+  methods = [],
+}: {
+  enabled: boolean;
+  intro: string;
+  faq: { q: string; a: string }[];
+  allowedMethods?: string[];
+  methods?: { id: string; label: string }[];
+}) {
   const router = useRouter();
   const [on, setOn] = useState(enabled);
   const [text, setText] = useState(intro);
   const [items, setItems] = useState(faq);
+  const [allowed, setAllowed] = useState<string[]>(allowedMethods);
   const [msg, setMsg] = useState('');
   return (
     <form
       style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       onSubmit={async (e) => {
         e.preventDefault();
-        const r = await post({ action: 'settings', enabled: on, intro: text, faq: items.filter((x) => x.q.trim() && x.a.trim()) });
+        const r = await post({ action: 'settings', enabled: on, intro: text, faq: items.filter((x) => x.q.trim() && x.a.trim()), allowedMethods: allowed });
         setMsg(r.ok ? 'Saved.' : r.error || 'Could not save.');
         if (r.ok) router.refresh();
       }}
@@ -227,6 +240,16 @@ export function SubSettingsForm({ enabled, intro, faq }: { enabled: boolean; int
         <label htmlFor="sub-intro">Words under the pricing page heading</label>
         <textarea id="sub-intro" className="input" rows={2} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} />
       </div>
+      {methods.length > 0 && (
+        <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+          <legend className="tag">Payment methods subscriptions accept (none ticked: every active method)</legend>
+          {methods.map((m) => (
+            <label key={m.id} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
+              <input type="checkbox" checked={allowed.includes(m.id)} onChange={(e) => setAllowed(e.target.checked ? [...allowed, m.id] : allowed.filter((x) => x !== m.id))} /> {m.label}
+            </label>
+          ))}
+        </fieldset>
+      )}
       <div className="tag" style={{ margin: 0 }}>
         Questions on the pricing page (empty: the standard ones)
       </div>

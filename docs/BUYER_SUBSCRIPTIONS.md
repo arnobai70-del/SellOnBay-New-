@@ -30,37 +30,43 @@ Branch: `feat/buyer-subscriptions`. Not merged and not deployed. Migration 0085 
 | Plans | Never deleted, only archived (`archived_at`), so a subscription always keeps its plan. Each subscription stores what was bought (`plan_snapshot`), so later price edits never change it. |
 | Rollback | Safe while no real subscriptions exist; see below. |
 
-## Before applying it to the live database
+## Production rollout (no staging, owner 2026-11-12)
 
-1. **Backup.** In Supabase › Database › Backups, check that today's automatic backup exists, or take a manual one. Also export the schema
-   and data with `supabase db dump --linked -f backups/pre-0085.sql` (needs the database password) and keep the file outside the repository.
-   Verify it: the file opens and lists `create table` statements for `orders`, `products` and `profiles`.
-2. **Staging.** There is no staging project yet: "SellOnBay New" is paused. Either restore it, or create a Supabase branch from the
-   production project (it copies the schema and migrations, not the data, and costs per hour). Apply 0001 to 0085 there, point a test
-   server at it (`SITE_STAGE=staging`), and run the steps under "Staging tests".
-3. **Apply.** `supabase db push` with the project linked (or paste the file into the SQL editor), then run `node scripts/migration-probe.mjs` to
-   confirm 0085 shows as complete.
-4. Subscriptions stay **off** after the migration until an admin opens them in Admin › Buyer subscriptions.
+Both systems ship **off**. Nothing is visible to buyers or sellers until a Super Admin opens them in Admin › Subscription Management.
 
-### Staging tests
+1. **Backup.** A full read-only `pg_dump` of the live database (schemas public, auth and storage, custom format) goes in `backups/`
+   (git-ignored, never uploaded) and is checked with `pg_restore --list` for the data of `orders`, `products`, `profiles`, `ledger_entries` and
+   `app_settings`. Also confirm today's automatic backup in Supabase › Database › Backups.
+2. **Migration 0085** (only after the owner's approval): run the file in Supabase › SQL editor, or `supabase db push` with the project linked.
+   It only adds tables, functions and three plan rows. Then `node scripts/migration-probe.mjs` must show 0085 as complete.
+3. **Code**: merge `feat/buyer-subscriptions` into `main`, `npm run package:hostinger`, upload. The first build log line names the commit.
+4. **Check on the live site** (still off): `/subscriptions` is a 404 for visitors; Admin › Subscription Management opens with both switches
+   off; the seller Account page shows "Your plan" with no request buttons; a regular purchase and the beta request still work.
+5. **Turning on later** is one click per system in Admin › Subscription Management, with no redeploy.
 
-- Admin: open the feature, edit a plan's price, limit and benefits, duplicate and archive a plan, add a coupon in Marketing.
-- Buyer: choose a plan with the coupon, report a payment; admin verifies it; the plan is active with the right number of websites.
-- Buyer: choose a website; the $0 order shows "Subscription" and its files download; try to choose more than the limit (refused) and a
-  third-party seller's website (not offered, refused by the server).
-- Admin: suspend, reactivate, extend by 10 days, cancel; the history and the audit log show every step.
-- Renewal: submit a renewal payment, verify it, check the new end date on the subscription and every chosen website.
-- Run the orders job with a test subscription that has ended: it becomes "Expired"; one 14 days from its end gets one reminder.
+Order matters: the migration goes before the new code. Without the tables the code still runs (buyer subscriptions fall back to memory and
+stay off), but nothing should be switched on until 0085 is applied.
 
-### Rollback (only while no real subscription exists)
+### Rollback
+
+- **Code**: upload the previous zip (`main` before the merge), or revert the merge commit and package again.
+- **Switches**: turning a system off in the admin panel hides it at once; existing data is kept.
+- **Database** (only while no real buyer subscription exists):
 
 ```sql
 drop table if exists buyer_sub_events, buyer_sub_payments, buyer_sub_selections, buyer_subscriptions, buyer_sub_plans cascade;
 drop function if exists buyer_sub_take_credit(uuid, uuid), buyer_sub_return_credit(uuid), buyer_sub_events_append_only();
-delete from app_settings where key = 'buyer_subs:settings';
+delete from app_settings where key in ('buyer_subs:settings', 'seller_subs:settings');
 ```
 
-The app keeps working without the tables: subscriptions fall back to memory and the feature stays off.
+Seller plan versions saved from the admin panel are ordinary `seller_plans` rows (the existing table); a new version is undone with
+"Withdraw", not deleted. A full restore, if ever needed: `pg_restore --clean --if-exists` from the backup above.
+
+### Seller subscriptions (existing system, no new table)
+
+The seller section uses `seller_plans`, `seller_subscriptions` and `subscription_events` from migration 0057. An edit inserts the plan's next
+version (`effective_from` now); running seller subscriptions point at their own version, and every order keeps the fee it recorded. The
+switch and display words are the `app_settings` key `seller_subs:settings` (absent = off).
 
 ## `[TEST]` records (nothing deleted)
 

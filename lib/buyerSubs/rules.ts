@@ -141,7 +141,8 @@ export function checkPlan(raw: Record<string, unknown>): { ok: true; value: Omit
   const f = (raw.features ?? {}) as Record<string, unknown>;
   const features = Object.fromEntries(FEATURE_KEYS.map((k) => [k, f[k] === true]));
   const e = (raw.eligibility ?? {}) as Record<string, unknown>;
-  const eligibility: Eligibility = { mode: e.mode === 'list' ? 'list' : 'all', categories: list(e.categories, 50), include: list(e.include, 500), exclude: list(e.exclude, 500) };
+  // Only an explicit 'all' opens every category; anything else lists nothing until an admin adds verified listings (owner, 2026-11-12).
+  const eligibility: Eligibility = { mode: e.mode === 'all' ? 'all' : 'list', categories: list(e.categories, 50), include: list(e.include, 500), exclude: list(e.exclude, 500) };
   return {
     ok: true,
     value: {

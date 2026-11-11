@@ -91,6 +91,13 @@ describe('buyer subscription rules', () => {
 });
 
 describe('owner decisions (2026-11-12)', () => {
+  it('no website is eligible until an admin adds verified listings (ownership not verified yet)', async () => {
+    const v = checkPlan(base);
+    expect(v.ok && v.value.eligibility.mode).toBe('list');
+    expect(v.ok && eligible(v.value.eligibility, { id: 'any-site', category: 'saas' })).toBe(false);
+    const { allPlans } = await import('@/lib/buyerSubs/service');
+    for (const p of await allPlans()) expect(eligible(p.eligibility, { id: 'any-site', category: 'saas' }), p.key).toBe(false);
+  });
   it('only SellOnBay websites can be chosen; third-party sellers are never offered', () => {
     expect(subscribable({ ownerType: 'platform' })).toBe(true);
     expect(subscribable({ ownerType: 'seller' })).toBe(false);

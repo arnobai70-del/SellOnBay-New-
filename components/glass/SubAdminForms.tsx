@@ -43,7 +43,7 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
     refund: plan?.refundPolicy ?? '',
     active: plan?.active ?? true,
     visible: plan?.visible ?? true,
-    mode: plan?.eligibility.mode ?? 'all',
+    mode: plan?.eligibility.mode ?? 'list',
     cats: plan?.eligibility.categories ?? [],
     include: (plan?.eligibility.include ?? []).join(', '),
     exclude: (plan?.eligibility.exclude ?? []).join(', '),

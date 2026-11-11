@@ -5,10 +5,19 @@ import { Field } from './Field';
 import { GlassCard } from './GlassCard';
 import { StatusPill } from './StatusPill';
 
-type Props = { id: string; title: string; state: 'beta_requested' | 'beta_approved' | 'beta_declined'; reason?: string; domain?: string; reviewed: boolean; feedbackDone: boolean };
+type Props = {
+  id: string;
+  title: string;
+  state: 'beta_requested' | 'beta_approved' | 'beta_declined';
+  reason?: string;
+  domain?: string;
+  reviewed: boolean;
+  feedbackDone: boolean;
+  subscription?: boolean;
+};
 
 /* The buyer's view of a free beta request. There is no payment here to show: only the review by our team, then the files, the domain steps, a review and feedback. */
-export function BetaOrderView({ id, title, state, reason, domain, reviewed, feedbackDone }: Props) {
+export function BetaOrderView({ id, title, state, reason, domain, reviewed, feedbackDone, subscription = false }: Props) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [done, setDone] = useState(reviewed);
@@ -32,7 +41,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
             <StatusPill tone={state === 'beta_approved' ? 'ok' : state === 'beta_declined' ? 'bad' : 'wait'}>
               {state === 'beta_approved' ? 'Approved' : state === 'beta_declined' ? 'Declined' : 'Waiting for review'}
             </StatusPill>
-            <StatusPill tone="info">Free during beta · no payment taken</StatusPill>
+            <StatusPill tone="info">{subscription ? 'Subscription · included in your plan' : 'Free during beta · no payment taken'}</StatusPill>
           </div>
         </div>
         {state === 'beta_requested' && (
@@ -120,7 +129,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                 </form>
               )}
             </GlassCard>
-            {!feedbackDone && (
+            {!feedbackDone && !subscription && (
               <GlassCard rise={false} className="row">
                 <div>
                   <h2>Tell us how it went</h2>

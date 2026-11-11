@@ -21,6 +21,7 @@ import {
   renewedUntil,
   shownPlans,
   snapshotOf,
+  subscribable,
   type Plan,
   type Selection,
   type SubPayment,
@@ -483,6 +484,7 @@ export async function pickWebsite(buyerId: string, subId: string, productKey: st
   if (!found || found.status !== 'live' || !found.product.dbId) return fail(404, 'This website is not available.');
   const p = found.product;
   const plan = await planById(sub.planId);
+  if (!subscribable(p)) return fail(409, 'Only SellOnBay websites can be chosen with a subscription.');
   if (plan && !eligible(plan.eligibility, { id: p.id, category: p.cat })) return fail(409, 'This website is not part of your plan.');
   if (p.sellerId === buyerId) return fail(409, 'This is your own website.');
   const mine = (await subsOf(buyerId)).find((x) => x.sub.id === subId);
@@ -510,6 +512,7 @@ export async function pickWebsite(buyerId: string, subId: string, productKey: st
         hours: p.hours,
         licence: 'standard',
         meta: { amount: 0, method: 'subscription', subscription: subId, licence: sub.plan.licenceVersion },
+        via: 'subscription',
       },
       now,
     );

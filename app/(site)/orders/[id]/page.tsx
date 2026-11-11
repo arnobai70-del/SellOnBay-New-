@@ -28,7 +28,18 @@ export default async function Order({ params, searchParams }: { params: Promise<
   // A free beta request has no payment to show (owner, 2026-11-07).
   if (o.state === 'beta_requested' || o.state === 'beta_approved' || o.state === 'beta_declined') {
     const [r, fb, rev] = await Promise.all([betaRequest(id), betaFeedbackOf(id), reviewOfOrder(id)]);
-    return <BetaOrderView id={id} title={plainWords(o.title)} state={o.state} reason={r?.declineReason} domain={r?.domain} reviewed={!!rev} feedbackDone={!!fb} />;
+    return (
+      <BetaOrderView
+        id={id}
+        title={plainWords(o.title)}
+        state={o.state}
+        reason={r?.declineReason}
+        domain={r?.domain}
+        reviewed={!!rev}
+        feedbackDone={!!fb}
+        subscription={o.payment?.ref === 'subscription'}
+      />
+    );
   }
   if (!o.fundedAt) redirect(`/pay/${id}`);
   const p = o.productKey ? await productByKey(o.productKey) : undefined;

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BuyerShell } from '@/components/glass/BuyerShell';
 import { PickForm, SubPayForm } from '@/components/glass/SubForms';
-import { creditsLeft, DAY, eligible, isLive, STATUS_LABEL, STATUS_TONE } from '@/lib/buyerSubs/rules';
+import { creditsLeft, DAY, eligible, isLive, STATUS_LABEL, STATUS_TONE, subscribable } from '@/lib/buyerSubs/rules';
 import { allPlans, subsOf, subSettings } from '@/lib/buyerSubs/service';
 import { publicWebsites } from '@/lib/glass/catalog';
 import { listMethods } from '@/lib/payments/store';
@@ -48,7 +48,8 @@ export default async function BuyerSubscription() {
         const live = isLive(sub, now);
         const plan = plans.find((p) => p.id === sub.planId);
         const chosen = new Set(selections.map((x) => x.productKey));
-        const options = live && plan ? sites.filter((s) => !chosen.has(s.id) && eligible(plan.eligibility, { id: s.id, category: s.cat })).map((s) => ({ key: s.id, name: s.name })) : [];
+        const options =
+          live && plan ? sites.filter((s) => !chosen.has(s.id) && subscribable(s) && eligible(plan.eligibility, { id: s.id, category: s.cat })).map((s) => ({ key: s.id, name: s.name })) : [];
         const renewable = (sub.status === 'active' && !!sub.expiresAt && sub.expiresAt - now < 60 * DAY) || sub.status === 'expired';
         const renewalWaiting = payments.some((p) => p.kind === 'renewal' && p.status === 'submitted');
         const used = sub.creditsTotal ? Math.round((sub.creditsUsed / sub.creditsTotal) * 100) : 0;

@@ -155,7 +155,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       </td>
                       <td>{names.get(o.buyerId ?? '') ?? '—'}</td>
                       <td>{names.get(o.sellerId ?? '') ?? (o.sellerId ? '—' : 'SellOnBay')}</td>
-                      <td>{o.state.startsWith('beta_') ? 'Free beta' : (o.payment?.brand ?? (o.demo ? 'Test card' : '—'))}</td>
+                      <td>{o.payment?.ref === 'subscription' ? 'Subscription' : o.state.startsWith('beta_') ? 'Free beta' : (o.payment?.brand ?? (o.demo ? 'Test card' : '—'))}</td>
                       <td>{usd(o.priceCents)}</td>
                       <td>
                         <span className={`status ${TONE[s.tone]}`}>{s.label}</span>

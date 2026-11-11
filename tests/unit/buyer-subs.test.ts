@@ -1,7 +1,21 @@
 import { PGlite } from '@electric-sql/pglite';
 import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 import { describe, expect, it, vi } from 'vitest';
-import { activation, ADMIN_MOVES, checkPlan, DAY, dueForReminder, eligible, priceWithCoupon, renewedUntil, shownPlans, snapshotOf, type Plan, type Subscription } from '@/lib/buyerSubs/rules';
+import {
+  subscribable,
+  activation,
+  ADMIN_MOVES,
+  checkPlan,
+  DAY,
+  dueForReminder,
+  eligible,
+  priceWithCoupon,
+  renewedUntil,
+  shownPlans,
+  snapshotOf,
+  type Plan,
+  type Subscription,
+} from '@/lib/buyerSubs/rules';
 // @ts-expect-error plain JavaScript module without types
 import { forPglite, migrationFiles, STAND_INS } from '../../scripts/lib/pgliteSupabase.mjs';
 
@@ -73,6 +87,20 @@ describe('buyer subscription rules', () => {
     if (!v.ok) throw new Error(v.error);
     const p = { ...v.value, id: '1', archivedAt: null } as Plan;
     expect(shownPlans([p, { ...p, id: '2', active: false }, { ...p, id: '3', visible: false }, { ...p, id: '4', archivedAt: 1 }]).map((x) => x.id)).toEqual(['1']);
+  });
+});
+
+describe('owner decisions (2026-11-12)', () => {
+  it('only SellOnBay websites can be chosen; third-party sellers are never offered', () => {
+    expect(subscribable({ ownerType: 'platform' })).toBe(true);
+    expect(subscribable({ ownerType: 'seller' })).toBe(false);
+    expect(subscribable({})).toBe(false);
+  });
+  it('a website chosen with a subscription is marked Subscription, not Free beta', async () => {
+    const { insertBetaOrder } = await import('@/lib/orders/service');
+    const base = { title: 'X', buyerId: 'b', sellerId: null, productKey: 'x', deliveryType: 'download' as const, days: 3, licence: 'standard', meta: {} };
+    expect((await insertBetaOrder({ ...base, via: 'subscription' }, Date.now())).payment?.ref).toBe('subscription');
+    expect((await insertBetaOrder(base, Date.now())).payment?.ref).toBe('beta_free');
   });
 });
 

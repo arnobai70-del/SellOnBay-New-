@@ -227,3 +227,9 @@ export function checkReference(raw: unknown): string | null {
   const r = str(raw, 80);
   return r.length >= 3 && /^[\w\s\-_/.:#]+$/.test(r) ? r : null;
 }
+
+/*
+ * Owner, 2026-11-12: for now only SellOnBay's own websites (products.owner_type = 'platform') can be chosen with a subscription; third-party
+ * sellers' websites are never offered, so no seller is owed a share. Checked on the server for every pick, and before any plan rule.
+ */
+export const subscribable = (p: { ownerType?: string }) => p.ownerType === 'platform';

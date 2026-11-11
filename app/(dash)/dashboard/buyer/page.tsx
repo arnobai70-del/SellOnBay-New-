@@ -214,7 +214,7 @@ export default async function BuyerOverview() {
                         </td>
                         <td>{plainWords(o.title)}</td>
                         <td>{usd(o.priceCents)}</td>
-                        <td>{o.state.startsWith('beta_') ? 'Free beta' : (o.payment?.brand ?? '—')}</td>
+                        <td>{o.payment?.ref === 'subscription' ? 'Subscription' : o.state.startsWith('beta_') ? 'Free beta' : (o.payment?.brand ?? '—')}</td>
                         <td>
                           <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{buyerStatus(o.state).label}</span>
                         </td>

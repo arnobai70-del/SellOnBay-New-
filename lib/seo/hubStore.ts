@@ -1,4 +1,5 @@
 import 'server-only';
+import { publicSlug } from '@/lib/glass/publicSlug';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { getLiveDbProducts } from '../catalog';
@@ -147,7 +148,7 @@ export async function allHubViews(): Promise<HubView[]> {
 export const hubPublicSlug = (hub: HubCopy, a: Allocation) => a.slugs[hub.slug] ?? hub.slug;
 export const hubPublicPath = (hub: HubCopy, a: Allocation) => `/websites/category/${hubPublicSlug(hub, a)}`;
 /* A product's public address: always /templates/<category ending>/<product>. */
-export const hubProductPath = (_hub: HubCopy, _a: Allocation, productId: string) => `/websites/${productId}`;
+export const hubProductPath = (_hub: HubCopy, _a: Allocation, productId: string) => `/websites/${publicSlug(productId)}`;
 
 /* The category a /templates/<ending> address belongs to: by its own ending, or by the admin's. */
 export async function hubByEnding(ending: string): Promise<HubCopy | null> {

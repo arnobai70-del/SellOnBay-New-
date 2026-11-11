@@ -1,4 +1,5 @@
 import 'server-only';
+import { publicSlug } from './publicSlug';
 import { BRAND_NAME } from '../brand';
 import { priceDisplays } from '../prices/service';
 import { platformOf } from '../apps';
@@ -15,7 +16,7 @@ import { createAdminClient } from '../supabase/server';
 import { supabaseConfigured } from '../supabase/env';
 import { publicListing } from './words';
 
-export const websitePath = (id: string) => `/websites/${id}`;
+export const websitePath = (id: string) => `/websites/${publicSlug(id)}`;
 export const categoryPath = (slug: string) => `/websites/category/${slug}`;
 export const CATEGORY_SLUGS = HUBS.map((h) => h.slug);
 

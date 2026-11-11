@@ -23,6 +23,7 @@ export type Settings = {
   deliveryHoursOn: boolean;
   deliveryHourChoices: string;
   allowedCountries: string; // comma-separated ISO codes buyers may request from; empty = everywhere (owner, 2026-11-07)
+  monthlyTargetCents: number; // the admin overview's monthly sales target, 0 = none (owner, 2026-11-11)
 };
 export type Key = keyof Settings;
 export type Result = { ok: true } | { ok: false; status: number; error: string };
@@ -38,6 +39,7 @@ export const DEFAULTS: Settings = {
   deliveryHoursOn: true,
   deliveryHourChoices: hourChoicesText(CONFIG.deliveryHours.choices),
   allowedCountries: '',
+  monthlyTargetCents: 0,
 };
 export const LABEL: Record<Key, string> = {
   paymentsMode: 'Payments mode',
@@ -50,11 +52,13 @@ export const LABEL: Record<Key, string> = {
   deliveryHoursOn: 'Sellers may promise delivery in hours',
   deliveryHourChoices: 'The hour choices sellers get, like 6, 12, 18',
   allowedCountries: 'Countries buyers may order from, as two-letter codes like US, GB, DE (empty = everywhere)',
+  monthlyTargetCents: 'Monthly sales target on the admin overview (0 = none)',
 };
-const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinCents', [number, number]> = {
+const MONEY_BOUNDS: Record<'priceMinCents' | 'priceMaxCents' | 'holdNewBuyerMinCents' | 'monthlyTargetCents', [number, number]> = {
   priceMinCents: [CONFIG.sale.priceMinCents, 100_000], // never below the $20 minimum (owner, 2026-11-07)
   priceMaxCents: [500, 1_000_000],
   holdNewBuyerMinCents: [0, 1_000_000],
+  monthlyTargetCents: [0, 100_000_000],
 };
 
 /* Checks a whole set of settings. Returns the first problem in plain words, or null. */

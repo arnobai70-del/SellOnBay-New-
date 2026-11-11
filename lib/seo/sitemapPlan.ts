@@ -1,4 +1,5 @@
 import 'server-only';
+import { publicSlug } from '@/lib/glass/publicSlug';
 import { publishedPosts } from '../posts';
 import { SITE_URL } from '../site';
 import { DEFAULT_CONTROLS, inSitemap } from './controls';
@@ -63,7 +64,8 @@ async function primary(): Promise<{ entries: SitemapEntry[]; gate: Gate }> {
     categories.push({ slug: v.hub.slug, name: v.hub.name, have: products.length, need: MIN_FOR_CATEGORY, categoryPage: pageOk });
   }
   // Every live website, whichever category it is in.
-  for (const p of await realListings()) if (platformOf(p) === 'web' && inSitemap(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS)) entries.push(e(`/websites/${p.id}`, 'product'));
+  for (const p of await realListings())
+    if (platformOf(p) === 'web' && inSitemap(listingPath(p.id), ctl[listingPath(p.id)] ?? DEFAULT_CONTROLS)) entries.push(e(`/websites/${publicSlug(p.id)}`, 'product'));
   for (const p of (await publishedPosts(1000)).filter((q) => !q.noindex)) entries.push(e(`/guides/${p.slug}`, 'post', { lastModified: new Date(p.updatedAt), changeFrequency: 'monthly' }));
   const out = entries.filter((x, n, a) => a.findIndex((r) => r.url === x.url) === n);
   const ready = out.filter((x) => x.group === 'primary').length;

@@ -6,7 +6,9 @@ import { ageText } from '@/lib/admin/opsQueues';
 import { hasScope } from '@/lib/admin/scopes';
 import { actionText, adminOverview, isPeriod, PERIODS, type Period } from '@/lib/glass/adminOverview';
 import { PLAN_FEE_TEXT } from '@/lib/config';
+import { getSettings } from '@/lib/settings';
 import { requireViewer } from '@/lib/supabase/viewer';
+import { TargetForm } from '@/components/glass/TargetForm';
 
 export const metadata: Metadata = { title: 'Admin overview', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -37,7 +39,9 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
   const { denied, period: p } = await searchParams;
   const period: Period = isPeriod(p) ? p : '30d';
   const now = Date.now();
-  const o = await adminOverview(period, now);
+  const [o, settings] = await Promise.all([adminOverview(period, now), getSettings()]);
+  const target = settings.monthlyTargetCents;
+  const share = target > 0 ? o.monthSales / target : 0;
   const first = (viewer?.name ?? 'Admin').split(/\s+/)[0];
   const attention = [
     {
@@ -164,13 +168,14 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
             )}
           </section>
           <section className="glass card widget" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Ring share={0} text="–" label="No monthly target set" />
+            <Ring share={share} text={target > 0 ? `${Math.round(share * 100)}%` : '–'} label={target > 0 ? `${Math.round(share * 100)}% of the monthly target` : 'No monthly target set'} />
             <div style={{ flex: '1 1 180px' }}>
               <h2>Monthly target</h2>
               <div className="muted" style={{ fontSize: 14, marginTop: 6, lineHeight: 1.6 }}>
                 {money(o.monthSales)} this month · {o.dayOfMonth} days in
               </div>
-              <div className="tag">No monthly target is set yet.</div>
+              <div className="tag">{target > 0 ? `Target ${money(target)} this month` : 'No monthly target is set yet.'}</div>
+              {viewer && hasScope(viewer.scopes ?? [], 'super') && <TargetForm dollars={target / 100} />}
             </div>
           </section>
         </div>

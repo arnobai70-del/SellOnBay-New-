@@ -773,3 +773,66 @@
     min-height: 44px;
   }
 }
+
+/* A website card on a page whose design file has no card styles (the website page's "More like this"): the card of design-reference/websites.html. */
+:is(.sob-p, .sob-d) a.glass.card {
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.5s;
+}
+:is(.sob-p, .sob-d) a.glass.card:hover {
+  box-shadow: 0 16px 40px rgba(43, 66, 80, 0.1);
+  color: inherit;
+  transform: translateY(-6px);
+}
+:is(.sob-p, .sob-d) a.glass.card .thumb {
+  height: 160px;
+  border-radius: 14px;
+  background: #f7fafb;
+  border: 1px solid #e1ebf0;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+:is(.sob-p, .sob-d) a.glass.card .tb {
+  height: 6px;
+  border-radius: 3px;
+  background: #e3ecf1;
+  flex: none;
+}
+:is(.sob-p, .sob-d) a.glass.card .side {
+  width: 22%;
+  border-radius: 6px;
+  background: #eaf1f4;
+}
+:is(.sob-p, .sob-d) a.glass.card .sq {
+  width: 28px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-block;
+}
+:is(.sob-p, .sob-d) a.glass.card .ln {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: #e1eaef;
+}
+:is(.sob-p, .sob-d) a.glass.card .ln.s {
+  width: 60%;
+}
+:is(.sob-p, .sob-d) a.glass.card .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 14px 4px 4px;
+}

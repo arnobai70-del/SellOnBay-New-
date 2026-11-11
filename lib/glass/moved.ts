@@ -1,3 +1,5 @@
+import { publicSlug } from './publicSlug';
+
 /*
  * Every public address that moved in the glass redesign, with a permanent redirect so rankings carry over (owner, 2026-11-07). Pure, tested, and small enough for
  * the proxy. Category and product addresses under /templates are rebuilt from their parts, so a renamed category ending still lands on the page that handles it.
@@ -18,6 +20,8 @@ const EXACT: Record<string, string> = {
   '/dmca': '/legal/dmca',
   // design file addresses that live at another route (owner, 2026-11-09): every design page has a working address
   '/legal': '/legal/terms',
+  '/signup': '/signin?mode=signup',
+  '/register': '/signin?mode=signup',
   '/order-success': '/checkout/success',
   '/account-access': '/signin?mode=forgot',
 };
@@ -77,9 +81,9 @@ export function movedTo(pathname: string): string | null {
   if (parts[0] === 'templates') {
     if (parts.length === 1) return '/websites';
     if (parts.length === 2) return `/websites/category/${parts[1]}`;
-    if (parts.length === 3) return `/websites/${parts[2]}`;
+    if (parts.length === 3) return `/websites/${publicSlug(parts[2])}`;
   }
-  if (parts[0] === 'product' && parts.length === 2) return `/websites/${parts[1]}`;
+  if (parts[0] === 'product' && parts.length === 2) return `/websites/${publicSlug(parts[1])}`;
   if (parts[0] === 'websites' && parts.length === 2 && OLD_CATEGORY_PAGES.includes(parts[1])) return `/websites/category/${parts[1]}`;
   // The blog's pictures and feed keep their addresses, so pictures in existing posts still load.
   if (parts[0] === 'blog' && parts.length === 2 && parts[1] !== 'feed.xml' && parts[1] !== 'media') return `/guides/${parts[1]}`;

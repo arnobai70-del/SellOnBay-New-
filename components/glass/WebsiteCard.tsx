@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { publicSlug } from '@/lib/glass/publicSlug';
 import { PriceTag } from './PriceTag';
 import type { Product } from '@/lib/data';
 
@@ -19,7 +20,7 @@ const tint = (id: string) => TINTS[[...id].reduce((s, c) => s + c.charCodeAt(0),
 export function WebsiteCard({ p }: { p: Product; reveal?: boolean }) {
   const [m, l, b] = tint(p.id);
   return (
-    <Link className="glass card" href={`/websites/${p.id}`} prefetch={false}>
+    <Link className="glass card" href={`/websites/${publicSlug(p.id)}`} prefetch={false}>
       <div className="thumb" aria-hidden="true" style={p.shots?.[0] ? { padding: 0, position: 'relative', overflow: 'hidden' } : undefined}>
         {p.shots?.[0] ? (
           <Image src={p.shots[0]} alt="" fill sizes="(max-width: 760px) 100vw, 400px" style={{ objectFit: 'cover', objectPosition: 'top', borderRadius: 14 }} />

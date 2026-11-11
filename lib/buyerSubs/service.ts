@@ -63,7 +63,7 @@ const SEED: Omit<Plan, 'id'>[] = [
     { text: 'One year of bug fixes and support', on: true },
   ],
   features: { source_code: true, support: true, bug_fixes: true },
-  eligibility: { mode: 'all', categories: [], include: [], exclude: [] },
+  eligibility: { mode: 'list', categories: [], include: [], exclude: [] }, // nothing eligible until an admin adds verified listings (owner, 2026-11-12)
   licenceVersion: 'sub-2026-11',
   refundPolicy: '',
   active: true,

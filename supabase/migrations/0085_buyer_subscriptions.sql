@@ -20,7 +20,8 @@ create table if not exists buyer_sub_plans (
   support_days int not null default 365 check (support_days between 0 and 3650),
   benefits jsonb not null default '[]',
   features jsonb not null default '{}',
-  eligibility jsonb not null default '{"mode":"all","categories":[],"include":[],"exclude":[]}',
+  -- No website is eligible until an admin adds verified listings or categories (owner, 2026-11-12: ownership of the 43 listings is not verified yet).
+  eligibility jsonb not null default '{"mode":"list","categories":[],"include":[],"exclude":[]}',
   licence_version text not null default 'sub-2026-11' check (char_length(licence_version) <= 40),
   refund_policy text not null default '' check (char_length(refund_policy) <= 2000),
   active boolean not null default true,

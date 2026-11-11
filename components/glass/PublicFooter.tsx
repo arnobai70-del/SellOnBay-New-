@@ -58,6 +58,19 @@ export function PublicFooter({
           {routes.report}
         </a>
       </div>
+      {/* The credit line (owner, 2026-11-12): who built and looks after the site. The address comes from lib/emailRouting.ts. */}
+      <div className="muted" style={{ gridColumn: '1 / -1', fontSize: 13, paddingTop: 16, borderTop: '1px solid #E3ECF1', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <span>
+          © {new Date().getFullYear()} {BRAND_NAME}
+        </span>
+        <span aria-hidden="true">·</span>
+        <span>
+          Created by{' '}
+          <a href={`mailto:${EMAIL_ROUTES.dev}`} style={A}>
+            {EMAIL_ROUTES.dev}
+          </a>
+        </span>
+      </div>
     </footer>
   );
 }

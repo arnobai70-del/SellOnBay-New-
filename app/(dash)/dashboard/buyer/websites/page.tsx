@@ -20,7 +20,7 @@ const RATEABLE = ['accepted', 'payout_pending', 'paid_out'];
  * The top bar's search filters the list (?q=).
  */
 export default async function BuyerWebsites({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/websites', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/websites', roles: ['buyer', 'seller', 'admin'] });
   const q = ((await searchParams).q ?? '').trim().toLowerCase().slice(0, 80);
   const [orders, requests] = viewer ? await Promise.all([buyerOrders(viewer.id), listRequests({ buyerId: viewer.id }).catch(() => [])]) : [[], []];
   const sites = (await buyerWebsites(orders)).filter((s) => !q || s.title.toLowerCase().includes(q));

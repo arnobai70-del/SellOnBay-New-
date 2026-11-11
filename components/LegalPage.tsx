@@ -28,7 +28,7 @@ const DOCS: [path: string, href: string, label: string][] = [
  */
 export async function LegalPage({
   path,
-  stamp = '[LAWYER REVIEW] Draft, last updated October 2026. Plain-English text, not final legal advice.',
+  stamp = 'Draft, last updated October 2026. Plain-English text, not final legal advice.', // [LAWYER REVIEW] kept in code only (owner, 2026-11-11)
   children,
 }: {
   path: string;

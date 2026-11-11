@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { PriceTag } from './PriceTag';
 import type { Product } from '@/lib/data';
@@ -19,10 +20,9 @@ export function WebsiteCard({ p }: { p: Product; reveal?: boolean }) {
   const [m, l, b] = tint(p.id);
   return (
     <Link className="glass card" href={`/websites/${p.id}`} prefetch={false}>
-      <div className="thumb" aria-hidden="true" style={p.shots?.[0] ? { padding: 0 } : undefined}>
+      <div className="thumb" aria-hidden="true" style={p.shots?.[0] ? { padding: 0, position: 'relative', overflow: 'hidden' } : undefined}>
         {p.shots?.[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element -- seller screenshots are served from our own private route, in any size
-          <img src={p.shots[0]} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
+          <Image src={p.shots[0]} alt="" fill sizes="(max-width: 760px) 100vw, 400px" style={{ objectFit: 'cover', objectPosition: 'top', borderRadius: 14 }} />
         ) : (
           <>
             <div className="tb" />

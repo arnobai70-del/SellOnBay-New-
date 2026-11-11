@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { BRAND_NAME } from '@/lib/brand';
 import { useCart } from '@/lib/glass/cart';
 import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
+import { AccountMenu } from './AccountMenu';
 import { SearchBox } from './SearchBox';
 
 const isHere = (path: string, href: string) => path === href || path.startsWith(href + '/');
@@ -46,9 +47,7 @@ export function PublicNav({
             {cartCount > 0 ? `Cart · ${cartCount}` : 'Cart'}
           </Link>
         )}
-        <Link className="btn" href={account.href} prefetch={false}>
-          {account.label}
-        </Link>
+        <AccountMenu fallback={account} />
       </div>
     </nav>
   );

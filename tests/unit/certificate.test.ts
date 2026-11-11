@@ -55,7 +55,7 @@ describe('handover certificate PDF', () => {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBeGreaterThanOrEqual(1);
     const raw = pdfText(bytes);
-    for (const needle of ['3f2b8c1e-aaaa-4bbb-8ccc-1234567890ab', 'Samir Khan', 'Multi project', 'a'.repeat(64), '2026-10-05 12:30:15 UTC', 'LAWYER REVIEW', 'Chart helper (GPL-3.0)'])
+    for (const needle of ['3f2b8c1e-aaaa-4bbb-8ccc-1234567890ab', 'Samir Khan', 'Multi project', 'a'.repeat(64), '2026-10-05 12:30:15 UTC', 'Draft wording', 'Chart helper (GPL-3.0)'])
       expect(raw, needle).toContain(needle);
   });
   it('a list of many files and events runs onto more pages instead of off the page', async () => {

@@ -19,7 +19,7 @@ const ago = (t: number, now: number) => {
 
 /* design-reference/buyer.html: what the buyer owns, the order in its review (accepted or reported on its order page), what to do, updates and orders. */
 export default async function BuyerOverview() {
-  const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer', 'seller', 'admin'] });
   const v = viewer ? await buyerOverview(viewer.id) : null;
   const first = viewer?.name?.split(' ')[0];
   const now = Date.now();

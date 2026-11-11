@@ -31,6 +31,7 @@ type Row = {
   demo_path: string | null;
   status: string;
   created_at: string;
+  updated_at?: string | null;
   platform: Platform | null;
   app_stack: string | null;
   app_shots: string[] | null;
@@ -48,7 +49,7 @@ type Row = {
   custom_price_cents: number | null;
 };
 const COLS =
-  'id, slug, seller_id, owner_type, beta_free_ok, name, category, tagline, description, includes, theme, price_cents, delivery_days, delivery_hours, demo_url, demo_path, status, created_at, platform, app_stack, app_shots, sample_url, trial_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents';
+  'id, slug, seller_id, owner_type, beta_free_ok, name, category, tagline, description, includes, theme, price_cents, delivery_days, delivery_hours, demo_url, demo_path, status, created_at, updated_at, platform, app_stack, app_shots, sample_url, trial_url, licence_type, third_party, delivery_type, express_price_cents, docs_url, requirements, support_days, update_days, setup_price_cents, custom_price_cents';
 
 /* Colours for a seller's app when it has no drawn mock-up of its own: one calm accent per category. */
 const ACCENT: Record<string, [string, string, string]> = {
@@ -83,6 +84,12 @@ const ACCENT: Record<string, [string, string, string]> = {
   Fonts: ['#0F1330', '#F3F5FA', '#0F1330'],
 };
 
+/* /demo/<slug>/shots/v<time>/1.jpg: the demo route strips the version (app/demo/[id]/[[...path]]). */
+const shotUrl = (slug: string, name: string, at: string) => {
+  const v = Date.parse(at);
+  return Number.isFinite(v) && name.startsWith('shots/') ? `/demo/${slug}/shots/v${Math.floor(v / 1000)}/${name.slice(6)}` : `/demo/${slug}/${name}`;
+};
+
 function toProduct(r: Row, seller: string): Product {
   const platform = (r.platform ?? 'web') as Platform;
   const app: Product['app'] =
@@ -108,7 +115,8 @@ function toProduct(r: Row, seller: string): Product {
     platform,
     stack: r.app_stack ?? undefined,
     app,
-    shots: r.app_shots?.length ? r.app_shots.map((n) => `/demo/${r.slug}/${n}`) : undefined,
+    // The version (last change) is in the path, so a screenshot can be cached for a year and a new upload still shows at once.
+    shots: r.app_shots?.length ? r.app_shots.map((n) => shotUrl(r.slug, n, r.updated_at ?? r.created_at)) : undefined,
     sample: r.sample_url && /^https:\/\//.test(r.sample_url) ? r.sample_url : undefined,
     trial: !!r.trial_url,
     licence: isLicenceType(r.licence_type) ? r.licence_type : undefined,

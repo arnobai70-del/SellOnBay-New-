@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import { supabaseConfigured, supabaseUrl } from '../supabase/env';
 import { MAINTENANCE_LIMITS, MODULES, isModuleKey, type ModuleKey } from './config';
 
@@ -89,7 +90,8 @@ export async function readRows(now = Date.now()): Promise<Cache> {
   if (dbConfigured()) {
     try {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-      const get = (q: string) => fetch(`${supabaseUrl}/rest/v1/${q}`, { headers: { apikey: key, authorization: `Bearer ${key}` }, cache: 'no-store', signal: AbortSignal.timeout(2_000) });
+      const get = (q: string) =>
+        fetch(`${supabaseUrl}/rest/v1/${q}`, { headers: { apikey: key, authorization: `Bearer ${key}` }, next: { revalidate: 30, tags: ['maintenance'] }, signal: AbortSignal.timeout(2_000) });
       // '*' so this keeps working before migration 0082 adds banner_minutes; pages and the allow-list are optional (before 0082 they are simply empty).
       const [res, pg, allow] = await Promise.all([
         get('module_maintenance?select=*'),
@@ -110,9 +112,14 @@ export async function readRows(now = Date.now()): Promise<Cache> {
   return next;
 }
 
-/* Forget the cached answer (after a change on this instance). */
+/* Forget the cached answer (after a change on this instance), and the shared fetch cache, so every page sees the change at once. */
 export const forgetRows = () => {
   g.__maintCache = undefined;
+  try {
+    revalidateTag('maintenance', { expire: 0 });
+  } catch {
+    /* outside a request (tests, scripts): only this instance's copy is forgotten */
+  }
 };
 
 /* The row closing this module now, or null when it is open. */

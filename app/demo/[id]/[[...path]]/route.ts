@@ -23,6 +23,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!live && !(await mayViewUnreleased(p.seller_id))) return nf();
 
   let rel = (path ?? []).join('/');
+  // shots/v<time>/1.jpg is a versioned screenshot address (lib/catalog.ts): the same file, cached for a year because a new upload changes the address.
+  const versioned = /^shots\/v\d{6,12}\//.test(rel);
+  if (versioned) rel = rel.replace(/^shots\/v\d{6,12}\//, 'shots/');
   if (rel.includes('\0') || rel.split('/').some((s) => s === '..' || s.startsWith('.'))) return nf();
 
   // shots/ paths are served even when the seller gave a demo_url instead of uploading a zip
@@ -58,7 +61,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
       'X-Robots-Tag': 'noindex, nofollow',
-      'Cache-Control': live ? 'public, max-age=120, s-maxage=300' : 'private, no-store',
+      'Cache-Control': !live ? 'private, no-store' : versioned ? 'public, max-age=31536000, immutable' : 'public, max-age=120, s-maxage=300',
     },
   });
 }

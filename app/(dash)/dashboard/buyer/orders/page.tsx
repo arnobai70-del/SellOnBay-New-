@@ -23,7 +23,7 @@ const method = (o: Order) => (o.payment?.brand === BETA_METHOD || o.state.starts
  * (the reference is changed on the order's own page), and the refunds. The top bar's search filters this list (?q=).
  */
 export default async function BuyerOrders({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
-  const viewer = await requireViewer({ path: '/dashboard/buyer/orders', roles: ['buyer', 'seller'] });
+  const viewer = await requireViewer({ path: '/dashboard/buyer/orders', roles: ['buyer', 'seller', 'admin'] });
   const { tab: raw, q: rawQ } = await searchParams;
   const tab: OrderTab = (ORDER_TABS as readonly string[]).includes(String(raw)) ? (raw as OrderTab) : 'all';
   const q = (rawQ ?? '').trim().toLowerCase().replace(/^#/, '').slice(0, 80);

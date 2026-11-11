@@ -6,6 +6,9 @@ import { BUGFIX_DAYS, CONFIG, REVIEW_HOURS } from '../lib/config';
  * Short, plain verbs. Never put a secret, a card detail or somebody else's private data in here.
  */
 export type NotificationKind =
+  | 'sub_active'
+  | 'sub_renewed'
+  | 'sub_expiring'
   | 'beta_requested'
   | 'beta_approved'
   | 'beta_declined'
@@ -74,6 +77,12 @@ export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: stri
   beta_requested: (p) => ({
     subject: "Request received, we'll review it shortly",
     text: `We have your request for ${t(p.title)}. It is free during the beta and no payment is taken. We'll email you when it has been reviewed.`,
+  }),
+  sub_active: (p) => ({ subject: `Your ${t(p.title)} subscription is active`, text: `You can now choose ${t(p.credits)} websites with full source code. Open Subscription in your dashboard.` }),
+  sub_renewed: (p) => ({ subject: `Your ${t(p.title)} subscription is renewed`, text: `Your licence and support for the websites you chose now run until ${t(p.until)}.` }),
+  sub_expiring: (p) => ({
+    subject: `Your ${t(p.title)} subscription ends soon`,
+    text: `It ends on ${t(p.until)}. Renew to keep the licence and free support for your chosen websites. Your sites keep running either way.`,
   }),
   beta_approved: (p) => ({ subject: `Your request for ${t(p.title)} is approved`, text: 'Your files are ready. Open the order in your dashboard to download them and to start your domain steps.' }),
   beta_declined: (p) => ({ subject: `About your request for ${t(p.title)}`, text: `We could not approve this request. ${t(p.reason)}` }),

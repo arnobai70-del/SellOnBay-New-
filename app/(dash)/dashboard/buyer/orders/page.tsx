@@ -16,7 +16,8 @@ export const dynamic = 'force-dynamic';
 
 const TAB_LABEL: Record<OrderTab, string> = { all: 'All', progress: 'In progress', done: 'Completed', refunded: 'Refunded' };
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
-const method = (o: Order) => (o.payment?.brand === BETA_METHOD || o.state.startsWith('beta_') ? 'Free (beta)' : o.payment?.brand ? o.payment.brand : '—');
+const method = (o: Order) =>
+  o.payment?.ref === 'subscription' ? 'Subscription' : o.payment?.brand === BETA_METHOD || o.state.startsWith('beta_') ? 'Free (beta)' : o.payment?.brand ? o.payment.brand : '—';
 
 /*
  * design-reference/buyer-orders.html: every order with its payment and receipt (/api/orders/[id]/receipt), a payment being checked shown on top

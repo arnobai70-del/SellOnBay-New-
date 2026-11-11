@@ -232,7 +232,10 @@ export async function createOrder(i: NewOrder, now = Date.now()): Promise<Order>
 
 /* A free beta request (lib/beta/service.ts): total $0, no fee and never funded, so it never reaches the ledger. The record is this event. */
 export async function insertBetaOrder(
-  i: Pick<NewOrder, 'title' | 'buyerId' | 'sellerId' | 'productId' | 'productKey' | 'deliveryType' | 'days' | 'hours' | 'licence'> & { meta: Record<string, unknown> },
+  i: Pick<NewOrder, 'title' | 'buyerId' | 'sellerId' | 'productId' | 'productKey' | 'deliveryType' | 'days' | 'hours' | 'licence'> & {
+    meta: Record<string, unknown>;
+    via?: 'beta_free' | 'subscription'; // a website chosen with a buyer subscription is marked so its pages say Subscription, not Free beta
+  },
   now: number,
 ): Promise<Order> {
   const o: Order = {
@@ -258,7 +261,7 @@ export async function insertBetaOrder(
     instant: false,
     demo: false,
     licence: i.licence,
-    payment: { ref: 'beta_free', brand: 'beta_free', last4: '' },
+    payment: { ref: i.via ?? 'beta_free', brand: i.via ?? 'beta_free', last4: '' },
     attempts: 0,
     createdAt: now,
   };

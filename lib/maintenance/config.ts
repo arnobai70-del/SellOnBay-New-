@@ -63,7 +63,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
   [/^\/demo\/orders\/[^/]+\/pay$/, 'checkout'],
   [/^\/demo\/orders$/, 'checkout'],
   [/^\/cart(\/|$)/, 'cart'],
-  [/^\/(requests|quotations|beta)(\/|$)/, 'checkout'], // purchase requests and quotations (lib/requests)
+  [/^\/(requests|quotations|beta|subscriptions)(\/|$)/, 'checkout'], // purchase requests, quotations (lib/requests) and buyer subscriptions (lib/buyerSubs)
   [/^\/orders\/[^/]+\/payments$/, 'checkout'], // manual payment reports (lib/payments)
   [/^\/paypal\/start$/, 'checkout'],
   [/^\/(demo\/)?orders(\/|$)/, 'orders'],
@@ -99,7 +99,7 @@ const PAGE_RULES: [RegExp, ModuleKey][] = [
   [/^\/developers\/join(\/|$)/, 'seller'],
   [/^\/developers\/[^/]+\/hire(\/|$)/, 'checkout'],
   [/^\/cart(\/|$)/, 'cart'],
-  [/^\/(checkout|pay|feedback)(\/|$)/, 'checkout'],
+  [/^\/(checkout|pay|feedback|subscriptions)(\/|$)/, 'checkout'],
   [/^\/orders(\/|$)/, 'orders'],
   [/^\/(messages|notifications)(\/|$)/, 'messaging'],
   [/^\/(blog|guides)(\/|$)/, 'guides'],

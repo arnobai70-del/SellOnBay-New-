@@ -836,3 +836,10 @@
   gap: 8px;
   padding: 14px 4px 4px;
 }
+
+/* The top bar sits above the page (owner, 2026-11-11: the account menu showed but the hero section, later in the page, caught its clicks). */
+:is(.sob-p, .sob-d)[data-sob] .nav,
+:is(.sob-p, .sob-d)[data-sob] .topbar {
+  position: relative;
+  z-index: 40;
+}

@@ -1,4 +1,9 @@
 import { defineConfig } from '@playwright/test';
+import { PRODUCTION_SUPABASE_REF } from './lib/stage';
+
+// Never against production (owner, 2026-11-11: test rows reached the live admin log). The demo specs need a server without a database, and the
+// real-server specs a staging project; a run that carries the production project's address stops here.
+if ((process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').includes(PRODUCTION_SUPABASE_REF)) throw new Error('E2E tests never run against the production Supabase project. Use a staging project.');
 
 /*
  * End-to-end tests run against an already running, built app (npm run build first):

@@ -23,7 +23,8 @@ export function TawkChat() {
       w.Tawk_API.customStyle = {
         visibility: {
           desktop: { position: 'br', xOffset: 20, yOffset: 20 },
-          mobile: { position: 'br', xOffset: 12, yOffset: 76 },
+          // phones: in the corner, clear of page buttons (the old bottom tab bar it once had to clear is gone)
+          mobile: { position: 'br', xOffset: 8, yOffset: 8 },
         },
       };
       w.Tawk_LoadStart = new Date();

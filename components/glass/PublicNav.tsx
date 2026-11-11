@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { BrandMark } from '@/components/glass/BrandMark';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { BRAND_NAME } from '@/lib/brand';
 import { useCart } from '@/lib/glass/cart';
 import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
@@ -27,13 +28,25 @@ export function PublicNav({
 }) {
   const path = usePathname() ?? '/';
   const cartCount = useCart().length;
+  // Phones (owner, 2026-11-11): the links sit behind a menu button and open as a sheet; a link, Escape or a new page closes it.
+  const [menu, setMenu] = useState(false);
+  useEffect(() => setMenu(false), [path]);
+  useEffect(() => {
+    if (!menu) return;
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false);
+    document.addEventListener('keydown', esc);
+    return () => document.removeEventListener('keydown', esc);
+  }, [menu]);
   return (
     <nav className="glass nav" aria-label="Main">
       <Link className="logo" href="/" prefetch={false}>
         <BrandMark />
         {BRAND_NAME}
       </Link>
-      <div className="navlinks">
+      <button type="button" className="sob-burger" aria-expanded={menu} aria-controls="sob-navlinks" aria-label={menu ? 'Close menu' : 'Open menu'} onClick={() => setMenu((v) => !v)}>
+        <span aria-hidden="true" />
+      </button>
+      <div id="sob-navlinks" className={menu ? 'navlinks open' : 'navlinks'}>
         {links.map((l) => (
           <Link key={l.href} className={isHere(path, l.href) ? 'cur' : undefined} href={l.href} prefetch={false} aria-current={isHere(path, l.href) ? 'page' : undefined}>
             {l.label}

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MobileToggle } from '@/components/glass/MobileToggle';
 import { BrandMark } from '@/components/glass/BrandMark';
 import { Fragment } from 'react';
 import { signOut } from '@/app/(bare)/login/actions';
@@ -70,49 +71,51 @@ export function DashboardShell({
   return (
     <GlassPage kind="d" file={file ?? menu.file}>
       <div className="shell">
-        <aside className="glass side" aria-label={`${menu.label} menu`}>
-          <Link className="logo" href="/" prefetch={false}>
-            <BrandMark />
-            {BRAND_NAME}{' '}
-            <span className="tag" style={{ margin: '0 0 0 2px' }}>
-              {menu.label}
-            </span>
-          </Link>
-          {menu.groups.map((g) => (
-            <Fragment key={g.name ?? 'main'}>
-              {g.name && <div className="grp">{g.name}</div>}
-              {g.items.map((i) => {
-                const waiting = badges?.[i.key] ?? 0;
-                return (
-                  <Link key={i.key} className={i.key === active ? 'mi on' : 'mi'} href={i.href} prefetch={false} aria-current={i.key === active ? 'page' : undefined}>
-                    <span>{i.label}</span>
-                    {waiting > 0 && (
-                      <span className="cnt" aria-label={`${waiting} waiting`}>
-                        {waiting}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </Fragment>
-          ))}
-          {others.length > 0 && <div className="grp">Switch view</div>}
-          {others.map((r) => (
-            <Link key={r} className="mi" href={ROLE_MENUS[r].home} prefetch={false}>
-              <span>{ROLE_MENUS[r].label} view</span>
+        <MobileToggle label="Menu" className="sob-mt-side">
+          <aside className="glass side" aria-label={`${menu.label} menu`}>
+            <Link className="logo" href="/" prefetch={false}>
+              <BrandMark />
+              {BRAND_NAME}{' '}
+              <span className="tag" style={{ margin: '0 0 0 2px' }}>
+                {menu.label}
+              </span>
             </Link>
-          ))}
-          <div className="sob-sidecard" style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
-            {sideCard}
-            {signedIn && (
-              <form action={signOut} style={{ marginTop: sideCard ? 8 : 0 }}>
-                <button type="submit" className="tag" style={{ display: 'block', margin: 0, padding: 0, border: 0, background: 'none', cursor: 'pointer', color: '#1A5444' }}>
-                  Sign out
-                </button>
-              </form>
-            )}
-          </div>
-        </aside>
+            {menu.groups.map((g) => (
+              <Fragment key={g.name ?? 'main'}>
+                {g.name && <div className="grp">{g.name}</div>}
+                {g.items.map((i) => {
+                  const waiting = badges?.[i.key] ?? 0;
+                  return (
+                    <Link key={i.key} className={i.key === active ? 'mi on' : 'mi'} href={i.href} prefetch={false} aria-current={i.key === active ? 'page' : undefined}>
+                      <span>{i.label}</span>
+                      {waiting > 0 && (
+                        <span className="cnt" aria-label={`${waiting} waiting`}>
+                          {waiting}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </Fragment>
+            ))}
+            {others.length > 0 && <div className="grp">Switch view</div>}
+            {others.map((r) => (
+              <Link key={r} className="mi" href={ROLE_MENUS[r].home} prefetch={false}>
+                <span>{ROLE_MENUS[r].label} view</span>
+              </Link>
+            ))}
+            <div className="sob-sidecard" style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
+              {sideCard}
+              {signedIn && (
+                <form action={signOut} style={{ marginTop: sideCard ? 8 : 0 }}>
+                  <button type="submit" className="tag" style={{ display: 'block', margin: 0, padding: 0, border: 0, background: 'none', cursor: 'pointer', color: '#1A5444' }}>
+                    Sign out
+                  </button>
+                </form>
+              )}
+            </div>
+          </aside>
+        </MobileToggle>
         <div className="col">
           <header className="glass topbar">
             <form className="gsearch" action={find.action} method="get" role="search">

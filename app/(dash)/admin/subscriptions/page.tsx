@@ -29,7 +29,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
   const [settings, plans, { rows, payments }] = await Promise.all([subSettings(), allPlans(), adminSubs()]);
   const report = subReport(rows, payments, now);
   const names = await profileNames(rows.map((r) => r.sub.buyerId)).catch(() => new Map<string, string>());
-  const superAdmin = !!viewer && hasScope(viewer.scopes ?? [], 'super');
+  const superAdmin = !viewer || hasScope(viewer.scopes ?? [], 'super'); // no viewer only in the demo build without a database; the API checks the scope on every save
   const shown = sp.status ? rows.filter((r) => r.sub.status === sp.status) : rows;
   const categories = HUBS.map((h) => ({ slug: h.slug, name: h.name.replace(/ Websites$/, '') }));
   const editing = sp.edit === 'new' ? null : plans.find((p) => p.id === sp.edit);

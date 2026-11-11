@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
 const day = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 10) : '–');
-const API = '/api/admin/subscriptions';
+const API = '/api/admin/buyer-subscriptions';
 
 /*
  * Admin › Buyer subscriptions (owner, 2026-11-12): the on/off switch and pricing page words, every plan (create, edit, duplicate, archive),

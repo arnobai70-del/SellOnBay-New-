@@ -6,7 +6,7 @@ import type { Benefit, Plan } from '@/lib/buyerSubs/rules';
 
 /* Admin › Buyer subscriptions (owner, 2026-11-12): the plan editor and the feature settings. Everything goes to POST /api/admin/subscriptions. */
 async function post(body: Record<string, unknown>) {
-  const r = await fetch('/api/admin/subscriptions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
+  const r = await fetch('/api/admin/buyer-subscriptions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const j = (await r?.json().catch(() => ({}))) as { error?: string } | undefined;
   return { ok: !!r?.ok, error: j?.error ?? (r ? '' : 'No connection.') };
 }

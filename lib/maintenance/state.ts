@@ -24,8 +24,9 @@ export type PageRow = { path: string; enabled: boolean; message: string; startAt
 export type Source = 'db' | 'memory';
 
 const CACHE_MS = 10_000;
+const STALE_MS = 5 * 60_000; // an answer older than this is not served even while refreshing: maintenance on or off shows within minutes at worst
 type Cache = { at: number; rows: ModuleRow[]; pages: PageRow[]; allowIps: string[]; source: Source };
-const g = globalThis as { __maintMem?: Map<ModuleKey, ModuleRow>; __maintPages?: Map<string, PageRow>; __maintAllow?: string[]; __maintCache?: Cache };
+const g = globalThis as { __maintMem?: Map<ModuleKey, ModuleRow>; __maintPages?: Map<string, PageRow>; __maintAllow?: string[]; __maintCache?: Cache; __maintRefreshing?: boolean };
 export const memoryRows = (g.__maintMem ??= new Map());
 export const memoryPages = (g.__maintPages ??= new Map());
 export const memoryAllow = (ips?: string[]) => (ips ? (g.__maintAllow = ips) : (g.__maintAllow ?? []));
@@ -86,6 +87,21 @@ const dbConfigured = () => supabaseConfigured && !!process.env.SUPABASE_SERVICE_
 export async function readRows(now = Date.now()): Promise<Cache> {
   const c = g.__maintCache;
   if (c && now - c.at < CACHE_MS) return c;
+  // Speed (owner, 2026-11-11): an expired answer is still served at once while one refresh runs in the background, so no request waits on the
+  // database round trip. Only the very first request on a server copy, or one after forgetRows(), waits.
+  if (c && now - c.at < STALE_MS) {
+    if (!g.__maintRefreshing) {
+      g.__maintRefreshing = true;
+      void loadRows(now, c).finally(() => {
+        g.__maintRefreshing = false;
+      });
+    }
+    return c;
+  }
+  return loadRows(now, c);
+}
+
+async function loadRows(now: number, c: Cache | undefined): Promise<Cache> {
   let next: Cache = { at: now, rows: [...memoryRows.values()], pages: [...memoryPages.values()], allowIps: memoryAllow(), source: 'memory' };
   if (dbConfigured()) {
     try {

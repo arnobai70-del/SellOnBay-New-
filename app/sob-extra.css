@@ -843,3 +843,23 @@
   position: relative;
   z-index: 40;
 }
+@media (max-width: 760px) {
+  /* An opened phone panel shows at once: no entrance animation that could leave it invisible (it starts at opacity 0). The button keeps the
+     light ghost look on every page. */
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt.open .sob-mt-body,
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt.open .sob-mt-body * {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt.open .sob-mt-body > aside {
+    display: flex !important;
+    flex-direction: column;
+    transform: none !important;
+    visibility: visible !important;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-mt-btn {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid #d3e2e9;
+    color: #2b4250;
+  }
+}

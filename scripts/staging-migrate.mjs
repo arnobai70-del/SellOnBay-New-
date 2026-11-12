@@ -19,7 +19,7 @@ import { PRODUCTION_SUPABASE_REF, STAGING_SUPABASE_REF } from './verify-staging-
 
 const REF = STAGING_SUPABASE_REF;
 const MIG = join(process.cwd(), 'supabase', 'migrations');
-const BATCH_STARTS = ['0015', '0016', '0019', '0023', '0043', '0053', '0060', '0067', '0068']; // 0067, 0068: security fixes found on staging
+const BATCH_STARTS = ['0015', '0016', '0019', '0023', '0043', '0053', '0060', '0067', '0068', '0069']; // 0067, 0068: security fixes found on staging; 0069: staging stopped at 0068 (2026-11-12)
 const MCP_VERSIONS = [
   '20261027213445',
   '20261027213530',

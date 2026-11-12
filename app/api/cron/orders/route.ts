@@ -10,6 +10,7 @@ import { purgeSystemRecords, recordRun } from '@/lib/cronRuns';
 import { sendQueued } from '@/lib/emailQueue';
 import { runBetaJobs } from '@/lib/beta/service';
 import { runSubJobs } from '@/lib/buyerSubs/service';
+import { runAffiliateJobs } from '@/lib/affiliates/service';
 import { alertCriticals, serverHealth } from '@/lib/admin/health';
 import { runSaleJobs } from '@/lib/prices/service';
 import { dailyReport } from '@/lib/analytics';
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
     moved: await runDueJobs(),
     beta: await runBetaJobs(),
     buyerSubs: await runSubJobs(),
+    affiliates: await runAffiliateJobs(),
     domainReminders: await domainReminders(),
     purgedEvents: await purgeSecurityEvents(),
     anomalies: (await checkAnomalies()).length,

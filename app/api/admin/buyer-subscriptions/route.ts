@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminOnly } from '@/lib/admin/guard';
-import { adminExtend, adminMove, archivePlan, decidePayment, duplicatePlan, savePlan, saveSubSettings } from '@/lib/buyerSubs/service';
+import { adminExtend, adminMove, archivePlan, cancelWithRefund, decidePayment, duplicatePlan, refundPayment, savePlan, saveSubSettings } from '@/lib/buyerSubs/service';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { readJson } from '@/lib/validate';
 
@@ -28,6 +28,8 @@ const schema = z.discriminatedUnion('action', [
     reason: z.string().max(300).default(''),
     note: z.string().max(300).default(''),
   }),
+  z.object({ action: z.literal('refund'), id: z.string().uuid(), reason: z.string().max(300).default(''), note: z.string().max(300).default('') }), // a verified payment refunded by hand
+  z.object({ action: z.literal('cancelRefund'), id: z.string().uuid(), reason: z.string().max(300).default(''), note: z.string().max(300).default('') }),
   z.object({ action: z.literal('extend'), id: z.string().uuid(), days: z.coerce.number().optional(), note: z.string().max(10).default('') }), // the action button sends its typed text as note
 ]);
 
@@ -56,6 +58,10 @@ export async function POST(req: Request) {
               ? await decidePayment(a.id, b.id, b.verified)
               : b.action === 'move'
                 ? await adminMove(a.id, b.id, b.to, b.reason || b.note)
-                : await adminExtend(a.id, b.id, b.days ?? Number(b.note));
+                : b.action === 'refund'
+                  ? await refundPayment(a.id, b.id, b.reason || b.note)
+                  : b.action === 'cancelRefund'
+                    ? await cancelWithRefund(a.id, b.id, b.reason || b.note)
+                    : await adminExtend(a.id, b.id, b.days ?? Number(b.note));
   return r.ok ? NextResponse.json({ ok: true, value: r.value }) : NextResponse.json({ error: r.error }, { status: r.status });
 }

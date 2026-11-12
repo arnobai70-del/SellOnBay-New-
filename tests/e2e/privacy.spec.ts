@@ -13,7 +13,7 @@ test.describe('cookie notice', () => {
     await expect(notice).toBeVisible();
     await expect(notice).toContainText('never for advertising'); // GA4 only after "Accept analytics" (components/CookieNotice.tsx)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
-    await expect(notice.getByRole('link', { name: 'What we store' })).toHaveAttribute('href', '/privacy#cookies');
+    await expect(notice.getByRole('link', { name: 'What we store' })).toHaveAttribute('href', '/legal/privacy#cookies'); // legal pages live under /legal (glass UI)
     await notice.getByRole('button', { name: 'Only what is needed' }).click();
     await expect(notice).toHaveCount(0);
     await page.reload();
@@ -41,7 +41,7 @@ test.describe('your data page and routes', () => {
   });
   test('signed out on the real server: the page sends you to sign in, the routes say 401', async ({ page, request }) => {
     await page.goto(REAL + '/account/privacy');
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/); // glass UI: sign-in lives at /signin
     expect((await request.get(REAL + '/api/account/export')).status()).toBe(401);
     expect((await request.post(REAL + '/api/account/delete-request', { data: { confirm: 'DELETE' } })).status()).toBe(401);
     expect((await request.post(REAL + '/api/admin/privacy/00000000-0000-4000-8000-000000000000/process')).status()).toBe(401);

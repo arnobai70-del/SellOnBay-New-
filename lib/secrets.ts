@@ -6,7 +6,7 @@ import { createHmac } from 'node:crypto';
  * the Supabase service key, which is already a long secret that only the server has. Every purpose gets its own key (HMAC with the purpose as label),
  * so one leaked key says nothing about another. Changing the source later changes these keys: block lists are forgotten, they never lock anyone out.
  */
-export function derivedSecret(name: 'GUARD_SALT' | 'ANALYTICS_SALT' | 'PAYMENT_WEBHOOK_SECRET', env: Record<string, string | undefined> = process.env): string | null {
+export function derivedSecret(name: 'GUARD_SALT' | 'ANALYTICS_SALT' | 'PAYMENT_WEBHOOK_SECRET' | 'AFFILIATE_SECRET', env: Record<string, string | undefined> = process.env): string | null {
   const own = env[name];
   if (own) return own;
   const root = env.APP_SECRET && env.APP_SECRET.length >= 32 ? env.APP_SECRET : env.SUPABASE_SERVICE_ROLE_KEY;

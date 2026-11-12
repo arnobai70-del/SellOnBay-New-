@@ -6,6 +6,9 @@ import { BUGFIX_DAYS, CONFIG, REVIEW_HOURS } from '../lib/config';
  * Short, plain verbs. Never put a secret, a card detail or somebody else's private data in here.
  */
 export type NotificationKind =
+  | 'aff_qualified'
+  | 'aff_commission'
+  | 'aff_withdrawal'
   | 'sub_active'
   | 'sub_renewed'
   | 'sub_expiring'
@@ -78,6 +81,12 @@ export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: stri
     subject: "Request received, we'll review it shortly",
     text: `We have your request for ${t(p.title)}. It is free during the beta and no payment is taken. We'll email you when it has been reviewed.`,
   }),
+  aff_qualified: () => ({ subject: 'You are a SellOnBay Verified Affiliate', text: 'You reached the qualification target. Your green Verified Affiliate badge is on your affiliate dashboard.' }),
+  aff_commission: (p) => ({
+    subject: `A commission of ${t(p.amount)} is approved`,
+    text: 'The sale passed its refund period. The amount is now in your available balance on the affiliate dashboard.',
+  }),
+  aff_withdrawal: (p) => ({ subject: `Your withdrawal of ${t(p.amount)} is ${t(p.status)}`, text: `${t(p.note, 'See the affiliate dashboard for details.')}` }),
   sub_active: (p) => ({ subject: `Your ${t(p.title)} subscription is active`, text: `You can now choose ${t(p.credits)} websites with full source code. Open Subscription in your dashboard.` }),
   sub_renewed: (p) => ({ subject: `Your ${t(p.title)} subscription is renewed`, text: `Your licence and support for the websites you chose now run until ${t(p.until)}.` }),
   sub_expiring: (p) => ({

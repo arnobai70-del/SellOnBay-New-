@@ -17,18 +17,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const closed = await maintenanceFor('disputes'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const id = await idOf(params);
+  const notFound = () => NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });
+  // Who is asking comes first: a signed-out visitor gets the same "not found" without the dispute ever being looked up (2026-11-12).
+  const sb = supabaseConfigured ? await createClient() : null;
+  const user = sb ? (await sb.auth.getUser().catch(() => ({ data: { user: null } }))).data.user : null;
+  if (sb && !user) return notFound();
   const d = await getDispute(id);
   const o = d ? await getOrder(d.orderId) : null;
-  if (!d || !o) return NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });
+  if (!d || !o) return notFound();
   let me: string | null = null;
   // Signed in: only the two parties, not banned or suspended, and the seller with the authenticator code. Demo mode has no accounts, so the
   // dispute id is the key (it is unguessable).
-  if (supabaseConfigured) {
-    const sb = await createClient();
-    const {
-      data: { user },
-    } = await sb.auth.getUser();
-    if (!user || (user.id !== o.buyerId && user.id !== o.sellerId)) return NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });
+  if (sb && user) {
+    if (user.id !== o.buyerId && user.id !== o.sellerId) return notFound();
     const { data: p } = await sb.from('profiles').select('banned, suspended_until').eq('id', user.id).single();
     if (!p || cannotAct(p)) return NextResponse.json({ error: 'Not allowed.' }, { status: 403 });
     if (user.id === o.sellerId && user.id !== o.buyerId) {

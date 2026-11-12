@@ -10,6 +10,7 @@ export const PUBLIC_LINKS: NavLink[] = [
   { label: 'Domains', href: '/domains' },
   { label: 'Sellers', href: '/sellers' },
   { label: 'Sell', href: '/sell' },
+  { label: 'Affiliate', href: '/affiliates' }, // always shown (owner, 2026-11-12); the page says when the program opens
   { label: 'Help', href: '/help' },
 ];
 
@@ -27,6 +28,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     title: 'Sell',
     links: [
       { label: 'Sell on SellOnBay', href: '/sell' },
+      { label: 'Affiliate program', href: '/affiliates' },
       { label: 'Seller agreement', href: '/legal/seller-agreement' },
       { label: 'Seller dashboard', href: '/dashboard/seller' },
     ],

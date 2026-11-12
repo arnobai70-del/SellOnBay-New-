@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 import { affSettings, leaderboard } from '@/lib/affiliates/service';
 import { COMMISSION_KINDS, joinFeeCents, KIND_LABEL } from '@/lib/affiliates/rules';
-import { getViewer } from '@/lib/supabase/viewer';
 
 export const metadata: Metadata = {
   title: 'Affiliate Program',
@@ -28,29 +26,35 @@ const DEFAULT_FAQ: [string, string][] = [
  * page is a 404 for visitors; an admin sees it with a note. The Top 5 shows only affiliates who allow it, ranked by verified, non-refunded sales.
  */
 export default async function AffiliatesPage() {
-  const [s, viewer] = await Promise.all([affSettings(), getViewer().catch(() => null)]);
-  const admin = viewer?.role === 'admin';
-  if (!s.enabled && !admin) notFound();
-  const top = s.leaderboardPublic ? (await leaderboard(undefined, true)).slice(0, 5) : [];
+  // Public at all times (owner, 2026-11-12): everyone can read about the program. While it is off the page says it opens soon and offers no
+  // way to join; registration, link tracking and commissions stay closed on the server either way.
+  const s = await affSettings();
+  const top = s.enabled && s.leaderboardPublic ? (await leaderboard(undefined, true)).slice(0, 5) : [];
   const fee = joinFeeCents(s);
   const badges = s.badges.filter((b) => b.enabled);
   const faq = s.faq.length ? s.faq.map((x) => [x.q, x.a] as [string, string]) : DEFAULT_FAQ;
   return (
     <PublicFrame file="sell">
-      {!s.enabled && (
-        <p className="sob-note" role="note">
-          Preview for admins: the affiliate program is off, so visitors do not see this page. Turn it on in Admin › Affiliate Management.
-        </p>
-      )}
       <section style={{ padding: '72px 0 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
         <span className="badge">Affiliate Program</span>
         <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>Share websites you like. Earn on every verified sale.</h1>
         <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
           {s.intro}
         </p>
-        <Link className="btn" href="/dashboard/buyer/affiliate" prefetch={false}>
-          Join the affiliate program
-        </Link>
+        {s.enabled ? (
+          <Link className="btn" href="/dashboard/buyer/affiliate" prefetch={false}>
+            Join the affiliate program
+          </Link>
+        ) : (
+          <span className="status st-draft" style={{ fontSize: 15, padding: '8px 16px' }}>
+            Opening soon
+          </span>
+        )}
+        {!s.enabled && (
+          <p className="muted" style={{ margin: 0, maxWidth: 560, fontSize: 14 }}>
+            The SellOnBay affiliate program is not open for registration yet. Everything below is how it will work; check back soon.
+          </p>
+        )}
         <div className="tag">
           {fee === 0 ? `Free to join during the promotion (normally ${usd(s.feeCents)}).` : `Registration fee ${usd(fee)}, never charged automatically.`} Earnings are not guaranteed.
         </div>
@@ -134,7 +138,7 @@ export default async function AffiliatesPage() {
         </section>
       )}
 
-      {s.leaderboardPublic && (
+      {s.enabled && s.leaderboardPublic && (
         <section className="sec">
           <h2 style={{ fontSize: 28, marginBottom: 18 }}>This month&apos;s top 5</h2>
           <div className="glass" style={{ padding: '8px 8px 4px' }}>

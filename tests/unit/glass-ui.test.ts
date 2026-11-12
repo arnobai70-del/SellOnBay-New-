@@ -77,7 +77,7 @@ describe('glass UI', () => {
   });
 
   it('has the menus of the design: 5 public links, 4 footer columns, 8 buyer, 9 seller and 16 admin pages (the design pages, plus Visitors, Server health, Guides and Pages, owner 2026-11-08, and buyer subscriptions, owner 2026-11-12)', () => {
-    expect(PUBLIC_LINKS.map((l) => l.label)).toEqual(['Websites', 'Domains', 'Sellers', 'Sell', 'Help']);
+    expect(PUBLIC_LINKS.map((l) => l.label)).toEqual(['Websites', 'Domains', 'Sellers', 'Sell', 'Affiliate', 'Help']); // Affiliate always shown (owner, 2026-11-12)
     expect(FOOTER_COLUMNS.map((c) => c.title)).toEqual(['Marketplace', 'Sell', 'Help', 'Legal']); // plus the Contact column from lib/emailRouting.ts
     const count = (r: keyof typeof ROLE_MENUS) => ROLE_MENUS[r].groups.flatMap((g) => g.items).length;
     expect([count('buyer'), count('seller'), count('admin')]).toEqual([9, 10, 17]);

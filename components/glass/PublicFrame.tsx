@@ -1,7 +1,6 @@
 import { BETA_BANNER_TEXT } from '@/lib/config';
 import { pageCopy } from '@/lib/content/copy';
 import { PUBLIC_LINKS } from '@/lib/glass/nav';
-import { affSettings } from '@/lib/affiliates/service';
 import { getSettings } from '@/lib/settings';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 import { GlassPage } from './GlassPage';
@@ -20,16 +19,8 @@ export async function PublicFrame({ file, children, chrome = true }: { file: str
         <main id="main">{children}</main>
       </GlassPage>
     );
-  const [{ paymentsMode }, routes, social, nav, foot, aff] = await Promise.all([
-    getSettings(),
-    contactRoutes(),
-    savedSocial(),
-    pageCopy('nav'),
-    pageCopy('footer'),
-    affSettings().catch(() => ({ enabled: false })),
-  ]);
-  // The Affiliate Program link shows only while the program is on (Admin › Affiliate Management).
-  const links = [...PUBLIC_LINKS, ...(aff.enabled ? [{ label: 'Affiliate Program', href: '/affiliates' }] : [])];
+  const [{ paymentsMode }, routes, social, nav, foot] = await Promise.all([getSettings(), contactRoutes(), savedSocial(), pageCopy('nav'), pageCopy('footer')]);
+  const links = PUBLIC_LINKS; // includes Affiliate, always shown (owner, 2026-11-12)
   return (
     <GlassPage file={file}>
       {paymentsMode === 'beta_free' && (

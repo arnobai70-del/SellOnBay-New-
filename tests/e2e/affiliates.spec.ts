@@ -8,6 +8,15 @@ import { expect, test, type APIRequestContext, type Browser, type Page } from '@
  */
 const DEMO = process.env.DEMO_URL ?? 'http://localhost:3002';
 const api = (r: APIRequestContext, data: object) => r.post(`${DEMO}/api/admin/affiliates`, { data, headers: { origin: DEMO } });
+/* While the program is off the page is public (owner, 2026-11-12) but says it opens soon, with no join button and no leaderboard. */
+const expectClosed = async (r: APIRequestContext) => {
+  const res = await r.get(`${DEMO}/affiliates`);
+  expect(res.status()).toBe(200);
+  const html = await res.text();
+  expect(html).toContain('Opening soon');
+  expect(html).not.toContain('Join the affiliate program');
+  expect(html).not.toContain('top 5');
+};
 const on = (r: APIRequestContext, extra: object = {}) => api(r, { action: 'settings', settings: { enabled: true, ...extra } });
 const save = async (page: Page, form = 0) => {
   await page.getByRole('button', { name: 'Save', exact: true }).nth(form).click(); // the Commission tab has two forms: rates, then eligible websites
@@ -42,7 +51,11 @@ test.describe('Affiliate Management', () => {
   });
 
   test('the program starts off; all twelve admin sections open', async ({ page, request }) => {
-    expect((await request.get(`${DEMO}/affiliates`)).status()).toBe(404);
+    await expectClosed(request); // public, but closed: opening soon, no way to join
+    await page.goto(`${DEMO}/`);
+    await page.getByRole('navigation').getByRole('link', { name: 'Affiliate', exact: true }).first().click(); // always in the top menu
+    await expect(page).toHaveURL(/\/affiliates$/);
+    await expect(page.getByText('Opening soon')).toBeVisible();
     await page.goto(`${DEMO}/admin/affiliates`);
     await expect(page.getByRole('heading', { name: 'Affiliate Management' })).toBeVisible();
     await expect(page.getByText('Program off')).toBeVisible();
@@ -63,7 +76,7 @@ test.describe('Affiliate Management', () => {
     expect(html).toContain('Test affiliate intro');
     expect(html).toContain('20%');
     expect((await api(request, { action: 'settings', settings: { enabled: false } })).status()).toBe(200);
-    expect((await request.get(`${DEMO}/affiliates`)).status()).toBe(404);
+    await expectClosed(request); // public, but closed: opening soon, no way to join
   });
 
   test('the editors save from the admin page and show on the public page: target, rates, cookie, badges, benefits, questions, terms, leaderboard', async ({ page, request }) => {
@@ -106,7 +119,7 @@ test.describe('Affiliate Management', () => {
     page.once('dialog', (d) => void d.accept());
     await page.getByLabel(/The affiliate program is on/).uncheck();
     await save(page);
-    expect((await request.get(`${DEMO}/affiliates`)).status()).toBe(404);
+    await expectClosed(request); // public, but closed: opening soon, no way to join
   });
 
   test('signed in (the demo stand-in account): join, links, payout method, leaderboard opt-out; the referral cookie follows the cookie choice', async ({ page, request, browser }) => {
@@ -115,6 +128,7 @@ test.describe('Affiliate Management', () => {
     await page.getByRole('link', { name: 'Join the affiliate program' }).click();
     await expect(page).toHaveURL(/\/dashboard\/buyer\/affiliate/);
     const join = page.getByRole('button', { name: 'Join the affiliate program' });
+    await expect(page.getByRole('heading', { name: /^(Join the affiliate program|E2E Picks)$/ })).toBeVisible(); // the dashboard has rendered
     if (await join.count()) {
       await page.getByLabel(/Public name/).fill('E2E Picks');
       await expect(join).toBeDisabled(); // terms first

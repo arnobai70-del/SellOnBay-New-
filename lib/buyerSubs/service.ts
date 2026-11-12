@@ -285,6 +285,8 @@ const payFrom = (r: Record<string, unknown>): SubPayment => ({
   paidOn: (r.paid_on as string | null) ?? null,
   status: r.status as SubPayment['status'],
   createdAt: ms(r.created_at as string) ?? 0,
+  refundedAt: ms((r.refunded_at as string | null) ?? null),
+  refundReason: String(r.refund_reason ?? ''),
 });
 
 export async function subById(id: string): Promise<Subscription | null> {
@@ -461,6 +463,52 @@ export async function adminMove(adminId: string | null, subId: string, to: SubSt
   return ok({ ...sub, ...patch });
 }
 
+/*
+ * Record that a verified payment was refunded (owner, 2026-11-12). The money goes back by hand, outside SellOnBay, like the payment itself;
+ * this only records it, once. The affiliate program then reverses that payment's commission on its next run. Needs migration 0087.
+ */
+export async function refundPayment(adminId: string | null, paymentId: string, reason: string, now = Date.now()): Promise<R<SubPayment>> {
+  const why = reason.trim().slice(0, 300);
+  if (why.length < 3) return fail(400, 'Give the reason for the refund.');
+  let pay: SubPayment | undefined;
+  if (await pg()) {
+    const db = createAdminClient();
+    pay = (((await db.from('buyer_sub_payments').select('*').eq('id', paymentId)).data ?? []) as Record<string, unknown>[]).map(payFrom)[0];
+    if (!pay || pay.status !== 'verified') return fail(404, 'No verified payment with this id.');
+    if (pay.refundedAt) return fail(409, 'This payment was already refunded.');
+    const { data, error } = await db
+      .from('buyer_sub_payments')
+      .update({ refunded_at: new Date(now).toISOString(), refunded_by: adminId, refund_reason: why })
+      .eq('id', paymentId)
+      .eq('status', 'verified')
+      .is('refunded_at', null)
+      .select('id');
+    if (error) return fail(error.code === '42703' ? 503 : 500, error.code === '42703' ? 'Refunds need migration 0087.' : 'Could not record the refund.');
+    if (!data?.length) return fail(409, 'This payment was already refunded.');
+  } else {
+    pay = mem.pays.find((p) => p.id === paymentId);
+    if (!pay || pay.status !== 'verified') return fail(404, 'No verified payment with this id.');
+    if (pay.refundedAt) return fail(409, 'This payment was already refunded.');
+    mem.pays = mem.pays.map((p) => (p.id === paymentId ? { ...p, refundedAt: now, refundReason: why } : p));
+  }
+  await audit(adminId, 'buyer_sub_payment_refunded', 'buyer_subscription', pay.subscriptionId, { payment: paymentId, amount: pay.amountCents, reason: why });
+  await logEvent({ subscriptionId: pay.subscriptionId, actorId: adminId, event: 'payment_refunded', meta: { payment: paymentId, amount: pay.amountCents, reason: why } });
+  return ok({ ...pay, refundedAt: now, refundReason: why });
+}
+
+/* Cancel a subscription and refund its latest verified payment in one admin step ("cancel with refund"). */
+export async function cancelWithRefund(adminId: string | null, subId: string, reason: string, now = Date.now()): Promise<R<Subscription>> {
+  const sub = await subById(subId);
+  if (!sub) return fail(404, 'No such subscription.');
+  const pays = (await subsOf(sub.buyerId)).find((x) => x.sub.id === subId)?.payments ?? [];
+  const last = pays.filter((p) => p.status === 'verified' && !p.refundedAt).sort((a, b) => b.createdAt - a.createdAt)[0];
+  if (!last) return fail(409, 'This subscription has no verified payment to refund.');
+  const moved = sub.status === 'cancelled' ? ok(sub) : await adminMove(adminId, subId, 'cancelled', reason, now);
+  if (!moved.ok) return moved;
+  const r = await refundPayment(adminId, last.id, reason, now);
+  return r.ok ? moved : r;
+}
+
 /* Add days to a running subscription, and to the websites already chosen with it. */
 export async function adminExtend(adminId: string | null, subId: string, daysRaw: unknown, now = Date.now()): Promise<R<Subscription>> {
   const days = checkExtendDays(daysRaw);
@@ -555,7 +603,7 @@ export async function pickWebsite(buyerId: string, subId: string, productKey: st
 }
 
 /* ---------- admin lists and reports ---------- */
-export type AdminSubRow = { sub: Subscription; selections: number; waiting: SubPayment[] };
+export type AdminSubRow = { sub: Subscription; selections: number; waiting: SubPayment[]; paid: SubPayment[] };
 export async function adminSubs(): Promise<{ rows: AdminSubRow[]; payments: SubPayment[] }> {
   let subs: Subscription[];
   let pays: SubPayment[];
@@ -573,13 +621,18 @@ export async function adminSubs(): Promise<{ rows: AdminSubRow[]; payments: SubP
   return {
     rows: subs
       .sort((a, b) => b.createdAt - a.createdAt)
-      .map((sub) => ({ sub, selections: sels.filter((x) => x.subscriptionId === sub.id).length, waiting: pays.filter((p) => p.subscriptionId === sub.id && p.status === 'submitted') })),
+      .map((sub) => ({
+        sub,
+        selections: sels.filter((x) => x.subscriptionId === sub.id).length,
+        waiting: pays.filter((p) => p.subscriptionId === sub.id && p.status === 'submitted'),
+        paid: pays.filter((p) => p.subscriptionId === sub.id && p.status === 'verified'),
+      })),
     payments: pays,
   };
 }
 
 export function subReport(rows: AdminSubRow[], payments: SubPayment[], now = Date.now()) {
-  const verified = payments.filter((p) => p.status === 'verified');
+  const verified = payments.filter((p) => p.status === 'verified' && !p.refundedAt);
   return {
     active: rows.filter((r) => isLive(r.sub, now)).length,
     waiting: rows.filter((r) => ['pending_payment', 'payment_review'].includes(r.sub.status)).length,

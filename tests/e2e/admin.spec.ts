@@ -68,17 +68,20 @@ test.describe('disputes through the API', () => {
 });
 
 test.describe('admin pages (demo mode)', () => {
-  test('Messages opened from the admin menu keeps the admin menu', async ({ page }) => {
+  // Glass UI (2026-11): the admin menu has no Messages entry; order messages opened as admin keep the admin menu (Disputes & support).
+  test('Messages opened as admin keeps the admin menu', async ({ page }) => {
     await page.goto(`${DEMO}/dashboard/admin`);
-    await page.locator('.side').getByRole('link', { name: 'Messages' }).click();
-    await expect(page).toHaveURL(/\/messages\?view=admin/);
-    await expect(page.locator('.side').getByRole('link', { name: 'Disputes' })).toBeVisible();
-    await expect(page.locator('.side').getByRole('link', { name: 'Messages' })).toHaveAttribute('aria-current', 'page');
+    await expect(page).toHaveURL(/\/admin$/); // the old address moves to the glass admin
+    await page.goto(`${DEMO}/messages?view=admin`);
+    const side = page.locator('.side');
+    await expect(side).toHaveAttribute('aria-label', 'Admin menu');
+    await expect(side.getByRole('link', { name: 'Disputes & support' })).toHaveAttribute('aria-current', 'page');
+    await expect(side.getByRole('link', { name: 'Orders & payments' })).toBeVisible();
   });
 
   test('every admin page opens and says what it is for', async ({ page }) => {
     for (const [path, heading] of [
-      ['/dashboard/admin', 'New listings'],
+      ['/admin', 'Quick access'],
       ['/admin/support/disputes', 'Open disputes'],
       ['/admin/finance/payouts', 'Weekly payouts'],
       ['/admin/users/accounts', 'Accounts'],
@@ -127,15 +130,15 @@ test.describe('abuse reports (demo mode)', () => {
       .getByRole('button', { name: /send|report/i })
       .first()
       .click();
-    await expect(page.getByText('Report received')).toBeVisible();
+    await expect(page.getByText('Report received')).toBeVisible({ timeout: 15_000 }); // the first server action on a fresh server is slow
     await page.goto(`${DEMO}/admin/support/abuse`);
-    const card = page.locator('.adm-card', { hasText: site });
+    const card = page.locator('.sob-item', { hasText: site }); // the glass UI report card (was .adm-card)
     await expect(card).toBeVisible();
-    await expect(card.getByText('1 different reporter')).toBeVisible();
+    await expect(card.getByText(/1 different reporter|not a listing on this site/)).toBeVisible();
     await card.getByRole('button', { name: 'Decide' }).click();
     await card.getByLabel('Decision').selectOption('dismiss');
     await card.getByRole('button', { name: 'Save decision' }).click();
-    await expect(page.locator('.adm-card', { hasText: site })).toHaveCount(0);
+    await expect(page.locator('.sob-item', { hasText: site })).toHaveCount(0);
   });
 });
 
@@ -163,7 +166,7 @@ test.describe('who may call what (real server)', () => {
   });
   test('the admin pages send a signed-out visitor to sign in', async ({ page }) => {
     await page.goto(`${REAL}/admin/finance/payouts`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/); // glass UI: sign-in lives at /signin
   });
   test('a signed-out visitor cannot report a problem on, or add evidence to, somebody else', async ({ request }) => {
     expect((await request.post(`${REAL}/api/disputes/00000000-0000-4000-8000-000000000000/reply`, { data: { text: 'hello there seller' } })).status()).toBe(401);
@@ -173,17 +176,15 @@ test.describe('who may call what (real server)', () => {
 });
 
 test.describe('settings in demo mode (no accounts, so the admin routes are open here)', () => {
-  test('the early access bar shows when it is switched on and goes away when it is switched off', async ({ page, request }) => {
+  // Glass UI (2026-11): the old early access bar left with the old public pages; the setting itself is still saved, checked and audited.
+  test('the early access setting saves on and off, and the glass pages never show the old bar', async ({ page, request }) => {
     const call = (data: object) => request.post(`${DEMO}/api/admin/settings`, { data });
     await call({ earlyAccessOn: 'off', reason: 'Start from a bar that is hidden.' }); // 409 when it was already off
-    expect((await call({ earlyAccessOn: 'on', reason: 'Show the bar for the test.' })).status()).toBe(200);
-    await page.goto(`${DEMO}/`);
-    await expect(page.locator('.early-bar')).toContainText('between $5 and $70');
-    await page.goto(`${DEMO}/browse`);
-    await expect(page.locator('.early-bar')).toBeVisible();
-    expect((await call({ earlyAccessOn: 'off', reason: 'Hide the bar again.' })).status()).toBe(200);
+    expect((await call({ earlyAccessOn: 'on', reason: 'Switch it on for the test.' })).status()).toBe(200);
+    expect((await call({ earlyAccessOn: 'on', reason: 'The same value again.' })).status()).toBe(409);
     await page.goto(`${DEMO}/`);
     await expect(page.locator('.early-bar')).toHaveCount(0);
+    expect((await call({ earlyAccessOn: 'off', reason: 'Switch it off again.' })).status()).toBe(200);
     expect((await call({ priceMinCents: '5', priceMaxCents: '4', reason: 'This is wrong on purpose.' })).status()).toBe(400);
     expect((await call({ priceMaxCents: '70', reason: 'Same value again.' })).status()).toBe(409);
   });

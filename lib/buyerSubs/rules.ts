@@ -61,6 +61,8 @@ export type SubPayment = {
   paidOn: string | null;
   status: 'submitted' | 'verified' | 'rejected';
   createdAt: number;
+  refundedAt?: number | null; // recorded by an admin after refunding by hand (migration 0087)
+  refundReason?: string;
 };
 
 export const DAY = 86_400_000;

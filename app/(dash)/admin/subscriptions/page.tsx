@@ -202,7 +202,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                       </td>
                     </tr>
                   )}
-                  {shown.map(({ sub, selections, waiting }) => (
+                  {shown.map(({ sub, selections, waiting, paid }) => (
                     <tr key={sub.id}>
                       <td>{names.get(sub.buyerId) ?? sub.buyerId.slice(0, 8)}</td>
                       <td>
@@ -233,7 +233,23 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                             />
                           </div>
                         ))}
-                        {!waiting.length && <span className="muted">–</span>}
+                        {paid.map((p) => (
+                          <div key={p.id} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 }}>
+                            <span className="tag" style={{ margin: 0 }}>
+                              {p.kind === 'new' ? 'New' : 'Renewal'} {usd(p.amountCents)} · {p.refundedAt ? `refunded ${day(p.refundedAt)}` : 'verified'}
+                            </span>
+                            {!p.refundedAt && (
+                              <ActionButton
+                                endpoint={API}
+                                body={{ action: 'refund', id: p.id }}
+                                label="Record refund"
+                                tone="line"
+                                note={{ label: 'Refund reason (after you refunded by hand; kept in the history)', required: true }}
+                              />
+                            )}
+                          </div>
+                        ))}
+                        {!waiting.length && !paid.length && <span className="muted">–</span>}
                       </td>
                       <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         {ADMIN_MOVES[sub.status].map((to) => (
@@ -246,6 +262,15 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                             note={to === 'active' ? undefined : { label: 'Reason (kept in the history)', required: true }}
                           />
                         ))}
+                        {sub.status !== 'cancelled' && paid.some((p) => !p.refundedAt) && (
+                          <ActionButton
+                            endpoint={API}
+                            body={{ action: 'cancelRefund', id: sub.id }}
+                            label="Cancel with refund"
+                            tone="line"
+                            note={{ label: 'Reason (after you refunded the latest payment by hand)', required: true }}
+                          />
+                        )}
                         {sub.expiresAt && (
                           <ActionButton endpoint={API} body={{ action: 'extend', id: sub.id }} label="Extend" tone="line" note={{ label: 'Days to add (1 to 3650)', required: true, rows: 1 }} />
                         )}

@@ -466,6 +466,9 @@ export async function acceptQuote(buyerId: string, quoteId: string, now = Date.n
   };
   try {
     const orderId = await acceptAndCreateOrder(q, buyerId, order, created, now);
+    // An affiliate referral (lib/affiliates, owner 2026-11-12): the buyer accepts here, in their own request, so their referral cookie is
+    // read now. It never blocks or changes the order; the commission follows only once the order is paid, accepted and past the hold.
+    await import('../affiliates/service').then((m) => m.attributeFromRequest('order', orderId, buyerId, order.productKey ?? '')).catch(() => {});
     await notifyAdmins('quote_accepted', { title: order.title });
     return { ok: true, value: { orderId } };
   } catch (e) {

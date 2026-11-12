@@ -264,6 +264,8 @@ export async function updateProfile(userId: string, p: { displayName?: string; p
 
 /* ---------- referral cookie (signed, so it cannot be edited) ---------- */
 export const REF_COOKIE = 'sob_ref';
+/* The stand-in account of the demo build (no database, a server marked as a demo); never used where accounts exist. */
+export const DEMO_AFFILIATE = 'demo-affiliate';
 const secret = () => derivedSecret('AFFILIATE_SECRET') ?? 'sellonbay-dev-affiliate';
 const sig = (body: string) => createHmac('sha256', secret()).update(body).digest('base64url').slice(0, 32);
 export const signRef = (code: string, productKey: string, issuedAt: number) => {
@@ -373,16 +375,7 @@ async function ledgerOf(affiliateId?: string): Promise<LedgerRow[]> {
   if (affiliateId) q = q.eq('affiliate_id', affiliateId);
   return ((await q).data ?? []) as LedgerRow[];
 }
-/* One ledger entry per key: a second try with the same key does nothing (the unique key refuses it). */
-async function ledgerPost(e: Omit<LedgerRow, 'at'>): Promise<boolean> {
-  if (await pg()) {
-    const { error } = await db().from('affiliate_ledger').insert(e);
-    return !error;
-  }
-  if (mem.ledger.some((l) => l.entry_key === e.entry_key)) return false;
-  mem.ledger.push({ ...e, at: new Date().toISOString() });
-  return true;
-}
+/* The ledger is written only by the atomic money steps below (approveCommissionAtomic, reverseCommissionAtomic, decideWithdrawal). */
 async function insertCommission(c: Commission): Promise<boolean> {
   if (await pg()) {
     const { error } = await db()
@@ -405,20 +398,17 @@ async function insertCommission(c: Commission): Promise<boolean> {
   mem.comms.push(c);
   return true;
 }
-async function patchCommission(id: string, patch: Partial<Commission>) {
+/* A pending commission's basis and approval date follow its source until approval; its status changes only through the atomic steps. */
+async function patchCommission(id: string, patch: Pick<Partial<Commission>, 'basisCents' | 'amountCents' | 'approveAfter'>) {
   if (await pg()) {
     const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (patch.status) row.status = patch.status;
     if (patch.basisCents !== undefined) row.basis_cents = patch.basisCents;
     if (patch.amountCents !== undefined) row.amount_cents = patch.amountCents;
     if (patch.approveAfter !== undefined) row.approve_after = iso(patch.approveAfter);
-    if (patch.approvedAt !== undefined) row.approved_at = iso(patch.approvedAt);
-    if (patch.reversedAt !== undefined) row.reversed_at = iso(patch.reversedAt);
-    await db().from('affiliate_commissions').update(row).eq('id', id);
-  } else mem.comms = mem.comms.map((c) => (c.id === id ? { ...c, ...patch } : c));
+    await db().from('affiliate_commissions').update(row).eq('id', id).eq('status', 'pending');
+  } else mem.comms = mem.comms.map((c) => (c.id === id && c.status === 'pending' ? { ...c, ...patch } : c));
 }
 
-const PAID_STATES = ['funded', 'release_pending', 'in_delivery', 'delivered', 'accepted', 'payout_pending', 'paid_out', 'fix_requested', 'overdue', 'disputed'];
 const DONE_STATES = ['accepted', 'payout_pending', 'paid_out'];
 
 /* How many paid orders this buyer had before this one (first or repeat purchase). */
@@ -432,7 +422,8 @@ async function paidOrdersBefore(buyerId: string | null, orderId: string, created
 async function valueOf(s: Settings, at: Attribution): Promise<{ kind: CommissionKind; sourceRef: string; basisCents: number; approveFrom: number | null; reversed: boolean; reason: string }[]> {
   if (at.kind === 'order') {
     const o = await getOrder(at.refId).catch(() => null);
-    if (!o || !o.fundedAt || o.priceCents <= 0 || !productEligible(s, o.productKey ?? '')) return [];
+    // template purchases only: custom development and other order kinds are not template sales; free (beta) orders earn nothing
+    if (!o || o.kind === 'custom' || !o.fundedAt || o.priceCents <= 0 || !productEligible(s, o.productKey ?? '')) return [];
     const reversed = o.state === 'refunded' || o.state === 'cancelled' || (o.refundedCents ?? 0) >= o.priceCents;
     const kind = purchaseKind(await paidOrdersBefore(o.buyerId ?? null, o.id, o.createdAt));
     return [
@@ -447,22 +438,24 @@ async function valueOf(s: Settings, at: Attribution): Promise<{ kind: Commission
     ];
   }
   if (at.kind === 'buyer_sub' && (await pg())) {
-    const { data } = await db().from('buyer_sub_payments').select('id, kind, amount_cents, status, decided_at').eq('subscription_id', at.refId);
-    return ((data ?? []) as { id: string; kind: string; amount_cents: number; status: string; decided_at: string | null }[])
+    const { data } = await db().from('buyer_sub_payments').select('*').eq('subscription_id', at.refId); // '*': refunded_at arrives with migration 0087
+    return ((data ?? []) as { id: string; kind: string; amount_cents: number; status: string; decided_at: string | null; refunded_at?: string | null }[])
       .filter((p) => p.status === 'verified')
       .map((p) => ({
         kind: p.kind === 'renewal' ? 'buyer_sub_renewal' : 'buyer_sub_new',
         sourceRef: `buyer_sub_payment:${p.id}`,
         basisCents: p.amount_cents,
         approveFrom: ms(p.decided_at),
-        reversed: false,
-        reason: '',
+        reversed: !!p.refunded_at, // a refunded subscription payment reverses its commission (owner, 2026-11-12)
+        reason: p.refunded_at ? 'subscription payment refunded' : '',
       }));
   }
   if (at.kind === 'buyer_sub') {
     // without migration 0086's database (demo): the buyer subscription payments kept in memory
     const { adminSubs } = await import('../buyerSubs/service');
-    const { payments } = await adminSubs().catch(() => ({ payments: [] as { id: string; subscriptionId: string; kind: string; amountCents: number; status: string; createdAt: number }[] }));
+    const { payments } = await adminSubs().catch(() => ({
+      payments: [] as { id: string; subscriptionId: string; kind: string; amountCents: number; status: string; createdAt: number; refundedAt?: number | null }[],
+    }));
     return payments
       .filter((p) => p.subscriptionId === at.refId && p.status === 'verified')
       .map((p) => ({
@@ -470,8 +463,8 @@ async function valueOf(s: Settings, at: Attribution): Promise<{ kind: Commission
         sourceRef: `buyer_sub_payment:${p.id}`,
         basisCents: p.amountCents,
         approveFrom: p.createdAt,
-        reversed: false,
-        reason: '',
+        reversed: !!p.refundedAt,
+        reason: p.refundedAt ? 'subscription payment refunded' : '',
       }));
   }
   if (at.kind === 'seller_sub') {
@@ -498,15 +491,16 @@ async function valueOf(s: Settings, at: Attribution): Promise<{ kind: Commission
  * ones, and qualifies affiliates who reached the target. Rates and kinds are read now and recorded on the commission: a later rate change
  * never touches a commission already made. Runs even while the program is off, so earned commissions are never lost.
  */
-export async function runAffiliateJobs(now = Date.now()): Promise<{ made: number; approved: number; reversed: number; qualified: number }> {
-  if (!(await pg()) && !mem.affs.length) return { made: 0, approved: 0, reversed: 0, qualified: 0 };
+export async function runAffiliateJobs(now = Date.now()): Promise<{ made: number; approved: number; reversed: number; qualified: number; failed: number }> {
+  if (!(await pg()) && !mem.affs.length) return { made: 0, approved: 0, reversed: 0, qualified: 0, failed: 0 };
   const s = await affSettings();
   const [attrs, comms, affs] = await Promise.all([allAttributions(), allCommissions(), allAffiliates()]);
   const affOf = new Map(affs.map((a) => [a.id, a]));
   let made = 0,
     approved = 0,
     reversed = 0,
-    qualified = 0;
+    qualified = 0,
+    failed = 0;
   for (const at of attrs.filter((x) => x.kind !== 'signup')) {
     const a = affOf.get(at.affiliateId);
     if (!a) continue;
@@ -537,34 +531,27 @@ export async function runAffiliateJobs(now = Date.now()): Promise<{ made: number
         continue;
       }
       if (existing.status === 'reversed') continue;
-      if (v.reversed) {
-        // money first (one key, so a retry is harmless), then the status: a failure between the two is repaired on the next run
-        if (existing.status === 'approved')
-          await ledgerPost({
-            affiliate_id: a.id,
-            entry_key: `reversal:${existing.id}`,
-            kind: 'reversal',
-            amount_cents: -existing.amountCents,
-            commission_id: existing.id,
-            withdrawal_id: null,
-          });
-        await patchCommission(existing.id, { status: 'reversed', reversedAt: now });
-        await logEvent(a.id, null, 'commission_reversed', { commission: existing.id, reason: v.reason });
-        reversed++;
-        continue;
-      }
-      if (existing.status === 'pending') {
-        // the basis follows partial refunds until approval; the rate stays the one recorded
-        const amount = commissionCents(v.basisCents, existing.rateBps);
-        const approveAfter = existing.approveAfter ?? (v.approveFrom ? v.approveFrom + s.holdDays * DAY : null);
-        if (amount !== existing.amountCents || approveAfter !== existing.approveAfter) await patchCommission(existing.id, { basisCents: v.basisCents, amountCents: amount, approveAfter });
-        if (approveAfter && approveAfter <= now && amount > 0 && mayEarn(a.status)) {
-          // money first (one key per commission, so a retry never pays twice), then the status
-          await ledgerPost({ affiliate_id: a.id, entry_key: `commission:${existing.id}`, kind: 'commission', amount_cents: amount, commission_id: existing.id, withdrawal_id: null });
-          await patchCommission(existing.id, { status: 'approved', approvedAt: now, amountCents: amount });
-          if (s.notify.commissionApproved) await notify(a.userId, 'aff_commission', { amount: `$${(amount / 100).toFixed(2)}` }, { dedupe: `aff-comm:${existing.id}` });
-          approved++;
+      try {
+        if (v.reversed) {
+          // one atomic step: the money back out (if it was approved) and the status, or nothing
+          if ((await reverseCommissionAtomic(existing.id, v.reason, now)) === 'reversed') {
+            await logEvent(a.id, null, 'commission_reversed', { commission: existing.id, reason: v.reason });
+            reversed++;
+          }
+          continue;
         }
+        if (existing.status === 'pending') {
+          // the basis follows partial refunds until approval; the rate stays the one recorded
+          const amount = commissionCents(v.basisCents, existing.rateBps);
+          const approveAfter = existing.approveAfter ?? (v.approveFrom ? v.approveFrom + s.holdDays * DAY : null);
+          if (amount !== existing.amountCents || approveAfter !== existing.approveAfter) await patchCommission(existing.id, { basisCents: v.basisCents, amountCents: amount, approveAfter });
+          if (approveAfter && approveAfter <= now && amount > 0 && mayEarn(a.status) && (await approveCommissionAtomic(existing.id, now)) === 'approved') {
+            if (s.notify.commissionApproved) await notify(a.userId, 'aff_commission', { amount: `$${(amount / 100).toFixed(2)}` }, { dedupe: `aff-comm:${existing.id}` });
+            approved++;
+          }
+        }
+      } catch {
+        failed++; // nothing was booked for this one (each step is one transaction); the next run tries again
       }
     }
   }
@@ -583,7 +570,7 @@ export async function runAffiliateJobs(now = Date.now()): Promise<{ made: number
       qualified++;
     }
   }
-  return { made, approved, reversed, qualified };
+  return { made, approved, reversed, qualified, failed };
 }
 
 /* ---------- withdrawals ---------- */
@@ -612,72 +599,152 @@ async function balanceOf(affiliateId: string) {
   return { ...balances(ledger, open), openCents: open };
 }
 
-/* An affiliate asks to be paid. Allowed while the program is off too: earned money stays theirs. */
+/*
+ * The money steps (owner, 2026-11-12: atomic and idempotent). In Postgres each one is a single locking function from migration 0086, so the
+ * ledger entry and the new status are saved together or not at all, and two at once run one after the other. In memory (demo) the same rules
+ * run with no pause between the check and the write, which is atomic in one process.
+ */
+const RPC_ERRORS: Record<string, [number, string]> = {
+  not_found: [404, 'Not found.'],
+  closed: [409, 'This affiliate account is closed. Contact support about your balance.'],
+  below_minimum: [400, 'That is below the minimum withdrawal.'],
+  open_withdrawal: [409, 'You already have a withdrawal waiting.'],
+  insufficient: [409, 'The balance does not cover this withdrawal.'],
+  no_reference: [400, 'Enter the payout reference.'],
+  bad_state: [409, 'This withdrawal is not in a state that allows that.'],
+};
+const rpcError = (message: string | undefined) => {
+  const key = Object.keys(RPC_ERRORS).find((k) => (message ?? '').includes(k));
+  return key ? fail(RPC_ERRORS[key][0], RPC_ERRORS[key][1]) : fail(500, 'Could not save. Nothing was booked; please try again.');
+};
+async function approveCommissionAtomic(id: string, now: number): Promise<string> {
+  if (await pg()) {
+    const { data, error } = await db().rpc('affiliate_approve_commission', { p_id: id, p_at: iso(now) });
+    if (error) throw new Error('affiliate_approve_commission');
+    return String(data);
+  }
+  const c = mem.comms.find((x) => x.id === id);
+  if (!c) return 'not_found';
+  if (c.status !== 'pending') return c.status;
+  const amount = commissionCents(c.basisCents, c.rateBps);
+  if (amount <= 0) return 'zero';
+  mem.ledger.push({ affiliate_id: c.affiliateId, entry_key: `commission:${id}`, kind: 'commission', amount_cents: amount, commission_id: id, withdrawal_id: null, at: new Date(now).toISOString() });
+  mem.comms = mem.comms.map((x) => (x.id === id ? { ...x, status: 'approved', approvedAt: now, amountCents: amount } : x));
+  return 'approved';
+}
+async function reverseCommissionAtomic(id: string, reason: string, now: number): Promise<string> {
+  if (await pg()) {
+    const { data, error } = await db().rpc('affiliate_reverse_commission', { p_id: id, p_reason: reason.slice(0, 300), p_at: iso(now) });
+    if (error) throw new Error('affiliate_reverse_commission');
+    return String(data);
+  }
+  const c = mem.comms.find((x) => x.id === id);
+  if (!c) return 'not_found';
+  if (c.status === 'reversed') return 'already_reversed';
+  if (c.status === 'approved')
+    mem.ledger.push({
+      affiliate_id: c.affiliateId,
+      entry_key: `reversal:${id}`,
+      kind: 'reversal',
+      amount_cents: -c.amountCents,
+      commission_id: id,
+      withdrawal_id: null,
+      at: new Date(now).toISOString(),
+    });
+  mem.comms = mem.comms.map((x) => (x.id === id ? { ...x, status: 'reversed', reversedAt: now } : x));
+  return 'reversed';
+}
+
+/* An affiliate asks to be paid; the amount is reserved at once. Allowed while the program is off too: earned money stays theirs. */
 export async function requestWithdrawal(userId: string, amountCents: number): Promise<R<Withdrawal>> {
   const a = await affiliateOfUser(userId);
   if (!a) return fail(404, 'You are not an affiliate.');
   if (a.status === 'rejected') return fail(409, 'This affiliate account is closed. Contact support about your balance.');
   if (!a.payoutMethod || !a.payoutDetails) return fail(400, 'Add your payout method first.');
   const s = await affSettings();
-  const bal = await balanceOf(a.id);
-  if (bal.openCents > 0) return fail(409, 'You already have a withdrawal waiting.');
-  const err = checkWithdrawal(s, amountCents, bal.availableCents);
-  if (err) return fail(400, err);
-  const w: Withdrawal = {
-    id: crypto.randomUUID(),
-    affiliateId: a.id,
-    amountCents,
-    status: 'requested',
-    method: a.payoutMethod,
-    detailsMasked: maskDetails(a.payoutDetails),
-    payoutReference: '',
-    createdAt: Date.now(),
-    decidedAt: null,
-    paidAt: null,
-  };
+  const masked = maskDetails(a.payoutDetails);
+  let w: Withdrawal;
   if (await pg()) {
-    const { error } = await db().from('affiliate_withdrawals').insert({ id: w.id, affiliate_id: a.id, amount_cents: amountCents, method: w.method, details_masked: w.detailsMasked });
-    if (error) return fail(error.code === '23505' ? 409 : 500, error.code === '23505' ? 'You already have a withdrawal waiting.' : 'Could not save the request.');
-  } else mem.wds.push(w);
+    const early = checkWithdrawal(s, amountCents, Number.MAX_SAFE_INTEGER); // the minimum; the balance is checked inside the function
+    if (early) return fail(400, early);
+    const { data, error } = await db().rpc('affiliate_request_withdrawal', { p_affiliate: a.id, p_amount: amountCents, p_min: s.minWithdrawalCents, p_method: a.payoutMethod, p_masked: masked });
+    if (error) return rpcError(error.message);
+    const row = (await db().from('affiliate_withdrawals').select('*').eq('id', String(data)).maybeSingle()).data as WdRow | null;
+    if (!row) return fail(500, 'Could not read the request back.');
+    w = wdFrom(row);
+  } else {
+    const open = mem.wds.some((x) => x.affiliateId === a.id && (x.status === 'requested' || x.status === 'approved'));
+    if (open) return fail(409, 'You already have a withdrawal waiting.');
+    const err = checkWithdrawal(
+      s,
+      amountCents,
+      balances(
+        mem.ledger.filter((l) => l.affiliate_id === a.id),
+        0,
+      ).availableCents,
+    );
+    if (err) return fail(400, err);
+    w = {
+      id: crypto.randomUUID(),
+      affiliateId: a.id,
+      amountCents,
+      status: 'requested',
+      method: a.payoutMethod,
+      detailsMasked: masked,
+      payoutReference: '',
+      createdAt: Date.now(),
+      decidedAt: null,
+      paidAt: null,
+    };
+    mem.wds.push(w);
+  }
   await logEvent(a.id, userId, 'withdrawal_requested', { amount: amountCents });
   return ok(w);
 }
 
-/* An admin approves, rejects or records the payment of a withdrawal. Paid needs a reference and books the money out once (one ledger key). */
+/* An admin approves, rejects or records the payment of a withdrawal. Paid needs a reference and books the money out once, in the same step. */
 export async function decideWithdrawal(adminId: string | null, id: string, action: 'approve' | 'reject' | 'paid', reference: string): Promise<R<Withdrawal>> {
   const w = (await allWithdrawals()).find((x) => x.id === id);
   if (!w) return fail(404, 'No such withdrawal.');
   const a = await affiliateById(w.affiliateId);
   if (!a) return fail(404, 'No such affiliate.');
   const now = Date.now();
+  const ref = reference.trim().slice(0, 120);
   let next: Withdrawal;
-  if (action === 'approve') {
-    if (w.status !== 'requested') return fail(409, 'Only a new request can be approved.');
-    next = { ...w, status: 'approved', decidedAt: now };
-  } else if (action === 'reject') {
-    if (w.status !== 'requested' && w.status !== 'approved') return fail(409, 'This withdrawal is already closed.');
-    next = { ...w, status: 'rejected', decidedAt: now };
+  if (await pg()) {
+    const { data, error } = await db().rpc('affiliate_decide_withdrawal', { p_id: id, p_action: action, p_reference: ref, p_admin: adminId, p_at: iso(now) });
+    if (error) return rpcError(error.message);
+    if (data === 'already_paid') return fail(409, 'This withdrawal was already paid.');
+    const row = (await db().from('affiliate_withdrawals').select('*').eq('id', id).maybeSingle()).data as WdRow | null;
+    if (!row) return fail(500, 'Could not read the withdrawal back.');
+    next = wdFrom(row);
   } else {
-    if (w.status !== 'approved') return fail(409, 'Approve the withdrawal first.');
-    const ref = reference.trim().slice(0, 120);
-    if (ref.length < 3) return fail(400, 'Enter the payout reference.');
-    const key = `withdrawal:${w.id}`;
-    const booked = (await ledgerOf(a.id)).some((l) => l.entry_key === key); // an earlier try booked the money but did not save the status: finish it, never book twice
-    if (!booked) {
-      const bal = await balanceOf(a.id);
-      if (bal.availableCents + bal.openCents < w.amountCents) return fail(409, 'The balance no longer covers this withdrawal (a commission was reversed).');
-      const posted = await ledgerPost({ affiliate_id: a.id, entry_key: key, kind: 'withdrawal', amount_cents: -w.amountCents, commission_id: null, withdrawal_id: w.id });
-      if (!posted && !(await ledgerOf(a.id)).some((l) => l.entry_key === key)) return fail(500, 'Could not record the payout. Nothing was booked; please try again.');
+    const cur = mem.wds.find((x) => x.id === id) ?? w;
+    if (action === 'approve') {
+      if (cur.status !== 'requested') return fail(409, 'Only a new request can be approved.');
+      next = { ...cur, status: 'approved', decidedAt: now };
+    } else if (action === 'reject') {
+      if (cur.status !== 'requested' && cur.status !== 'approved') return fail(409, 'This withdrawal is already closed.');
+      next = { ...cur, status: 'rejected', decidedAt: now };
+    } else {
+      if (cur.status === 'paid') return fail(409, 'This withdrawal was already paid.');
+      if (cur.status !== 'approved') return fail(409, 'Approve the withdrawal first.');
+      if (ref.length < 3) return fail(400, 'Enter the payout reference.');
+      const total = mem.ledger.filter((l) => l.affiliate_id === a.id).reduce((x, l) => x + l.amount_cents, 0);
+      if (total < cur.amountCents) return fail(409, 'The balance no longer covers this withdrawal (a commission was reversed).');
+      mem.ledger.push({
+        affiliate_id: a.id,
+        entry_key: `withdrawal:${id}`,
+        kind: 'withdrawal',
+        amount_cents: -cur.amountCents,
+        commission_id: null,
+        withdrawal_id: id,
+        at: new Date(now).toISOString(),
+      });
+      next = { ...cur, status: 'paid', paidAt: now, payoutReference: ref };
     }
-    next = { ...w, status: 'paid', paidAt: now, payoutReference: ref };
+    mem.wds = mem.wds.map((x) => (x.id === id ? next : x));
   }
-  if (await pg())
-    await db()
-      .from('affiliate_withdrawals')
-      .update({ status: next.status, decided_by: adminId, decided_at: iso(next.decidedAt ?? now), paid_at: iso(next.paidAt), payout_reference: next.payoutReference })
-      .eq('id', id)
-      .eq('status', w.status); // only from the state it was read in: two admins at once cannot both decide
-  else mem.wds = mem.wds.map((x) => (x.id === id ? next : x));
   await audit(adminId, `affiliate_withdrawal_${next.status}`, 'affiliate_withdrawal', id, { amount: w.amountCents, reference: next.payoutReference });
   await logEvent(a.id, adminId, `withdrawal_${next.status}`, { amount: w.amountCents });
   const s = await affSettings();
@@ -720,14 +787,18 @@ export async function adminQualification(adminId: string | null, id: string, act
   await logEvent(id, adminId, `qualification_${action}`, { days: n });
   return ok({ ...a, ...patch });
 }
-/* An admin reverses one commission by hand (fraud found), once. */
+/* An admin reverses one commission by hand (fraud found), once, in one atomic step. */
 export async function adminReverseCommission(adminId: string | null, id: string, reason: string): Promise<R<true>> {
   const c = (await allCommissions()).find((x) => x.id === id);
   if (!c) return fail(404, 'No such commission.');
-  if (c.status === 'reversed') return fail(409, 'Already reversed.');
-  await patchCommission(id, { status: 'reversed', reversedAt: Date.now() });
-  if (c.status === 'approved')
-    await ledgerPost({ affiliate_id: c.affiliateId, entry_key: `reversal:${c.id}`, kind: 'reversal', amount_cents: -c.amountCents, commission_id: c.id, withdrawal_id: null });
+  let r: string;
+  try {
+    r = await reverseCommissionAtomic(id, reason, Date.now());
+  } catch {
+    return fail(500, 'Could not reverse it. Nothing changed; please try again.');
+  }
+  if (r === 'already_reversed') return fail(409, 'Already reversed.');
+  if (r !== 'reversed') return fail(404, 'No such commission.');
   await audit(adminId, 'affiliate_commission_reversed', 'affiliate_commission', id, { amount: c.amountCents, reason: reason.slice(0, 300) });
   await logEvent(c.affiliateId, adminId, 'commission_reversed', { commission: id, reason: reason.slice(0, 300) });
   return ok(true);

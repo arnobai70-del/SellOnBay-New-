@@ -22,6 +22,7 @@ export default defineConfig([
     '.next-staging/**',
     '.next-view/**',
     '.next-demo/**',
+    '.next-nodb/**', // the isolated accounts-on build for the real-server e2e tests (fake keys, dead local address)
     'out/**',
     'build/**',
     'coverage/**',

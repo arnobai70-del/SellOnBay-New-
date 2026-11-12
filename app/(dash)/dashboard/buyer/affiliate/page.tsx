@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { AffJoinForm, AffLinkGenerator, AffProfileForm, AffWithdrawForm } from '@/components/glass/AffiliateForms';
 import { BuyerShell } from '@/components/glass/BuyerShell';
 import { joinFeeCents, KIND_LABEL, productEligible, STATUS_LABEL, STATUS_TONE } from '@/lib/affiliates/rules';
-import { affSettings, dashboardOf } from '@/lib/affiliates/service';
+import { mayUseDemoAdmin } from '@/lib/admin/mode';
+import { affSettings, dashboardOf, DEMO_AFFILIATE } from '@/lib/affiliates/service';
+import { supabaseConfigured } from '@/lib/supabase/env';
 import { publicWebsites, websitePath } from '@/lib/glass/catalog';
 import { SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
@@ -22,11 +24,14 @@ const day = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 10) : 
 export default async function AffiliateDashboard() {
   const viewer = await requireViewer({ path: '/dashboard/buyer/affiliate', roles: ['buyer', 'seller', 'admin'] });
   const s = await affSettings();
-  const d = viewer ? await dashboardOf(viewer.id) : null;
+  // the demo build has no accounts: one demo affiliate stands in, only on a server marked as a demo (never in production)
+  const userId = viewer?.id ?? (!supabaseConfigured && mayUseDemoAdmin(process.env) ? DEMO_AFFILIATE : null);
+  const shellViewer = viewer ?? (userId ? { id: userId, name: 'Demo affiliate', role: 'buyer' } : null);
+  const d = userId ? await dashboardOf(userId) : null;
   const now = Date.now();
   const sites = d ? (await publicWebsites()).filter((w) => productEligible(s, w.id)).map((w) => ({ key: w.id, name: w.name, path: websitePath(w.id) })) : [];
   return (
-    <BuyerShell viewer={viewer} active="affiliate" file="buyer-websites" title="Affiliate" subtitle="Share SellOnBay websites and earn on verified sales.">
+    <BuyerShell viewer={shellViewer} active="affiliate" file="buyer-websites" title="Affiliate" subtitle="Share SellOnBay websites and earn on verified sales.">
       {!d ? (
         <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h2>Join the affiliate program</h2>
@@ -39,7 +44,7 @@ export default async function AffiliateDashboard() {
                 Coming soon
               </span>
             </>
-          ) : viewer ? (
+          ) : userId ? (
             <>
               <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
                 Use your SellOnBay account; no new account is needed. You can share links and earn straight away; {s.targetSales} verified sales within {s.qualificationDays} days make you a Verified

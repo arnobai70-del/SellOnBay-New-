@@ -22,3 +22,4 @@ supabase/.temp/
 # a stray local build folder (Phase 7 cleanup)
 .next-view/
 .next-demo/
+.next-nodb/

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { joinProgram, requestWithdrawal, updateProfile } from '@/lib/affiliates/service';
+import { mayUseDemoAdmin } from '@/lib/admin/mode';
+import { DEMO_AFFILIATE, joinProgram, requestWithdrawal, updateProfile } from '@/lib/affiliates/service';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
@@ -29,7 +30,9 @@ export async function POST(req: Request) {
   if (closed) return closed;
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
-  let userId = 'demo-affiliate';
+  // Without accounts (the demo build) one demo affiliate stands in, and only on a server marked as a demo: production never falls back to it.
+  let userId = DEMO_AFFILIATE;
+  if (!supabaseConfigured && !mayUseDemoAdmin(process.env)) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   if (supabaseConfigured) {
     const sb = await createClient();
     const {

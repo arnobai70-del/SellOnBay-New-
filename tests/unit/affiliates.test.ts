@@ -325,6 +325,109 @@ describe('affiliate program: subscriptions, sign-ups, missed targets and the aud
     expect(log).toEqual(expect.arrayContaining(['affiliates_on', 'affiliate_qualification_restart', 'affiliate_suspended', 'affiliate_pending', 'affiliate_withdrawal_paid']));
     await svc.saveAffSettings('admin-1', { ...DEFAULTS });
   });
+
+  it('a refunded buyer subscription payment reverses its commission (pending or approved); cancel with refund does the same', async () => {
+    const svc = await import('@/lib/affiliates/service');
+    const subs = await import('@/lib/buyerSubs/service');
+    const { notify } = await import('@/lib/notify');
+    await svc.saveAffSettings(null, { ...DEFAULTS, enabled: true, holdDays: 7 });
+    await subs.saveSubSettings(null, { enabled: true, intro: '', faq: [] });
+    const j = await svc.joinProgram('aff-refund', 'Refund Test', true);
+    if (!j.ok) throw new Error(j.error);
+    const ref = { code: j.value.code, issuedAt: Date.now() };
+    const plan = (await subs.allPlans())[0];
+    const paidSub = async (buyer: string, reference: string) => {
+      const sub = await subs.subscribe(buyer, plan.id, null);
+      if (!sub.ok) throw new Error(sub.error);
+      const p = await subs.submitPayment(buyer, sub.value.id, { kind: 'new', methodLabel: 'Bank', reference, paidOn: null });
+      if (!p.ok) throw new Error(p.error);
+      await subs.decidePayment('admin', p.value.id, true);
+      expect(await svc.attribute('buyer_sub', sub.value.id, buyer, '', ref)).toBe(true);
+      return { sub: sub.value, pay: p.value };
+    };
+    const a = await paidSub('refund-buyer-a', 'REFA1');
+    const b = await paidSub('refund-buyer-b', 'REFB1');
+    const later = Date.now() + 8 * DAY;
+    await svc.runAffiliateJobs(later);
+    await svc.runAffiliateJobs(later);
+    const mine = async () => (await svc.allCommissions()).filter((c) => c.affiliateId === j.value.id);
+    expect((await mine()).map((c) => c.status)).toEqual(['approved', 'approved']);
+    expect(vi.mocked(notify)).toHaveBeenCalledWith('aff-refund', 'aff_commission', expect.anything(), expect.anything()); // the affiliate is told
+    const earned = (await svc.dashboardOf('aff-refund'))!.availableCents;
+
+    // refund one payment by hand: the next run reverses its commission and takes the money back out, once
+    expect((await subs.refundPayment('admin', a.pay.id, 'x')).ok).toBe(false); // a reason is required
+    expect((await subs.refundPayment('admin', a.pay.id, 'Buyer asked within 7 days')).ok).toBe(true);
+    expect((await subs.refundPayment('admin', a.pay.id, 'again')).ok).toBe(false); // once
+    expect((await svc.runAffiliateJobs(later)).reversed).toBe(1);
+    expect((await svc.runAffiliateJobs(later)).reversed).toBe(0);
+    // cancel the other subscription with a refund
+    const c = await subs.cancelWithRefund('admin', b.sub.id, 'Cancelled with refund');
+    expect(c.ok && c.value.status).toBe('cancelled');
+    expect((await svc.runAffiliateJobs(later)).reversed).toBe(1);
+    expect((await mine()).map((x) => x.status)).toEqual(['reversed', 'reversed']);
+    expect((await svc.dashboardOf('aff-refund'))!.availableCents).toBe(earned - (await mine()).reduce((s, x) => s + x.amountCents, 0));
+    const log = ((globalThis as { __auditMem?: { action: string }[] }).__auditMem ?? []).map((e) => e.action);
+    expect(log.filter((x) => x === 'buyer_sub_payment_refunded').length).toBe(2);
+    await subs.saveSubSettings(null, { enabled: false, intro: '', faq: [] });
+  });
+
+  it('withdrawal requests sent at the same moment reserve once; payouts sent at once book once (demo store)', async () => {
+    const svc = await import('@/lib/affiliates/service');
+    const { notify } = await import('@/lib/notify');
+    await svc.saveAffSettings(null, { ...DEFAULTS, enabled: true, minWithdrawalCents: 100, holdDays: 0 });
+    const j = await svc.joinProgram('aff-race', 'Race', true);
+    if (!j.ok) throw new Error(j.error);
+    const ref = { code: j.value.code, issuedAt: Date.now() };
+    const now = Date.now();
+    orders.set('race-1', {
+      id: 'race-1',
+      fundedAt: now - DAY,
+      acceptedAt: now - DAY,
+      priceCents: 10000,
+      productKey: 'x',
+      state: 'accepted',
+      lines: [['Website', 10000]],
+      refundedCents: 0,
+      buyerId: null,
+      createdAt: now - DAY,
+    });
+    await svc.attribute('order', 'race-1', null, 'x', ref);
+    await svc.runAffiliateJobs(now);
+    await svc.runAffiliateJobs(now);
+    await svc.updateProfile('aff-race', { payoutMethod: 'Wise', payoutDetails: 'race@example.com' });
+    const tries = await Promise.all(Array.from({ length: 10 }, () => svc.requestWithdrawal('aff-race', 1000)));
+    expect(tries.filter((t) => t.ok).length).toBe(1);
+    const w = tries.find((t) => t.ok)!;
+    if (!w.ok) throw new Error('no withdrawal');
+    await svc.decideWithdrawal('admin', w.value.id, 'approve', '');
+    const pays = await Promise.all(Array.from({ length: 10 }, () => svc.decideWithdrawal('admin', w.value.id, 'paid', 'WISE-1')));
+    expect(pays.filter((p) => p.ok).length).toBe(1);
+    const d = (await svc.dashboardOf('aff-race'))!;
+    expect([d.paidCents, d.availableCents]).toEqual([1000, 500]);
+    expect(vi.mocked(notify)).toHaveBeenCalledWith('aff-race', 'aff_withdrawal', expect.objectContaining({ status: 'paid' }));
+    await svc.saveAffSettings(null, { ...DEFAULTS });
+  });
+});
+
+describe('which orders earn', () => {
+  it('template purchases only: custom development and free (beta) orders earn nothing', async () => {
+    const svc = await import('@/lib/affiliates/service');
+    await svc.saveAffSettings(null, { ...DEFAULTS, enabled: true, holdDays: 0 });
+    const j = await svc.joinProgram('aff-kinds', 'Kinds', true);
+    if (!j.ok) throw new Error(j.error);
+    const ref = { code: j.value.code, issuedAt: Date.now() };
+    const now = Date.now();
+    const base = { fundedAt: now - DAY, acceptedAt: now - DAY, state: 'accepted', refundedCents: 0, buyerId: null, createdAt: now - DAY, productKey: 'x' };
+    orders.set('k-custom', { ...base, id: 'k-custom', kind: 'custom', priceCents: 50000, lines: [['Custom development', 50000]] });
+    orders.set('k-free', { ...base, id: 'k-free', kind: 'product', priceCents: 0, lines: [['Website', 0]] });
+    orders.set('k-site', { ...base, id: 'k-site', kind: 'product', priceCents: 3000, lines: [['Website', 3000]] });
+    for (const id of ['k-custom', 'k-free', 'k-site']) await svc.attribute('order', id, null, 'x', ref);
+    await svc.runAffiliateJobs(now);
+    const mine = (await svc.allCommissions()).filter((c) => c.affiliateId === j.value.id);
+    expect(mine.map((c) => c.sourceRef)).toEqual(['order:k-site']);
+    await svc.saveAffSettings(null, { ...DEFAULTS });
+  });
 });
 
 describe('migration 0086: client access and the rollback script (in-process Postgres)', () => {
@@ -345,7 +448,15 @@ describe('migration 0086: client access and the rollback script (in-process Post
     await db.exec(readFileSync('supabase/rollback/0086_affiliates_down.sql', 'utf8'));
     expect((await db.query(`select table_name from information_schema.tables where table_schema = 'public' and table_name like 'affiliate%'`)).rows).toEqual([]);
     expect(before - (await count())).toBe(7);
+    expect((await db.query(`select proname from pg_proc where proname like 'affiliate%'`)).rows).toEqual([]); // the functions are gone too
     await db.query('select 1 from orders limit 1'); // the rest is untouched
+    // 0087: the rollback removes the three refund columns only, and the migration applies again
+    const cols = async () => (await db.query(`select column_name from information_schema.columns where table_name = 'buyer_sub_payments' and column_name like 'refund%'`)).rows.length;
+    expect(await cols()).toBe(3);
+    await db.exec(readFileSync('supabase/rollback/0087_buyer_sub_refunds_down.sql', 'utf8'));
+    expect(await cols()).toBe(0);
+    await db.exec(forPglite(files.find((f) => f.sql.includes('add column if not exists refunded_at'))!.sql));
+    expect(await cols()).toBe(3);
     const m86 = files.find((f) => f.sql.includes('create table if not exists affiliate_ledger'))!;
     await db.exec(forPglite(m86.sql)); // and the migration applies again
     expect((await db.query<{ n: number }>('select count(*)::int as n from affiliates')).rows[0].n).toBe(0);

@@ -31,10 +31,10 @@ test.describe('abuse hardening', () => {
 
   test('the security and risk pages are for admins only', async ({ page }) => {
     await page.goto(`${REAL}/admin/security/blocks`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/);
     await expect(page.getByText('Shared connections and devices')).toHaveCount(0);
     await page.goto(`${REAL}/admin/security/risk`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/);
     await expect(page.getByText('Emergency switch')).toHaveCount(0);
   });
   test('the admin risk routes refuse a visitor', async ({ request }) => {
@@ -55,7 +55,7 @@ test.describe('new versions', () => {
     );
     expect([401, 403, 404]).toContain((await request.post(`${REAL}/api/admin/versions/${id}/decide`, { data: { decision: 'approve', filesChecked: true } })).status());
     await page.goto(`${REAL}/admin/listings/versions`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/);
   });
 });
 
@@ -69,7 +69,7 @@ test.describe('repository access routes', () => {
     ] as const)
       expect([401, 403, 404]).toContain((await request.post(`${REAL}${url}`, { data })).status());
     await page.goto(`${REAL}/admin/listings/repo`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/);
   });
 });
 
@@ -77,10 +77,10 @@ test.describe('settings', () => {
   test('the route refuses a visitor, and the page needs an admin', async ({ request, page }) => {
     expect([401, 403, 404]).toContain((await request.post(`${REAL}/api/admin/settings`, { data: { priceMaxCents: 100000, reason: 'Trying it out.' } })).status());
     await page.goto(`${REAL}/admin/settings/platform`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/);
   });
   test('the launch check page needs an admin', async ({ page }) => {
     await page.goto(`${REAL}/admin/settings/launch`);
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/signin\?next=/);
   });
 });

@@ -4,6 +4,7 @@ import { offeredNow, planVersions, sellerSubSettings } from '@/lib/plans/admin';
 import { givesBenefits, PLAN_CODES } from '@/lib/plans/rules';
 import { listSubscriptions } from '@/lib/plans/store';
 
+import { T } from '@/components/i18n/T';
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
 
 /*
@@ -38,7 +39,9 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
       {superAdmin && (
         <section className="glass card">
           <div className="row" style={{ marginBottom: 8 }}>
-            <h2>Seller switch and plan words</h2>
+            <h2>
+              <T s={'Seller switch and plan words'} />
+            </h2>
             <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? 'Open' : 'Off'}</span>
           </div>
           <SellerSettingsForm enabled={settings.enabled} display={settings.display} names={names} />
@@ -47,9 +50,11 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
 
       <section className="glass card">
         <div className="row" style={{ marginBottom: 8 }}>
-          <h2>Seller plans</h2>
+          <h2>
+            <T s={'Seller plans'} />
+          </h2>
           <span className="tag" style={{ margin: 0 }}>
-            A change is saved as the plan&apos;s next version: running seller subscriptions and every recorded order fee keep theirs.
+            <T s={"A change is saved as the plan's next version: running seller subscriptions and every recorded order fee keep theirs."} />
           </span>
         </div>
         {PLAN_CODES.map((code) => {
@@ -65,8 +70,18 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
                 <span className={`status ${now[code] ? 'st-ok' : 'st-draft'}`}>{now[code] ? 'Offered' : 'Withdrawn'}</span>
               </div>
               <div className="tag" style={{ margin: 0 }}>
-                {usd(current.monthlyCents)} a month · {usd(current.yearlyCents)} a year · {current.commissionBps / 100}% commission · {current.listingLimit} listings
-                {current.featured ? ' · featured' : ''} · {history.length} {history.length === 1 ? 'version' : 'versions'}
+                <T
+                  s={'{v0} a month · {v1} a year · {v2}% commission · {listingLimit} listings{v4} · {length} {v6}'}
+                  v={{
+                    v0: usd(current.monthlyCents),
+                    v1: usd(current.yearlyCents),
+                    v2: current.commissionBps / 100,
+                    listingLimit: current.listingLimit,
+                    v4: current.featured ? ' · featured' : '',
+                    length: history.length,
+                    v6: history.length === 1 ? 'version' : 'versions',
+                  }}
+                />
               </div>
               {superAdmin && <SellerPlanVersionForm plan={current} offered={!!now[code]} />}
             </div>
@@ -75,12 +90,14 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
       </section>
 
       <section className="glass card">
-        <h2>Seller requests and subscriptions</h2>
+        <h2>
+          <T s={'Seller requests and subscriptions'} />
+        </h2>
         <p className="muted" style={{ margin: '8px 0 12px', fontSize: 14, lineHeight: 1.6 }}>
-          Approving, taking payment, renewing, cancelling and ending seller plans stay in the existing tool, with the same steps and history.
+          <T s={'Approving, taking payment, renewing, cancelling and ending seller plans stay in the existing tool, with the same steps and history.'} />
         </p>
         <Link className="btn sm" href="/admin/users/sellers" prefetch={false}>
-          Open seller subscriptions
+          <T s={'Open seller subscriptions'} />
         </Link>
       </section>
     </>

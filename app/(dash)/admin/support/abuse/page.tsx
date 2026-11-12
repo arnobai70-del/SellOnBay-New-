@@ -4,22 +4,33 @@ import { DashShell } from '@/components/DashShell';
 import { listReports } from '@/lib/admin/queue';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Abuse reports', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function Abuse() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/support/abuse', roles: ['admin'], scope: 'support' });
   const reports = await listReports(true);
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-abuse" title="Abuse reports">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-abuse" title={tx('Abuse reports')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Open reports</h2>
-            <p className="tag">Phishing, copies, malware. Suspending pauses the listing the link points to. Look at the page before you decide.</p>
+            <h2>
+              <T s={'Open reports'} />
+            </h2>
+            <p className="tag">
+              <T s={'Phishing, copies, malware. Suspending pauses the listing the link points to. Look at the page before you decide.'} />
+            </p>
           </div>
         </div>
-        {reports.length === 0 && <p className="muted">No open reports.</p>}
+        {reports.length === 0 && (
+          <p className="muted">
+            <T s={'No open reports.'} />
+          </p>
+        )}
         {reports.map((r) => (
           <div className="sob-item" key={r.id}>
             <h3>{r.url}</h3>

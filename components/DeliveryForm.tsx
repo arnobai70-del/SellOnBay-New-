@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
+import { T } from '@/components/i18n/T';
 type Ready = { id: string; name: string };
 
 /*
@@ -73,19 +74,29 @@ export function DeliveryForm({
 
   return (
     <div className="sob-form" data-delivery-form={revisionId ? 'revision' : 'delivery'}>
-      <label htmlFor={`df-file-${revisionId ?? orderId}`}>Delivery files (.zip, checked before release)</label>
+      <label htmlFor={`df-file-${revisionId ?? orderId}`}>
+        <T s={'Delivery files (.zip, checked before release)'} />
+      </label>
       <div className="sob-acts">
         <input id={`df-file-${revisionId ?? orderId}`} type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         <button type="button" className="btn ghost sm" disabled={!file || !!busy} onClick={upload}>
-          Upload for checking
+          <T s={'Upload for checking'} />
         </button>
       </div>
-      {pending > 0 && <small className="muted">{pending} upload(s) still being checked.</small>}
+      {pending > 0 && (
+        <small className="muted">
+          <T s={'{pending} upload(s) still being checked.'} v={{ pending }} />
+        </small>
+      )}
       {approvedFiles.length > 0 && (
         <>
-          <label htmlFor={`df-pick-${revisionId ?? orderId}`}>Approved file to deliver</label>
+          <label htmlFor={`df-pick-${revisionId ?? orderId}`}>
+            <T s={'Approved file to deliver'} />
+          </label>
           <select id={`df-pick-${revisionId ?? orderId}`} value={fileId} onChange={(e) => setFileId(e.target.value)}>
-            <option value="">None (the product&apos;s approved version is what the buyer gets)</option>
+            <option value="">
+              <T s={"None (the product's approved version is what the buyer gets)"} />
+            </option>
             {approvedFiles.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}
@@ -94,7 +105,9 @@ export function DeliveryForm({
           </select>
         </>
       )}
-      <label htmlFor={`df-note-${revisionId ?? orderId}`}>What you delivered (for SellOnBay; for example the address of the live site)</label>
+      <label htmlFor={`df-note-${revisionId ?? orderId}`}>
+        <T s={'What you delivered (for SellOnBay; for example the address of the live site)'} />
+      </label>
       <textarea id={`df-note-${revisionId ?? orderId}`} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
       <button type="button" className="btn sm" disabled={!!busy || note.trim().length < 10} onClick={send}>
         {busy || 'Send for release'}

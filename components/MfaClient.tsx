@@ -2,8 +2,11 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* Authenticator-app code for sellers and admins. Enrols a factor the first time, verifies after that. */
 export function MfaClient({ next }: { next: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const supabase = createClient();
   const [factorId, setFactorId] = useState('');
   const [qr, setQr] = useState('');
@@ -36,15 +39,19 @@ export function MfaClient({ next }: { next: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
       <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 400 }}>Enter your code</h1>
+        <h1 style={{ fontSize: 30, fontWeight: 400 }}>
+          <T s={'Enter your code'} />
+        </h1>
         <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
           {qr ? 'Scan this with an authenticator app, then enter the 6-digit code.' : 'Open your authenticator app and enter the 6-digit code.'}
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {qr && <img src={qr} alt="QR code for your authenticator app" width={180} height={180} style={{ marginTop: 20 }} />}
+        {qr && <img src={qr} alt={tx('QR code for your authenticator app')} width={180} height={180} style={{ marginTop: 20 }} />}
         <form onSubmit={verify} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="field">
-            <label htmlFor="mfa-code">Code</label>
+            <label htmlFor="mfa-code">
+              <T s={'Code'} />
+            </label>
             <input className="input" id="mfa-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
           </div>
           {error && (
@@ -53,7 +60,7 @@ export function MfaClient({ next }: { next: string }) {
             </p>
           )}
           <button className="btn" type="submit" disabled={!factorId} style={{ width: '100%' }}>
-            Continue
+            <T s={'Continue'} />
           </button>
         </form>
       </section>

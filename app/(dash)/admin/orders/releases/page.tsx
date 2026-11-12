@@ -9,6 +9,8 @@ import { orderStore } from '@/lib/orders/store';
 import { legacyQueue } from '@/lib/release/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Releases', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -20,21 +22,30 @@ const note = (label: string, required = true) => ({ name: 'note', label, kind: '
  * 24/7/365, from the later of payment and files ready. Missing it never releases anything; it only shows here and alerts.
  */
 export default async function Releases() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/orders/releases', roles: ['admin'], scope: 'delivery' });
   const store = await orderStore();
   const waiting = (await store.byState(['release_pending'])).sort((a, b) => (a.releaseDueAt ?? 0) - (b.releaseDueAt ?? 0));
   const toStart = (await store.byState(['funded'])).filter((o) => !!o.quotationId && !readyMade(o));
   const legacy = await legacyQueue();
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-releases" title="Releases">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-releases" title={tx('Releases')}>
       <div className="glass card sob-sec" data-release-queue>
         <div className="row sob-hd">
           <div>
-            <h2>Waiting for release ({waiting.length})</h2>
-            <p className="tag">Payment is verified and the files are ready. Check them, then approve the release. Nothing reaches the buyer before you do.</p>
+            <h2>
+              <T s={'Waiting for release ({length})'} v={{ length: waiting.length }} />
+            </h2>
+            <p className="tag">
+              <T s={'Payment is verified and the files are ready. Check them, then approve the release. Nothing reaches the buyer before you do.'} />
+            </p>
           </div>
         </div>
-        {waiting.length === 0 && <p className="muted">Nothing waiting.</p>}
+        {waiting.length === 0 && (
+          <p className="muted">
+            <T s={'Nothing waiting.'} />
+          </p>
+        )}
         <ul className="sob-list">
           {waiting.map((o) => (
             <li key={o.id} data-release={o.id}>
@@ -63,7 +74,9 @@ export default async function Releases() {
                     />
                   )}
                 </div>
-                <small className="muted">To refuse the sale instead, Finance refunds the order (Payments to check).</small>
+                <small className="muted">
+                  <T s={'To refuse the sale instead, Finance refunds the order (Payments to check).'} />
+                </small>
               </div>
             </li>
           ))}
@@ -73,11 +86,19 @@ export default async function Releases() {
       <div className="glass card sob-sec" data-work-to-start>
         <div className="row sob-hd">
           <div>
-            <h2>Paid work orders waiting to start ({toStart.length})</h2>
-            <p className="tag">Let the seller start. Their delivery time starts now; their delivery comes back here for release.</p>
+            <h2>
+              <T s={'Paid work orders waiting to start ({length})'} v={{ length: toStart.length }} />
+            </h2>
+            <p className="tag">
+              <T s={'Let the seller start. Their delivery time starts now; their delivery comes back here for release.'} />
+            </p>
           </div>
         </div>
-        {toStart.length === 0 && <p className="muted">None.</p>}
+        {toStart.length === 0 && (
+          <p className="muted">
+            <T s={'None.'} />
+          </p>
+        )}
         <ul className="sob-list">
           {toStart.map((o) => (
             <li key={o.id}>
@@ -95,11 +116,17 @@ export default async function Releases() {
       <div className="glass card sob-sec" data-legacy-orders>
         <div className="row sob-hd">
           <div>
-            <h2>Orders from the old checkout</h2>
-            <p className="tag">Each needs an individual decision (F-13, F-14). Delivered old orders keep the access they had.</p>
+            <h2>
+              <T s={'Orders from the old checkout'} />
+            </h2>
+            <p className="tag">
+              <T s={'Each needs an individual decision (F-13, F-14). Delivered old orders keep the access they had.'} />
+            </p>
           </div>
         </div>
-        <h3>Paid but not delivered ({legacy.paid.length})</h3>
+        <h3>
+          <T s={'Paid but not delivered ({length})'} v={{ length: legacy.paid.length }} />
+        </h3>
         <ul className="sob-list">
           {legacy.paid.map((o) => (
             <li key={o.id}>
@@ -119,7 +146,9 @@ export default async function Releases() {
             </li>
           ))}
         </ul>
-        <h3>Never paid ({legacy.unpaid.length})</h3>
+        <h3>
+          <T s={'Never paid ({length})'} v={{ length: legacy.unpaid.length }} />
+        </h3>
         <ul className="sob-list">
           {legacy.unpaid.map((o) => (
             <li key={o.id}>
@@ -146,8 +175,12 @@ export default async function Releases() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Change a buyer&apos;s access</h2>
-            <p className="tag">Suspend while you look into something, resume, or revoke for good (refund, lost chargeback, licence breach).</p>
+            <h2>
+              <T s={"Change a buyer's access"} />
+            </h2>
+            <p className="tag">
+              <T s={'Suspend while you look into something, resume, or revoke for good (refund, lost chargeback, licence breach).'} />
+            </p>
           </div>
         </div>
         <AdminForm

@@ -4,6 +4,7 @@ import { COUNTRIES } from '@/lib/countries';
 import { Button } from './Button';
 import { Field } from './Field';
 
+import { T } from '@/components/i18n/T';
 /* Country, phone and company for invoices and domain registration (POST /api/account/details). */
 export function DetailsForm({ country, phone, company }: { country: string; phone: string; company: string }) {
   const [state, setState] = useState<'idle' | 'busy' | 'saved'>('idle');
@@ -27,7 +28,9 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
       }}
     >
       <Field as="select" label="Country" name="country" defaultValue={country} autoComplete="country">
-        <option value="">Not set</option>
+        <option value="">
+          <T s={'Not set'} />
+        </option>
         {COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
             {c.name}
@@ -42,7 +45,7 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
         </Button>
         {state === 'saved' && (
           <span className="tag" role="status">
-            Saved
+            <T s={'Saved'} />
           </span>
         )}
       </div>

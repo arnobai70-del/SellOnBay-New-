@@ -6,6 +6,8 @@ import { allListings, listingQueue } from '@/lib/admin/queue';
 import { allHubViews } from '@/lib/seo/hubStore';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Listings', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -26,21 +28,30 @@ const FILTERS: [string, string][] = [
 
 /* Where an admin approves new sites and fixes prices: the review queue first, then every listing with its status, price and an Edit link. */
 export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/listings/all', roles: ['admin'], scope: 'catalog' });
   const { status = '' } = await searchParams;
   const [queue, rows, views] = await Promise.all([listingQueue(), allListings(status), allHubViews().catch(() => [])]);
   // Where a live listing shows on the site: the category page it was placed in, or why it is not shown.
   const shownIn = (slug: string) => views.find((v) => v.products.some((p) => p.id === slug))?.hub.name ?? null;
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-listings" title="Listings">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-listings" title={tx('Listings')}>
       <div className="glass card sob-sec" id="approve">
         <div className="row sob-hd">
           <div>
-            <h2>Waiting for approval ({queue.length})</h2>
-            <p className="tag">Open the demo and the files, check the price, then decide. The seller is told your note. Open the files in a sandbox first.</p>
+            <h2>
+              <T s={'Waiting for approval ({length})'} v={{ length: queue.length }} />
+            </h2>
+            <p className="tag">
+              <T s={'Open the demo and the files, check the price, then decide. The seller is told your note. Open the files in a sandbox first.'} />
+            </p>
           </div>
         </div>
-        {queue.length === 0 && <p className="muted">Nothing is waiting for review.</p>}
+        {queue.length === 0 && (
+          <p className="muted">
+            <T s={'Nothing is waiting for review.'} />
+          </p>
+        )}
         {queue.map((l) => (
           <ListingReviewCard key={l.slug} l={l} />
         ))}
@@ -49,8 +60,12 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
       <div className="glass card sob-sec" id="all">
         <div className="row sob-hd">
           <div>
-            <h2>All listings</h2>
-            <p className="tag">Change a price, words or pictures with Edit. Orders already placed keep the price they were made at.</p>
+            <h2>
+              <T s={'All listings'} />
+            </h2>
+            <p className="tag">
+              <T s={'Change a price, words or pictures with Edit. Orders already placed keep the price they were made at.'} />
+            </p>
           </div>
         </div>
         <div className="sob-acts">
@@ -60,7 +75,11 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
             </Link>
           ))}
         </div>
-        {rows.length === 0 && <p className="muted">No listings here.</p>}
+        {rows.length === 0 && (
+          <p className="muted">
+            <T s={'No listings here.'} />
+          </p>
+        )}
         <ul className="sob-list">
           {rows.map((r) => {
             const [label, cls] = CHIP[r.status] ?? [r.status, 'status st-draft'];
@@ -69,14 +88,14 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                 <div className="sob-grow">
                   <b>{r.name}</b>
                   <small>
-                    by {r.seller} · {r.platform} · {money(r.priceCents)}
+                    <T s={'by {seller} · {platform} · {v2}'} v={{ seller: r.seller, platform: r.platform, v2: money(r.priceCents) }} />
                   </small>
                   {r.status === 'live' && (
                     <small>{shownIn(r.slug) ? `Shown in ${shownIn(r.slug)}` : 'Not shown on the site: its category is full or hidden. Change it under SEO and blog > Categories.'}</small>
                   )}
                 </div>
                 <Link className="btn ghost sm" href={`/admin/seo/product?slug=${encodeURIComponent(r.slug)}`}>
-                  Edit price and details
+                  <T s={'Edit price and details'} />
                 </Link>
                 <span className={cls}>
                   <i />

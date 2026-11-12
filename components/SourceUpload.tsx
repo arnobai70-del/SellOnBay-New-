@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
+import { T } from '@/components/i18n/T';
 type Listing = { slug: string; name: string };
 const MAX = 500 * 1024 * 1024;
 
@@ -47,11 +48,18 @@ export function SourceUpload({ listings }: { listings: Listing[] }) {
     router.refresh();
   }
 
-  if (!listings.length) return <p className="muted">Create a listing first, then upload its source files here.</p>;
+  if (!listings.length)
+    return (
+      <p className="muted">
+        <T s={'Create a listing first, then upload its source files here.'} />
+      </p>
+    );
   return (
     <form onSubmit={send} data-source-upload style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <label htmlFor="su-product">Listing</label>
+        <label htmlFor="su-product">
+          <T s={'Listing'} />
+        </label>
         <select id="su-product" className="input" style={{ width: 'auto' }} value={product} onChange={(e) => setProduct(e.target.value)}>
           {listings.map((l) => (
             <option key={l.slug} value={l.slug}>
@@ -59,13 +67,21 @@ export function SourceUpload({ listings }: { listings: Listing[] }) {
             </option>
           ))}
         </select>
-        <label htmlFor="su-purpose">This is</label>
+        <label htmlFor="su-purpose">
+          <T s={'This is'} />
+        </label>
         <select id="su-purpose" className="input" style={{ width: 'auto' }} value={purpose} onChange={(e) => setPurpose(e.target.value as 'listing' | 'version')}>
-          <option value="listing">The listing&apos;s files</option>
-          <option value="version">A new version</option>
+          <option value="listing">
+            <T s={"The listing's files"} />
+          </option>
+          <option value="version">
+            <T s={'A new version'} />
+          </option>
         </select>
       </div>
-      <label htmlFor="su-file">Source archive (.zip, up to 500 MB, no passwords or keys inside)</label>
+      <label htmlFor="su-file">
+        <T s={'Source archive (.zip, up to 500 MB, no passwords or keys inside)'} />
+      </label>
       <input id="su-file" type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
       <button className="btn sm" type="submit" disabled={!!step}>
         {step || 'Upload for checking'}

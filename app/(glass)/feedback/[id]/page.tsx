@@ -5,6 +5,7 @@ import { betaFeedbackOf, betaRequest } from '@/lib/beta/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { FeedbackForm } from './FeedbackForm';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Your feedback', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -17,16 +18,22 @@ export default async function Feedback({ params }: { params: Promise<{ id: strin
   return (
     <PublicFrame file="account-access">
       <header className="pagehead">
-        <h1>How did it go?</h1>
+        <h1>
+          <T s={'How did it go?'} />
+        </h1>
         <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
-          Two minutes of your time helps us make SellOnBay better.
+          <T s={'Two minutes of your time helps us make SellOnBay better.'} />
         </p>
       </header>
       <section className="glass ac" style={{ maxWidth: 640 }}>
         {done ? (
-          <p role="status">Thanks, we already have your feedback.</p>
+          <p role="status">
+            <T s={'Thanks, we already have your feedback.'} />
+          </p>
         ) : !r.decidedAt || r.declineReason ? (
-          <p role="status">Feedback opens after your request is approved.</p>
+          <p role="status">
+            <T s={'Feedback opens after your request is approved.'} />
+          </p>
         ) : (
           <FeedbackForm orderId={id} reviewHref={`/orders/${id}`} />
         )}

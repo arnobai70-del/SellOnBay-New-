@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* The affiliate dashboard's actions (owner, 2026-11-12), all through POST /api/affiliates (lib/affiliates). */
 async function post(body: Record<string, unknown>) {
   const r = await fetch('/api/affiliates', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
@@ -17,6 +19,7 @@ const Msg = ({ text, bad }: { text: string; bad?: boolean }) =>
   ) : null;
 
 export function AffJoinForm({ termsVersion, feeText }: { termsVersion: string; feeText: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [name, setName] = useState('');
   const [accept, setAccept] = useState(false);
@@ -35,13 +38,19 @@ export function AffJoinForm({ termsVersion, feeText }: { termsVersion: string; f
       }}
     >
       <div className="field">
-        <label htmlFor="aff-name">Public name (shown on the leaderboard; you can hide it later)</label>
-        <input id="aff-name" className="input" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Web Picks" />
+        <label htmlFor="aff-name">
+          <T s={'Public name (shown on the leaderboard; you can hide it later)'} />
+        </label>
+        <input id="aff-name" className="input" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} placeholder={tx('e.g. Web Picks')} />
       </div>
       <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 14 }}>
         <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} style={{ marginTop: 3 }} />
         <span>
-          I accept the <a href="/affiliates#terms">affiliate terms</a> (version {termsVersion}) and will say that I earn a commission when I share links.
+          <T s={'I accept the'} />{' '}
+          <a href="/affiliates#terms">
+            <T s={'affiliate terms'} />
+          </a>{' '}
+          <T s={'(version {termsVersion}) and will say that I earn a commission when I share links.'} v={{ termsVersion }} />
         </span>
       </label>
       <div className="tag" style={{ margin: 0 }}>
@@ -57,15 +66,20 @@ export function AffJoinForm({ termsVersion, feeText }: { termsVersion: string; f
 
 /* One-click links: a general link, and a link for any eligible website. Copy works without a server call. */
 export function AffLinkGenerator({ code, base, sites }: { code: string; base: string; sites: { key: string; name: string; path: string }[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [key, setKey] = useState('');
   const [copied, setCopied] = useState('');
   const link = key ? `${base}${sites.find((s) => s.key === key)?.path ?? '/'}?ref=${code}` : `${base}/?ref=${code}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div className="field">
-        <label htmlFor="aff-site">Link to</label>
+        <label htmlFor="aff-site">
+          <T s={'Link to'} />
+        </label>
         <select id="aff-site" className="input" value={key} onChange={(e) => setKey(e.target.value)}>
-          <option value="">SellOnBay home page (general link)</option>
+          <option value="">
+            <T s={'SellOnBay home page (general link)'} />
+          </option>
           {sites.map((s) => (
             <option key={s.key} value={s.key}>
               {s.name}
@@ -74,7 +88,7 @@ export function AffLinkGenerator({ code, base, sites }: { code: string; base: st
         </select>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input aria-label="Your referral link" className="input" readOnly value={link} style={{ flex: '1 1 320px', minWidth: 0 }} onFocus={(e) => e.currentTarget.select()} />
+        <input aria-label={tx('Your referral link')} className="input" readOnly value={link} style={{ flex: '1 1 320px', minWidth: 0 }} onFocus={(e) => e.currentTarget.select()} />
         <button
           type="button"
           className="btn"
@@ -87,17 +101,17 @@ export function AffLinkGenerator({ code, base, sites }: { code: string; base: st
             }
           }}
         >
-          Copy link
+          <T s={'Copy link'} />
         </button>
         {typeof navigator !== 'undefined' && 'share' in navigator && (
           <button type="button" className="btn ghost" onClick={() => void navigator.share({ url: link }).catch(() => {})}>
-            Share
+            <T s={'Share'} />
           </button>
         )}
       </div>
       <Msg text={copied} />
       <div className="tag" style={{ margin: 0 }}>
-        When you share a link, say that you earn a commission (for example &ldquo;affiliate link&rdquo;).
+        <T s={'When you share a link, say that you earn a commission (for example “affiliate link”).'} />
       </div>
     </div>
   );
@@ -124,16 +138,22 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
       }}
     >
       <div className="field">
-        <label htmlFor="aff-pname">Public name</label>
+        <label htmlFor="aff-pname">
+          <T s={'Public name'} />
+        </label>
         <input id="aff-pname" className="input" maxLength={60} value={f.displayName} onChange={(e) => setF({ ...f, displayName: e.target.value })} />
       </div>
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
-        <input type="checkbox" checked={f.publicLeaderboard} onChange={(e) => setF({ ...f, publicLeaderboard: e.target.checked })} /> Show me on the public leaderboard
+        <input type="checkbox" checked={f.publicLeaderboard} onChange={(e) => setF({ ...f, publicLeaderboard: e.target.checked })} /> <T s={'Show me on the public leaderboard'} />
       </label>
       <div className="field">
-        <label htmlFor="aff-pm">Payout method</label>
+        <label htmlFor="aff-pm">
+          <T s={'Payout method'} />
+        </label>
         <select id="aff-pm" className="input" value={f.payoutMethod} onChange={(e) => setF({ ...f, payoutMethod: e.target.value })}>
-          <option value="">Choose…</option>
+          <option value="">
+            <T s={'Choose…'} />
+          </option>
           {['PayPal', 'Payoneer', 'Wise', 'Bank transfer'].map((m) => (
             <option key={m} value={m}>
               {m}
@@ -142,7 +162,9 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
         </select>
       </div>
       <div className="field">
-        <label htmlFor="aff-pd">Payout details (email or account){payoutMasked ? ` · saved: ${payoutMasked}` : ''}</label>
+        <label htmlFor="aff-pd">
+          <T s={'Payout details (email or account){v0}'} v={{ v0: payoutMasked ? ` · saved: ${payoutMasked}` : '' }} />
+        </label>
         <input
           id="aff-pd"
           className="input"
@@ -154,7 +176,7 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
         />
       </div>
       <button className="btn sm" type="submit" style={{ alignSelf: 'flex-start' }}>
-        Save
+        <T s={'Save'} />
       </button>
       <Msg text={msg} />
     </form>
@@ -179,11 +201,13 @@ export function AffWithdrawForm({ availableCents, minCents }: { availableCents: 
       }}
     >
       <div className="field">
-        <label htmlFor="aff-wd">Amount (USD)</label>
+        <label htmlFor="aff-wd">
+          <T s={'Amount (USD)'} />
+        </label>
         <input id="aff-wd" className="input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} style={{ width: 140 }} />
       </div>
       <button className="btn" type="submit" disabled={availableCents < minCents}>
-        Request withdrawal
+        <T s={'Request withdrawal'} />
       </button>
       <div style={{ flexBasis: '100%' }}>
         <Msg text={msg} bad={bad} />

@@ -12,6 +12,7 @@ import { getRequest, quoteEvents, quotesOf, requestEvents } from '@/lib/requests
 import { QUOTE_WORDS, REQUEST_WORDS, personNames, productNames, requestTitle, usd } from '@/lib/requests/view';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Purchase request', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -43,37 +44,50 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                 <i />
                 {word}
               </span>{' '}
-              · from {buyers.get(r.buyerId) ?? 'a buyer'} · {r.kind === 'custom_dev' ? 'custom development' : 'product request'}
+              <T s={'· from {v0} · {v1}'} v={{ v0: buyers.get(r.buyerId) ?? 'a buyer', v1: r.kind === 'custom_dev' ? 'custom development' : 'product request' }} />
               {product ? (
                 <>
                   {' '}
-                  · <Link href={`/product/${product.slug}`}>open the listing</Link>
+                  ·{' '}
+                  <Link href={`/product/${product.slug}`}>
+                    <T s={'open the listing'} />
+                  </Link>
                 </>
               ) : null}
             </p>
           </div>
         </div>
         <dl className="sob-kv">
-          <dt>Licence asked for</dt>
+          <dt>
+            <T s={'Licence asked for'} />
+          </dt>
           <dd>
             {TIER_TEXT[r.licenceTier].label}
             {r.licenceTier === 'exclusive_review' ? ' (needs special admin and legal/IP review, F-10)' : ''}
           </dd>
-          <dt>Package and extras</dt>
+          <dt>
+            <T s={'Package and extras'} />
+          </dt>
           <dd>
             {r.package}
             {r.extras.express ? ', express' : ''}
             {r.extras.hosting ? ', hosting' : ''}
           </dd>
-          <dt>Intended use</dt>
+          <dt>
+            <T s={'Intended use'} />
+          </dt>
           <dd>{r.intendedUse}</dd>
           {r.requirements && (
             <>
-              <dt>Requirements</dt>
+              <dt>
+                <T s={'Requirements'} />
+              </dt>
               <dd style={{ whiteSpace: 'pre-wrap' }}>{r.requirements}</dd>
             </>
           )}
-          <dt>Delivery details</dt>
+          <dt>
+            <T s={'Delivery details'} />
+          </dt>
           <dd>
             {Object.entries(r.delivery).length
               ? Object.entries(r.delivery)
@@ -81,7 +95,9 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                   .join(' · ')
               : 'None given'}
           </dd>
-          <dt>Business</dt>
+          <dt>
+            <T s={'Business'} />
+          </dt>
           <dd>
             {Object.entries(r.business).length
               ? Object.entries(r.business)
@@ -89,13 +105,17 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                   .join(' · ')
               : 'None given'}
           </dd>
-          <dt>Consent</dt>
+          <dt>
+            <T s={'Consent'} />
+          </dt>
           <dd>
-            Version {r.consentVersion}, {day(r.consentedAt)}
+            <T s={'Version {consentVersion}, {v1}'} v={{ consentVersion: r.consentVersion, v1: day(r.consentedAt) }} />
           </dd>
           {product && (
             <>
-              <dt>Product file</dt>
+              <dt>
+                <T s={'Product file'} />
+              </dt>
               <dd>{product.latestVersionId ? 'An approved version is pinned to the quotation when it is written.' : 'No approved file version: it cannot be quoted.'}</dd>
             </>
           )}
@@ -131,9 +151,10 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
           {r.kind === 'custom_dev' && ['submitted', 'under_review', 'needs_info', 'requirements_verified'].includes(r.status) && (
             <>
               <p className="muted" data-assigned={r.assignedSellerId ?? 'sellonbay'}>
-                Developer: {r.assignedSellerId ? `seller account ${r.assignedSellerId}` : 'SellOnBay (no seller split)'}. Choose before quoting: the quotation records that seller&apos;s plan and
-                commission.
-                {r.parentOrderId ? ' This is a paid change to an earlier order.' : ''}
+                <T
+                  s={"Developer: {v0}. Choose before quoting: the quotation records that seller's plan and commission.{v1}"}
+                  v={{ v0: r.assignedSellerId ? `seller account ${r.assignedSellerId}` : 'SellOnBay (no seller split)', v1: r.parentOrderId ? ' This is a paid change to an earlier order.' : '' }}
+                />
               </p>
               <AdminForm
                 endpoint={`/api/admin/requests/${r.id}`}
@@ -152,8 +173,12 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Write a quotation</h2>
-              <p className="tag">Valid 7 days once issued. Commission is worked out from the seller&apos;s plan. Any difference from the listed price goes to a Super Admin first.</p>
+              <h2>
+                <T s={'Write a quotation'} />
+              </h2>
+              <p className="tag">
+                <T s={"Valid 7 days once issued. Commission is worked out from the seller's plan. Any difference from the listed price goes to a Super Admin first."} />
+              </p>
             </div>
           </div>
           <QuoteEditor
@@ -174,13 +199,24 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Quotations</h2>
+              <h2>
+                <T s={'Quotations'} />
+              </h2>
             </div>
           </div>
           {quotes.map((q) => (
             <div key={q.id} className="sob-item" data-quote={q.id}>
               <b>
-                Version {q.version}: {QUOTE_WORDS[q.status]} · {usd(q.totalCents)} · fee {usd(q.feeCents)} ({q.ownerType === 'platform' ? 'platform-owned' : `${(q.commissionBps ?? 0) / 100}%`})
+                <T
+                  s={'Version {version}: {v1} · {v2} · fee {v3} ({v4})'}
+                  v={{
+                    version: q.version,
+                    v1: QUOTE_WORDS[q.status],
+                    v2: usd(q.totalCents),
+                    v3: usd(q.feeCents),
+                    v4: q.ownerType === 'platform' ? 'platform-owned' : `${(q.commissionBps ?? 0) / 100}%`,
+                  }}
+                />
               </b>
               <small className="muted">
                 {q.lines.map((l) => `${l.label} ${usd(l.cents)}`).join(' · ')}
@@ -212,7 +248,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                 )}
                 {q.orderId && (
                   <Link className="btn ghost sm" href={`/admin/orders/${q.orderId}`}>
-                    Open the order
+                    <T s={'Open the order'} />
                   </Link>
                 )}
               </div>
@@ -226,7 +262,9 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Log</h2>
+            <h2>
+              <T s={'Log'} />
+            </h2>
           </div>
         </div>
         <ul className="sob-tl2">

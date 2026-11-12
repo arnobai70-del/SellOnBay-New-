@@ -11,6 +11,7 @@ import { LICENCE_TYPES, LICENCES } from '@/lib/licences';
 import { WEB_CATS, webCatLabel } from '@/lib/webCategories';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Edit a listing', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -28,16 +29,20 @@ export default async function EditProduct({ searchParams }: { searchParams: Prom
           <div>
             <h2>{p.name}</h2>
             <p className="tag">
-              Status: {p.status}. Orders already placed keep the price and promise they were made under; a change here applies to new orders. The private code link, licence and owner cannot be changed
-              here.
+              <T
+                s={
+                  'Status: {status}. Orders already placed keep the price and promise they were made under; a change here applies to new orders. The private code link, licence and owner cannot be changed here.'
+                }
+                v={{ status: p.status }}
+              />
             </p>
           </div>
           <div className="sob-acts">
             <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(`/product/${p.slug}`)}`}>
-              Search, picture and questions
+              <T s={'Search, picture and questions'} />
             </Link>
             <Link className="btn ghost sm" href={`/product/${p.slug}`}>
-              Open the listing
+              <T s={'Open the listing'} />
             </Link>
           </div>
         </div>

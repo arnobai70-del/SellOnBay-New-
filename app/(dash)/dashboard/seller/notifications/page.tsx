@@ -4,6 +4,7 @@ import { SellerShell } from '@/components/glass/SellerShell';
 import { sellerNotes } from '@/lib/glass/seller';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Notifications', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +12,13 @@ const SHOWN: Group[] = ['all', 'orders', 'websites', 'support', 'payouts'];
 
 /* design-reference/seller-notifications.html: new orders, listing decisions, disputes and payout news, by kind. */
 export default async function SellerNotifications({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/notifications', roles: ['seller', 'admin'] });
   const raw = (await searchParams).type;
   const group: Group = SHOWN.includes(raw as Group) && Object.hasOwn(GROUPS, raw ?? '') ? (raw as Group) : 'all';
   const list = viewer ? await sellerNotes(viewer.id) : [];
   return (
-    <SellerShell viewer={viewer} active="notifications" file="seller-notifications" title="Notifications" head={false}>
+    <SellerShell viewer={viewer} active="notifications" file="seller-notifications" title={tx('Notifications')} head={false}>
       <NotificationsList
         list={list}
         group={group}

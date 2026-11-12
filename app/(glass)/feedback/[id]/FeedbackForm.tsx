@@ -3,18 +3,23 @@ import { useState } from 'react';
 import { Button } from '@/components/glass/Button';
 import { Field } from '@/components/glass/Field';
 
+import { T } from '@/components/i18n/T';
 export function FeedbackForm({ orderId, reviewHref }: { orderId: string; reviewHref: string }) {
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
   const [error, setError] = useState('');
   if (state === 'done')
     return (
       <div role="status">
-        <h2>Thank you</h2>
+        <h2>
+          <T s={'Thank you'} />
+        </h2>
         <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-          Your answers go straight to our team. Would you also leave a public review for other buyers?
+          <T s={'Your answers go straight to our team. Would you also leave a public review for other buyers?'} />
         </p>
         <div style={{ marginTop: 14 }}>
-          <Button href={reviewHref}>Leave a review</Button>
+          <Button href={reviewHref}>
+            <T s={'Leave a review'} />
+          </Button>
         </div>
       </div>
     );
@@ -36,7 +41,9 @@ export function FeedbackForm({ orderId, reviewHref }: { orderId: string; reviewH
       }}
     >
       <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
-        <legend className="sob-label">How would you rate it?</legend>
+        <legend className="sob-label">
+          <T s={'How would you rate it?'} />
+        </legend>
         <div className="row" style={{ justifyContent: 'flex-start' }}>
           {[1, 2, 3, 4, 5].map((n) => (
             <label key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, fontSize: 14 }}>

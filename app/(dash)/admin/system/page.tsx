@@ -8,6 +8,8 @@ import type { Level, Metric } from '@/lib/admin/healthCore';
 import { limit } from '@/lib/rateLimit';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Server health', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -38,12 +40,13 @@ function Rows({ list }: { list: Metric[] }) {
  * a warning, over 90% critical; a critical metric emails dev@ at most once an hour. No key or value from the environment is ever shown.
  */
 export default async function ServerHealth() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/system', roles: ['admin'], scope: 'dev' });
   if (!(await limit(`health-page:${viewer?.id ?? 'demo'}`, 20, 60_000)))
     return (
-      <AdminShell viewer={viewer} active="system" title="Server health">
+      <AdminShell viewer={viewer} active="system" title={tx('Server health')}>
         <GlassCard as="section" role="status">
-          Too many refreshes. Wait a minute and load the page again.
+          <T s={'Too many refreshes. Wait a minute and load the page again.'} />
         </GlassCard>
       </AdminShell>
     );
@@ -51,17 +54,28 @@ export default async function ServerHealth() {
   await alertCriticals(h);
   const worst: Level = [...h.machine, ...h.metrics].some((m) => m.level === 'bad') ? 'bad' : [...h.machine, ...h.metrics].some((m) => m.level === 'warn') ? 'warn' : 'ok';
   return (
-    <AdminShell viewer={viewer} active="system" title="Server health" subtitle={<>Read only. Checked {new Date(h.at).toISOString().slice(11, 16)} UTC.</>}>
+    <AdminShell
+      viewer={viewer}
+      active="system"
+      title={tx('Server health')}
+      subtitle={
+        <>
+          <T s={'Read only. Checked {v0} UTC.'} v={{ v0: new Date(h.at).toISOString().slice(11, 16) }} />
+        </>
+      }
+    >
       <GlassCard as="section">
         <p>
           <StatusPill tone={TONE[worst]}>{worst === 'ok' ? 'All normal' : worst === 'warn' ? 'Something needs a look' : 'Something is critical'}</StatusPill>
         </p>
         <p className="tag" style={{ marginTop: 8 }}>
-          Under 80% normal, 80 to 90% warning, over 90% critical. A critical figure emails dev@ at most once an hour.
+          <T s={'Under 80% normal, 80 to 90% warning, over 90% critical. A critical figure emails dev@ at most once an hour.'} />
         </p>
       </GlassCard>
       <GlassCard as="section">
-        <h2>The machine</h2>
+        <h2>
+          <T s={'The machine'} />
+        </h2>
         {h.machine.length ? (
           <Rows list={h.machine} />
         ) : (
@@ -71,11 +85,15 @@ export default async function ServerHealth() {
         )}
       </GlassCard>
       <GlassCard as="section">
-        <h2>The site</h2>
+        <h2>
+          <T s={'The site'} />
+        </h2>
         <Rows list={h.metrics} />
       </GlassCard>
       <p>
-        <Link href="/admin/system/details">Services, build, database and error details</Link>
+        <Link href="/admin/system/details">
+          <T s={'Services, build, database and error details'} />
+        </Link>
       </p>
     </AdminShell>
   );

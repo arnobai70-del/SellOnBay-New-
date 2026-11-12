@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 /* One module's maintenance switch in the Maintenance Manager. The server checks and records everything; this only collects the choice. */
 const local = (ms: number | null) => {
   if (!ms) return '';
@@ -63,20 +64,26 @@ export function MaintenanceForm({
     <form className="sob-mm-form" onSubmit={send}>
       <label className="sob-mm-switch" htmlFor={id('on')}>
         <input id={id('on')} type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} />
-        Under maintenance
+        <T s={'Under maintenance'} />
       </label>
-      <label htmlFor={id('msg')}>Message visitors see (empty = the standard words)</label>
+      <label htmlFor={id('msg')}>
+        <T s={'Message visitors see (empty = the standard words)'} />
+      </label>
       <textarea id={id('msg')} rows={2} maxLength={max} value={text} onChange={(e) => setText(e.target.value)} />
       <small className="muted">
         {text.length}/{max}
       </small>
       <div className="sob-mm-times">
         <span>
-          <label htmlFor={id('start')}>Start (optional, your time)</label>
+          <label htmlFor={id('start')}>
+            <T s={'Start (optional, your time)'} />
+          </label>
           <input id={id('start')} type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
         </span>
         <span>
-          <label htmlFor={id('end')}>End (optional; it opens again by itself)</label>
+          <label htmlFor={id('end')}>
+            <T s={'End (optional; it opens again by itself)'} />
+          </label>
           <input id={id('end')} type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
         </span>
       </div>

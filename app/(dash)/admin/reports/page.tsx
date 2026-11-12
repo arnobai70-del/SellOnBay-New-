@@ -11,6 +11,8 @@ import { orderStore } from '@/lib/orders/store';
 import { listPayouts } from '@/lib/payouts';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Reports', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +35,7 @@ const nice = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US
  * the sales PDF is the same export as before (/api/admin/reports/sales, Finance). Sales by category use the listing's category.
  */
 export default async function AdminReports({ searchParams }: { searchParams: Promise<{ r?: string; from?: string; to?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/reports', roles: ['admin'], scope: 'finance' });
   const sp = await searchParams;
   const kind = KINDS.find(([k]) => k === sp.r) ?? KINDS[0];
@@ -100,24 +103,28 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
   };
   const href = (r: string) => `/admin/reports?${new URLSearchParams({ ...(r !== 'sales' ? { r } : {}), ...(sp.from ? { from } : {}), ...(sp.to ? { to } : {}) })}`;
   return (
-    <AdminShell viewer={viewer} active="reports" file="admin-reports" title="Reports" head={false}>
+    <AdminShell viewer={viewer} active="reports" file="admin-reports" title={tx('Reports')} head={false}>
       <div className="row">
         <div>
-          <h1>Reports</h1>
-          <div className="tag">Pick a report, a date range, then export. Beta requests are counted, at $0.</div>
+          <h1>
+            <T s={'Reports'} />
+          </h1>
+          <div className="tag">
+            <T s={'Pick a report, a date range, then export. Beta requests are counted, at $0.'} />
+          </div>
         </div>
         <form action="/admin/reports" method="get" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {kind[0] !== 'sales' && <input type="hidden" name="r" value={kind[0]} />}
           <label htmlFor="rf" className="hidden-label">
-            From
+            <T s={'From'} />
           </label>
           <input id="rf" name="from" className="input" type="date" defaultValue={from} style={{ width: 'auto' }} />{' '}
           <label htmlFor="rto" className="hidden-label">
-            To
+            <T s={'To'} />
           </label>
           <input id="rto" name="to" className="input" type="date" defaultValue={to} style={{ width: 'auto' }} />{' '}
           <button className="btn ghost" type="submit">
-            Refresh
+            <T s={'Refresh'} />
           </button>
         </form>
       </div>
@@ -134,7 +141,9 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
         </div>
         <div className="row" style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid #DEE8ED' }}>
           <div>
-            <b style={{ fontWeight: 500 }}>{kind[1]} report</b>
+            <b style={{ fontWeight: 500 }}>
+              <T s={'{v0} report'} v={{ v0: kind[1] }} />
+            </b>
             <div className="tag">
               {nice(from)} – {nice(to)} · {summary[kind[0]]}
             </div>
@@ -144,34 +153,48 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
       </section>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Orders</div>
+          <div className="l">
+            <T s={'Orders'} />
+          </div>
           <div className="v">{orders.length}</div>
           <div className="s">
-            {orders.filter((o) => !o.domain).length} websites · {orders.filter((o) => o.domain).length} with a domain
+            {orders.filter((o) => !o.domain).length} <T s={'websites ·'} /> {orders.filter((o) => o.domain).length} <T s={'with a domain'} />
           </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Gross sales</div>
+          <div className="l">
+            <T s={'Gross sales'} />
+          </div>
           <div className="v">{usd(gross)}</div>
-          <div className="s">{paid.length} paid orders</div>
+          <div className="s">
+            <T s={'{length} paid orders'} v={{ length: paid.length }} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Refund rate</div>
+          <div className="l">
+            <T s={'Refund rate'} />
+          </div>
           <div className="v">{orders.length ? `${((refundedN / orders.length) * 100).toFixed(1)}%` : '0%'}</div>
           <div className="s">
-            {refundedN} of {orders.length}
+            <T s={'{refundedN} of {length}'} v={{ refundedN, length: orders.length }} />
           </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Avg. order</div>
+          <div className="l">
+            <T s={'Avg. order'} />
+          </div>
           <div className="v">{paid.length ? usd(Math.round(gross / paid.length)) : '$0.00'}</div>
-          <div className="s">Paid orders only</div>
+          <div className="s">
+            <T s={'Paid orders only'} />
+          </div>
         </div>
       </div>
       <div className="grid2">
         <section className="glass card">
           <div className="row">
-            <h2>Sales by category</h2>
+            <h2>
+              <T s={'Sales by category'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
               {cats.some((c) => c.sales) ? 'Paid sales' : 'Orders (no paid sales yet)'}
             </span>
@@ -192,25 +215,35 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
             </div>
           ) : (
             <p className="muted" style={{ fontSize: 14 }}>
-              No orders in these dates.
+              <T s={'No orders in these dates.'} />
             </p>
           )}
         </section>
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>Top sellers</h2>
+            <h2>
+              <T s={'Top sellers'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              By paid sales
+              <T s={'By paid sales'} />
             </span>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Seller</th>
-                  <th>Sales</th>
-                  <th>Gross</th>
-                  <th>Earned</th>
+                  <th>
+                    <T s={'Seller'} />
+                  </th>
+                  <th>
+                    <T s={'Sales'} />
+                  </th>
+                  <th>
+                    <T s={'Gross'} />
+                  </th>
+                  <th>
+                    <T s={'Earned'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -226,7 +259,7 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
                 ) : (
                   <tr>
                     <td colSpan={4} className="muted">
-                      No seller orders in these dates.
+                      <T s={'No seller orders in these dates.'} />
                     </td>
                   </tr>
                 )}
@@ -237,20 +270,32 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
       </div>
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 4px' }}>
-          <h2>Orders by month</h2>
+          <h2>
+            <T s={'Orders by month'} />
+          </h2>
           <Link className="tag" style={{ margin: 0 }} href="/admin/reports/sales" prefetch={false}>
-            Every sales export
+            <T s={'Every sales export'} />
           </Link>
         </div>
         <div className="tbl">
           <table>
             <thead>
               <tr>
-                <th>Month</th>
-                <th>Orders</th>
-                <th>Beta requests</th>
-                <th>Completed</th>
-                <th>Paid sales</th>
+                <th>
+                  <T s={'Month'} />
+                </th>
+                <th>
+                  <T s={'Orders'} />
+                </th>
+                <th>
+                  <T s={'Beta requests'} />
+                </th>
+                <th>
+                  <T s={'Completed'} />
+                </th>
+                <th>
+                  <T s={'Paid sales'} />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -268,7 +313,7 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
               {!months.size && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    No orders in the last six months.
+                    <T s={'No orders in the last six months.'} />
                   </td>
                 </tr>
               )}

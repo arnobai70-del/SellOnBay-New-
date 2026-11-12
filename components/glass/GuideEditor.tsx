@@ -15,6 +15,8 @@ import { Button } from './Button';
 import { Field } from './Field';
 import { Switch } from './Switch';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * Admin › Content › Guides (owner, 2026-11-08). A block editor (Tiptap): headings 1 to 4, text styles, colour, alignment, lists, check lists,
  * quote, code, link, divider, table, callout, button, pictures with alt text and caption, gallery, YouTube, website cards; "/" opens the block
@@ -96,6 +98,7 @@ const BLOCKS: Block[] = [
 ];
 
 export function GuideEditor({ initial, categories }: { initial: GuideFields; categories: string[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState(initial);
   const [dirty, setDirty] = useState(false);
@@ -278,7 +281,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
       <div className="sob-editor-main">
         <Field label="Title" value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={120} />
         {editor && (
-          <div className="sob-toolbar" role="toolbar" aria-label="Formatting">
+          <div className="sob-toolbar" role="toolbar" aria-label={tx('Formatting')}>
             {tool('Undo', () => editor.chain().focus().undo().run(), false, '↶')}
             {tool('Redo', () => editor.chain().focus().redo().run(), false, '↷')}
             {[1, 2, 3, 4].map((l) =>
@@ -299,8 +302,11 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             {tool('Underline', () => editor.chain().focus().toggleUnderline().run(), editor.isActive('underline'), 'U')}
             {tool('Strike', () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike'), 'S')}
             {tool('Highlight', () => editor.chain().focus().toggleHighlight({ color: '#fbefd9' }).run(), editor.isActive('highlight'), 'Mark')}
-            <label className="sob-tool" title="Text colour">
-              <span className="hidden-label">Text colour</span>A
+            <label className="sob-tool" title={tx('Text colour')}>
+              <span className="hidden-label">
+                <T s={'Text colour'} />
+              </span>
+              A
               <input type="color" onChange={(e) => editor.chain().focus().setColor(e.target.value).run()} style={{ width: 18, height: 18, border: 0, padding: 0, marginLeft: 4 }} />
             </label>
             {(['left', 'center', 'right'] as const).map((a) => tool(`Align ${a}`, () => editor.chain().focus().setTextAlign(a).run(), editor.isActive({ textAlign: a }), a[0].toUpperCase()))}
@@ -337,7 +343,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
         <div className="sob-editor-wrap">
           <EditorContent editor={editor} />
           {slash && slashList.length > 0 && (
-            <ul className="sob-sx-pop glass sob-slash" role="listbox" aria-label="Blocks">
+            <ul className="sob-sx-pop glass sob-slash" role="listbox" aria-label={tx('Blocks')}>
               {slashList.map((b, i) => (
                 <li key={b.key} role="option" aria-selected={i === slash.i} className={i === slash.i ? 'on' : undefined}>
                   <a
@@ -355,34 +361,41 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           )}
         </div>
         <p className="tag">
-          {words} words · {Math.max(1, Math.round(words / 220))} min read · {dirty ? 'Unsaved changes' : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : 'Saved'}
+          <T
+            s={'{words} words · {v1} min read · {v2}'}
+            v={{ words, v1: Math.max(1, Math.round(words / 220)), v2: dirty ? 'Unsaved changes' : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : 'Saved' }}
+          />
         </p>
       </div>
 
       <aside className="sob-editor-side sob-stack">
         <div className="glass card sob-stack">
-          <h2>Publish</h2>
-          <p className="tag">State: {f.status}</p>
+          <h2>
+            <T s={'Publish'} />
+          </h2>
+          <p className="tag">
+            <T s={'State: {status}'} v={{ status: f.status }} />
+          </p>
           <div className="row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             <Button variant="ghost" size="sm" onClick={() => void save('draft')}>
-              Save draft
+              <T s={'Save draft'} />
             </Button>
             <Button size="sm" onClick={() => void save('publish')}>
-              Publish
+              <T s={'Publish'} />
             </Button>
             {(f.status === 'published' || f.status === 'scheduled') && (
               <Button variant="ghost" size="sm" onClick={() => void save('unpublish')}>
-                Unpublish
+                <T s={'Unpublish'} />
               </Button>
             )}
           </div>
           <Field label="Publish later (UTC, YYYY-MM-DDTHH:MM)" type="datetime-local" value={f.publishAt} onChange={(e) => set('publishAt', e.target.value)} />
           <Button variant="ghost" size="sm" onClick={() => void save('schedule')} disabled={!f.publishAt}>
-            Schedule
+            <T s={'Schedule'} />
           </Button>
           {f.id && f.slug && (
             <a href={`/guides/${f.slug}?preview=1`} target="_blank" rel="noopener">
-              Preview
+              <T s={'Preview'} />
             </a>
           )}
           {msg && (
@@ -392,10 +405,14 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           )}
         </div>
         <div className="glass card sob-stack">
-          <h2>Details</h2>
+          <h2>
+            <T s={'Details'} />
+          </h2>
           <Field label="Address (slug)" value={f.slug} onChange={(e) => set('slug', e.target.value.toLowerCase())} hint="Small letters, numbers and dashes. Empty: made from the title." />
           <Field as="select" label="Category" value={f.category} onChange={(e) => set('category', e.target.value)}>
-            <option value="">None</option>
+            <option value="">
+              <T s={'None'} />
+            </option>
             {categories.map((c) => (
               <option key={c}>{c}</option>
             ))}
@@ -421,7 +438,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              aria-label="Upload a cover picture"
+              aria-label={tx('Upload a cover picture')}
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (file) set('coverUrl', await upload(file).catch(() => f.coverUrl));
@@ -431,7 +448,9 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           <Field label="Cover alt text" value={f.coverAlt} onChange={(e) => set('coverAlt', e.target.value)} maxLength={150} />
         </div>
         <div className="glass card sob-stack">
-          <h2>Search and sharing</h2>
+          <h2>
+            <T s={'Search and sharing'} />
+          </h2>
           <Field label="SEO title" value={f.metaTitle} onChange={(e) => set('metaTitle', e.target.value)} maxLength={70} hint={`${f.metaTitle.length} of about 60 shown`} />
           <Field
             as="textarea"
@@ -444,30 +463,36 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           <Field label="Share picture (OG image)" value={f.ogImage} onChange={(e) => set('ogImage', e.target.value)} hint="Empty: the cover is used." />
           <Field label="Canonical address" value={f.canonical} onChange={(e) => set('canonical', e.target.value)} hint="Only when the guide first appeared elsewhere." />
           <div className="li">
-            <span style={{ flex: 1 }}>Hide from search engines (noindex)</span>
+            <span style={{ flex: 1 }}>
+              <T s={'Hide from search engines (noindex)'} />
+            </span>
             <Switch label="Hide from search engines" checked={f.noindex} onChange={(on) => set('noindex', on)} />
           </div>
         </div>
         {f.id && (
           <div className="glass card sob-stack">
-            <h2>History</h2>
+            <h2>
+              <T s={'History'} />
+            </h2>
             {revs === null ? (
               <Button variant="ghost" size="sm" onClick={() => void loadRevisions()}>
-                Show versions
+                <T s={'Show versions'} />
               </Button>
             ) : revs.length ? (
               revs.map((r) => (
                 <div key={r.id} className="li">
                   <span style={{ flex: 1 }}>
-                    {new Date(r.at).toLocaleString()} · {r.words} words{r.autosave ? ' · autosave' : ''}
+                    <T s={'{v0} · {words} words{v2}'} v={{ v0: new Date(r.at).toLocaleString(), words: r.words, v2: r.autosave ? ' · autosave' : '' }} />
                   </span>
                   <button type="button" className="sob-sx-link" onClick={() => void restore(r.id)}>
-                    Restore
+                    <T s={'Restore'} />
                   </button>
                 </div>
               ))
             ) : (
-              <p className="tag">No versions yet.</p>
+              <p className="tag">
+                <T s={'No versions yet.'} />
+              </p>
             )}
           </div>
         )}

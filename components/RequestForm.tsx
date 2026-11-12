@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { BUYER_TIERS, TIER_TEXT, type RequestedTier } from '@/lib/licenceTiers';
 import { REQUEST_CONSENT_TEXT } from '@/lib/requests/rules';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Pkg = 'asis' | 'setup' | 'custom';
 export type RequestProduct = {
   slug: string;
@@ -25,6 +27,7 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
  * SellOnBay reviews it and replies with a quotation or a question. The server checks every field again.
  */
 export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: Pkg }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const pkgs: [Pkg, string, number | null][] = [
     ['asis', 'As is', 0],
@@ -78,9 +81,13 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
   return (
     <form className="sob-req-form" onSubmit={send} data-request-form>
       <section className="sob-req-sec">
-        <h2>What you want</h2>
+        <h2>
+          <T s={'What you want'} />
+        </h2>
         <fieldset>
-          <legend>Package</legend>
+          <legend>
+            <T s={'Package'} />
+          </legend>
           {offered.map(([k, label, c]) => (
             <label className="opt" key={k}>
               <input type="radio" name="pkg" value={k} checked={pkg === k} onChange={() => setPkg(k)} />
@@ -91,7 +98,9 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
           ))}
         </fieldset>
         <fieldset>
-          <legend>Licence</legend>
+          <legend>
+            <T s={'Licence'} />
+          </legend>
           {[...BUYER_TIERS, 'exclusive_review' as const].map((t) => (
             <label className="opt" key={t}>
               <input type="radio" name="tier" value={t} checked={tier === t} onChange={() => setTier(t)} />
@@ -106,39 +115,58 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
           <label className="opt">
             <input type="checkbox" checked={express} onChange={(e) => setExpress(e.target.checked)} />
             <span>
-              Ask for express delivery <small className="muted">+{money(p.expressCents)}, if SellOnBay can confirm it</small>
+              <T s={'Ask for express delivery'} />{' '}
+              <small className="muted">
+                <T s={'+{v0}, if SellOnBay can confirm it'} v={{ v0: money(p.expressCents) }} />
+              </small>
             </span>
           </label>
         ) : null}
       </section>
 
       <section className="sob-req-sec">
-        <h2>How you will use it</h2>
-        <label htmlFor="rq-use">Your business and what the product is for</label>
+        <h2>
+          <T s={'How you will use it'} />
+        </h2>
+        <label htmlFor="rq-use">
+          <T s={'Your business and what the product is for'} />
+        </label>
         <textarea id="rq-use" required minLength={10} maxLength={1000} rows={4} value={use} onChange={(e) => setUse(e.target.value)} />
-        <label htmlFor="rq-reqs">Anything you need changed or added (optional)</label>
+        <label htmlFor="rq-reqs">
+          <T s={'Anything you need changed or added (optional)'} />
+        </label>
         <textarea id="rq-reqs" maxLength={4000} rows={5} value={reqs} onChange={(e) => setReqs(e.target.value)} />
-        <small className="muted">Please do not include email addresses or phone numbers. SellOnBay handles all messages.</small>
+        <small className="muted">
+          <T s={'Please do not include email addresses or phone numbers. SellOnBay handles all messages.'} />
+        </small>
       </section>
 
       {(p.needsDomain || p.needsAppName || p.needsOses || p.needsGithub) && (
         <section className="sob-req-sec">
-          <h2>Delivery details</h2>
+          <h2>
+            <T s={'Delivery details'} />
+          </h2>
           {p.needsDomain && (
             <>
-              <label htmlFor="rq-domain">Your domain (optional now)</label>
-              <input id="rq-domain" placeholder="mybusiness.com" value={domain} onChange={(e) => setDomain(e.target.value)} />
+              <label htmlFor="rq-domain">
+                <T s={'Your domain (optional now)'} />
+              </label>
+              <input id="rq-domain" placeholder={tx('mybusiness.com')} value={domain} onChange={(e) => setDomain(e.target.value)} />
             </>
           )}
           {p.needsAppName && (
             <>
-              <label htmlFor="rq-app">App name</label>
+              <label htmlFor="rq-app">
+                <T s={'App name'} />
+              </label>
               <input id="rq-app" maxLength={30} value={appName} onChange={(e) => setAppName(e.target.value)} />
             </>
           )}
           {p.needsOses && (
             <fieldset>
-              <legend>Computers</legend>
+              <legend>
+                <T s={'Computers'} />
+              </legend>
               {['Windows', 'macOS', 'Linux'].map((o) => (
                 <label className="opt" key={o}>
                   <input type="checkbox" checked={oses.includes(o)} onChange={(e) => setOses(e.target.checked ? [...oses, o] : oses.filter((x) => x !== o))} />
@@ -149,26 +177,36 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
           )}
           {p.needsGithub && (
             <>
-              <label htmlFor="rq-gh">GitHub username (for repository access)</label>
-              <input id="rq-gh" placeholder="octocat" value={github} onChange={(e) => setGithub(e.target.value)} />
+              <label htmlFor="rq-gh">
+                <T s={'GitHub username (for repository access)'} />
+              </label>
+              <input id="rq-gh" placeholder={tx('octocat')} value={github} onChange={(e) => setGithub(e.target.value)} />
             </>
           )}
         </section>
       )}
 
       <section className="sob-req-sec">
-        <h2>Business details (optional)</h2>
+        <h2>
+          <T s={'Business details (optional)'} />
+        </h2>
         <div className="sob-req-grid">
           <div>
-            <label htmlFor="rq-co">Company</label>
+            <label htmlFor="rq-co">
+              <T s={'Company'} />
+            </label>
             <input id="rq-co" maxLength={120} value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
           <div>
-            <label htmlFor="rq-cc">Country code</label>
-            <input id="rq-cc" maxLength={2} placeholder="BD" value={country} onChange={(e) => setCountry(e.target.value.toUpperCase())} />
+            <label htmlFor="rq-cc">
+              <T s={'Country code'} />
+            </label>
+            <input id="rq-cc" maxLength={2} placeholder={tx('BD')} value={country} onChange={(e) => setCountry(e.target.value.toUpperCase())} />
           </div>
           <div>
-            <label htmlFor="rq-tax">Tax or VAT number</label>
+            <label htmlFor="rq-tax">
+              <T s={'Tax or VAT number'} />
+            </label>
             <input id="rq-tax" maxLength={40} value={taxId} onChange={(e) => setTaxId(e.target.value)} />
           </div>
         </div>
@@ -176,9 +214,13 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
 
       <section className="sob-req-sec sob-req-sum">
         <dl className="sob-kv">
-          <dt>Listed price for this choice</dt>
+          <dt>
+            <T s={'Listed price for this choice'} />
+          </dt>
           <dd>{tier === 'single_project' ? money(listed) : 'Quoted by SellOnBay'}</dd>
-          <dt>Delivery</dt>
+          <dt>
+            <T s={'Delivery'} />
+          </dt>
           <dd>{p.delivery}</dd>
         </dl>
         <label className="opt">

@@ -98,7 +98,7 @@ export function BetaForm({ ids, name, email, summary, steps }: { ids: string[]; 
             <label htmlFor="d" style={SR}>
               {tx('Domain name')}
             </label>
-            <input id="d" name="domain" className="input" placeholder="yourbrand.com" maxLength={253} style={{ flex: '1 1 240px' }} />
+            <input id="d" name="domain" className="input" placeholder={tx('yourbrand.com')} maxLength={253} style={{ flex: '1 1 240px' }} />
             <Link className="btn ghost" href="/domains" prefetch={false}>
               {tx('Find a domain')}
             </Link>

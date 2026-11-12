@@ -33,7 +33,7 @@ test.describe('Languages', () => {
     await page.goto(`${DEMO}/bn`);
     await expect(page.locator('html')).toHaveAttribute('lang', 'bn');
     await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-    const nav = page.getByRole('navigation', { name: 'Main' });
+    const nav = page.getByRole('navigation', { name: 'প্রধান' }); // the menu's label is translated too ("Main")
     await expect(nav.getByRole('link', { name: 'ওয়েবসাইট' })).toHaveAttribute('href', '/bn/websites');
     await expect(nav.getByRole('link', { name: 'অ্যাফিলিয়েট' })).toHaveAttribute('href', '/bn/affiliates');
     await expect(page.getByText('ওয়েবসাইট কিনুন। ডোমেইন নিন। অথবা নিজেরটা বিক্রি করুন।')).toBeVisible(); // the home page words
@@ -81,13 +81,13 @@ test.describe('Languages', () => {
     await page.getByRole('button', { name: /Save draft/ }).click();
     await expect(page.getByText(/Saved 1 as a draft/)).toBeVisible();
     await page.goto(`${DEMO}/bn/websites`);
-    await expect(page.getByRole('navigation', { name: 'Main' }).getByText(word)).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'প্রধান' }).getByText(word)).toHaveCount(0);
     await page.goto(`${DEMO}/admin/languages?tab=translations&lang=bn&area=nav.&q=nav.cart`);
     page.once('dialog', (d) => void d.accept());
     await page.getByRole('button', { name: 'Publish draft' }).click();
     await expect(page.getByText('Published.', { exact: true })).toBeVisible();
     await page.goto(`${DEMO}/bn/websites`);
-    await expect(page.getByRole('navigation', { name: 'Main' }).getByText(word)).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'প্রধান' }).getByText(word)).toBeVisible();
     page.once('dialog', (d) => void d.accept());
     await page.goto(`${DEMO}/admin/languages?tab=translations&lang=bn`);
     await page.getByRole('button', { name: 'Unpublish edits' }).click();

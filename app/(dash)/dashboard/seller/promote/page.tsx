@@ -7,6 +7,8 @@ import { AD_PLATFORMS, type AdPlatform } from '@/lib/ads/rules';
 import { platformOpen, promotionsOf } from '@/lib/ads/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Promote a product', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,7 @@ const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
  * (B-9) and counsel reviews the terms (B-10): this page says so and offers nothing that would reach an ad platform.
  */
 export default async function Promote() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/promote', roles: ['seller'] });
   const me = viewer?.id ?? null;
   const open = Object.fromEntries(await Promise.all((Object.keys(AD_PLATFORMS) as AdPlatform[]).map(async (p) => [p, await platformOpen(p)] as const))) as Record<AdPlatform, boolean>;
@@ -24,24 +27,35 @@ export default async function Promote() {
   const live = me ? ((await sellerDashboard(me))?.listings ?? []).filter((l) => l.status === 'live') : [];
   const mine = me ? await promotionsOf(me) : [];
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller-promote" title="Promote a product">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller-promote" title={tx('Promote a product')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Promote a product</h2>
+            <h2>
+              <T s={'Promote a product'} />
+            </h2>
             <p className="tag">
-              Run an ad for one of your live listings on your own {AD_PLATFORMS.meta.label} or {AD_PLATFORMS.google.label} account. The platform bills you directly; SellOnBay never charges for ads and
-              never shares buyer data. SellOnBay checks the words first; the platform&apos;s own review still applies.
+              <T
+                s={
+                  "Run an ad for one of your live listings on your own {label} or {label2} account. The platform bills you directly; SellOnBay never charges for ads and never shares buyer data. SellOnBay checks the words first; the platform's own review still applies."
+                }
+                v={{ label: AD_PLATFORMS.meta.label, label2: AD_PLATFORMS.google.label }}
+              />
             </p>
           </div>
         </div>
         {!any ? (
           <p className="muted" data-ads-state="not-available">
-            Not available yet. Promotions wait for Meta and Google to confirm that SellOnBay may connect sellers&apos; ad accounts, and for a legal review of the terms. Nothing is connected and
-            nothing is charged.
+            <T
+              s={
+                "Not available yet. Promotions wait for Meta and Google to confirm that SellOnBay may connect sellers' ad accounts, and for a legal review of the terms. Nothing is connected and nothing is charged."
+              }
+            />
           </p>
         ) : live.length === 0 ? (
-          <p className="muted">You need a live listing to promote.</p>
+          <p className="muted">
+            <T s={'You need a live listing to promote.'} />
+          </p>
         ) : (
           <AdminForm
             endpoint="/api/seller/promotions"
@@ -68,15 +82,25 @@ export default async function Promote() {
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Your promotions</h2>
+              <h2>
+                <T s={'Your promotions'} />
+              </h2>
             </div>
           </div>
           <ul className="sob-list">
             {mine.map((p) => (
               <li key={p.id}>
                 <div className="sob-grow">
-                  <b>{p.headline}</b> · {p.productName} · {AD_PLATFORMS[p.platform].label} · {usd(p.dailyBudgetCents)} a day for {p.days} days · {p.status.replace('_', ' ')}
-                  {p.reviewNote && <p className="muted">SellOnBay: {p.reviewNote}</p>}
+                  <b>{p.headline}</b>{' '}
+                  <T
+                    s={'· {productName} · {label} · {v2} a day for {days} days · {v4}'}
+                    v={{ productName: p.productName, label: AD_PLATFORMS[p.platform].label, v2: usd(p.dailyBudgetCents), days: p.days, v4: p.status.replace('_', ' ') }}
+                  />
+                  {p.reviewNote && (
+                    <p className="muted">
+                      <T s={'SellOnBay: {reviewNote}'} v={{ reviewNote: p.reviewNote }} />
+                    </p>
+                  )}
                 </div>
                 <div className="sob-acts">
                   {p.status === 'draft' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'submit', id: p.id }} fields={[]} submit="Send for review" />}

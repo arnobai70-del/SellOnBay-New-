@@ -7,6 +7,8 @@ import { FEATURE_KEYS, FEATURE_LABEL, PERIOD_LABEL, daysOf } from '@/lib/buyerSu
 import { publicPlans, subSettings } from '@/lib/buyerSubs/service';
 import { getViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = {
   title: 'Buyer subscriptions',
   description: 'Yearly plans: choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.',
@@ -27,6 +29,7 @@ const DEFAULT_FAQ = [
  * feature is switched off the page is a 404, except for admins, who see it with a note so they can check it before opening.
  */
 export default async function Subscriptions() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [settings, plans, viewer] = await Promise.all([subSettings(), publicPlans(), getViewer().catch(() => null)]);
   const admin = viewer?.role === 'admin';
   if (!settings.enabled && !admin) notFound();
@@ -36,19 +39,23 @@ export default async function Subscriptions() {
     <PublicFrame file="sell">
       {!settings.enabled && (
         <p className="sob-note" role="note">
-          Preview for admins: subscriptions are switched off, so visitors do not see this page. Turn them on in Admin › Buyer subscriptions.
+          <T s={'Preview for admins: subscriptions are switched off, so visitors do not see this page. Turn them on in Admin › Buyer subscriptions.'} />
         </p>
       )}
       <section style={{ padding: '72px 0 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-        <span className="badge">Buyer subscriptions</span>
-        <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>More websites, one yearly plan</h1>
+        <span className="badge">
+          <T s={'Buyer subscriptions'} />
+        </span>
+        <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>
+          <T s={'More websites, one yearly plan'} />
+        </h1>
         <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
           {settings.intro || 'Choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.'}
         </p>
       </section>
 
       {plans.length ? (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 18 }} aria-label="Plans">
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 18 }} aria-label={tx('Plans')}>
           {plans.map((p) => (
             <article key={p.id} className="glass card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 14, borderTop: `4px solid ${p.color}` }}>
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -64,7 +71,7 @@ export default async function Subscriptions() {
                 <span className="muted"> / {p.period === 'custom' ? `${daysOf(p)} days` : PERIOD_LABEL[p.period]}</span>
               </div>
               <div className="tag" style={{ margin: 0 }}>
-                Renewal {usd(p.renewalCents)} · {p.websiteLimit} {p.websiteLimit === 1 ? 'website' : 'websites'} of your choice
+                <T s={'Renewal {v0} · {websiteLimit} {v2} of your choice'} v={{ v0: usd(p.renewalCents), websiteLimit: p.websiteLimit, v2: p.websiteLimit === 1 ? 'website' : 'websites' }} />
               </div>
               {p.description && (
                 <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
@@ -90,20 +97,24 @@ export default async function Subscriptions() {
       ) : (
         <section className="glass card" style={{ padding: 28, textAlign: 'center' }}>
           <p className="muted" style={{ margin: 0 }}>
-            New plans are on their way.
+            <T s={'New plans are on their way.'} />
           </p>
         </section>
       )}
 
       {plans.length > 0 && featureRows.length > 0 && (
         <section className="sec">
-          <h2 style={{ fontSize: 28, marginBottom: 18 }}>Compare plans</h2>
+          <h2 style={{ fontSize: 28, marginBottom: 18 }}>
+            <T s={'Compare plans'} />
+          </h2>
           <div className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="tbl" style={{ overflowX: 'auto' }}>
               <table>
                 <thead>
                   <tr>
-                    <th>Included</th>
+                    <th>
+                      <T s={'Included'} />
+                    </th>
                     {plans.map((p) => (
                       <th key={p.id}>{p.name}</th>
                     ))}
@@ -111,13 +122,17 @@ export default async function Subscriptions() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Websites you choose</td>
+                    <td>
+                      <T s={'Websites you choose'} />
+                    </td>
                     {plans.map((p) => (
                       <td key={p.id}>{p.websiteLimit}</td>
                     ))}
                   </tr>
                   <tr>
-                    <td>Support</td>
+                    <td>
+                      <T s={'Support'} />
+                    </td>
                     {plans.map((p) => (
                       <td key={p.id}>{p.supportDays ? `${p.supportDays} days` : 'No'}</td>
                     ))}
@@ -131,7 +146,9 @@ export default async function Subscriptions() {
                     </tr>
                   ))}
                   <tr>
-                    <td>Renewal</td>
+                    <td>
+                      <T s={'Renewal'} />
+                    </td>
                     {plans.map((p) => (
                       <td key={p.id}>{usd(p.renewalCents)}</td>
                     ))}
@@ -144,7 +161,9 @@ export default async function Subscriptions() {
       )}
 
       <section className="sec" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2 style={{ fontSize: 28, marginBottom: 8 }}>Questions</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 8 }}>
+          <T s={'Questions'} />
+        </h2>
         {faq.map(([q, a]) => (
           <details key={q} className="glass">
             <summary>{q}</summary>
@@ -154,8 +173,15 @@ export default async function Subscriptions() {
           </details>
         ))}
         <div className="tag">
-          New features and custom work are paid separately. Refunds follow the <Link href="/legal/refunds">refund policy</Link>; licence terms are on the{' '}
-          <Link href="/legal/licenses">licences page</Link>.
+          <T s={'New features and custom work are paid separately. Refunds follow the'} />{' '}
+          <Link href="/legal/refunds">
+            <T s={'refund policy'} />
+          </Link>
+          <T s={'; licence terms are on the'} />{' '}
+          <Link href="/legal/licenses">
+            <T s={'licences page'} />
+          </Link>
+          .
         </div>
       </section>
     </PublicFrame>

@@ -20,6 +20,7 @@ import { savedSocial } from '@/lib/site/contentStore';
 import { pageCopy } from '@/lib/content/copy';
 import { shownSocial } from '@/lib/site/social';
 
+import { T } from '@/components/i18n/T';
 const HOME_DESCRIPTION = `Buy ready-made full-stack websites with escrow protection, get a domain in your own name, or sell your own websites and keep ${PLAN_KEEP_TEXT}.`;
 
 /* An admin can set the title and description Google shows, and the Search Console codes, at Admin > SEO. */
@@ -220,7 +221,7 @@ export default async function Home() {
               style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 6px 6px 18px', borderRadius: 999, background: 'rgba(255,255,255,.8)', border: '1px solid #DCE7EC' }}
             >
               <label htmlFor="dm" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-                Search a domain
+                <T s={'Search a domain'} />
               </label>
               <input
                 id="dm"
@@ -301,13 +302,15 @@ export default async function Home() {
                 </div>
               </div>
               <Link className="btn" href={`/sellers/${s.handle}`} style={{ padding: '0 16px' }} prefetch={false}>
-                View
+                <T s={'View'} />
               </Link>
             </div>
           ))}
           {sellers.length === 0 && (
             <div className="glass" style={{ padding: 18 }}>
-              <span className="muted">Sellers appear here once their first website is live.</span>
+              <span className="muted">
+                <T s={'Sellers appear here once their first website is live.'} />
+              </span>
             </div>
           )}
         </div>
@@ -335,7 +338,7 @@ export default async function Home() {
               {c.t('sell', 'button')}
             </Link>
             <Link className="btn ghost" href="/sell#how" prefetch={false}>
-              How selling works
+              <T s={'How selling works'} />
             </Link>
           </div>
         </section>
@@ -346,7 +349,7 @@ export default async function Home() {
     <PublicFrame file="index">
       {c.preview && (
         <p className="sob-note" role="status">
-          Preview of the saved draft. Visitors still see the published words.
+          <T s={'Preview of the saved draft. Visitors still see the published words.'} />
         </p>
       )}
       <section style={{ position: 'relative', isolation: 'isolate', padding: '96px 0 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 22 }}>
@@ -399,7 +402,9 @@ export default async function Home() {
               <div style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span className="img" style={{ height: 70 }} />
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <span className="mini">Create.</span>
+                  <span className="mini">
+                    <T s={'Create.'} />
+                  </span>
                   <span className="ln" />
                   <span className="ln s" />
                 </div>
@@ -416,17 +421,21 @@ export default async function Home() {
         <div className="floater" aria-hidden="true" style={{ left: 40, top: 690, width: 170, ['--r' as string]: '4deg', animationDelay: '1.3s, 2.7s' }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: '#1A5444' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3F8F77' }} />
-            Payment held in escrow
+            <T s={'Payment held in escrow'} />
           </div>
         </div>
         <div className="floater" aria-hidden="true" style={{ right: 30, top: 690, width: 190, ['--r' as string]: '-4deg', animationDelay: '1.5s, 2.9s' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 13 }}>
-            <span style={{ fontWeight: 500 }}>yourbrand.com</span>
-            <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 999, background: '#E2F3EC', color: '#1A5444' }}>In your name</span>
+            <span style={{ fontWeight: 500 }}>
+              <T s={'yourbrand.com'} />
+            </span>
+            <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 999, background: '#E2F3EC', color: '#1A5444' }}>
+              <T s={'In your name'} />
+            </span>
           </div>
         </div>
         <span className="badge fade-in" style={{ animationDelay: '.2s' }}>
-          Full-stack websites · Domains · Seller marketplace
+          <T s={'Full-stack websites · Domains · Seller marketplace'} />
         </span>
         <h1 style={{ fontSize: 'clamp(40px, 6vw, 64px)', lineHeight: 1.08, fontWeight: 300 }}>
           <span className="hl">
@@ -447,7 +456,7 @@ export default async function Home() {
         <HeroSearch placeholder={c.t('hero', 'search')} />
         <div className="fade-in" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', animationDelay: '.75s' }}>
           <Link className="chip on" href="/websites" prefetch={false}>
-            All
+            <T s={'All'} />
           </Link>
           {HUBS.map((h) => (
             <Link key={h.slug} className="chip" href={categoryPath(h.slug)} prefetch={false}>

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { COMMISSION_KINDS, KIND_LABEL, type Settings } from '@/lib/affiliates/rules';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 export type Section = 'program' | 'registration' | 'commission' | 'tracking' | 'badges' | 'notifications' | 'fraud' | 'products';
 
 /*
@@ -12,6 +14,7 @@ export type Section = 'program' | 'registration' | 'commission' | 'tracking' | '
  * keep the rate they recorded.
  */
 export function AffSettingsForm({ initial, section }: { initial: Settings; section: Section }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [s, setS] = useState<Settings>(initial);
   const [msg, setMsg] = useState('');
@@ -58,14 +61,18 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
           {check('The affiliate program is on (public page, registration, link tracking)', s.enabled, (v) => set({ enabled: v }))}
           {check('Show the public monthly leaderboard (top 5)', s.leaderboardPublic, (v) => set({ leaderboardPublic: v }))}
           <div className="field">
-            <label htmlFor="aff-intro">Words under the public page heading</label>
+            <label htmlFor="aff-intro">
+              <T s={'Words under the public page heading'} />
+            </label>
             <textarea id="aff-intro" className="input" rows={2} maxLength={600} value={s.intro} onChange={(e) => set({ intro: e.target.value })} />
           </div>
           <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <legend className="tag">Benefits shown on the public page</legend>
+            <legend className="tag">
+              <T s={'Benefits shown on the public page'} />
+            </legend>
             {s.benefits.map((b, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input aria-label="Shown" type="checkbox" checked={b.on} onChange={(e) => set({ benefits: s.benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)) })} />
+                <input aria-label={tx('Shown')} type="checkbox" checked={b.on} onChange={(e) => set({ benefits: s.benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)) })} />
                 <input
                   aria-label={`Benefit ${i + 1}`}
                   className="input"
@@ -74,26 +81,32 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
                   onChange={(e) => set({ benefits: s.benefits.map((x, n) => (n === i ? { ...x, text: e.target.value } : x)) })}
                 />
                 <button type="button" className="btn sm ghost" onClick={() => set({ benefits: s.benefits.filter((_, n) => n !== i) })}>
-                  Remove
+                  <T s={'Remove'} />
                 </button>
               </div>
             ))}
             <button type="button" className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => set({ benefits: [...s.benefits, { text: '', on: true }] })}>
-              + Add benefit
+              <T s={'+ Add benefit'} />
             </button>
           </fieldset>
           <div style={grid}>
             <div className="field">
-              <label htmlFor="aff-tv">Terms version</label>
+              <label htmlFor="aff-tv">
+                <T s={'Terms version'} />
+              </label>
               <input id="aff-tv" className="input" maxLength={40} value={s.termsVersion} onChange={(e) => set({ termsVersion: e.target.value })} />
             </div>
           </div>
           <div className="field">
-            <label htmlFor="aff-terms">Affiliate terms (new affiliates accept the version above)</label>
+            <label htmlFor="aff-terms">
+              <T s={'Affiliate terms (new affiliates accept the version above)'} />
+            </label>
             <textarea id="aff-terms" className="input" rows={6} maxLength={6000} value={s.terms} onChange={(e) => set({ terms: e.target.value })} />
           </div>
           <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <legend className="tag">Questions on the public page (empty: the standard ones)</legend>
+            <legend className="tag">
+              <T s={'Questions on the public page (empty: the standard ones)'} />
+            </legend>
             {s.faq.map((x, i) => (
               <div key={i} style={{ display: 'grid', gap: 6 }}>
                 <input
@@ -112,12 +125,12 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
                   onChange={(e) => set({ faq: s.faq.map((y, n) => (n === i ? { ...y, a: e.target.value } : y)) })}
                 />
                 <button type="button" className="btn sm ghost" style={{ justifySelf: 'start' }} onClick={() => set({ faq: s.faq.filter((_, n) => n !== i) })}>
-                  Remove question
+                  <T s={'Remove question'} />
                 </button>
               </div>
             ))}
             <button type="button" className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => set({ faq: [...s.faq, { q: '', a: '' }] })}>
-              + Add question
+              <T s={'+ Add question'} />
             </button>
           </fieldset>
         </>
@@ -140,9 +153,15 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             <table>
               <thead>
                 <tr>
-                  <th>Sale type</th>
-                  <th>Earns</th>
-                  <th>Rate (%)</th>
+                  <th>
+                    <T s={'Sale type'} />
+                  </th>
+                  <th>
+                    <T s={'Earns'} />
+                  </th>
+                  <th>
+                    <T s={'Rate (%)'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -172,7 +191,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             {num('Minimum withdrawal (USD)', Number(dollars(s.minWithdrawalCents)), (n) => set({ minWithdrawalCents: toCents(String(n)) }))}
           </div>
           <div className="tag" style={{ margin: 0 }}>
-            A new rate applies to commissions made from now on; every commission keeps the rate it was made with. Nothing is ever paid for recruiting affiliates.
+            <T s={'A new rate applies to commissions made from now on; every commission keeps the rate it was made with. Nothing is ever paid for recruiting affiliates.'} />
           </div>
         </>
       )}
@@ -180,14 +199,22 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
       {section === 'products' && (
         <>
           <div className="field">
-            <label htmlFor="aff-mode">Which websites earn commission</label>
+            <label htmlFor="aff-mode">
+              <T s={'Which websites earn commission'} />
+            </label>
             <select id="aff-mode" className="input" value={s.eligible.mode} onChange={(e) => set({ eligible: { ...s.eligible, mode: e.target.value === 'list' ? 'list' : 'all' } })}>
-              <option value="all">Every website, except the ones below</option>
-              <option value="list">Only the websites listed below</option>
+              <option value="all">
+                <T s={'Every website, except the ones below'} />
+              </option>
+              <option value="list">
+                <T s={'Only the websites listed below'} />
+              </option>
             </select>
           </div>
           <div className="field">
-            <label htmlFor="aff-inc">Included websites (addresses, comma separated)</label>
+            <label htmlFor="aff-inc">
+              <T s={'Included websites (addresses, comma separated)'} />
+            </label>
             <textarea
               id="aff-inc"
               className="input"
@@ -207,7 +234,9 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             />
           </div>
           <div className="field">
-            <label htmlFor="aff-exc">Excluded websites</label>
+            <label htmlFor="aff-exc">
+              <T s={'Excluded websites'} />
+            </label>
             <textarea
               id="aff-exc"
               className="input"
@@ -245,36 +274,42 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
                 <div style={grid}>
                   <div className="field">
                     <label>
-                      Name
+                      <T s={'Name'} />
                       <input className="input" value={b.name} maxLength={60} onChange={(e) => up({ name: e.target.value })} />
                     </label>
                   </div>
                   <div className="field">
                     <label>
-                      Icon
+                      <T s={'Icon'} />
                       <input className="input" value={b.icon} maxLength={4} onChange={(e) => up({ icon: e.target.value })} />
                     </label>
                   </div>
                   <div className="field">
                     <label>
-                      Colour
+                      <T s={'Colour'} />
                       <input className="input" type="color" value={b.color} onChange={(e) => up({ color: e.target.value })} />
                     </label>
                   </div>
                   <div className="field">
                     <label>
-                      Kind
+                      <T s={'Kind'} />
                       <select className="input" value={b.kind} onChange={(e) => up({ kind: e.target.value as Settings['badges'][number]['kind'] })}>
-                        <option value="verified">Verified affiliate</option>
-                        <option value="sales">Verified sales milestone</option>
-                        <option value="champion">Monthly champion</option>
+                        <option value="verified">
+                          <T s={'Verified affiliate'} />
+                        </option>
+                        <option value="sales">
+                          <T s={'Verified sales milestone'} />
+                        </option>
+                        <option value="champion">
+                          <T s={'Monthly champion'} />
+                        </option>
                       </select>
                     </label>
                   </div>
                   {b.kind === 'sales' && num('Verified sales needed', b.threshold, (n) => up({ threshold: n }))}
                   <div className="field">
                     <label>
-                      Reward (optional)
+                      <T s={'Reward (optional)'} />
                       <input className="input" value={b.reward} maxLength={120} onChange={(e) => up({ reward: e.target.value })} />
                     </label>
                   </div>
@@ -282,7 +317,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   {check('On', b.enabled, (v) => up({ enabled: v }))}
                   <button type="button" className="btn sm ghost" onClick={() => set({ badges: s.badges.filter((_, n) => n !== i) })}>
-                    Remove
+                    <T s={'Remove'} />
                   </button>
                 </div>
               </fieldset>
@@ -294,7 +329,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             style={{ alignSelf: 'flex-start' }}
             onClick={() => set({ badges: [...s.badges, { key: `badge-${Date.now()}`, name: 'New milestone', icon: '★', color: '#5FA88F', kind: 'sales', threshold: 200, reward: '', enabled: true }] })}
           >
-            + Add badge
+            <T s={'+ Add badge'} />
           </button>
         </>
       )}
@@ -317,7 +352,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
 
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <button className="btn sm" type="submit">
-          Save
+          <T s={'Save'} />
         </button>
         {msg && (
           <span role="status" className="tag" style={{ margin: 0 }}>

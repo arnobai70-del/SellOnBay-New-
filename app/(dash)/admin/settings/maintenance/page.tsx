@@ -9,6 +9,8 @@ import { moduleStates, pageStates } from '@/lib/maintenance/service';
 import { readRows } from '@/lib/maintenance/state';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Maintenance', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -62,15 +64,32 @@ const fields = (r: { enabled: boolean; message: string; startAt: number | null; 
  * notice before it starts. Admins and allow-listed addresses can still use a closed area to test it. Visitors get a 503 page with Retry-After.
  */
 export default async function MaintenanceSettings() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/settings/maintenance', roles: ['admin'], scope: 'super' });
   const [{ modules }, pages, rows] = await Promise.all([moduleStates(), pageStates(), readRows()]);
   const state = (active: boolean, enabled: boolean) =>
-    active ? <StatusPill tone="bad">Closed now</StatusPill> : enabled ? <StatusPill tone="wait">Planned</StatusPill> : <StatusPill tone="ok">Open</StatusPill>;
+    active ? (
+      <StatusPill tone="bad">
+        <T s={'Closed now'} />
+      </StatusPill>
+    ) : enabled ? (
+      <StatusPill tone="wait">
+        <T s={'Planned'} />
+      </StatusPill>
+    ) : (
+      <StatusPill tone="ok">
+        <T s={'Open'} />
+      </StatusPill>
+    );
   return (
-    <AdminShell viewer={viewer} active="settings" title="Maintenance" subtitle="Close one area while the rest of the site stays live. Every change is in the audit log.">
+    <AdminShell viewer={viewer} active="settings" title={tx('Maintenance')} subtitle="Close one area while the rest of the site stays live. Every change is in the audit log.">
       <GlassCard as="section">
-        <h2>Areas</h2>
-        <p className="tag">The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.</p>
+        <h2>
+          <T s={'Areas'} />
+        </h2>
+        <p className="tag">
+          <T s={'The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.'} />
+        </p>
         {ORDER.map((k) => {
           const m = modules.find((x) => x.key === k)!;
           return (
@@ -78,7 +97,7 @@ export default async function MaintenanceSettings() {
               <span style={{ flex: '1 1 220px' }}>
                 <b>{MODULES[k].label}</b>
                 <span className="tag" style={{ display: 'block' }}>
-                  Still works: {MODULES[k].keeps}
+                  <T s={'Still works: {keeps}'} v={{ keeps: MODULES[k].keeps }} />
                 </span>
               </span>
               {state(m.active, m.enabled)}
@@ -88,8 +107,12 @@ export default async function MaintenanceSettings() {
         })}
       </GlassCard>
       <GlassCard as="section">
-        <h2>Single pages</h2>
-        <p className="tag">An address closes that page and everything under it, for example /domains or /guides/old-post.</p>
+        <h2>
+          <T s={'Single pages'} />
+        </h2>
+        <p className="tag">
+          <T s={'An address closes that page and everything under it, for example /domains or /guides/old-post.'} />
+        </p>
         {pages.map((p) => (
           <div key={p.path} className="li" style={{ flexWrap: 'wrap', gap: 8 }}>
             <code style={{ flex: '1 1 200px' }}>{p.path}</code>
@@ -109,10 +132,15 @@ export default async function MaintenanceSettings() {
         </div>
       </GlassCard>
       <GlassCard as="section">
-        <h2>Testers</h2>
+        <h2>
+          <T s={'Testers'} />
+        </h2>
         <p className="tag">
-          Signed-in Super Admins can always use a closed area. These addresses can too, but only when the host&apos;s address header is trusted (CLIENT_IP_HEADER or TRUSTED_PROXY_HOPS), so nobody can
-          pretend to be one.
+          <T
+            s={
+              "Signed-in Super Admins can always use a closed area. These addresses can too, but only when the host's address header is trusted (CLIENT_IP_HEADER or TRUSTED_PROXY_HOPS), so nobody can pretend to be one."
+            }
+          />
         </p>
         <p style={{ marginTop: 8 }}>{rows.allowIps.length ? rows.allowIps.join(', ') : 'No addresses.'}</p>
         <AdminForm

@@ -11,6 +11,8 @@ import type { Named } from '@/lib/ga4VisitorsCore';
 import { pageCountSummary } from '@/lib/pageCounts';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Visitors', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -37,23 +39,31 @@ function NamedTable({ caption, rows, label, value = 'Users' }: { caption: string
  * card. Beside it the cookieless first-party count (page and country a day, nothing about a person), which is approximate.
  */
 export default async function AdminVisitors() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/visitors', roles: ['admin'], scope: 'content' });
   const now = Date.now();
   const [ga, own] = await Promise.all([gaVisitors(), pageCountSummary(dayOf(now - 29 * 86_400_000), dayOf(now))]);
   return (
-    <AdminShell viewer={viewer} active="visitors" title="Visitors" subtitle="Google Analytics counts only visitors who accepted analytics.">
+    <AdminShell viewer={viewer} active="visitors" title={tx('Visitors')} subtitle="Google Analytics counts only visitors who accepted analytics.">
       {ga.state === 'not_connected' && (
         <GlassCard as="section">
-          <h2>Connect GA4</h2>
+          <h2>
+            <T s={'Connect GA4'} />
+          </h2>
           <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-            Add GA4_PROPERTY_ID (the property&apos;s number) and GA4_SERVICE_ACCOUNT_JSON (a service account key with Viewer access to the property) to the server environment. Then visitors,
-            countries, pages, devices and clicked sections show here. Clicks by section need a custom dimension &quot;section&quot; (event scope) in GA4.
+            <T
+              s={
+                'Add GA4_PROPERTY_ID (the property\'s number) and GA4_SERVICE_ACCOUNT_JSON (a service account key with Viewer access to the property) to the server environment. Then visitors, countries, pages, devices and clicked sections show here. Clicks by section need a custom dimension "section" (event scope) in GA4.'
+              }
+            />
           </p>
         </GlassCard>
       )}
       {ga.state === 'error' && (
         <GlassCard as="section" role="alert">
-          <h2>Google Analytics did not answer</h2>
+          <h2>
+            <T s={'Google Analytics did not answer'} />
+          </h2>
           <p className="muted" style={{ marginTop: 8 }}>
             {ga.note}
           </p>
@@ -68,34 +78,51 @@ export default async function AdminVisitors() {
             <Kpi label="New / returning" value={ga.report.newVsReturning.map((x) => x.n).join(' / ') || '-'} note="Last 30 days" />
           </div>
           <GlassCard as="section">
-            <h2>Users a day, last 30 days</h2>
+            <h2>
+              <T s={'Users a day, last 30 days'} />
+            </h2>
             {ga.report.daily.some((d) => d.users > 0) && <Bars label="Users a day" data={ga.report.daily.slice(30).map((d) => [short(d.day), d.users] as [string, number])} />}
-            <p className="tag">From Google Analytics, {new Date(ga.fetchedAt).toISOString().slice(11, 16)} UTC. Refreshed every 15 minutes.</p>
+            <p className="tag">
+              <T s={'From Google Analytics, {v0} UTC. Refreshed every 15 minutes.'} v={{ v0: new Date(ga.fetchedAt).toISOString().slice(11, 16) }} />
+            </p>
           </GlassCard>
           <div className="grid2">
             <GlassCard as="section">
-              <h2>Top countries</h2>
+              <h2>
+                <T s={'Top countries'} />
+              </h2>
               {ga.report.countries.some((c) => c.n > 0) && <Bars label="Users by country" data={ga.report.countries.slice(0, 8).map((c) => [c.name, c.n] as [string, number])} />}
               <NamedTable caption="Top countries" rows={ga.report.countries} label="Country" />
             </GlassCard>
             <GlassCard as="section">
-              <h2>Devices</h2>
+              <h2>
+                <T s={'Devices'} />
+              </h2>
               <NamedTable caption="Devices" rows={ga.report.devices} label="Device" />
-              <h2 style={{ marginTop: 16 }}>Clicked sections</h2>
+              <h2 style={{ marginTop: 16 }}>
+                <T s={'Clicked sections'} />
+              </h2>
               {Array.isArray(ga.sections) ? <NamedTable caption="Clicked sections" rows={ga.sections} label="Section" value="Clicks" /> : <p className="tag">{ga.sections.note}</p>}
             </GlassCard>
           </div>
           <GlassCard as="section">
-            <h2>Top pages</h2>
+            <h2>
+              <T s={'Top pages'} />
+            </h2>
             <NamedTable caption="Top pages" rows={ga.report.pages} label="Page" value="Views" />
           </GlassCard>
         </>
       )}
       <GlassCard as="section">
-        <h2>Our own count (approximate)</h2>
+        <h2>
+          <T s={'Our own count (approximate)'} />
+        </h2>
         <p className="tag">
-          Counted on our server without cookies: the page and the country a day, nothing about a person. Browsers that ask not to be tracked are not counted. A country shows when the host&apos;s geo
-          header is trusted (FIRST_PARTY_COUNTRY_TRUSTED), else &quot;--&quot;.
+          <T
+            s={
+              'Counted on our server without cookies: the page and the country a day, nothing about a person. Browsers that ask not to be tracked are not counted. A country shows when the host\'s geo header is trusted (FIRST_PARTY_COUNTRY_TRUSTED), else "--".'
+            }
+          />
         </p>
         <div className="kpis" style={{ marginTop: 10 }}>
           <Kpi label="Page opens, 30 days" value={own.total.toLocaleString('en-US')} note="Approximate" />

@@ -9,6 +9,7 @@ import { Field } from './Field';
 import { SocialRow } from './SocialRow';
 import { Switch } from './Switch';
 
+import { T } from '@/components/i18n/T';
 type Row = { network: Network; url: string; enabled: boolean };
 const LABEL: Record<keyof ContactRoutes, string> = {
   support: 'Support',
@@ -59,8 +60,12 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
   return (
     <div className="sob-stack">
       <section className="glass card">
-        <h2>Contact addresses</h2>
-        <p className="tag">Each must end with @{BRAND_DOMAIN}. Email routing uses them at once.</p>
+        <h2>
+          <T s={'Contact addresses'} />
+        </h2>
+        <p className="tag">
+          <T s={'Each must end with @{BRAND_DOMAIN}. Email routing uses them at once.'} v={{ BRAND_DOMAIN }} />
+        </p>
         <div className="grid2" style={{ marginTop: 10 }}>
           {(Object.keys(LABEL) as (keyof ContactRoutes)[]).map((k) => (
             <Field key={k} label={LABEL[k]} type="email" value={mail[k]} onChange={(e) => setMail({ ...mail, [k]: e.target.value.trim().toLowerCase() })} />
@@ -68,14 +73,18 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
         </div>
         <div style={{ marginTop: 12 }}>
           <Button onClick={() => save('contact')} disabled={busy}>
-            Save addresses
+            <T s={'Save addresses'} />
           </Button>
         </div>
       </section>
 
       <section className="glass card">
-        <h2>Social links</h2>
-        <p className="tag">Drag a row, or use the arrows, to change the order. Each address must be https on that network&apos;s own site.</p>
+        <h2>
+          <T s={'Social links'} />
+        </h2>
+        <p className="tag">
+          <T s={"Drag a row, or use the arrows, to change the order. Each address must be https on that network's own site."} />
+        </p>
         <ol className="sob-stack" style={{ listStyle: 'none', padding: 0, marginTop: 10 }}>
           {rows.map((r, i) => (
             <li
@@ -110,7 +119,7 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
                 ↓
               </button>
               <button type="button" className="btn ghost sm" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
-                Remove
+                <T s={'Remove'} />
               </button>
               {!problems[i].ok && r.url && (
                 <span className="sob-err" style={{ flexBasis: '100%' }}>
@@ -123,10 +132,12 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
         {free.length > 0 && (
           <div className="row" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
             <label className="hidden-label" htmlFor="add-network">
-              Network to add
+              <T s={'Network to add'} />
             </label>
             <select id="add-network" className="input" style={{ maxWidth: 200 }} value={add} onChange={(e) => setAdd(e.target.value as Network)}>
-              <option value="">Choose a network</option>
+              <option value="">
+                <T s={'Choose a network'} />
+              </option>
               {free.map((n) => (
                 <option key={n} value={n}>
                   {NETWORKS[n].label}
@@ -143,23 +154,27 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
                 setAdd('');
               }}
             >
-              Add
+              <T s={'Add'} />
             </Button>
           </div>
         )}
         <div style={{ marginTop: 14 }}>
-          <span className="tag">Footer preview</span>
+          <span className="tag">
+            <T s={'Footer preview'} />
+          </span>
           <div className="glass" style={{ padding: 12, borderRadius: 12, marginTop: 6 }}>
             {rows.some((r, i) => r.enabled && problems[i].ok) ? (
               <SocialRow links={rows.filter((r, i) => problems[i].ok).map((r) => ({ network: r.network, url: r.url, ...(r.enabled ? {} : { enabled: false as const }) }))} label="Preview" />
             ) : (
-              <span className="tag">No links are shown: the row is hidden.</span>
+              <span className="tag">
+                <T s={'No links are shown: the row is hidden.'} />
+              </span>
             )}
           </div>
         </div>
         <div style={{ marginTop: 12 }}>
           <Button onClick={() => save('social')} disabled={busy}>
-            Save social links
+            <T s={'Save social links'} />
           </Button>
         </div>
       </section>

@@ -2,6 +2,7 @@ import { ActionButton } from '@/components/ActionButton';
 import { AdminForm } from '@/components/AdminForm';
 import { StatusPill } from './StatusPill';
 
+import { T } from '@/components/i18n/T';
 /* A listing's launch price or sale, in the seller's and the admin's lists: its state, and plan or stop (owner, 2026-11-08). */
 export type SaleState = { id: string; kind: 'sale' | 'launch'; saleCents: number; startsAt: number; endsAt: number; running: boolean } | null;
 const usd = (c: number) => `$${(c / 100).toFixed(c % 100 ? 2 : 0)}`;
@@ -15,7 +16,7 @@ export function SaleCell({ slug, sale, endpoint }: { slug: string; sale: SaleSta
           {sale.running ? (sale.kind === 'launch' ? 'Launch' : 'Sale') : 'Planned'} · {usd(sale.saleCents)}
         </StatusPill>
         <span className="tag">
-          {utc(sale.startsAt)} to {utc(sale.endsAt)} UTC
+          <T s={'{v0} to {v1} UTC'} v={{ v0: utc(sale.startsAt), v1: utc(sale.endsAt) }} />
         </span>
         <ActionButton endpoint={endpoint} label="Stop" tone="line" body={{ slug, action: 'cancel', saleId: sale.id }} />
       </span>

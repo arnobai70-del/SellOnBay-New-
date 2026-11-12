@@ -9,6 +9,7 @@ import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
 import { AccountMenu } from './AccountMenu';
 import { SearchBox } from './SearchBox';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const isHere = (path: string, href: string) => path === href || path.startsWith(href + '/');
 
 /*
@@ -32,6 +33,7 @@ export function PublicNav({
   words?: { search: string; cart: string; cartCount: string; openMenu: string; closeMenu: string };
   langSwitch?: React.ReactNode;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const path = usePathname() ?? '/';
   const cartCount = useCart().length;
   // Phones (owner, 2026-11-11): the links sit behind a menu button and open as a sheet; a link, Escape or a new page closes it.
@@ -44,7 +46,7 @@ export function PublicNav({
     return () => document.removeEventListener('keydown', esc);
   }, [menu]);
   return (
-    <nav className="glass nav" aria-label="Main">
+    <nav className="glass nav" aria-label={tx('Main')}>
       <Link className="logo" href={home} prefetch={false}>
         <BrandMark />
         {BRAND_NAME}

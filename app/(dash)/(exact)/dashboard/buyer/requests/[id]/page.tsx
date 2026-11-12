@@ -9,6 +9,7 @@ import { getRequest, quotesOf, requestEvents } from '@/lib/requests/store';
 import { QUOTE_WORDS, REQUEST_WORDS, buyerQuote, buyerTimeline, productNames, requestTitle, usd } from '@/lib/requests/view';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Your request', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -43,11 +44,15 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
           </div>
         </div>
         <dl className="sob-kv">
-          <dt>How you will use it</dt>
+          <dt>
+            <T s={'How you will use it'} />
+          </dt>
           <dd>{r.intendedUse}</dd>
           {r.requirements && (
             <>
-              <dt>What you asked for</dt>
+              <dt>
+                <T s={'What you asked for'} />
+              </dt>
               <dd>{r.requirements}</dd>
             </>
           )}
@@ -55,10 +60,14 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
         {r.status === 'needs_info' && <ActionButton endpoint={`/api/requests/${r.id}`} body={{ action: 'answer' }} label="Answer SellOnBay" note={{ label: 'Your answer', required: true, rows: 4 }} />}
         {r.kind === 'custom_dev' && r.verifiedRequirements && (
           <div className="glass card sob-sec" style={{ marginTop: 16 }} data-requirements>
-            <h3>Requirements written down by SellOnBay</h3>
+            <h3>
+              <T s={'Requirements written down by SellOnBay'} />
+            </h3>
             <p style={{ whiteSpace: 'pre-wrap' }}>{r.verifiedRequirements}</p>
             {r.requirementsConfirmedAt ? (
-              <p className="muted">You confirmed these on {day(r.requirementsConfirmedAt)}. The quotation is based on them.</p>
+              <p className="muted">
+                <T s={'You confirmed these on {v0}. The quotation is based on them.'} v={{ v0: day(r.requirementsConfirmedAt) }} />
+              </p>
             ) : (
               r.status === 'under_review' && (
                 <ActionButton
@@ -77,7 +86,9 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
         <div className="glass card sob-sec" data-quote={q.id}>
           <div className="row sob-hd">
             <div>
-              <h2>Quotation, version {q.version}</h2>
+              <h2>
+                <T s={'Quotation, version {version}'} v={{ version: q.version }} />
+              </h2>
               <p className="tag">
                 {QUOTE_WORDS[q.status]}
                 {q.status === 'issued' && q.validUntil ? ` · valid until ${day(q.validUntil)}` : ''}
@@ -87,8 +98,12 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
           <table className="sob-q-lines">
             <thead>
               <tr>
-                <th>Item</th>
-                <th>Price</th>
+                <th>
+                  <T s={'Item'} />
+                </th>
+                <th>
+                  <T s={'Price'} />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -101,30 +116,55 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
             </tbody>
             <tfoot>
               <tr>
-                <td>Total ({q.currency})</td>
+                <td>
+                  <T s={'Total ({currency})'} v={{ currency: q.currency }} />
+                </td>
                 <td>{usd(q.totalCents)}</td>
               </tr>
             </tfoot>
           </table>
           <dl className="sob-kv" style={{ marginTop: 16 }}>
-            <dt>Licence</dt>
+            <dt>
+              <T s={'Licence'} />
+            </dt>
             <dd>
-              {TIER_TEXT[q.terms.licenceTier].label}. {TIER_TEXT[q.terms.licenceTier].terms} <small className="muted">(text version {q.terms.licenceTextVersion})</small>
+              {TIER_TEXT[q.terms.licenceTier].label}. {TIER_TEXT[q.terms.licenceTier].terms}{' '}
+              <small className="muted">
+                <T s={'(text version {licenceTextVersion})'} v={{ licenceTextVersion: q.terms.licenceTextVersion }} />
+              </small>
             </dd>
-            <dt>Delivery</dt>
-            <dd>{q.terms.deliveryHours ? `${q.terms.deliveryHours} hours` : `${q.terms.deliveryDays} day${q.terms.deliveryDays === 1 ? '' : 's'}`} after SellOnBay releases the work</dd>
-            <dt>Revisions</dt>
+            <dt>
+              <T s={'Delivery'} />
+            </dt>
             <dd>
-              {q.terms.revisions.included ? `${q.terms.revisions.included} included within ${q.terms.revisions.windowDays} days: ${q.terms.revisions.scope}` : 'None included'}
-              {q.terms.revisions.extraPriceCents !== null ? ` · extra revisions ${usd(q.terms.revisions.extraPriceCents)} each` : ''}. Fixing a defect never uses a revision.
+              <T
+                s={'{v0} after SellOnBay releases the work'}
+                v={{ v0: q.terms.deliveryHours ? `${q.terms.deliveryHours} hours` : `${q.terms.deliveryDays} day${q.terms.deliveryDays === 1 ? '' : 's'}` }}
+              />
             </dd>
-            <dt>Support and updates</dt>
+            <dt>
+              <T s={'Revisions'} />
+            </dt>
+            <dd>
+              <T
+                s={'{v0}{v1}. Fixing a defect never uses a revision.'}
+                v={{
+                  v0: q.terms.revisions.included ? `${q.terms.revisions.included} included within ${q.terms.revisions.windowDays} days: ${q.terms.revisions.scope}` : 'None included',
+                  v1: q.terms.revisions.extraPriceCents !== null ? ` · extra revisions ${usd(q.terms.revisions.extraPriceCents)} each` : '',
+                }}
+              />
+            </dd>
+            <dt>
+              <T s={'Support and updates'} />
+            </dt>
             <dd>
               {q.terms.supportDays ? `${q.terms.supportDays} days of support` : 'No support period'} · {q.terms.updateDays ? `${q.terms.updateDays} days of updates` : 'No updates'}
             </dd>
             {q.terms.note && (
               <>
-                <dt>Note</dt>
+                <dt>
+                  <T s={'Note'} />
+                </dt>
                 <dd>{q.terms.note}</dd>
               </>
             )}
@@ -144,7 +184,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
           {q.status === 'accepted' && q.orderId && (
             <p style={{ marginTop: 16 }}>
               <Link className="btn sm" href={`/orders/${q.orderId}`}>
-                Open your order
+                <T s={'Open your order'} />
               </Link>
             </p>
           )}
@@ -156,7 +196,9 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>What happened</h2>
+            <h2>
+              <T s={'What happened'} />
+            </h2>
           </div>
         </div>
         <ul className="sob-tl2">

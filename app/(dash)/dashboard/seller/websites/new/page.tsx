@@ -4,6 +4,7 @@ import { SellerShell } from '@/components/glass/SellerShell';
 import { UploadSection } from '@/components/glass/UploadSection';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Upload a website', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +17,12 @@ export default async function UploadWebsite({ searchParams }: { searchParams: Pr
       <div className="row">
         <div>
           <h1>{edit ? 'Edit your website' : 'Upload a website'}</h1>
-          <div className="tag">A person checks every listing before it goes live. A change to a link or a file sends it back for review.</div>
+          <div className="tag">
+            <T s={'A person checks every listing before it goes live. A change to a link or a file sends it back for review.'} />
+          </div>
         </div>
         <Link className="btn ghost" href="/dashboard/seller/websites" prefetch={false}>
-          My websites
+          <T s={'My websites'} />
         </Link>
       </div>
       <UploadSection viewer={viewer} editing={!!edit} />

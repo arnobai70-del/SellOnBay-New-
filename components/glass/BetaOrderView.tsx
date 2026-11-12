@@ -5,6 +5,7 @@ import { Field } from './Field';
 import { GlassCard } from './GlassCard';
 import { StatusPill } from './StatusPill';
 
+import { T } from '@/components/i18n/T';
 type Props = {
   id: string;
   title: string;
@@ -46,15 +47,19 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
         </div>
         {state === 'beta_requested' && (
           <GlassCard rise={false}>
-            <h2>We&apos;re reviewing your request</h2>
+            <h2>
+              <T s={"We're reviewing your request"} />
+            </h2>
             <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-              We&apos;ll email you when it has been reviewed.
+              <T s={"We'll email you when it has been reviewed."} />
             </p>
           </GlassCard>
         )}
         {state === 'beta_declined' && (
           <GlassCard rise={false}>
-            <h2>We could not approve this request</h2>
+            <h2>
+              <T s={'We could not approve this request'} />
+            </h2>
             {reason && (
               <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {reason}
@@ -65,9 +70,11 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
         {state === 'beta_approved' && (
           <>
             <GlassCard rise={false}>
-              <h2>Your files</h2>
+              <h2>
+                <T s={'Your files'} />
+              </h2>
               <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-                Each link works for 24 hours, and you can ask for a new one.
+                <T s={'Each link works for 24 hours, and you can ask for a new one.'} />
               </p>
               <div style={{ marginTop: 14 }}>
                 <Button onClick={files} disabled={busy}>
@@ -81,7 +88,9 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
               )}
             </GlassCard>
             <GlassCard rise={false}>
-              <h2>Your domain</h2>
+              <h2>
+                <T s={'Your domain'} />
+              </h2>
               <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {domain
                   ? `You asked for ${domain}. We check it by hand and register it in your own name, then email you the next step.`
@@ -89,10 +98,12 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
               </p>
             </GlassCard>
             <GlassCard rise={false}>
-              <h2>Your review</h2>
+              <h2>
+                <T s={'Your review'} />
+              </h2>
               {done ? (
                 <p className="muted" style={{ marginTop: 8, fontSize: 14 }} role="status">
-                  Thanks for your review.
+                  <T s={'Thanks for your review.'} />
                 </p>
               ) : (
                 <form
@@ -111,7 +122,9 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                   }}
                 >
                   <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
-                    <legend className="sob-label">Your rating</legend>
+                    <legend className="sob-label">
+                      <T s={'Your rating'} />
+                    </legend>
                     <div className="row" style={{ justifyContent: 'flex-start' }}>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <label key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, fontSize: 14 }}>
@@ -123,7 +136,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                   <Field as="textarea" label="Your review (optional)" name="body" maxLength={1000} />
                   <div>
                     <Button type="submit" variant="ghost">
-                      Post review
+                      <T s={'Post review'} />
                     </Button>
                   </div>
                 </form>
@@ -132,11 +145,15 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
             {!feedbackDone && !subscription && (
               <GlassCard rise={false} className="row">
                 <div>
-                  <h2>Tell us how it went</h2>
-                  <div className="tag">Two minutes, and only our team reads it.</div>
+                  <h2>
+                    <T s={'Tell us how it went'} />
+                  </h2>
+                  <div className="tag">
+                    <T s={'Two minutes, and only our team reads it.'} />
+                  </div>
                 </div>
                 <Button variant="ghost" href={`/feedback/${id}`}>
-                  Give feedback
+                  <T s={'Give feedback'} />
                 </Button>
               </GlassCard>
             )}
@@ -144,7 +161,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
         )}
         <div>
           <Button variant="ghost" href="/dashboard/buyer">
-            Back to my dashboard
+            <T s={'Back to my dashboard'} />
           </Button>
         </div>
       </div>

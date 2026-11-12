@@ -5,6 +5,7 @@ import { PublicFrame } from '@/components/glass/PublicFrame';
 import { affSettings, leaderboard } from '@/lib/affiliates/service';
 import { COMMISSION_KINDS, joinFeeCents, KIND_LABEL } from '@/lib/affiliates/rules';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = {
   title: 'Affiliate Program',
   description: 'Share SellOnBay websites and earn a commission on every verified, paid sale. Free to join during the promotion; clear rules, no guaranteed earnings.',
@@ -57,7 +58,10 @@ export default async function AffiliatesPage() {
           </p>
         )}
         <div className="tag">
-          {fee === 0 ? `Free to join during the promotion (normally ${usd(s.feeCents)}).` : `Registration fee ${usd(fee)}, never charged automatically.`} Earnings are not guaranteed.
+          <T
+            s={'{v0} Earnings are not guaranteed.'}
+            v={{ v0: fee === 0 ? `Free to join during the promotion (normally ${usd(s.feeCents)}).` : `Registration fee ${usd(fee)}, never charged automatically.` }}
+          />
         </div>
       </section>
 
@@ -91,14 +95,28 @@ export default async function AffiliatesPage() {
               </tbody>
             </table>
           </div>
-          <div className="tag">On the eligible net amount: what the buyer paid less refunds, without taxes, domains or hosting.</div>
+          <div className="tag">
+            <T s={'On the eligible net amount: what the buyer paid less refunds, without taxes, domains or hosting.'} />
+          </div>
         </div>
         <div className="glass card">
           <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.qualification')}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
-            New affiliates start as <b>Qualification pending</b> and can share links and earn straight away. Reach {s.targetSales} verified, paid, non-refunded sales within {s.qualificationDays} days
-            to become a <b style={{ color: '#1A8F5C' }}>SellOnBay Verified Affiliate</b>
-            {s.waiveFeeOnQualify ? ' and the registration fee is waived for good' : ''}. If you do not reach it, nothing is charged; your account stays pending and we may extend or restart the window.
+            <T s={'New affiliates start as'} />{' '}
+            <b>
+              <T s={'Qualification pending'} />
+            </b>{' '}
+            <T
+              s={'and can share links and earn straight away. Reach {targetSales} verified, paid, non-refunded sales within {qualificationDays} days to become a'}
+              v={{ targetSales: s.targetSales, qualificationDays: s.qualificationDays }}
+            />{' '}
+            <b style={{ color: '#1A8F5C' }}>
+              <T s={'SellOnBay Verified Affiliate'} />
+            </b>
+            <T
+              s={'{v0}. If you do not reach it, nothing is charged; your account stays pending and we may extend or restart the window.'}
+              v={{ v0: s.waiveFeeOnQualify ? ' and the registration fee is waived for good' : '' }}
+            />
           </p>
         </div>
       </section>
@@ -135,28 +153,38 @@ export default async function AffiliatesPage() {
               </span>
             ))}
           </div>
-          <div className="tag">Badges count verified, non-refunded sales only, and are adjusted if a sale is later refunded.</div>
+          <div className="tag">
+            <T s={'Badges count verified, non-refunded sales only, and are adjusted if a sale is later refunded.'} />
+          </div>
         </section>
       )}
 
       {s.enabled && s.leaderboardPublic && (
         <section className="sec">
-          <h2 style={{ fontSize: 28, marginBottom: 18 }}>This month&apos;s top 5</h2>
+          <h2 style={{ fontSize: 28, marginBottom: 18 }}>
+            <T s={"This month's top 5"} />
+          </h2>
           <div className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="tbl">
               <table>
                 <thead>
                   <tr>
-                    <th>Rank</th>
-                    <th>Affiliate</th>
-                    <th>Verified sales</th>
+                    <th>
+                      <T s={'Rank'} />
+                    </th>
+                    <th>
+                      <T s={'Affiliate'} />
+                    </th>
+                    <th>
+                      <T s={'Verified sales'} />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {top.length === 0 && (
                     <tr>
                       <td colSpan={3} className="muted">
-                        No verified sales yet this month.
+                        <T s={'No verified sales yet this month.'} />
                       </td>
                     </tr>
                   )}
@@ -167,10 +195,15 @@ export default async function AffiliatesPage() {
                         {r.name}{' '}
                         {r.qualified && (
                           <span className="status st-ok" style={{ marginLeft: 6 }}>
-                            ✓ Verified
+                            <T s={'✓ Verified'} />
                           </span>
                         )}
-                        {r.rank === 1 && <span className="tag"> · Monthly champion so far</span>}
+                        {r.rank === 1 && (
+                          <span className="tag">
+                            {' '}
+                            <T s={'· Monthly champion so far'} />
+                          </span>
+                        )}
                       </td>
                       <td>{r.sales}</td>
                     </tr>
@@ -179,7 +212,9 @@ export default async function AffiliatesPage() {
               </table>
             </div>
           </div>
-          <div className="tag">Ranked by verified, non-refunded sales, then eligible net revenue. Affiliates can choose not to appear here.</div>
+          <div className="tag">
+            <T s={'Ranked by verified, non-refunded sales, then eligible net revenue. Affiliates can choose not to appear here.'} />
+          </div>
         </section>
       )}
 
@@ -187,15 +222,27 @@ export default async function AffiliatesPage() {
         <div className="glass card">
           <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.payments')}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
-            Sale paid → refund period over → commission approved → available balance → you ask for a withdrawal (from {usd(s.minWithdrawalCents)}) → we check it → we pay by hand and record the
-            reference. A balance is never shown as paid before it is.
+            <T
+              s={
+                'Sale paid → refund period over → commission approved → available balance → you ask for a withdrawal (from {v0}) → we check it → we pay by hand and record the reference. A balance is never shown as paid before it is.'
+              }
+              v={{ v0: usd(s.minWithdrawalCents) }}
+            />
           </p>
         </div>
         <div className="glass card">
           <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.privacy')}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
-            A referral is remembered only in browsers that accepted analytics cookies, for {s.cookieDays} days. We count clicks without storing who clicked, and affiliates never see buyers&apos; names
-            or details. See the <Link href="/legal/privacy">privacy policy</Link>.
+            <T
+              s={
+                "A referral is remembered only in browsers that accepted analytics cookies, for {cookieDays} days. We count clicks without storing who clicked, and affiliates never see buyers' names or details. See the"
+              }
+              v={{ cookieDays: s.cookieDays }}
+            />{' '}
+            <Link href="/legal/privacy">
+              <T s={'privacy policy'} />
+            </Link>
+            .
           </p>
         </div>
       </section>
@@ -204,7 +251,9 @@ export default async function AffiliatesPage() {
         <h2 style={{ fontSize: 28, marginBottom: 8 }}>{i.t('aff.terms')}</h2>
         <div className="glass card" style={{ fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
           {s.terms}
-          <div className="tag">Version {s.termsVersion}. You accept the version shown when you join.</div>
+          <div className="tag">
+            <T s={'Version {termsVersion}. You accept the version shown when you join.'} v={{ termsVersion: s.termsVersion }} />
+          </div>
         </div>
       </section>
 

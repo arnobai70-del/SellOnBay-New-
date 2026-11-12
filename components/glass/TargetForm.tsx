@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 /* "Edit target" on the admin overview (design-reference/admin.html): saves the monthly sales target in the shop settings (Super Admin, audited). */
 export function TargetForm({ dollars }: { dollars: number }) {
   const router = useRouter();
@@ -13,7 +14,7 @@ export function TargetForm({ dollars }: { dollars: number }) {
   if (!open)
     return (
       <button type="button" className="btn sm ghost" onClick={() => setOpen(true)}>
-        Edit target
+        <T s={'Edit target'} />
       </button>
     );
   return (
@@ -36,14 +37,14 @@ export function TargetForm({ dollars }: { dollars: number }) {
       }}
     >
       <label className="hidden-label" htmlFor="target-usd">
-        Monthly target in US dollars
+        <T s={'Monthly target in US dollars'} />
       </label>
       <input id="target-usd" className="input" inputMode="decimal" placeholder="e.g. 2000" value={value} onChange={(e) => setValue(e.target.value.replace(/[^\d.]/g, ''))} style={{ width: 130 }} />
       <button className="btn sm" type="submit" disabled={busy}>
         {busy ? 'Saving…' : 'Save'}
       </button>
       <button className="btn sm ghost" type="button" onClick={() => setOpen(false)}>
-        Cancel
+        <T s={'Cancel'} />
       </button>
       {msg && (
         <span role="alert" className="tag" style={{ color: '#7A2E24', margin: 0 }}>

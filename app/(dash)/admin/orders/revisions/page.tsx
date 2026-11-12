@@ -11,6 +11,8 @@ import { proposedPolicies, revisionsFor } from '@/lib/revisions/store';
 import { requestableProduct } from '@/lib/requests/products';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Revisions', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,7 @@ const usd = (c: number | null) => (c === null ? 'quoted each time' : `$${(c / 10
  * 12-hour target as every release); Catalog approves the revision terms sellers propose for their listings.
  */
 export default async function AdminRevisions() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/orders/revisions', roles: ['admin'], scope: ['delivery', 'support', 'catalog'] });
   const submitted = await revisionsFor({ statuses: ['submitted'] });
   const pending = await revisionsFor({ statuses: ['release_pending'] });
@@ -33,19 +36,26 @@ export default async function AdminRevisions() {
   const products = new Map(await Promise.all(policies.map(async (p) => [p.productId, await requestableProduct(p.productId)] as const)));
   const title = (id: string) => orders.get(id)?.title ?? 'Order';
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-revisions" title="Revisions">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-revisions" title={tx('Revisions')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Requests to decide ({submitted.length})</h2>
+            <h2>
+              <T s={'Requests to decide ({length})'} v={{ length: submitted.length }} />
+            </h2>
             <p className="tag">
-              A defect is always fixed free and never counted. An included change uses one of the order&apos;s included revisions, inside its window. Anything else is a paid change or a new feature:
-              write the requirement set and it becomes a custom request the buyer confirms, gets quoted and pays into escrow first.
+              <T
+                s={
+                  "A defect is always fixed free and never counted. An included change uses one of the order's included revisions, inside its window. Anything else is a paid change or a new feature: write the requirement set and it becomes a custom request the buyer confirms, gets quoted and pays into escrow first."
+                }
+              />
             </p>
           </div>
         </div>
         {submitted.length === 0 ? (
-          <p className="muted">Nothing waiting.</p>
+          <p className="muted">
+            <T s={'Nothing waiting.'} />
+          </p>
         ) : (
           <ul className="sob-list" data-revisions-submitted>
             {submitted.map((r) => {
@@ -56,7 +66,7 @@ export default async function AdminRevisions() {
                     <b>
                       <Link href={`/admin/orders/${r.orderId}`}>{title(r.orderId)}</Link>
                     </b>{' '}
-                    · buyer calls it a {r.hint} · {day(r.createdAt)}
+                    <T s={'· buyer calls it a {hint} · {v1}'} v={{ hint: r.hint, v1: day(r.createdAt) }} />
                     <p>{r.description}</p>
                     <small className="muted">
                       {s?.terms && s.terms.included > 0
@@ -109,14 +119,20 @@ export default async function AdminRevisions() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Revised work to release ({pending.length})</h2>
+            <h2>
+              <T s={'Revised work to release ({length})'} v={{ length: pending.length }} />
+            </h2>
             <p className="tag">
-              Check the revised files (they passed the file checks and review) or the live site, then release it to the buyer or return it to the seller. A missed target only raises alerts.
+              <T
+                s={'Check the revised files (they passed the file checks and review) or the live site, then release it to the buyer or return it to the seller. A missed target only raises alerts.'}
+              />
             </p>
           </div>
         </div>
         {pending.length === 0 ? (
-          <p className="muted">Nothing waiting.</p>
+          <p className="muted">
+            <T s={'Nothing waiting.'} />
+          </p>
         ) : (
           <ul className="sob-list" data-revisions-pending>
             {pending.map((r) => (
@@ -127,8 +143,12 @@ export default async function AdminRevisions() {
                   </b>{' '}
                   · {r.kind ? KIND_TEXT[r.kind] : ''} · {r.fileId ? 'with checked files' : 'no files (live site or repository)'}
                   {r.releaseDueAt && <SlaClock dueAt={r.releaseDueAt} slaHours={CONFIG.release.slaHours} />}
-                  <p>Asked: {r.description}</p>
-                  <p className="muted">Seller: {r.deliveryNote}</p>
+                  <p>
+                    <T s={'Asked: {description}'} v={{ description: r.description }} />
+                  </p>
+                  <p className="muted">
+                    <T s={'Seller: {deliveryNote}'} v={{ deliveryNote: r.deliveryNote }} />
+                  </p>
                 </div>
                 <div className="sob-acts">
                   <AdminForm
@@ -152,28 +172,39 @@ export default async function AdminRevisions() {
             ))}
           </ul>
         )}
-        {assigned.length > 0 && <p className="muted">With sellers now: {assigned.map((r) => title(r.orderId)).join(', ')}</p>}
+        {assigned.length > 0 && (
+          <p className="muted">
+            <T s={'With sellers now:'} /> {assigned.map((r) => title(r.orderId)).join(', ')}
+          </p>
+        )}
       </div>
 
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Revision terms to approve ({policies.length})</h2>
-            <p className="tag">Terms a seller proposed for a listing. Once approved they are the default in that listing&apos;s quotations; accepted orders keep the terms they were quoted.</p>
+            <h2>
+              <T s={'Revision terms to approve ({length})'} v={{ length: policies.length }} />
+            </h2>
+            <p className="tag">
+              <T s={"Terms a seller proposed for a listing. Once approved they are the default in that listing's quotations; accepted orders keep the terms they were quoted."} />
+            </p>
           </div>
         </div>
         {policies.length === 0 ? (
-          <p className="muted">Nothing waiting.</p>
+          <p className="muted">
+            <T s={'Nothing waiting.'} />
+          </p>
         ) : (
           <ul className="sob-list" data-policies-proposed>
             {policies.map((p) => (
               <li key={p.id}>
                 <div className="sob-grow">
-                  <b>{products.get(p.productId)?.name ?? 'Listing'}</b> · version {p.version}
+                  <b>{products.get(p.productId)?.name ?? 'Listing'}</b> <T s={'· version {version}'} v={{ version: p.version }} />
                   <p className="muted">
-                    {p.included} included within {p.windowDays} days · extra {usd(p.extraPriceCents)}
-                    {p.scope ? ` · ${p.scope}` : ''}
-                    {p.supportTerms ? ` · Support: ${p.supportTerms}` : ''}
+                    <T
+                      s={'{included} included within {windowDays} days · extra {v2}{v3}{v4}'}
+                      v={{ included: p.included, windowDays: p.windowDays, v2: usd(p.extraPriceCents), v3: p.scope ? ` · ${p.scope}` : '', v4: p.supportTerms ? ` · Support: ${p.supportTerms}` : '' }}
+                    />
                   </p>
                 </div>
                 <div className="sob-acts">

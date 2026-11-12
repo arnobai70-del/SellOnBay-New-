@@ -5,32 +5,44 @@ import { DashShell } from '@/components/DashShell';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { checklist } from '@/lib/repoAccess';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Repository access', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 const when = (t: number) => new Date(t).toISOString().slice(0, 16).replace('T', ' ');
 
 export default async function RepoAccess() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/listings/repo', roles: ['admin'], scope: 'delivery' });
   const list = await checklist();
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-repo" title="Repository access">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-repo" title={tx('Repository access')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Access to take back ({list.length})</h2>
+            <h2>
+              <T s={'Access to take back ({length})'} v={{ length: list.length }} />
+            </h2>
             <p className="tag">
-              An order delivered by GitHub invite was refunded or cancelled after the invite went out. The seller removes the buyer from the private repository and says so; then you check and confirm.
-              There is no GitHub automation yet. Items where the seller says it is done come first.
+              <T
+                s={
+                  'An order delivered by GitHub invite was refunded or cancelled after the invite went out. The seller removes the buyer from the private repository and says so; then you check and confirm. There is no GitHub automation yet. Items where the seller says it is done come first.'
+                }
+              />
             </p>
           </div>
         </div>
-        {list.length === 0 && <p className="muted">Nothing to do.</p>}
+        {list.length === 0 && (
+          <p className="muted">
+            <T s={'Nothing to do.'} />
+          </p>
+        )}
         {list.map((c) => (
           <div className="sob-item" key={c.orderId}>
             <b>{c.title}</b>{' '}
             <small className="muted">
-              GitHub user {c.github || 'unknown'} · order {c.outcome} · asked {when(c.requestedAt)} UTC
+              <T s={'GitHub user {v0} · order {outcome} · asked {v2} UTC'} v={{ v0: c.github || 'unknown', outcome: c.outcome, v2: when(c.requestedAt) }} />
             </small>{' '}
             <span className={c.state === 'seller_done' ? 'status st-wait' : 'status st-bad'}>
               <i />
@@ -38,7 +50,7 @@ export default async function RepoAccess() {
             </span>
             <p>
               <Link className="" href={`/orders/${c.orderId}`}>
-                Open the order
+                <T s={'Open the order'} />
               </Link>
             </p>
             <AdminForm

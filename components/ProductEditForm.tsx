@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 export type ProductEditValues = {
   slug: string;
   platform: string;
@@ -47,6 +49,7 @@ export function ProductEditForm({
   maxShots: number;
   maxHours: number;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState(v);
   const [busy, setBusy] = useState(false);
@@ -116,7 +119,7 @@ export function ProductEditForm({
           field(
             'pe-hours',
             'Delivery in hours',
-            <input id="pe-hours" type="number" min={1} max={maxHours} step={1} value={f.hours} placeholder="In days" onChange={(e) => set('hours', e.target.value)} />,
+            <input id="pe-hours" type="number" min={1} max={maxHours} step={1} value={f.hours} placeholder={tx('In days')} onChange={(e) => set('hours', e.target.value)} />,
             `Empty = the days above. 1 to ${maxHours}; any number, not only the choices sellers get.`,
           )}
         {text('express', 'Express delivery price in dollars', 'Empty = not offered. 10 to 20.', 4)}
@@ -187,11 +190,16 @@ export function ProductEditForm({
         </div>
       </form>
 
-      <h3>Pictures</h3>
+      <h3>
+        <T s={'Pictures'} />
+      </h3>
       {
         <div className="sob-form">
           <small>
-            {isApp ? 'App screenshots' : 'Site pictures'} ({shots.length} of {maxShots}). PNG, JPEG or WebP up to 4 MB.{!isApp && ' The first one is the cover on the list.'}
+            <T
+              s={'{v0} ({length} of {maxShots}). PNG, JPEG or WebP up to 4 MB.{v3}'}
+              v={{ v0: isApp ? 'App screenshots' : 'Site pictures', length: shots.length, maxShots, v3: !isApp && ' The first one is the cover on the list.' }}
+            />
           </small>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {shots.map((n) => (
@@ -199,14 +207,16 @@ export function ProductEditForm({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/demo/${v.slug}/${n}`} alt="" style={{ width: '100%', borderRadius: 8 }} loading="lazy" />
                 <button className="btn ghost sm" type="button" disabled={busy} onClick={() => post(JSON.stringify({ slug: v.slug, removeShot: n }), true, 'Picture removed.')}>
-                  Remove
+                  <T s={'Remove'} />
                 </button>
               </div>
             ))}
           </div>
           {shots.length < maxShots && (
             <div className="field">
-              <label htmlFor="pe-shot">Add a screenshot</label>
+              <label htmlFor="pe-shot">
+                <T s={'Add a screenshot'} />
+              </label>
               <input id="pe-shot" type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} onChange={(e) => upload(e.target.files?.[0])} />
             </div>
           )}

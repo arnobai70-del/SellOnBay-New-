@@ -7,6 +7,8 @@ import { ALL_TLDS, cleanName, registrarLive, TLDS } from '@/lib/domains';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const generateMetadata = () => pageMetadata('/domains', { alternates: { canonical: '/domains' } });
 
 const FEATURES: [string, string, string[]][] = [
@@ -22,6 +24,7 @@ const FEATURES: [string, string, string[]][] = [
  * connected, `registrarLive` turns into real answers here. Refund wording: owner, 2026-11-09.
  */
 export default async function Domains({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { q = '' } = await searchParams;
   const name = cleanName(String(q));
   const [words, copy] = await Promise.all([pageWords('/domains'), pageCopy('domains')]);
@@ -33,7 +36,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
     <PublicFrame file="domains">
       <section style={{ padding: '88px 0 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20 }}>
         <span className="badge fade-in" style={{ animationDelay: '.2s' }}>
-          Registered in your own name
+          <T s={'Registered in your own name'} />
         </span>
         <h1 style={{ fontSize: 'clamp(38px, 5.5vw, 60px)', lineHeight: 1.08, fontWeight: 300 }}>
           <span className="hl">
@@ -61,20 +64,20 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
           style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 700, padding: '8px 8px 8px 22px', borderRadius: 999, boxSizing: 'border-box', marginTop: 8 }}
         >
           <label htmlFor="dq" className="hidden-label">
-            Search a domain
+            <T s={'Search a domain'} />
           </label>{' '}
           <span style={{ fontSize: 15, color: '#566C78' }} aria-hidden="true">
-            www.
+            <T s={'www.'} />
           </span>{' '}
           <input
             id="dq"
             name="q"
             defaultValue={name}
-            placeholder="yourbrand"
+            placeholder={tx('yourbrand')}
             style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '16px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
           />{' '}
           <button className="btn" type="submit">
-            Search domains
+            <T s={'Search domains'} />
           </button>
         </form>
         <div className="fade-in" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center', fontSize: 14, color: '#3D5563', animationDelay: '.75s' }}>
@@ -86,19 +89,21 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
         </div>
       </section>
       {name && (
-        <section className="glass" style={{ padding: 6, marginBottom: 72 }} aria-label="Results">
+        <section className="glass" style={{ padding: 6, marginBottom: 72 }} aria-label={tx('Results')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '16px 20px 6px' }}>
             <h2 style={{ fontSize: 20 }}>
-              Results for &ldquo;{name}
+              <T s={'Results for “{name}'} v={{ name }} />
               <span className="caret" aria-hidden="true" />
               &rdquo;
             </h2>
             <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <span className="tag">{registrarLive() ? 'Live results · first year' : 'Checked by hand when you order · first year, USD'}</span>
-              <button className="btn ghost" type="button" disabled title="A domain cart is coming soon">
-                Domain cart
+              <button className="btn ghost" type="button" disabled title={tx('A domain cart is coming soon')}>
+                <T s={'Domain cart'} />
               </button>
-              <span className="status st-draft">Coming soon</span>
+              <span className="status st-draft">
+                <T s={'Coming soon'} />
+              </span>
             </span>
           </div>
           <div>
@@ -108,13 +113,17 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
                   <span style={{ fontWeight: 500 }}>{name}</span>
                   <span className="muted">{tld}</span>
                 </div>
-                <span className="status st-draft">Checked on order</span>
+                <span className="status st-draft">
+                  <T s={'Checked on order'} />
+                </span>
                 <div style={{ width: 140, textAlign: 'right' }}>
                   <div style={{ fontWeight: 500 }}>${price}</div>
-                  <div className="tag">First year</div>
+                  <div className="tag">
+                    <T s={'First year'} />
+                  </div>
                 </div>
                 <Link className="btn" href={`/websites?domain=${encodeURIComponent(name + tld)}`} prefetch={false}>
-                  Use with a website
+                  <T s={'Use with a website'} />
                 </Link>
               </div>
             ))}
@@ -142,17 +151,21 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
           </span>
         </div>
         <div style={{ flex: '1 1 280px', maxWidth: 460 }}>
-          <h2 style={{ fontSize: 26, fontWeight: 300 }}>Website + domain, ready together</h2>
+          <h2 style={{ fontSize: 26, fontWeight: 300 }}>
+            <T s={'Website + domain, ready together'} />
+          </h2>
           <p className="muted" style={{ margin: '10px 0 16px', lineHeight: 1.6, fontSize: 15 }}>
-            Ask for both in one request. The seller connects the domain to your website, so your site is live after review.
+            <T s={'Ask for both in one request. The seller connects the domain to your website, so your site is live after review.'} />
           </p>
           <Link className="btn" href="/websites" prefetch={false}>
-            Pick a website
+            <T s={'Pick a website'} />
           </Link>
         </div>
       </section>
       <section className="reveal">
-        <h2 style={{ fontSize: 28, marginBottom: 20 }}>Why buy your domain here</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 20 }}>
+          <T s={'Why buy your domain here'} />
+        </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           {FEATURES.map(([t, d, paths]) => (
             <div key={t} className="glass feat">
@@ -172,17 +185,23 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
         </div>
       </section>
       <section className="sec" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2 style={{ fontSize: 28, marginBottom: 8 }}>Domain questions</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 8 }}>
+          <T s={'Domain questions'} />
+        </h2>
         <details className="glass" open>
-          <summary>Can I use a domain I already own?</summary>
+          <summary>
+            <T s={'Can I use a domain I already own?'} />
+          </summary>
           <p className="muted" style={{ margin: '10px 0 0', lineHeight: 1.6, fontSize: 14 }}>
-            Yes. Use it with any website you buy here.
+            <T s={'Yes. Use it with any website you buy here.'} />
           </p>
         </details>
         <details className="glass">
-          <summary>Is the domain refunded if I reject the website?</summary>
+          <summary>
+            <T s={'Is the domain refunded if I reject the website?'} />
+          </summary>
           <p className="muted" style={{ margin: '10px 0 0', lineHeight: 1.6, fontSize: 14 }}>
-            {DOMAIN_REFUND_TEXT} The domain stays yours even if you reject the website.
+            <T s={'{DOMAIN_REFUND_TEXT} The domain stays yours even if you reject the website.'} v={{ DOMAIN_REFUND_TEXT }} />
           </p>
         </details>
       </section>

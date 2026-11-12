@@ -10,6 +10,8 @@ import { getSettings } from '@/lib/settings';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { TargetForm } from '@/components/glass/TargetForm';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Admin overview', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +37,7 @@ const greeting = (now: number) => {
 
 /* design-reference/admin.html, wired to the real stores (lib/glass/adminOverview.ts). */
 export default async function AdminOverview({ searchParams }: { searchParams: Promise<{ denied?: string; period?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin', roles: ['admin'] });
   const { denied, period: p } = await searchParams;
   const period: Period = isPeriod(p) ? p : '30d';
@@ -62,16 +65,18 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
   const queues = o.ops.filter((q) => q.key !== 'payments' && hasScope(scopes, q.scope) && q.n > 0);
   const waiting = queues.reduce((s, q) => s + q.n, 0) + attention.reduce((s, a) => s + a.n, 0);
   return (
-    <AdminShell viewer={viewer} active="overview" file="admin" title="Admin overview" head={false}>
+    <AdminShell viewer={viewer} active="overview" file="admin" title={tx('Admin overview')} head={false}>
       <div className="row">
         <div>
           <h1>
             {greeting(now)}, {first}
           </h1>
-          <div className="tag">Here is what needs you today · {PERIODS[period].toLowerCase()}</div>
+          <div className="tag">
+            <T s={'Here is what needs you today · {v0}'} v={{ v0: PERIODS[period].toLowerCase() }} />
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="seg" role="tablist" aria-label="Period">
+          <div className="seg" role="tablist" aria-label={tx('Period')}>
             {(Object.keys(PERIODS) as Period[]).map((k) => (
               <Link key={k} className={k === period ? 'on' : ''} href={k === '30d' ? '/admin' : `/admin?period=${k}`} prefetch={false} role="tab" aria-selected={k === period}>
                 {PERIODS[k]}
@@ -79,31 +84,41 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
             ))}
           </div>
           <Link className="btn ghost" href="/admin/settings#dashboard" prefetch={false}>
-            Customize
+            <T s={'Customize'} />
           </Link>
         </div>
       </div>
       {denied && (
         <section className="glass card widget" role="alert">
-          Your admin account does not have permission for that page.
+          <T s={'Your admin account does not have permission for that page.'} />
         </section>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div className="kpis">
           <div className="glass kpi widget">
-            <div className="l">Gross sales</div>
+            <div className="l">
+              <T s={'Gross sales'} />
+            </div>
             <div className="v">{money(o.gross)}</div>
             <div className="s">{o.paymentsMode === 'beta_free' ? 'Free beta: nothing is charged' : PERIODS[period]}</div>
           </div>
           <div className="glass kpi widget">
-            <div className="l">Platform income ({PLAN_FEE_TEXT})</div>
+            <div className="l">
+              <T s={'Platform income ({PLAN_FEE_TEXT})'} v={{ PLAN_FEE_TEXT }} />
+            </div>
             <div className="v">{money(o.fees)}</div>
-            <div className="s">{money(o.revenue)} earned in all</div>
+            <div className="s">
+              <T s={'{v0} earned in all'} v={{ v0: money(o.revenue) }} />
+            </div>
           </div>
           <div className="glass kpi widget">
-            <div className="l">Held in escrow</div>
+            <div className="l">
+              <T s={'Held in escrow'} />
+            </div>
             <div className="v">{money(o.escrow)}</div>
-            <div className="s">{o.inReview} orders in review</div>
+            <div className="s">
+              <T s={'{inReview} orders in review'} v={{ inReview: o.inReview }} />
+            </div>
           </div>
           <div className="glass kpi widget">
             <div className="l">{o.paymentsMode === 'beta_free' ? 'Requests to decide' : 'Payments to verify'}</div>
@@ -111,22 +126,30 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
             <div className="s">{o.paymentsMode === 'beta_free' ? 'Free beta requests' : 'Bank and wallet transfers'}</div>
           </div>
           <div className="glass kpi widget">
-            <div className="l">Open disputes</div>
+            <div className="l">
+              <T s={'Open disputes'} />
+            </div>
             <div className="v">{o.disputes}</div>
             <div className="s">{o.oldestDispute ? `Oldest ${ageText(o.oldestDispute, now)}` : 'None open'}</div>
           </div>
           <div className="glass kpi widget">
-            <div className="l">Payouts due</div>
+            <div className="l">
+              <T s={'Payouts due'} />
+            </div>
             <div className="v">{money(o.payoutsDue)}</div>
-            <div className="s">Thursday</div>
+            <div className="s">
+              <T s={'Thursday'} />
+            </div>
           </div>
         </div>
 
         <section className="glass card widget">
           <div className="row" style={{ marginBottom: 14 }}>
-            <h2>Quick access</h2>
+            <h2>
+              <T s={'Quick access'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              Most used actions
+              <T s={'Most used actions'} />
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(150px, 100%),1fr))', gap: 12 }}>
@@ -155,7 +178,9 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
         <div className="grid2">
           <section className="glass card widget">
             <div className="row">
-              <h2>Sales trend</h2>
+              <h2>
+                <T s={'Sales trend'} />
+              </h2>
               <span className="tag" style={{ margin: 0 }}>
                 {PERIODS[period]}
               </span>
@@ -163,16 +188,18 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
             <LineChart values={o.trend} label={`Paid sales per day, ${PERIODS[period].toLowerCase()}: ${money(o.gross)} in all`} />
             {o.gross === 0 && (
               <div className="tag" style={{ marginTop: 6 }}>
-                No paid sales in this period yet.
+                <T s={'No paid sales in this period yet.'} />
               </div>
             )}
           </section>
           <section className="glass card widget" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
             <Ring share={share} text={target > 0 ? `${Math.round(share * 100)}%` : '–'} label={target > 0 ? `${Math.round(share * 100)}% of the monthly target` : 'No monthly target set'} />
             <div style={{ flex: '1 1 180px' }}>
-              <h2>Monthly target</h2>
+              <h2>
+                <T s={'Monthly target'} />
+              </h2>
               <div className="muted" style={{ fontSize: 14, marginTop: 6, lineHeight: 1.6 }}>
-                {money(o.monthSales)} this month · {o.dayOfMonth} days in
+                <T s={'{v0} this month · {dayOfMonth} days in'} v={{ v0: money(o.monthSales), dayOfMonth: o.dayOfMonth }} />
               </div>
               <div className="tag">{target > 0 ? `Target ${money(target)} this month` : 'No monthly target is set yet.'}</div>
               {viewer && hasScope(viewer.scopes ?? [], 'super') && <TargetForm dollars={target / 100} />}
@@ -183,8 +210,12 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
         <div className="grid2">
           <section className="glass card widget">
             <div className="row" style={{ marginBottom: 6 }}>
-              <h2>Needs your attention</h2>
-              <span className={waiting ? 'status st-wait' : 'status st-ok'}>{waiting} items</span>
+              <h2>
+                <T s={'Needs your attention'} />
+              </h2>
+              <span className={waiting ? 'status st-wait' : 'status st-ok'}>
+                <T s={'{waiting} items'} v={{ waiting }} />
+              </span>
             </div>
             {attention.map((a) => (
               <div key={a.label} className="li">
@@ -204,16 +235,18 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
                   {q.overdue ? ` · ${q.overdue} past 12 hours` : ''}
                 </div>
                 <Link className="btn sm ghost" href={q.href} prefetch={false}>
-                  Open
+                  <T s={'Open'} />
                 </Link>
               </div>
             ))}
           </section>
           <section className="glass card widget">
             <div className="row" style={{ marginBottom: 6 }}>
-              <h2>Escrow review timers</h2>
+              <h2>
+                <T s={'Escrow review timers'} />
+              </h2>
               <Link className="tag" style={{ margin: 0 }} href="/admin/orders" prefetch={false}>
-                All orders
+                <T s={'All orders'} />
               </Link>
             </div>
             {o.timers.length ? (
@@ -235,7 +268,9 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               })
             ) : (
               <div className="li" style={{ fontSize: 14 }}>
-                <span className="muted">No order is in its buyer review right now.</span>
+                <span className="muted">
+                  <T s={'No order is in its buyer review right now.'} />
+                </span>
               </div>
             )}
           </section>
@@ -244,9 +279,11 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
         <div className="grid2">
           <section className="glass card widget">
             <div className="row" style={{ marginBottom: 6 }}>
-              <h2>Recent activity</h2>
+              <h2>
+                <T s={'Recent activity'} />
+              </h2>
               <Link className="tag" style={{ margin: 0 }} href="/admin/security" prefetch={false}>
-                Activity log
+                <T s={'Activity log'} />
               </Link>
             </div>
             {o.activity.length ? (
@@ -266,15 +303,19 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               ))
             ) : (
               <div className="li" style={{ fontSize: 14 }}>
-                <span className="muted">Nothing has been done yet.</span>
+                <span className="muted">
+                  <T s={'Nothing has been done yet.'} />
+                </span>
               </div>
             )}
           </section>
           <section className="glass card widget">
             <div className="row" style={{ marginBottom: 6 }}>
-              <h2>System health</h2>
+              <h2>
+                <T s={'System health'} />
+              </h2>
               <Link className="tag" style={{ margin: 0 }} href="/admin/system" prefetch={false}>
-                Details
+                <T s={'Details'} />
               </Link>
             </div>
             {o.health.length ? (
@@ -289,7 +330,9 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               ))
             ) : (
               <div className="li" style={{ fontSize: 14 }}>
-                <span className="muted">The checks did not answer in time.</span>
+                <span className="muted">
+                  <T s={'The checks did not answer in time.'} />
+                </span>
               </div>
             )}
           </section>
@@ -297,15 +340,19 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
         <section className="glass card widget">
           <div className="row">
             <div>
-              <h2>Seller bulletin</h2>
-              <div className="tag">Last notice sent to all sellers</div>
+              <h2>
+                <T s={'Seller bulletin'} />
+              </h2>
+              <div className="tag">
+                <T s={'Last notice sent to all sellers'} />
+              </div>
             </div>
             <Link className="btn sm ghost" href="/admin/marketing#bulletin" prefetch={false}>
-              New bulletin
+              <T s={'New bulletin'} />
             </Link>
           </div>
           <p className="muted" style={{ margin: '12px 0 0', fontSize: 14, lineHeight: 1.6 }}>
-            No bulletin has been sent yet.
+            <T s={'No bulletin has been sent yet.'} />
           </p>
         </section>
       </div>

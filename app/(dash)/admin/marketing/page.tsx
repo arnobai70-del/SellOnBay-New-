@@ -10,6 +10,8 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Marketing', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +34,7 @@ async function emailsSent(since: number): Promise<number | null> {
  * always gets their share of the list price. Bulletins and campaigns are not built yet: their cards stay, and say so.
  */
 export default async function AdminMarketing() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/marketing', roles: ['admin'], scope: 'content' });
   const now = Date.now();
   const monthFrom = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1);
@@ -40,53 +43,85 @@ export default async function AdminMarketing() {
   const example = couponSplit(4900, 10);
   const live = coupons.filter((c) => couponLive(c, today));
   return (
-    <AdminShell viewer={viewer} active="marketing" file="admin-marketing" title="Marketing" head={false}>
+    <AdminShell viewer={viewer} active="marketing" file="admin-marketing" title={tx('Marketing')} head={false}>
       <div className="row">
         <div>
-          <h1>Marketing</h1>
-          <div className="tag">Coupons, seller bulletins and email campaigns</div>
+          <h1>
+            <T s={'Marketing'} />
+          </h1>
+          <div className="tag">
+            <T s={'Coupons, seller bulletins and email campaigns'} />
+          </div>
         </div>
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Active coupons</div>
+          <div className="l">
+            <T s={'Active coupons'} />
+          </div>
           <div className="v">{live.length}</div>
-          <div className="s">{coupons.length} in all</div>
+          <div className="s">
+            <T s={'{length} in all'} v={{ length: coupons.length }} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Discount given</div>
+          <div className="l">
+            <T s={'Discount given'} />
+          </div>
           <div className="v">$0</div>
           <div className="s">{settings.paymentsMode === 'beta_free' ? 'Free beta: nothing is charged' : 'From coupons'}</div>
         </div>
         <div className="glass kpi">
-          <div className="l">Emails sent</div>
+          <div className="l">
+            <T s={'Emails sent'} />
+          </div>
           <div className="v">{sent === null ? '—' : sent.toLocaleString('en-US')}</div>
-          <div className="s">This month, by the email queue</div>
+          <div className="s">
+            <T s={'This month, by the email queue'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Emails waiting</div>
+          <div className="l">
+            <T s={'Emails waiting'} />
+          </div>
           <div className="v">{waiting === null ? '—' : waiting}</div>
-          <div className="s">In the queue, retried by the scheduled job</div>
+          <div className="s">
+            <T s={'In the queue, retried by the scheduled job'} />
+          </div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <section className="glass" style={{ flex: '999 1 440px', minWidth: 0, padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>Coupons &amp; offers</h2>
+            <h2>
+              <T s={'Coupons & offers'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              $49 with 10% off: buyer pays {usd(example.buyerPays)}, seller gets {usd(example.seller)}
+              <T s={'$49 with 10% off: buyer pays {v0}, seller gets {v1}'} v={{ v0: usd(example.buyerPays), v1: usd(example.seller) }} />
             </span>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Code</th>
-                  <th>Discount</th>
-                  <th>Applies to</th>
-                  <th>Most uses</th>
-                  <th>Ends</th>
-                  <th>On</th>
+                  <th>
+                    <T s={'Code'} />
+                  </th>
+                  <th>
+                    <T s={'Discount'} />
+                  </th>
+                  <th>
+                    <T s={'Applies to'} />
+                  </th>
+                  <th>
+                    <T s={'Most uses'} />
+                  </th>
+                  <th>
+                    <T s={'Ends'} />
+                  </th>
+                  <th>
+                    <T s={'On'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +130,9 @@ export default async function AdminMarketing() {
                     <tr key={c.code}>
                       <td style={{ fontWeight: 500, letterSpacing: '.04em' }}>{c.code}</td>
                       <td>{c.percentOff}%</td>
-                      <td>All websites</td>
+                      <td>
+                        <T s={'All websites'} />
+                      </td>
                       <td>{c.maxUses ?? 'No limit'}</td>
                       <td>{c.endsOn ? (c.endsOn < today ? 'Ended' : nice(c.endsOn)) : 'No end'}</td>
                       <td>
@@ -106,7 +143,7 @@ export default async function AdminMarketing() {
                 ) : (
                   <tr>
                     <td colSpan={6} className="muted">
-                      No coupons yet.
+                      <T s={'No coupons yet.'} />
                     </td>
                   </tr>
                 )}
@@ -118,60 +155,84 @@ export default async function AdminMarketing() {
       </div>
       <div className="grid2">
         <section className="glass card" id="bulletin" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <h2>Business bulletin</h2>
+          <h2>
+            <T s={'Business bulletin'} />
+          </h2>
           <div>
-            <div style={{ fontSize: 13, color: '#3D5563', marginBottom: 6 }}>Send to</div>
+            <div style={{ fontSize: 13, color: '#3D5563', marginBottom: 6 }}>
+              <T s={'Send to'} />
+            </div>
             <div className="seg">
               <button type="button" className="on" disabled>
-                All sellers
+                <T s={'All sellers'} />
               </button>
               <button type="button" disabled>
-                All buyers
+                <T s={'All buyers'} />
               </button>
               <button type="button" disabled>
-                Everyone
+                <T s={'Everyone'} />
               </button>
             </div>
           </div>
           <div className="field">
-            <label htmlFor="bt">Title</label>
-            <input id="bt" className="input" placeholder="e.g. Thursday payouts" disabled />
+            <label htmlFor="bt">
+              <T s={'Title'} />
+            </label>
+            <input id="bt" className="input" placeholder={tx('e.g. Thursday payouts')} disabled />
           </div>
           <div className="field">
-            <label htmlFor="bm">Message</label>
-            <textarea id="bm" className="input" placeholder="Write the notice…" disabled />
+            <label htmlFor="bm">
+              <T s={'Message'} />
+            </label>
+            <textarea id="bm" className="input" placeholder={tx('Write the notice…')} disabled />
           </div>
           <div className="tag" style={{ margin: 0 }}>
-            Bulletins to everyone are not built yet. Each person still gets their own notifications and emails.
+            <T s={'Bulletins to everyone are not built yet. Each person still gets their own notifications and emails.'} />
           </div>
         </section>
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>Campaigns</h2>
+            <h2>
+              <T s={'Campaigns'} />
+            </h2>
             <Link className="btn sm ghost" href="/admin/marketing/promotions" prefetch={false}>
-              Promotions
+              <T s={'Promotions'} />
             </Link>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Campaign</th>
-                  <th>Channel</th>
-                  <th>Sent</th>
-                  <th>Result</th>
+                  <th>
+                    <T s={'Campaign'} />
+                  </th>
+                  <th>
+                    <T s={'Channel'} />
+                  </th>
+                  <th>
+                    <T s={'Sent'} />
+                  </th>
+                  <th>
+                    <T s={'Result'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ fontWeight: 500 }}>Order updates and domain renewal reminders</td>
-                  <td>Email</td>
+                  <td style={{ fontWeight: 500 }}>
+                    <T s={'Order updates and domain renewal reminders'} />
+                  </td>
+                  <td>
+                    <T s={'Email'} />
+                  </td>
                   <td>{sent === null ? '—' : sent}</td>
-                  <td>Automatic</td>
+                  <td>
+                    <T s={'Automatic'} />
+                  </td>
                 </tr>
                 <tr>
                   <td colSpan={4} className="muted">
-                    No marketing campaigns yet.
+                    <T s={'No marketing campaigns yet.'} />
                   </td>
                 </tr>
               </tbody>
@@ -181,7 +242,9 @@ export default async function AdminMarketing() {
       </div>
       <section className="glass card">
         <div className="row">
-          <h2>More growth tools</h2>
+          <h2>
+            <T s={'More growth tools'} />
+          </h2>
         </div>
         {(
           [
@@ -196,7 +259,7 @@ export default async function AdminMarketing() {
               {l} <span className="muted">· {t}</span>
             </span>
             <Link className="btn sm ghost" href={h} prefetch={false}>
-              Open
+              <T s={'Open'} />
             </Link>
           </div>
         ))}

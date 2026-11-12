@@ -10,6 +10,8 @@ import { plainWords } from '@/lib/glass/words';
 import { orderStore } from '@/lib/orders/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Seller overview', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +25,7 @@ const BOX: React.CSSProperties = { padding: 16, borderRadius: 14, background: 'r
  * the earnings trend and where the money is, plus account health, drafts and buyers' questions (answered with ReplyForm).
  */
 export default async function SellerOverview({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller', roles: ['seller', 'admin'] });
   const raw = (await searchParams).period;
   const period: Period = raw && Object.hasOwn(PERIODS, raw) ? (raw as Period) : '30d';
@@ -92,15 +95,15 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
       ]
     : [];
   return (
-    <SellerShell viewer={viewer} active="overview" file="seller-dashboard" title="Seller overview" head={false} handle={store?.username ? store.handle : undefined}>
+    <SellerShell viewer={viewer} active="overview" file="seller-dashboard" title={tx('Seller overview')} head={false} handle={store?.username ? store.handle : undefined}>
       <div className="row">
         <div>
           <h1>{first ? `Hi ${first}, here's your shop` : 'Your shop'}</h1>
           <div className="tag">
-            You keep {PLAN_KEEP_TEXT} of every sale · {PAYOUT_TEXT}
+            <T s={'You keep {PLAN_KEEP_TEXT} of every sale · {PAYOUT_TEXT}'} v={{ PLAN_KEEP_TEXT, PAYOUT_TEXT }} />
           </div>
         </div>
-        <div className="seg" role="tablist" aria-label="Period">
+        <div className="seg" role="tablist" aria-label={tx('Period')}>
           {(Object.keys(PERIODS) as Period[]).map((k) => (
             <Link key={k} role="tab" className={k === period ? 'on' : ''} aria-selected={k === period} href={k === '30d' ? '/dashboard/seller' : `/dashboard/seller?period=${k}`} prefetch={false}>
               {PERIODS[k][0]}
@@ -112,22 +115,34 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
         <>
           <div className="kpis">
             <div className="glass kpi">
-              <div className="l">Sales</div>
+              <div className="l">
+                <T s={'Sales'} />
+              </div>
               <div className="v">{sold.length}</div>
               <div className="s">{PERIODS[period][0]}</div>
             </div>
             <div className="glass kpi">
-              <div className="l">Net earnings ({PLAN_KEEP_TEXT})</div>
+              <div className="l">
+                <T s={'Net earnings ({PLAN_KEEP_TEXT})'} v={{ PLAN_KEEP_TEXT }} />
+              </div>
               <div className="v">{usd(net)}</div>
-              <div className="s">After the platform fee</div>
+              <div className="s">
+                <T s={'After the platform fee'} />
+              </div>
             </div>
             <div className="glass kpi">
-              <div className="l">In escrow</div>
+              <div className="l">
+                <T s={'In escrow'} />
+              </div>
               <div className="v">{usd(v.escrowCents)}</div>
-              <div className="s">{v.toDeliver.length} orders to deliver</div>
+              <div className="s">
+                <T s={'{length} orders to deliver'} v={{ length: v.toDeliver.length }} />
+              </div>
             </div>
             <div className="glass kpi">
-              <div className="l">Next payout</div>
+              <div className="l">
+                <T s={'Next payout'} />
+              </div>
               <div className="v">{usd(v.availableCents)}</div>
               <div className="s">
                 {shortDay(v.nextPayout)}
@@ -135,7 +150,9 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
               </div>
             </div>
             <div className="glass kpi">
-              <div className="l">Store views</div>
+              <div className="l">
+                <T s={'Store views'} />
+              </div>
               <div className="v">{views.toLocaleString('en-US')}</div>
               <div className="s">{views ? `${((buys / views) * 100).toFixed(1)}% buy · 30 days` : 'Last 30 days'}</div>
             </div>
@@ -144,12 +161,12 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
             <section className="glass card" role="status">
               {v.reserveCents > 0 && (
                 <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-                  A reserve of {usd(v.reserveCents)} is kept back for a few days and then becomes available.
+                  <T s={'A reserve of {v0} is kept back for a few days and then becomes available.'} v={{ v0: usd(v.reserveCents) }} />
                 </p>
               )}
               {v.debtCents > 0 && (
                 <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-                  You owe {usd(v.debtCents)} after a refund or dispute fee. It is taken from your next earnings.
+                  <T s={'You owe {v0} after a refund or dispute fee. It is taken from your next earnings.'} v={{ v0: usd(v.debtCents) }} />
                 </p>
               )}
             </section>
@@ -157,8 +174,12 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
           <div className="grid2">
             <section className="glass card">
               <div className="row" style={{ marginBottom: 6 }}>
-                <h2>To do</h2>
-                <span className={todo.length ? 'status st-wait' : 'status st-ok'}>{todo.length} items</span>
+                <h2>
+                  <T s={'To do'} />
+                </h2>
+                <span className={todo.length ? 'status st-wait' : 'status st-ok'}>
+                  <T s={'{length} items'} v={{ length: todo.length }} />
+                </span>
               </div>
               {todo.length ? (
                 todo.slice(0, 6).map((t) => (
@@ -173,31 +194,35 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
               ) : (
                 <div className="li">
                   <div className="muted" style={{ flex: 1, fontSize: 14 }}>
-                    You are set up. Nothing waits for you right now.
+                    <T s={'You are set up. Nothing waits for you right now.'} />
                   </div>
                 </div>
               )}
             </section>
             <section className="glass card">
               <div className="row">
-                <h2>Sales trend</h2>
+                <h2>
+                  <T s={'Sales trend'} />
+                </h2>
                 <span className="tag" style={{ margin: 0 }}>
-                  Earnings per week
+                  <T s={'Earnings per week'} />
                 </span>
               </div>
               <LineChart values={v.weekly.map((w) => w.cents)} label={`Weekly earnings: ${v.weekly.map((w) => `${shortDay(w.week)} ${usd(w.cents)}`).join(', ')}`} />
               {!v.weekly.some((w) => w.cents > 0) && (
                 <div className="tag" style={{ marginTop: 6 }}>
-                  Nothing earned yet. Your first accepted order shows up here.
+                  <T s={'Nothing earned yet. Your first accepted order shows up here.'} />
                 </div>
               )}
             </section>
           </div>
           <section className="glass card">
             <div className="row" style={{ marginBottom: 14 }}>
-              <h2>Money pipeline</h2>
+              <h2>
+                <T s={'Money pipeline'} />
+              </h2>
               <Link className="tag" style={{ margin: 0 }} href="/dashboard/seller/payouts" prefetch={false}>
-                Earnings &amp; payouts
+                <T s={'Earnings & payouts'} />
               </Link>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
@@ -221,54 +246,70 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
           </section>
           <div className="grid2">
             <section className="glass card">
-              <h2>Account health</h2>
+              <h2>
+                <T s={'Account health'} />
+              </h2>
               <div className="li" style={{ fontSize: 14 }}>
-                <span style={{ flex: 1 }}>On-time delivery</span>
+                <span style={{ flex: 1 }}>
+                  <T s={'On-time delivery'} />
+                </span>
                 <b style={{ fontWeight: 500 }}>{v.health.onTime === null ? 'No deliveries yet' : `${Math.round(v.health.onTime * 100)}%`}</b>
               </div>
               <div className="li" style={{ fontSize: 14 }}>
-                <span style={{ flex: 1 }}>Average rating</span>
+                <span style={{ flex: 1 }}>
+                  <T s={'Average rating'} />
+                </span>
                 <b style={{ fontWeight: 500 }}>{v.health.rating ? `${v.health.rating} (${v.health.ratingCount})` : 'No reviews yet'}</b>
               </div>
               <div className="li" style={{ fontSize: 14 }}>
-                <span style={{ flex: 1 }}>Orders with a dispute</span>
+                <span style={{ flex: 1 }}>
+                  <T s={'Orders with a dispute'} />
+                </span>
                 <b style={{ fontWeight: 500 }}>{v.health.disputeRate === null ? 'No orders yet' : `${Math.round(v.health.disputeRate * 1000) / 10}%`}</b>
               </div>
               <div className="li" style={{ fontSize: 14 }}>
-                <span style={{ flex: 1 }}>Lifetime earned</span>
+                <span style={{ flex: 1 }}>
+                  <T s={'Lifetime earned'} />
+                </span>
                 <b style={{ fontWeight: 500 }}>
-                  {usd(v.lifetimeCents)} · {v.acceptedCount} accepted
+                  <T s={'{v0} · {acceptedCount} accepted'} v={{ v0: usd(v.lifetimeCents), acceptedCount: v.acceptedCount }} />
                 </b>
               </div>
             </section>
             <section className="glass card" style={{ borderColor: '#E2C58F' }}>
               <div className="row">
                 <div>
-                  <div className="status st-wait">Notice from SellOnBay</div>
-                  <h2 style={{ marginTop: 10 }}>Thursday payouts</h2>
+                  <div className="status st-wait">
+                    <T s={'Notice from SellOnBay'} />
+                  </div>
+                  <h2 style={{ marginTop: 10 }}>
+                    <T s={'Thursday payouts'} />
+                  </h2>
                 </div>
                 <Link className="btn sm ghost" href="/dashboard/seller/notifications" prefetch={false}>
-                  All notices
+                  <T s={'All notices'} />
                 </Link>
               </div>
               <p className="muted" style={{ margin: '10px 0 0', fontSize: 14, lineHeight: 1.6 }}>
-                {PAYOUT_TEXT}. Keep your payout details and identity check up to date so nothing waits.
+                <T s={'{PAYOUT_TEXT}. Keep your payout details and identity check up to date so nothing waits.'} v={{ PAYOUT_TEXT }} />
               </p>
             </section>
           </div>
           {data.drafts.length > 0 && (
             <section className="glass card" data-drafts>
               <div className="row" style={{ marginBottom: 6 }}>
-                <h2>Your drafts</h2>
+                <h2>
+                  <T s={'Your drafts'} />
+                </h2>
                 <span className="tag" style={{ margin: 0 }}>
-                  Saved but not sent for review. Buyers cannot see them.
+                  <T s={'Saved but not sent for review. Buyers cannot see them.'} />
                 </span>
               </div>
               {data.drafts.map((d) => (
                 <div key={d.slug} className="li" style={{ fontSize: 14 }}>
                   <span style={{ flex: 1 }}>{d.name}</span>
                   <Link className="btn sm ghost" href={`/dashboard/seller/websites/new?draft=${encodeURIComponent(d.slug)}`} prefetch={false}>
-                    Continue
+                    <T s={'Continue'} />
                   </Link>
                 </div>
               ))}
@@ -277,9 +318,11 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
           {data.questions.length > 0 && (
             <section className="glass card" id="questions" data-questions>
               <div className="row" style={{ marginBottom: 6 }}>
-                <h2>Questions from buyers</h2>
+                <h2>
+                  <T s={'Questions from buyers'} />
+                </h2>
                 <span className="tag" style={{ margin: 0 }}>
-                  Answer fast: buyers who get an answer are more likely to buy
+                  <T s={'Answer fast: buyers who get an answer are more likely to buy'} />
                 </span>
               </div>
               {data.questions.map((q) => (
@@ -288,7 +331,13 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
                   <span className="muted" style={{ fontSize: 14 }}>
                     {q.body}
                   </span>
-                  {q.reply ? <span className="tag">You replied: {q.reply}</span> : <ReplyForm id={q.id} />}
+                  {q.reply ? (
+                    <span className="tag">
+                      <T s={'You replied: {reply}'} v={{ reply: q.reply }} />
+                    </span>
+                  ) : (
+                    <ReplyForm id={q.id} />
+                  )}
                 </div>
               ))}
             </section>

@@ -17,6 +17,7 @@ import { allPageWords } from '@/lib/seo/pageWords';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Edit a page', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -62,14 +63,20 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             {isListing ? 'All listings' : 'All pages'}
           </Link>
         </div>
-        <h3 className="sob-pw-h">In Google</h3>
+        <h3 className="sob-pw-h">
+          <T s={'In Google'} />
+        </h3>
         <div className="sob-pe-serp">
           <span className="sob-pe-st">{s.title || `${page.title} · ${SITE_NAME}`}</span>
           <span className="sob-pe-sd">{s.description || page.description || 'The site-wide description (this page has none of its own yet).'}</span>
         </div>
         {home ? (
           <p className="tag">
-            The home page&rsquo;s meta title and description are set on <Link href="/admin/seo">SEO and blog</Link>, under Home page in Google.
+            <T s={'The home page’s meta title and description are set on'} />{' '}
+            <Link href="/admin/seo">
+              <T s={'SEO and blog'} />
+            </Link>
+            <T s={', under Home page in Google.'} />
           </p>
         ) : (
           <AdminForm
@@ -102,11 +109,15 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Listing content, price and pictures</h2>
-              <p className="tag">Change the name, description, category, price, delivery, links and extras, and an app&rsquo;s screenshots.</p>
+              <h2>
+                <T s={'Listing content, price and pictures'} />
+              </h2>
+              <p className="tag">
+                <T s={'Change the name, description, category, price, delivery, links and extras, and an app’s screenshots.'} />
+              </p>
             </div>
             <Link className="btn sm" href={`/admin/seo/product?slug=${encodeURIComponent(product.id)}`}>
-              Edit the listing
+              <T s={'Edit the listing'} />
             </Link>
           </div>
         </div>
@@ -115,10 +126,16 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Address</h2>
+              <h2>
+                <T s={'Address'} />
+              </h2>
               <p className="tag">
-                The listing&rsquo;s address is /product/{product.id}. Changing it keeps its orders, downloads and licences, moves your saved search words with it, and sends the old address to the new
-                one with a 301. After saving, open the listing again from the listings page.
+                <T
+                  s={
+                    'The listing’s address is /product/{id}. Changing it keeps its orders, downloads and licences, moves your saved search words with it, and sends the old address to the new one with a 301. After saving, open the listing again from the listings page.'
+                  }
+                  v={{ id: product.id }}
+                />
               </p>
             </div>
           </div>
@@ -135,7 +152,9 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>On the page</h2>
+            <h2>
+              <T s={'On the page'} />
+            </h2>
             <p className="tag">
               {isListing
                 ? "The listing's own words (name, description, pictures) are the seller's; change them from the seller's listing form."
@@ -153,15 +172,33 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Publishing, search and questions</h2>
+              <h2>
+                <T s={'Publishing, search and questions'} />
+              </h2>
               <p className="tag">
-                Now: {isPublic(path, ctl) ? 'visitors can open it' : 'a 404 for visitors'}; {ctl.index ? 'search engines may list it' : 'kept out of search'}; {inSitemap(path, ctl) ? 'in' : 'not in'}{' '}
-                the sitemap.
+                <T
+                  s={'Now: {v0}; {v1}; {v2} the sitemap.'}
+                  v={{
+                    v0: isPublic(path, ctl) ? 'visitors can open it' : 'a 404 for visitors',
+                    v1: ctl.index ? 'search engines may list it' : 'kept out of search',
+                    v2: inSitemap(path, ctl) ? 'in' : 'not in',
+                  }}
+                />
               </p>
-              {sameCanonical.length > 0 && <p className="tag">Warning: the same canonical address is set on {sameCanonical.join(', ')}.</p>}
-              {sameTitle.length > 0 && <p className="tag">Warning: the same meta title is used on {sameTitle.join(', ')}.</p>}
+              {sameCanonical.length > 0 && (
+                <p className="tag">
+                  <T s={'Warning: the same canonical address is set on {v0}.'} v={{ v0: sameCanonical.join(', ') }} />
+                </p>
+              )}
+              {sameTitle.length > 0 && (
+                <p className="tag">
+                  <T s={'Warning: the same meta title is used on {v0}.'} v={{ v0: sameTitle.join(', ') }} />
+                </p>
+              )}
               {(!s.title || !s.description) && (
-                <p className="tag">Missing: {[!s.title && 'a saved meta title', !s.description && 'a saved meta description'].filter(Boolean).join(' and ')} (the built-in words are used).</p>
+                <p className="tag">
+                  <T s={'Missing: {v0} (the built-in words are used).'} v={{ v0: [!s.title && 'a saved meta title', !s.description && 'a saved meta description'].filter(Boolean).join(' and ') }} />
+                </p>
               )}
             </div>
           </div>

@@ -11,6 +11,8 @@ import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/help', { alternates: { canonical: '/help' } });
 
@@ -31,6 +33,7 @@ const groupId = (t: string) => 'g-' + helpAnchor(t).replace(/^q-/, '');
  * Questions come from Admin › CMS, else the built-in ones; the heading from Admin › Content › Pages.
  */
 export default async function Help() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [words, saved, routes, social, copy] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial(), pageCopy('help')]);
   const { groups } = faqToShow(saved?.groups ?? null);
   const intro = copy.t('head', 'intro', words.intro ?? '');
@@ -55,7 +58,7 @@ export default async function Help() {
           style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 640, padding: '8px 8px 8px 20px', borderRadius: 999, boxSizing: 'border-box' }}
         >
           <label htmlFor="hs" className="hidden-label">
-            Search help
+            <T s={'Search help'} />
           </label>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
@@ -64,11 +67,11 @@ export default async function Help() {
           <input
             id="hs"
             name="q"
-            placeholder="e.g. payment, refund, connect domain"
+            placeholder={tx('e.g. payment, refund, connect domain')}
             style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
           />{' '}
           <button className="btn" type="submit">
-            Search
+            <T s={'Search'} />
           </button>
         </form>
       </section>

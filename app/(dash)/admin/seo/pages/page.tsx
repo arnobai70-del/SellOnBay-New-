@@ -11,30 +11,38 @@ import { getSeo } from '@/lib/seo/site';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Page titles and descriptions', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 const LAYOUT_DESCRIPTION = 'The site-wide description';
 
 export default async function SeoPages() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/seo/pages', roles: ['admin'], scope: 'content' });
   const [saved, seo, words, controls] = await Promise.all([allPageSeo(0), getSeo(0), allPageWords(0), allControls(0)]);
   const wordsChanged = (path: string) => !!(words[path]?.heading || words[path]?.intro || words[path]?.body);
   const changed = SEO_PAGES.filter((p) => saved[p.path]?.title || saved[p.path]?.description || wordsChanged(p.path)).length;
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="Page titles and descriptions">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title={tx('Page titles and descriptions')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Every page: words and Google</h2>
+            <h2>
+              <T s={'Every page: words and Google'} />
+            </h2>
             <p className="tag">
-              For each page: the title and description search engines and share cards show, and with Edit page the heading, intro and (for policy pages) the whole text visitors read. Leave a box empty
-              to use the built-in words. A saved title is shown exactly as you write it. Changes show on the page within a minute; Google picks them up the next time it visits. {changed} of{' '}
-              {SEO_PAGES.length + 1} pages changed.
+              <T
+                s={
+                  'For each page: the title and description search engines and share cards show, and with Edit page the heading, intro and (for policy pages) the whole text visitors read. Leave a box empty to use the built-in words. A saved title is shown exactly as you write it. Changes show on the page within a minute; Google picks them up the next time it visits. {changed} of {v1} pages changed.'
+                }
+                v={{ changed, v1: SEO_PAGES.length + 1 }}
+              />
             </p>
           </div>
           <Link className="btn ghost sm" href="/admin/seo">
-            Back to SEO and blog
+            <T s={'Back to SEO and blog'} />
           </Link>
         </div>
 
@@ -42,7 +50,9 @@ export default async function SeoPages() {
           <div className="sob-item">
             <div className="sob-seo-row">
               <div>
-                <h3>Home page</h3>
+                <h3>
+                  <T s={'Home page'} />
+                </h3>
                 <a className="muted" href="/" target="_blank" rel="noopener">
                   {SITE_URL.replace(/^https?:\/\//, '')}/
                 </a>
@@ -53,10 +63,14 @@ export default async function SeoPages() {
               </span>
             </div>
             <p className="muted">
-              Set on <Link href="/admin/seo">SEO and blog</Link>, under Home page in Google.
+              <T s={'Set on'} />{' '}
+              <Link href="/admin/seo">
+                <T s={'SEO and blog'} />
+              </Link>
+              <T s={', under Home page in Google.'} />
             </p>
             <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent('/')}`} style={{ justifySelf: 'start' }}>
-              Edit publishing, search and questions
+              <T s={'Edit publishing, search and questions'} />
             </Link>
           </div>
           {SEO_PAGES.map((p) => {
@@ -82,7 +96,7 @@ export default async function SeoPages() {
                 </div>
                 <p className="muted">
                   {isPublic(p.path, ctl) ? 'Published' : ctl.status === 'draft' ? 'Draft' : 'Archived'} · {ctl.index ? 'Indexable' : 'Noindex'} ·{' '}
-                  {inSitemap(p.path, ctl) ? 'In sitemap' : 'Not in sitemap'} · {ctl.faqs.filter((f) => !f.draft).length} questions
+                  {inSitemap(p.path, ctl) ? 'In sitemap' : 'Not in sitemap'} · {ctl.faqs.filter((f) => !f.draft).length} <T s={'questions'} />
                 </p>
                 <div className="sob-pe-serp">
                   <span className="sob-pe-st">{shownTitle}</span>

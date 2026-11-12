@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Benefit, Plan } from '@/lib/buyerSubs/rules';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* Admin › Buyer subscriptions (owner, 2026-11-12): the plan editor and the feature settings. Everything goes to POST /api/admin/subscriptions. */
 async function post(body: Record<string, unknown>) {
   const r = await fetch('/api/admin/buyer-subscriptions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
@@ -25,6 +27,7 @@ const csv = (v: string) =>
     .filter(Boolean);
 
 export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; categories: { slug: string; name: string }[]; onDone?: () => void }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState({
     key: plan?.key ?? '',
@@ -109,11 +112,19 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
         {field('price', 'Price (USD)', { inputMode: 'decimal', required: true })}
         {field('renewal', 'Renewal price (USD)', { inputMode: 'decimal', required: true })}
         <div className="field">
-          <label htmlFor={`${id}-period`}>Term</label>
+          <label htmlFor={`${id}-period`}>
+            <T s={'Term'} />
+          </label>
           <select id={`${id}-period`} className="input" value={f.period} onChange={set('period')}>
-            <option value="year">Yearly</option>
-            <option value="month">Monthly</option>
-            <option value="custom">Custom</option>
+            <option value="year">
+              <T s={'Yearly'} />
+            </option>
+            <option value="month">
+              <T s={'Monthly'} />
+            </option>
+            <option value="custom">
+              <T s={'Custom'} />
+            </option>
           </select>
         </div>
         {f.period === 'custom' && field('periodDays', 'Days in the term', { type: 'number', min: 1, max: 3650 })}
@@ -123,14 +134,18 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
         {field('licence', 'Licence version', { maxLength: 40 })}
       </div>
       <div className="field">
-        <label htmlFor={`${id}-description`}>Description</label>
+        <label htmlFor={`${id}-description`}>
+          <T s={'Description'} />
+        </label>
         <textarea id={`${id}-description`} className="input" rows={2} maxLength={600} value={f.description} onChange={set('description')} />
       </div>
       <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12 }}>
-        <legend className="tag">Benefits shown on the card</legend>
+        <legend className="tag">
+          <T s={'Benefits shown on the card'} />
+        </legend>
         {benefits.map((b, i) => (
           <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-            <input aria-label="Shown" type="checkbox" checked={b.on} onChange={(e) => setBenefits(benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)))} />
+            <input aria-label={tx('Shown')} type="checkbox" checked={b.on} onChange={(e) => setBenefits(benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)))} />
             <input
               aria-label={`Benefit ${i + 1}`}
               className="input"
@@ -139,16 +154,18 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
               onChange={(e) => setBenefits(benefits.map((x, n) => (n === i ? { ...x, text: e.target.value } : x)))}
             />
             <button type="button" className="btn sm ghost" onClick={() => setBenefits(benefits.filter((_, n) => n !== i))} aria-label={`Remove benefit ${i + 1}`}>
-              Remove
+              <T s={'Remove'} />
             </button>
           </div>
         ))}
         <button type="button" className="btn sm ghost" onClick={() => setBenefits([...benefits, { text: '', on: true }])} disabled={benefits.length >= 20}>
-          + Add benefit
+          <T s={'+ Add benefit'} />
         </button>
       </fieldset>
       <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
-        <legend className="tag">Features (comparison table)</legend>
+        <legend className="tag">
+          <T s={'Features (comparison table)'} />
+        </legend>
         {FEATURES.map(([k, l]) => (
           <label key={k} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
             <input type="checkbox" checked={!!features[k]} onChange={(e) => setFeatures({ ...features, [k]: e.target.checked })} /> {l}
@@ -156,10 +173,16 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
         ))}
       </fieldset>
       <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <legend className="tag">Which websites can be chosen</legend>
-        <select aria-label="Category rule" className="input" value={f.mode} onChange={set('mode')}>
-          <option value="all">Every category except the ticked ones</option>
-          <option value="list">Only the ticked categories</option>
+        <legend className="tag">
+          <T s={'Which websites can be chosen'} />
+        </legend>
+        <select aria-label={tx('Category rule')} className="input" value={f.mode} onChange={set('mode')}>
+          <option value="all">
+            <T s={'Every category except the ticked ones'} />
+          </option>
+          <option value="list">
+            <T s={'Only the ticked categories'} />
+          </option>
         </select>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {categories.map((c) => (
@@ -169,24 +192,30 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
           ))}
         </div>
         <div className="field">
-          <label htmlFor={`${id}-include`}>Always include these websites (addresses, comma separated)</label>
+          <label htmlFor={`${id}-include`}>
+            <T s={'Always include these websites (addresses, comma separated)'} />
+          </label>
           <input id={`${id}-include`} className="input" value={f.include} onChange={set('include')} />
         </div>
         <div className="field">
-          <label htmlFor={`${id}-exclude`}>Never include these websites</label>
+          <label htmlFor={`${id}-exclude`}>
+            <T s={'Never include these websites'} />
+          </label>
           <input id={`${id}-exclude`} className="input" value={f.exclude} onChange={set('exclude')} />
         </div>
       </fieldset>
       <div className="field">
-        <label htmlFor={`${id}-refund`}>Refund rules for this plan (shown to buyers)</label>
+        <label htmlFor={`${id}-refund`}>
+          <T s={'Refund rules for this plan (shown to buyers)'} />
+        </label>
         <textarea id={`${id}-refund`} className="input" rows={2} maxLength={2000} value={f.refund} onChange={set('refund')} />
       </div>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <input type="checkbox" checked={f.active} onChange={set('active')} /> Active (can be bought)
+          <input type="checkbox" checked={f.active} onChange={set('active')} /> <T s={'Active (can be bought)'} />
         </label>
         <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <input type="checkbox" checked={f.visible} onChange={set('visible')} /> Shown on the pricing page
+          <input type="checkbox" checked={f.visible} onChange={set('visible')} /> <T s={'Shown on the pricing page'} />
         </label>
         <button className="btn sm" type="submit" disabled={busy}>
           {busy ? 'Saving…' : plan ? 'Save plan' : 'Create plan'}
@@ -198,7 +227,7 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
         )}
       </div>
       <div className="tag" style={{ margin: 0 }}>
-        Changes apply to new subscriptions. A running subscription keeps the price, number of websites and terms it was bought with.
+        <T s={'Changes apply to new subscriptions. A running subscription keeps the price, number of websites and terms it was bought with.'} />
       </div>
     </form>
   );
@@ -217,6 +246,7 @@ export function SubSettingsForm({
   allowedMethods?: string[];
   methods?: { id: string; label: string }[];
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [on, setOn] = useState(enabled);
   const [text, setText] = useState(intro);
@@ -234,15 +264,19 @@ export function SubSettingsForm({
       }}
     >
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontWeight: 500 }}>
-        <input type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} /> Buyer subscriptions are open (the pricing page and checkout)
+        <input type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} /> <T s={'Buyer subscriptions are open (the pricing page and checkout)'} />
       </label>
       <div className="field">
-        <label htmlFor="sub-intro">Words under the pricing page heading</label>
+        <label htmlFor="sub-intro">
+          <T s={'Words under the pricing page heading'} />
+        </label>
         <textarea id="sub-intro" className="input" rows={2} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} />
       </div>
       {methods.length > 0 && (
         <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
-          <legend className="tag">Payment methods subscriptions accept (none ticked: every active method)</legend>
+          <legend className="tag">
+            <T s={'Payment methods subscriptions accept (none ticked: every active method)'} />
+          </legend>
           {methods.map((m) => (
             <label key={m.id} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
               <input type="checkbox" checked={allowed.includes(m.id)} onChange={(e) => setAllowed(e.target.checked ? [...allowed, m.id] : allowed.filter((x) => x !== m.id))} /> {m.label}
@@ -251,7 +285,7 @@ export function SubSettingsForm({
         </fieldset>
       )}
       <div className="tag" style={{ margin: 0 }}>
-        Questions on the pricing page (empty: the standard ones)
+        <T s={'Questions on the pricing page (empty: the standard ones)'} />
       </div>
       {items.map((x, i) => (
         <div key={i} style={{ display: 'grid', gap: 6, gridTemplateColumns: 'minmax(0,1fr)' }}>
@@ -260,7 +294,7 @@ export function SubSettingsForm({
             className="input"
             value={x.q}
             maxLength={200}
-            placeholder="Question"
+            placeholder={tx('Question')}
             onChange={(e) => setItems(items.map((y, n) => (n === i ? { ...y, q: e.target.value } : y)))}
           />
           <textarea
@@ -269,20 +303,20 @@ export function SubSettingsForm({
             rows={2}
             value={x.a}
             maxLength={1200}
-            placeholder="Answer"
+            placeholder={tx('Answer')}
             onChange={(e) => setItems(items.map((y, n) => (n === i ? { ...y, a: e.target.value } : y)))}
           />
           <button type="button" className="btn sm ghost" style={{ justifySelf: 'start' }} onClick={() => setItems(items.filter((_, n) => n !== i))}>
-            Remove question
+            <T s={'Remove question'} />
           </button>
         </div>
       ))}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" className="btn sm ghost" onClick={() => setItems([...items, { q: '', a: '' }])} disabled={items.length >= 20}>
-          + Add question
+          <T s={'+ Add question'} />
         </button>
         <button className="btn sm" type="submit">
-          Save settings
+          <T s={'Save settings'} />
         </button>
         {msg && (
           <span role="status" className="tag" style={{ margin: 0 }}>

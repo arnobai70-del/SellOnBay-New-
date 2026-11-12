@@ -39,7 +39,7 @@ describe('tx() strings', () => {
   it('tx() is always called with plain text the extractor can read (no template or variable)', () => {
     const bad: string[] = [];
     for (const f of ['app', 'components', 'lib', 'emails'].flatMap(walk)) {
-      if (f.includes(`i18n${path.sep}tx.ts`)) continue;
+      if (f.includes(`i18n${path.sep}tx.ts`) || f.endsWith(`i18n${path.sep}T.tsx`)) continue; // the helpers themselves take a variable
       for (const m of readFileSync(f, 'utf8').matchAll(/\btx\(\s*([^'"\s)])/g)) bad.push(`${f}: tx(${m[1]}…`);
     }
     expect(bad).toEqual([]);

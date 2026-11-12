@@ -8,6 +8,7 @@ import path from 'node:path';
 const ROOTS = ['app', 'components', 'lib', 'emails'];
 const OUT = path.join('lib', 'i18n', 'strings', 'catalog.json');
 const CALL = /\btx\(\s*(['"])((?:\\.|(?!\1)[^\\\n])*)\1/g;
+const T_PROP = /<T\s+s=\{\s*(['"])((?:\\.|(?!\1)[^\\\n])*)\1\s*\}/g; // <T s={'…'} /> (components/i18n/T.tsx), also as Prettier breaks long ones
 
 const walk = (dir) =>
   fs.existsSync(dir)
@@ -23,11 +24,11 @@ export function extract() {
     if (file.includes(`${path.sep}i18n${path.sep}tx.ts`)) continue;
     const src = fs.readFileSync(file, 'utf8');
     const client = /^\s*['"]use client['"]/.test(src);
-    for (const m of src.matchAll(CALL)) {
+    for (const m of [...src.matchAll(CALL), ...src.matchAll(T_PROP).map((x) => Object.assign(x, { t: true }))]) {
       const text = m[2].replace(/\\(['"\\])/g, '$1').replace(/\\n/g, '\n');
       if (!text.trim()) continue;
       const e = (strings[text] ??= { client: false, files: [] });
-      e.client ||= client;
+      e.client ||= client || !!m.t; // <T> is a client component: its words go to the browser
       const rel = file.split(path.sep).join('/');
       if (!e.files.includes(rel)) e.files.push(rel);
     }

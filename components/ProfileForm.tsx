@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 /* Changes the person's own name. The server checks the name and saves it with their own session (POST /api/account/profile). */
 export function ProfileForm({ name }: { name: string }) {
   const router = useRouter();
@@ -34,7 +35,9 @@ export function ProfileForm({ name }: { name: string }) {
       }}
     >
       <div className="field">
-        <label htmlFor="pf-name">Your name</label>
+        <label htmlFor="pf-name">
+          <T s={'Your name'} />
+        </label>
         <input id="pf-name" className="input" value={text} onChange={(e) => (setText(e.target.value), setSaved(false))} maxLength={80} autoComplete="name" required />
       </div>
       <button className="btn sm" type="submit" disabled={busy || clean.length < 2 || clean === name}>
@@ -42,7 +45,7 @@ export function ProfileForm({ name }: { name: string }) {
       </button>
       {saved && (
         <p className="tag" style={{ margin: 0 }} role="status">
-          Saved.
+          <T s={'Saved.'} />
         </p>
       )}
       {err && (

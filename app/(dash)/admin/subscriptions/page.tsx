@@ -12,6 +12,8 @@ import { listMethods } from '@/lib/payments/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { SellerSection } from './SellerSection';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Buyer subscriptions', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +27,7 @@ const API = '/api/admin/buyer-subscriptions';
  * payments and subscriptions Finance or Super. Coupons are the ones in Admin › Marketing.
  */
 export default async function AdminSubscriptions({ searchParams }: { searchParams: Promise<{ edit?: string; status?: string; tab?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/subscriptions', roles: ['admin'], scope: ['finance', 'super'] });
   const sp = await searchParams;
   const now = Date.now();
@@ -38,13 +41,19 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
   const tab = sp.tab === 'seller' ? 'seller' : 'buyer';
   const methods = superAdmin ? await listMethods(true).catch(() => []) : [];
   return (
-    <AdminShell viewer={viewer} active="subscriptions" file="admin-finance" title="Subscription Management" subtitle="Buyer and seller subscriptions: switches, plans, prices, members and payments.">
-      <div className="seg" role="tablist" aria-label="Subscriptions" style={{ alignSelf: 'flex-start' }}>
+    <AdminShell
+      viewer={viewer}
+      active="subscriptions"
+      file="admin-finance"
+      title={tx('Subscription Management')}
+      subtitle="Buyer and seller subscriptions: switches, plans, prices, members and payments."
+    >
+      <div className="seg" role="tablist" aria-label={tx('Subscriptions')} style={{ alignSelf: 'flex-start' }}>
         <Link role="tab" aria-selected={tab === 'buyer'} className={tab === 'buyer' ? 'on' : ''} href="/admin/subscriptions" prefetch={false}>
-          Buyer subscriptions
+          <T s={'Buyer subscriptions'} />
         </Link>
         <Link role="tab" aria-selected={tab === 'seller'} className={tab === 'seller' ? 'on' : ''} href="/admin/subscriptions?tab=seller" prefetch={false}>
-          Seller subscriptions
+          <T s={'Seller subscriptions'} />
         </Link>
       </div>
       {tab === 'seller' ? (
@@ -70,7 +79,9 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
           {superAdmin && (
             <section className="glass card">
               <div className="row" style={{ marginBottom: 8 }}>
-                <h2>Feature and pricing page</h2>
+                <h2>
+                  <T s={'Feature and pricing page'} />
+                </h2>
                 <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? 'Open' : 'Off'}</span>
               </div>
               <SubSettingsForm
@@ -82,19 +93,25 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               />
               <div className="tag">
                 <Link href="/subscriptions" prefetch={false}>
-                  Open the pricing page
+                  <T s={'Open the pricing page'} />
                 </Link>{' '}
-                (admins see it even while it is off). Coupons for subscriptions are made in <Link href="/admin/marketing">Marketing</Link>.
+                <T s={'(admins see it even while it is off). Coupons for subscriptions are made in'} />{' '}
+                <Link href="/admin/marketing">
+                  <T s={'Marketing'} />
+                </Link>
+                .
               </div>
             </section>
           )}
 
           <section className="glass card">
             <div className="row" style={{ marginBottom: 8 }}>
-              <h2>Plans</h2>
+              <h2>
+                <T s={'Plans'} />
+              </h2>
               {superAdmin && (
                 <Link className="btn sm" href="/admin/subscriptions?edit=new#plan-editor" prefetch={false}>
-                  + New plan
+                  <T s={'+ New plan'} />
                 </Link>
               )}
             </div>
@@ -102,13 +119,29 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               <table>
                 <thead>
                   <tr>
-                    <th>Plan</th>
-                    <th>Price</th>
-                    <th>Renewal</th>
-                    <th>Websites</th>
-                    <th>Support</th>
-                    <th>State</th>
-                    {superAdmin && <th>Actions</th>}
+                    <th>
+                      <T s={'Plan'} />
+                    </th>
+                    <th>
+                      <T s={'Price'} />
+                    </th>
+                    <th>
+                      <T s={'Renewal'} />
+                    </th>
+                    <th>
+                      <T s={'Websites'} />
+                    </th>
+                    <th>
+                      <T s={'Support'} />
+                    </th>
+                    <th>
+                      <T s={'State'} />
+                    </th>
+                    {superAdmin && (
+                      <th>
+                        <T s={'Actions'} />
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -123,7 +156,9 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                       </td>
                       <td>{usd(p.renewalCents)}</td>
                       <td>{p.websiteLimit}</td>
-                      <td>{p.supportDays} days</td>
+                      <td>
+                        <T s={'{supportDays} days'} v={{ supportDays: p.supportDays }} />
+                      </td>
                       <td>
                         <span className={`status ${p.archivedAt ? 'st-draft' : p.active && p.visible ? 'st-ok' : 'st-wait'}`}>
                           {p.archivedAt ? 'Archived' : !p.active ? 'Inactive' : !p.visible ? 'Hidden' : 'On sale'}
@@ -132,7 +167,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                       {superAdmin && (
                         <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <Link className="btn sm ghost" href={`/admin/subscriptions?edit=${p.id}#plan-editor`} prefetch={false}>
-                            Edit
+                            <T s={'Edit'} />
                           </Link>
                           <ActionButton endpoint={API} body={{ action: 'duplicatePlan', id: p.id }} label="Duplicate" tone="line" />
                           <ActionButton
@@ -156,7 +191,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               <div className="row" style={{ marginBottom: 8 }}>
                 <h2>{editing ? `Edit ${editing.name}` : 'New plan'}</h2>
                 <Link className="btn sm ghost" href="/admin/subscriptions" prefetch={false}>
-                  Close
+                  <T s={'Close'} />
                 </Link>
               </div>
               <PlanEditor key={editing?.id ?? 'new'} plan={editing ?? null} categories={categories} />
@@ -165,8 +200,10 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
 
           <section className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="row" style={{ padding: '14px 14px 4px', flexWrap: 'wrap', gap: 8 }}>
-              <h2>Subscriptions</h2>
-              <div className="seg" role="tablist" aria-label="Filter">
+              <h2>
+                <T s={'Subscriptions'} />
+              </h2>
+              <div className="seg" role="tablist" aria-label={tx('Filter')}>
                 {[['', 'All'], ...Object.entries(STATUS_LABEL)].map(([k, l]) => (
                   <Link
                     key={k || 'all'}
@@ -185,20 +222,34 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               <table>
                 <thead>
                   <tr>
-                    <th>Buyer</th>
-                    <th>Plan</th>
-                    <th>Status</th>
-                    <th>Websites</th>
-                    <th>Ends</th>
-                    <th>Payment to check</th>
-                    <th>Actions</th>
+                    <th>
+                      <T s={'Buyer'} />
+                    </th>
+                    <th>
+                      <T s={'Plan'} />
+                    </th>
+                    <th>
+                      <T s={'Status'} />
+                    </th>
+                    <th>
+                      <T s={'Websites'} />
+                    </th>
+                    <th>
+                      <T s={'Ends'} />
+                    </th>
+                    <th>
+                      <T s={'Payment to check'} />
+                    </th>
+                    <th>
+                      <T s={'Actions'} />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {shown.length === 0 && (
                     <tr>
                       <td colSpan={7} className="muted">
-                        No subscriptions here yet.
+                        <T s={'No subscriptions here yet.'} />
                       </td>
                     </tr>
                   )}
@@ -282,8 +333,15 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
             </div>
           </section>
           <div className="tag">
-            Expiry ends the licence and free support only: buyers&apos; websites keep running and their downloaded files stay theirs. Each chosen website is a $0 order, so its files, downloads and
-            support use the normal order tools (<Link href="/admin/support">Disputes &amp; support</Link>).
+            <T
+              s={
+                "Expiry ends the licence and free support only: buyers' websites keep running and their downloaded files stay theirs. Each chosen website is a $0 order, so its files, downloads and support use the normal order tools ("
+              }
+            />
+            <Link href="/admin/support">
+              <T s={'Disputes & support'} />
+            </Link>
+            ).
           </div>
         </>
       )}

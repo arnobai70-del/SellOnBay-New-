@@ -9,6 +9,8 @@ import { draftOf, publishedOf } from '@/lib/cms/docStore';
 import { FAQ_GROUPS } from '@/lib/faq';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Content', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +31,7 @@ function builtInEmail(kind: NotificationKind): EmailDoc {
  * Admin) publishes; email templates are published by a Super Admin. Every publish is kept in Site history and can be put back.
  */
 export default async function Cms({ searchParams }: { searchParams: Promise<{ doc?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/cms', roles: ['admin'], scope: 'content' });
   const q = (await searchParams).doc ?? 'faq';
   const doc: DocName = isDocName(q) && (!isEmailDoc(q) || KINDS.includes(q.slice(6) as NotificationKind)) ? q : 'faq';
@@ -47,14 +50,23 @@ export default async function Cms({ searchParams }: { searchParams: Promise<{ do
   const subject = isEmailDoc(doc) ? ((current as EmailDoc | null)?.subject ?? builtInEmail(doc.slice(6) as NotificationKind).subject) : '';
   const label = doc === 'faq' ? 'FAQ' : doc === 'how_it_works' ? 'How it works' : `Email: ${doc.slice(6).replace(/_/g, ' ')}`;
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-cms" title="Content">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-cms" title={tx('Content')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Content</h2>
+            <h2>
+              <T s={'Content'} />
+            </h2>
             <p className="tag">
-              Save a draft, preview it, then another admin publishes it (a Super Admin may publish their own). Email templates are published by a Super Admin. Until something is published, the
-              built-in text shows. Every publish is kept in <Link href="/admin/content/site/history">Site history</Link>.
+              <T
+                s={
+                  'Save a draft, preview it, then another admin publishes it (a Super Admin may publish their own). Email templates are published by a Super Admin. Until something is published, the built-in text shows. Every publish is kept in'
+                }
+              />{' '}
+              <Link href="/admin/content/site/history">
+                <T s={'Site history'} />
+              </Link>
+              .
             </p>
           </div>
         </div>
@@ -63,11 +75,13 @@ export default async function Cms({ searchParams }: { searchParams: Promise<{ do
             FAQ
           </Link>
           <Link className={'btn sm' + (doc === 'how_it_works' ? '' : ' ghost')} href="/admin/content/cms?doc=how_it_works">
-            How it works
+            <T s={'How it works'} />
           </Link>
         </div>
         <details style={{ marginTop: 12 }} open={isEmailDoc(doc)}>
-          <summary>Email templates ({KINDS.length})</summary>
+          <summary>
+            <T s={'Email templates ({length})'} v={{ length: KINDS.length }} />
+          </summary>
           <div className="sob-acts" style={{ flexWrap: 'wrap', marginTop: 8 }}>
             {KINDS.map((k) => (
               <Link key={k} className={'btn sm' + (doc === `email:${k}` ? '' : ' ghost')} href={`/admin/content/cms?doc=email:${k}`}>
@@ -108,7 +122,7 @@ export default async function Cms({ searchParams }: { searchParams: Promise<{ do
         {draft && (
           <div className="sob-acts" style={{ marginTop: 12 }}>
             <Link className="btn ghost sm" href={`/admin/content/cms/preview?doc=${encodeURIComponent(doc)}`}>
-              Preview the draft
+              <T s={'Preview the draft'} />
             </Link>
             {mayPublish ? (
               <AdminForm endpoint="/api/admin/cms/docs" fixed={{ action: 'publish', doc }} fields={[]} submit="Publish the draft" tone="dark" />

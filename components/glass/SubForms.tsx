@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* Buyer subscriptions (owner, 2026-11-12): the buyer's three actions, all through POST /api/subscriptions (lib/buyerSubs). */
 async function post(body: Record<string, unknown>): Promise<{ ok: boolean; status: number; error?: string; value?: Record<string, unknown> }> {
   const r = await fetch('/api/subscriptions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
@@ -19,6 +21,7 @@ const Err = ({ msg }: { msg: string }) =>
 
 /* "Choose this plan": starts the subscription (it waits for payment) and opens it in the dashboard. Visitors are sent to sign in first. */
 export function SubscribeButton({ planId, label, disabled }: { planId: string; label: string; disabled?: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [coupon, setCoupon] = useState('');
@@ -26,9 +29,17 @@ export function SubscribeButton({ planId, label, disabled }: { planId: string; l
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <label className="hidden-label" htmlFor={`cp-${planId}`}>
-        Coupon code
+        <T s={'Coupon code'} />
       </label>
-      <input id={`cp-${planId}`} className="input" placeholder="Coupon code (optional)" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} maxLength={40} disabled={disabled} />
+      <input
+        id={`cp-${planId}`}
+        className="input"
+        placeholder={tx('Coupon code (optional)')}
+        value={coupon}
+        onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+        maxLength={40}
+        disabled={disabled}
+      />
       <button
         className="btn"
         type="button"
@@ -53,6 +64,7 @@ export function SubscribeButton({ planId, label, disabled }: { planId: string; l
 
 /* The manual payment report: how it was paid and its reference. An admin checks it, then the subscription starts (or is renewed). */
 export function SubPayForm({ subscriptionId, kind, methods }: { subscriptionId: string; kind: 'new' | 'renewal'; methods: { label: string; instructions: string }[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [method, setMethod] = useState(methods[0]?.label ?? '');
   const [reference, setReference] = useState('');
@@ -75,7 +87,9 @@ export function SubPayForm({ subscriptionId, kind, methods }: { subscriptionId: 
     >
       {methods.length > 0 ? (
         <div className="field">
-          <label htmlFor={`pm-${subscriptionId}`}>How you paid</label>
+          <label htmlFor={`pm-${subscriptionId}`}>
+            <T s={'How you paid'} />
+          </label>
           <select id={`pm-${subscriptionId}`} className="input" value={method} onChange={(e) => setMethod(e.target.value)}>
             {methods.map((m) => (
               <option key={m.label} value={m.label}>
@@ -87,15 +101,28 @@ export function SubPayForm({ subscriptionId, kind, methods }: { subscriptionId: 
         </div>
       ) : (
         <div className="tag" style={{ margin: 0 }}>
-          Payment details are sent by our team. Enter the reference you receive after paying.
+          <T s={'Payment details are sent by our team. Enter the reference you receive after paying.'} />
         </div>
       )}
       <div className="field">
-        <label htmlFor={`ref-${subscriptionId}`}>Payment reference</label>
-        <input id={`ref-${subscriptionId}`} className="input" required minLength={3} maxLength={80} value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Transaction ID" />
+        <label htmlFor={`ref-${subscriptionId}`}>
+          <T s={'Payment reference'} />
+        </label>
+        <input
+          id={`ref-${subscriptionId}`}
+          className="input"
+          required
+          minLength={3}
+          maxLength={80}
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          placeholder={tx('Transaction ID')}
+        />
       </div>
       <div className="field">
-        <label htmlFor={`on-${subscriptionId}`}>Paid on</label>
+        <label htmlFor={`on-${subscriptionId}`}>
+          <T s={'Paid on'} />
+        </label>
         <input id={`on-${subscriptionId}`} className="input" type="date" value={paidOn} onChange={(e) => setPaidOn(e.target.value)} />
       </div>
       <button className="btn" type="submit" disabled={busy}>
@@ -115,7 +142,7 @@ export function PickForm({ subscriptionId, options }: { subscriptionId: string; 
   if (!options.length)
     return (
       <div className="tag" style={{ margin: 0 }}>
-        No more websites can be chosen with this plan right now.
+        <T s={'No more websites can be chosen with this plan right now.'} />
       </div>
     );
   return (
@@ -133,7 +160,9 @@ export function PickForm({ subscriptionId, options }: { subscriptionId: string; 
       }}
     >
       <div className="field" style={{ flex: '1 1 240px', minWidth: 0 }}>
-        <label htmlFor={`pick-${subscriptionId}`}>Choose a website</label>
+        <label htmlFor={`pick-${subscriptionId}`}>
+          <T s={'Choose a website'} />
+        </label>
         <select id={`pick-${subscriptionId}`} className="input" value={key} onChange={(e) => setKey(e.target.value)}>
           {options.map((o) => (
             <option key={o.key} value={o.key}>

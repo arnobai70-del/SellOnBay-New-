@@ -6,6 +6,7 @@ import { signOut } from '@/app/(bare)/login/actions';
 import { createClient } from '@/lib/supabase/client';
 import { supabaseAnonKey, supabaseUrl } from '@/lib/supabase/env';
 
+import { T } from '@/components/i18n/T';
 type Who = { initials: string; name: string; admin: boolean };
 
 const initialsOf = (s: string) =>
@@ -75,16 +76,16 @@ export function AccountMenu({ fallback }: { fallback: { label: string; href: str
             {who.name}
           </div>
           <Link role="menuitem" href="/dashboard" prefetch={false}>
-            Dashboard
+            <T s={'Dashboard'} />
           </Link>
           {who.admin && (
             <Link role="menuitem" href="/admin" prefetch={false}>
-              Admin
+              <T s={'Admin'} />
             </Link>
           )}
           <form action={signOut}>
             <button role="menuitem" type="submit">
-              Sign out
+              <T s={'Sign out'} />
             </button>
           </form>
         </div>

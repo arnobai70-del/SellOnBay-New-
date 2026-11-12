@@ -5,8 +5,11 @@ import { Field } from '@/components/glass/Field';
 import { Turnstile } from '@/components/Turnstile';
 import { CONTACT_TOPICS } from '@/lib/contact';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* The contact form for people who are not signed in. The server checks everything again (app/api/contact). */
 export function ContactForm({ siteKey }: { siteKey?: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
@@ -14,9 +17,11 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
   if (state === 'sent')
     return (
       <div role="status">
-        <h2>Message sent</h2>
+        <h2>
+          <T s={'Message sent'} />
+        </h2>
         <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-          Thanks. We will answer by email.
+          <T s={'Thanks. We will answer by email.'} />
         </p>
       </div>
     );
@@ -48,7 +53,7 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
             <option key={t}>{t}</option>
           ))}
         </Field>
-        <Field label="Order number (optional)" name="orderRef" maxLength={40} placeholder="#SB-…" />
+        <Field label="Order number (optional)" name="orderRef" maxLength={40} placeholder={tx('#SB-…')} />
       </div>
       <Field as="textarea" label="Message" name="message" required minLength={10} maxLength={4000} error={error || undefined} />
       {/* A trap for bots: hidden from people and from screen readers. */}

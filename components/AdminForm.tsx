@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 /*
  * One small form for admin actions: sends JSON to an admin API route, shows the answer in plain words, refreshes the page.
  * The server decides everything; this only collects the words.
@@ -119,7 +120,7 @@ export function AdminForm({
         </button>
         {!open && (
           <button className="btn sm ghost" type="button" onClick={() => setShown(false)}>
-            Cancel
+            <T s={'Cancel'} />
           </button>
         )}
       </div>

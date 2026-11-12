@@ -5,6 +5,8 @@ import { seoFindings } from '@/lib/seo/check';
 import { seoRows } from '@/lib/seo/report';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'SEO check', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +14,7 @@ const KIND = { page: 'Page', topic: 'Topic', listing: 'Listing' } as const;
 
 /* The automatic check: every page, topic and live listing, with what Google is given and what to fix. Worst first. */
 export default async function SeoCheck() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/seo/check', roles: ['admin'], scope: 'content' });
   const rows = await seoRows();
   const found = seoFindings(rows);
@@ -20,18 +23,24 @@ export default async function SeoCheck() {
   const fixes = rows.filter((r) => found.get(r.path)?.some((f) => f.level === 'fix')).length;
   const tips = rows.filter((r) => found.get(r.path)?.length && !found.get(r.path)?.some((f) => f.level === 'fix')).length;
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title="SEO check">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title={tx('SEO check')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Every page, topic and listing</h2>
+            <h2>
+              <T s={'Every page, topic and listing'} />
+            </h2>
             <p className="tag">
-              Checked just now: {rows.length} addresses (pages, topics and live listings). {fixes} to fix, {tips} that could be better, {rows.length - fixes - tips} look good. The check looks at
-              missing, too long, too short and repeated titles and descriptions.
+              <T
+                s={
+                  'Checked just now: {length} addresses (pages, topics and live listings). {fixes} to fix, {tips} that could be better, {v3} look good. The check looks at missing, too long, too short and repeated titles and descriptions.'
+                }
+                v={{ length: rows.length, fixes, tips, v3: rows.length - fixes - tips }}
+              />
             </p>
           </div>
           <Link className="btn ghost sm" href="/admin/seo">
-            Back to SEO and blog
+            <T s={'Back to SEO and blog'} />
           </Link>
         </div>
         <ul className="sob-list">
@@ -45,7 +54,13 @@ export default async function SeoCheck() {
                     {KIND[r.kind]}: {r.name}
                   </b>
                   <small>{r.title}</small>
-                  {f.length ? f.map((x) => <small key={x.text}>{x.text}</small>) : <small>Looks good.</small>}
+                  {f.length ? (
+                    f.map((x) => <small key={x.text}>{x.text}</small>)
+                  ) : (
+                    <small>
+                      <T s={'Looks good.'} />
+                    </small>
+                  )}
                 </div>
                 <span className={fix ? 'status st-bad' : f.length ? 'status st-wait' : 'status st-ok'}>
                   <i />
@@ -53,7 +68,7 @@ export default async function SeoCheck() {
                 </span>
                 {f.length > 0 && (
                   <Link className="btn ghost sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(r.path)}`}>
-                    Edit
+                    <T s={'Edit'} />
                   </Link>
                 )}
               </li>

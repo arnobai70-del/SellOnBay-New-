@@ -6,6 +6,8 @@ import { changedKeys, revisionsOf } from '@/lib/cms/history';
 import { trackedKey } from '@/lib/cms/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Site history', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +20,7 @@ const preview = (v: unknown) => {
 
 /* Every save of the site builder and SEO settings, numbered per setting; any older revision can be put back (lib/cms). */
 export default async function SiteHistory({ searchParams }: { searchParams: Promise<{ key?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/site/history', roles: ['admin'], scope: 'content' });
   const { key } = await searchParams;
   const t = key ? trackedKey(key) : null;
@@ -25,23 +28,32 @@ export default async function SiteHistory({ searchParams }: { searchParams: Prom
   const revs = t && key ? await revisionsOf(key) : [];
   const current = revs[0]?.version;
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-site-history" title="Site history">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-site-history" title={tx('Site history')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Site history</h2>
+            <h2>
+              <T s={'Site history'} />
+            </h2>
             <p className="tag">
-              Each save of the menu, footer, home sections, page blocks and SEO settings is kept. Putting an older one back runs the same checks as a save and adds a new entry; nothing is erased.
+              <T
+                s={
+                  'Each save of the menu, footer, home sections, page blocks and SEO settings is kept. Putting an older one back runs the same checks as a save and adds a new entry; nothing is erased.'
+                }
+              />
             </p>
           </div>
         </div>
         {keys.length === 0 ? (
-          <p className="muted">Nothing has been changed since the history started.</p>
+          <p className="muted">
+            <T s={'Nothing has been changed since the history started.'} />
+          </p>
         ) : (
           <ul className="sob-list" data-history-keys>
             {keys.map((k) => (
               <li key={k.key}>
-                <Link href={`/admin/content/site/history?key=${encodeURIComponent(k.key)}`}>{trackedKey(k.key)?.label ?? k.key}</Link> · revision {k.version} · {when(k.at)}
+                <Link href={`/admin/content/site/history?key=${encodeURIComponent(k.key)}`}>{trackedKey(k.key)?.label ?? k.key}</Link>{' '}
+                <T s={'· revision {version} · {v1}'} v={{ version: k.version, v1: when(k.at) }} />
               </li>
             ))}
           </ul>
@@ -52,7 +64,9 @@ export default async function SiteHistory({ searchParams }: { searchParams: Prom
           <div className="row sob-hd">
             <div>
               <h2>{t.label}</h2>
-              <p className="tag">Newest first. The top one is what the site shows now.</p>
+              <p className="tag">
+                <T s={'Newest first. The top one is what the site shows now.'} />
+              </p>
             </div>
           </div>
           <ul className="sob-list">
@@ -60,8 +74,7 @@ export default async function SiteHistory({ searchParams }: { searchParams: Prom
               <li key={r.id} data-rev={r.version}>
                 <div className="sob-grow">
                   <b>
-                    Revision {r.version}
-                    {r.version === current ? ' (current)' : ''}
+                    <T s={'Revision {version}{v1}'} v={{ version: r.version, v1: r.version === current ? ' (current)' : '' }} />
                   </b>{' '}
                   · {when(r.at)} · {r.action === 'rollback' ? `put back revision ${r.fromVersion}` : 'saved'}
                   <pre className="muted" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12 }}>

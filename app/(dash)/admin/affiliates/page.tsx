@@ -8,6 +8,8 @@ import { ADMIN_MOVES, KIND_LABEL, STATUS_LABEL, STATUS_TONE } from '@/lib/affili
 import { affSettings, allAffiliates, allAttributions, allCommissions, allWithdrawals, clicksOf, fraudSignals, leaderboard, overview } from '@/lib/affiliates/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Affiliate Management', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +38,7 @@ type Tab = (typeof TABS)[number][0];
  * marked paid with their reference, once.
  */
 export default async function AdminAffiliates({ searchParams }: { searchParams: Promise<{ tab?: string; status?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/affiliates', roles: ['admin'], scope: ['finance', 'super'] });
   const sp = await searchParams;
   const tab: Tab = (TABS.find(([k]) => k === sp.tab)?.[0] ?? 'overview') as Tab;
@@ -46,17 +49,24 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
     const a = byId.get(id);
     return a ? `${a.displayName || 'Unnamed'} · ${a.code}` : id.slice(0, 8);
   };
-  const settingsForm = (section: Section) => (superAdmin ? <AffSettingsForm initial={s} section={section} /> : <p className="muted">Only a Super Admin can change these settings.</p>);
+  const settingsForm = (section: Section) =>
+    superAdmin ? (
+      <AffSettingsForm initial={s} section={section} />
+    ) : (
+      <p className="muted">
+        <T s={'Only a Super Admin can change these settings.'} />
+      </p>
+    );
   const now = Date.now();
   return (
-    <AdminShell viewer={viewer} active="affiliates" file="admin-finance" title="Affiliate Management" subtitle="The affiliate program: accounts, commissions, tracking, payouts and settings.">
+    <AdminShell viewer={viewer} active="affiliates" file="admin-finance" title={tx('Affiliate Management')} subtitle="The affiliate program: accounts, commissions, tracking, payouts and settings.">
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
         <span className={`status ${s.enabled ? 'st-ok' : 'st-draft'}`}>{s.enabled ? 'Program on' : 'Program off'}</span>
         <Link className="btn sm ghost" href="/affiliates" prefetch={false}>
-          Public page
+          <T s={'Public page'} />
         </Link>
       </div>
-      <nav className="seg" aria-label="Affiliate Management" style={{ flexWrap: 'wrap', alignSelf: 'flex-start' }}>
+      <nav className="seg" aria-label={tx('Affiliate Management')} style={{ flexWrap: 'wrap', alignSelf: 'flex-start' }}>
         {TABS.map(([k, label]) => (
           <Link key={k} aria-current={tab === k ? 'page' : undefined} className={tab === k ? 'on' : ''} href={`/admin/affiliates?tab=${k}`} prefetch={false}>
             {label}
@@ -90,18 +100,28 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
             <table>
               <thead>
                 <tr>
-                  <th>Affiliate</th>
-                  <th>Status</th>
-                  <th>Qualification</th>
-                  <th>Fee</th>
-                  <th>Actions</th>
+                  <th>
+                    <T s={'Affiliate'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
+                  <th>
+                    <T s={'Qualification'} />
+                  </th>
+                  <th>
+                    <T s={'Fee'} />
+                  </th>
+                  <th>
+                    <T s={'Actions'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {affs.length === 0 && (
                   <tr>
                     <td colSpan={5} className="muted">
-                      No affiliates yet.
+                      <T s={'No affiliates yet.'} />
                     </td>
                   </tr>
                 )}
@@ -110,7 +130,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                     <td>
                       {a.displayName || 'Unnamed'}
                       <div className="tag">
-                        {a.code} · joined {day(a.createdAt)} · terms {a.termsVersion}
+                        <T s={'{code} · joined {v1} · terms {termsVersion}'} v={{ code: a.code, v1: day(a.createdAt), termsVersion: a.termsVersion }} />
                       </div>
                     </td>
                     <td>
@@ -158,9 +178,11 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
 
       {tab === 'registration' && (
         <section className="glass card">
-          <h2 style={{ marginBottom: 8 }}>Registration fee and qualification</h2>
+          <h2 style={{ marginBottom: 8 }}>
+            <T s={'Registration fee and qualification'} />
+          </h2>
           <p className="muted" style={{ margin: '0 0 12px', fontSize: 14 }}>
-            Nothing is ever charged automatically. An affiliate who reaches the target in time becomes a Verified Affiliate.
+            <T s={'Nothing is ever charged automatically. An affiliate who reaches the target in time becomes a Verified Affiliate.'} />
           </p>
           {settingsForm('registration')}
         </section>
@@ -169,27 +191,45 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
       {tab === 'commission' && (
         <>
           <section className="glass card">
-            <h2 style={{ marginBottom: 8 }}>Rates and approval</h2>
+            <h2 style={{ marginBottom: 8 }}>
+              <T s={'Rates and approval'} />
+            </h2>
             {settingsForm('commission')}
           </section>
           <section className="glass card">
-            <h2 style={{ marginBottom: 8 }}>Eligible websites</h2>
+            <h2 style={{ marginBottom: 8 }}>
+              <T s={'Eligible websites'} />
+            </h2>
             {settingsForm('products')}
           </section>
           <section className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="row" style={{ padding: '14px 14px 4px' }}>
-              <h2>Commissions</h2>
+              <h2>
+                <T s={'Commissions'} />
+              </h2>
             </div>
             <div className="tbl" style={{ overflowX: 'auto' }}>
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Affiliate</th>
-                    <th>Sale</th>
-                    <th>Basis</th>
-                    <th>Amount</th>
-                    <th>Status</th>
+                    <th>
+                      <T s={'Date'} />
+                    </th>
+                    <th>
+                      <T s={'Affiliate'} />
+                    </th>
+                    <th>
+                      <T s={'Sale'} />
+                    </th>
+                    <th>
+                      <T s={'Basis'} />
+                    </th>
+                    <th>
+                      <T s={'Amount'} />
+                    </th>
+                    <th>
+                      <T s={'Status'} />
+                    </th>
                     <th />
                   </tr>
                 </thead>
@@ -197,7 +237,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                   {comms.length === 0 && (
                     <tr>
                       <td colSpan={7} className="muted">
-                        No commissions yet.
+                        <T s={'No commissions yet.'} />
                       </td>
                     </tr>
                   )}
@@ -231,21 +271,25 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
 
       {tab === 'reports' && (
         <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <h2>Reports</h2>
+          <h2>
+            <T s={'Reports'} />
+          </h2>
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-            One row per affiliate: clicks, referrals, verified sales, pending and approved commission. No customer data is included.
+            <T s={'One row per affiliate: clicks, referrals, verified sales, pending and approved commission. No customer data is included.'} />
           </p>
           <a className="btn sm" style={{ alignSelf: 'flex-start' }} href="/api/admin/affiliates/export">
-            Download CSV
+            <T s={'Download CSV'} />
           </a>
         </section>
       )}
 
       {tab === 'badges' && (
         <section className="glass card">
-          <h2 style={{ marginBottom: 8 }}>Badges</h2>
+          <h2 style={{ marginBottom: 8 }}>
+            <T s={'Badges'} />
+          </h2>
           <p className="muted" style={{ margin: '0 0 12px', fontSize: 14 }}>
-            Badges follow verified, non-refunded sales, so a reversed sale can take one away.
+            <T s={'Badges follow verified, non-refunded sales, so a reversed sale can take one away.'} />
           </p>
           {settingsForm('badges')}
         </section>
@@ -256,25 +300,39 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
       {tab === 'withdrawals' && (
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>Withdrawals</h2>
+            <h2>
+              <T s={'Withdrawals'} />
+            </h2>
           </div>
           <div className="tbl" style={{ overflowX: 'auto' }}>
             <table>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Affiliate</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>
+                    <T s={'Date'} />
+                  </th>
+                  <th>
+                    <T s={'Affiliate'} />
+                  </th>
+                  <th>
+                    <T s={'Amount'} />
+                  </th>
+                  <th>
+                    <T s={'Method'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
+                  <th>
+                    <T s={'Actions'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {wds.length === 0 && (
                   <tr>
                     <td colSpan={6} className="muted">
-                      No withdrawals yet.
+                      <T s={'No withdrawals yet.'} />
                     </td>
                   </tr>
                 )}
@@ -324,7 +382,9 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
       {tab === 'fraud' && (
         <>
           <section className="glass card">
-            <h2 style={{ marginBottom: 8 }}>Fraud rules</h2>
+            <h2 style={{ marginBottom: 8 }}>
+              <T s={'Fraud rules'} />
+            </h2>
             {settingsForm('fraud')}
           </section>
           <Fraud />
@@ -333,16 +393,20 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
 
       {tab === 'notifications' && (
         <section className="glass card">
-          <h2 style={{ marginBottom: 8 }}>Notifications</h2>
+          <h2 style={{ marginBottom: 8 }}>
+            <T s={'Notifications'} />
+          </h2>
           {settingsForm('notifications')}
         </section>
       )}
 
       {tab === 'settings' && (
         <section className="glass card">
-          <h2 style={{ marginBottom: 8 }}>Program settings</h2>
+          <h2 style={{ marginBottom: 8 }}>
+            <T s={'Program settings'} />
+          </h2>
           <p className="muted" style={{ margin: '0 0 12px', fontSize: 14 }}>
-            While the program is off, the public page is hidden and new registrations and referral tracking stop. Earned commissions and withdrawals keep working.
+            <T s={'While the program is off, the public page is hidden and new registrations and referral tracking stop. Earned commissions and withdrawals keep working.'} />
           </p>
           {settingsForm('program')}
         </section>
@@ -358,14 +422,24 @@ async function Tracking({ settingsForm, who }: { settingsForm: React.ReactNode; 
   return (
     <>
       <section className="glass card">
-        <h2 style={{ marginBottom: 8 }}>Referral cookie</h2>
+        <h2 style={{ marginBottom: 8 }}>
+          <T s={'Referral cookie'} />
+        </h2>
         {settingsForm}
-        <div className="tag">The cookie is set only in browsers that accepted analytics cookies. The first affiliate wins; self-referrals never count.</div>
+        <div className="tag">
+          <T s={'The cookie is set only in browsers that accepted analytics cookies. The first affiliate wins; self-referrals never count.'} />
+        </div>
       </section>
       <div className="grid2">
         <section className="glass card">
-          <h2 style={{ marginBottom: 8 }}>Clicks by website</h2>
-          {byProduct.size === 0 && <p className="muted">No clicks yet.</p>}
+          <h2 style={{ marginBottom: 8 }}>
+            <T s={'Clicks by website'} />
+          </h2>
+          {byProduct.size === 0 && (
+            <p className="muted">
+              <T s={'No clicks yet.'} />
+            </p>
+          )}
           {[...byProduct.entries()]
             .sort((a, b) => b[1] - a[1])
             .slice(0, 30)
@@ -377,8 +451,14 @@ async function Tracking({ settingsForm, who }: { settingsForm: React.ReactNode; 
             ))}
         </section>
         <section className="glass card">
-          <h2 style={{ marginBottom: 8 }}>Recent referrals</h2>
-          {attrs.length === 0 && <p className="muted">No referrals yet.</p>}
+          <h2 style={{ marginBottom: 8 }}>
+            <T s={'Recent referrals'} />
+          </h2>
+          {attrs.length === 0 && (
+            <p className="muted">
+              <T s={'No referrals yet.'} />
+            </p>
+          )}
           {[...attrs]
             .sort((a, b) => b.createdAt - a.createdAt)
             .slice(0, 30)
@@ -404,25 +484,37 @@ async function Leaders({ publicOn }: { publicOn: boolean }) {
   return (
     <section className="glass" style={{ padding: '8px 8px 4px' }}>
       <div className="row" style={{ padding: '14px 14px 4px' }}>
-        <h2>This month</h2>
+        <h2>
+          <T s={'This month'} />
+        </h2>
         <span className={`status ${publicOn ? 'st-ok' : 'st-draft'}`}>{publicOn ? 'Public top 5 shown' : 'Public board hidden'}</span>
       </div>
       <div className="tbl" style={{ overflowX: 'auto' }}>
         <table>
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Affiliate</th>
-              <th>Verified sales</th>
-              <th>Net revenue</th>
-              <th>Public</th>
+              <th>
+                <T s={'Rank'} />
+              </th>
+              <th>
+                <T s={'Affiliate'} />
+              </th>
+              <th>
+                <T s={'Verified sales'} />
+              </th>
+              <th>
+                <T s={'Net revenue'} />
+              </th>
+              <th>
+                <T s={'Public'} />
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="muted">
-                  No affiliates yet.
+                  <T s={'No affiliates yet.'} />
                 </td>
               </tr>
             )}
@@ -446,18 +538,24 @@ async function Fraud() {
   const rows = await fraudSignals();
   return (
     <section className="glass card">
-      <h2 style={{ marginBottom: 8 }}>Signals to check</h2>
+      <h2 style={{ marginBottom: 8 }}>
+        <T s={'Signals to check'} />
+      </h2>
       <p className="muted" style={{ margin: '0 0 10px', fontSize: 14 }}>
-        Nothing is done automatically. Suspend an affiliate from Accounts, or reverse a commission from Commission.
+        <T s={'Nothing is done automatically. Suspend an affiliate from Accounts, or reverse a commission from Commission.'} />
       </p>
-      {rows.length === 0 && <p className="muted">Nothing unusual.</p>}
+      {rows.length === 0 && (
+        <p className="muted">
+          <T s={'Nothing unusual.'} />
+        </p>
+      )}
       {rows.map((r) => (
         <div key={r.affiliate.id} className="li" style={{ fontSize: 14 }}>
           <span style={{ flex: 1 }}>
             {r.affiliate.displayName || 'Unnamed'} · {r.affiliate.code}
           </span>
           <span className="tag" style={{ margin: 0 }}>
-            {r.clicks} clicks · {r.sales} sales · {r.reversed} reversed · {r.signups} sign-ups
+            <T s={'{clicks} clicks · {sales} sales · {reversed} reversed · {signups} sign-ups'} v={{ clicks: r.clicks, sales: r.sales, reversed: r.reversed, signups: r.signups }} />
           </span>
           <span className="status st-bad">{r.flags.join(', ')}</span>
         </div>

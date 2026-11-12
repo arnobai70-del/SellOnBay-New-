@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 type Row = { key: string; label: string; locked: boolean };
 
 /* Shows, hides and reorders the category-bar entries. Hidden entries keep their pages; the server saves and refreshes every page. */
@@ -42,10 +43,10 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
           </label>
           <div className="sob-acts">
             <button className="btn ghost sm" type="button" onClick={() => move(i, -1)} disabled={i === 0}>
-              Move up
+              <T s={'Move up'} />
             </button>
             <button className="btn ghost sm" type="button" onClick={() => move(i, 1)} disabled={i === list.length - 1}>
-              Move down
+              <T s={'Move down'} />
             </button>
           </div>
         </div>

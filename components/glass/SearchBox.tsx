@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import { highlight } from '@/lib/searchCore';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * The smart search box (owner, 2026-11-08) for the top bar, the home hero and /websites. It is a real form (GET to `action`), so it works without
  * JavaScript. With JavaScript: results after 2 characters (200 ms after typing stops), grouped by type, the matched part highlighted, up and down
@@ -55,6 +57,7 @@ export function SearchBox({
   compact?: boolean;
   track?: string;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const id = useId();
   const [q, setQ] = useState(defaultValue);
@@ -195,17 +198,19 @@ export function SearchBox({
           <input key={k} type="hidden" name={k} value={v} />
         ))}
         <button className="btn sm" type="submit">
-          Search
+          <T s={'Search'} />
         </button>
       </form>
       {open && all.length > 0 && (
-        <div className="sob-sx-pop glass" id={`${id}-list`} role="listbox" aria-label="Search suggestions">
+        <div className="sob-sx-pop glass" id={`${id}-list`} role="listbox" aria-label={tx('Search suggestions')}>
           {shown && !shown.total && (
             <div className="sob-sx-none">
-              <p>No results for &ldquo;{typed}&rdquo;.</p>
+              <p>
+                <T s={'No results for “{typed}”.'} v={{ typed }} />
+              </p>
               {shown.didYouMean.length > 0 && (
                 <p>
-                  Did you mean{' '}
+                  <T s={'Did you mean'} />{' '}
                   {shown.didYouMean.map((s, i) => (
                     <span key={s}>
                       {i > 0 && ', '}

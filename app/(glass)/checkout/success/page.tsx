@@ -8,6 +8,7 @@ import { getOrder } from '@/lib/orders/service';
 import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Request received', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -38,15 +39,23 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
             <path d="M5 12l5 5L20 7" />
           </svg>
         </span>
-        <h1 style={{ fontSize: 'clamp(32px,4.4vw,46px)', fontWeight: 300 }}>Thank you, your request is in.</h1>
+        <h1 style={{ fontSize: 'clamp(32px,4.4vw,46px)', fontWeight: 300 }}>
+          <T s={'Thank you, your request is in.'} />
+        </h1>
         <p className="muted" style={{ margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
-          {count > 1 ? `${count} requests are` : 'Your request is'} with our team. Websites are free for early users during the beta, and nothing was charged.
+          <T s={'{v0} with our team. Websites are free for early users during the beta, and nothing was charged.'} v={{ v0: count > 1 ? `${count} requests are` : 'Your request is' }} />
         </p>
-        {id && <div className="tag">Order {orderCode(id)} · we email you when it is reviewed</div>}
+        {id && (
+          <div className="tag">
+            <T s={'Order {v0} · we email you when it is reviewed'} v={{ v0: orderCode(id) }} />
+          </div>
+        )}
       </section>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'center' }}>
         <section className="glass card" style={{ flex: '1 1 380px', maxWidth: 560 }}>
-          <h2 style={{ fontSize: 20, marginBottom: 6 }}>What happens next</h2>
+          <h2 style={{ fontSize: 20, marginBottom: 6 }}>
+            <T s={'What happens next'} />
+          </h2>
           {steps.map(([t, d, s, tone, look], i) => (
             <div key={t} className="stp">
               <b style={{ background: NUM[look][0], color: NUM[look][1] }}>{i + 1}</b>
@@ -61,7 +70,9 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
           ))}
         </section>
         <aside className="glass card" style={{ flex: '1 1 280px', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <h2 style={{ fontSize: 20 }}>Order</h2>
+          <h2 style={{ fontSize: 20 }}>
+            <T s={'Order'} />
+          </h2>
           {mine ? (
             <>
               <div className="li" style={{ fontSize: 14 }}>
@@ -71,24 +82,30 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
               {mine.domain && (
                 <div className="li" style={{ fontSize: 14 }}>
                   <span style={{ flex: 1 }}>{mine.domain.name}</span>
-                  <span>Checked by hand</span>
+                  <span>
+                    <T s={'Checked by hand'} />
+                  </span>
                 </div>
               )}
               <div className="li" style={{ fontSize: 16 }}>
-                <span style={{ flex: 1 }}>Paid</span>
+                <span style={{ flex: 1 }}>
+                  <T s={'Paid'} />
+                </span>
                 <b style={{ fontWeight: 500 }}>$0.00</b>
               </div>
             </>
           ) : (
             <div className="li" style={{ fontSize: 14 }}>
-              <span className="muted">Your requests are in your dashboard.</span>
+              <span className="muted">
+                <T s={'Your requests are in your dashboard.'} />
+              </span>
             </div>
           )}
           <Link className="btn" href={id ? `/orders/${id}` : '/dashboard/buyer'} style={{ width: '100%' }} prefetch={false}>
             {id ? 'Open the order' : 'Go to my dashboard'}
           </Link>{' '}
           <Link className="btn ghost" href="/dashboard/buyer/orders" style={{ width: '100%' }} prefetch={false}>
-            All my orders
+            <T s={'All my orders'} />
           </Link>
         </aside>
       </div>

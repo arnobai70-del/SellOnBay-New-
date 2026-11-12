@@ -10,6 +10,7 @@ import { orderStore } from '@/lib/orders/store';
 import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Admin search', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -36,13 +37,15 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
       {q.length < 2 ? (
         <section className="glass card">
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-            Type at least two letters in the search box above.
+            <T s={'Type at least two letters in the search box above.'} />
           </p>
         </section>
       ) : (
         <>
           <section className="glass card">
-            <h2>Orders ({o.length})</h2>
+            <h2>
+              <T s={'Orders ({length})'} v={{ length: o.length }} />
+            </h2>
             {o.length ? (
               o.map((x) => (
                 <div key={x.id} className="li" style={{ fontSize: 14 }}>
@@ -58,12 +61,14 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
               ))
             ) : (
               <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-                No order matches.
+                <T s={'No order matches.'} />
               </p>
             )}
           </section>
           <section className="glass card">
-            <h2>Listings ({l.length})</h2>
+            <h2>
+              <T s={'Listings ({length})'} v={{ length: l.length }} />
+            </h2>
             {l.length ? (
               l.map((x) => (
                 <div key={x.slug} className="li" style={{ fontSize: 14 }}>
@@ -80,12 +85,14 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
               ))
             ) : (
               <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-                No listing matches.
+                <T s={'No listing matches.'} />
               </p>
             )}
           </section>
           <section className="glass card">
-            <h2>Accounts ({users.length})</h2>
+            <h2>
+              <T s={'Accounts ({length})'} v={{ length: users.length }} />
+            </h2>
             {users.length ? (
               users.slice(0, 20).map((x) => (
                 <div key={x.id} className="li" style={{ fontSize: 14 }}>
@@ -94,7 +101,7 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
                     {x.role}
                   </span>
                   <Link className="btn sm ghost" href={`/admin/users?q=${encodeURIComponent(x.name)}`} prefetch={false}>
-                    Open
+                    <T s={'Open'} />
                   </Link>
                 </div>
               ))

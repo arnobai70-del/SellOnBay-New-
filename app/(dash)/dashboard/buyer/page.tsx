@@ -8,6 +8,8 @@ import { plainWords } from '@/lib/glass/words';
 import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Buyer overview', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +21,7 @@ const ago = (t: number, now: number) => {
 
 /* design-reference/buyer.html: what the buyer owns, the order in its review (accepted or reported on its order page), what to do, updates and orders. */
 export default async function BuyerOverview() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer', 'seller', 'admin'] });
   const v = viewer ? await buyerOverview(viewer.id) : null;
   const first = viewer?.name?.split(' ')[0];
@@ -62,33 +65,43 @@ export default async function BuyerOverview() {
       ]
     : [];
   return (
-    <BuyerShell viewer={viewer} active="overview" file="buyer" title="Overview" head={false}>
+    <BuyerShell viewer={viewer} active="overview" file="buyer" title={tx('Overview')} head={false}>
       <div className="row">
         <div>
           <h1>{first ? `Welcome back, ${first}` : 'Welcome back'}</h1>
-          <div className="tag">Your websites, orders and domains in one place</div>
+          <div className="tag">
+            <T s={'Your websites, orders and domains in one place'} />
+          </div>
         </div>
       </div>
       {v && (
         <>
           <div className="kpis">
             <div className="glass kpi">
-              <div className="l">Websites owned</div>
+              <div className="l">
+                <T s={'Websites owned'} />
+              </div>
               <div className="v">{v.owned}</div>
               <div className="s">{v.owned ? 'Ready to download' : 'None yet'}</div>
             </div>
             <div className="glass kpi">
-              <div className="l">In review</div>
+              <div className="l">
+                <T s={'In review'} />
+              </div>
               <div className="v">{v.inReview}</div>
               <div className="s">{review ? `${hoursLeft}h left to approve` : 'Waiting on you or on us'}</div>
             </div>
             <div className="glass kpi">
-              <div className="l">Domains</div>
+              <div className="l">
+                <T s={'Domains'} />
+              </div>
               <div className="v">{v.domains.length}</div>
               <div className="s">{soon.length ? `${soon.length} expires soon` : v.domains.some((d) => d.status === 'requested') ? 'Some being registered' : 'In your own name'}</div>
             </div>
             <div className="glass kpi">
-              <div className="l">Open tickets</div>
+              <div className="l">
+                <T s={'Open tickets'} />
+              </div>
               <div className="v">{v.openTickets}</div>
               <div className="s">{v.openTickets ? 'We are on it' : 'All quiet'}</div>
             </div>
@@ -98,12 +111,18 @@ export default async function BuyerOverview() {
             <section className="glass card" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap', borderColor: '#CFE9DF' }}>
               <div style={{ flex: '1 1 320px' }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <h2>{plainWords(review.title)} is in review</h2>
-                  <span className="status st-wait">{hoursLeft} hours left</span>
+                  <h2>
+                    <T s={'{v0} is in review'} v={{ v0: plainWords(review.title) }} />
+                  </h2>
+                  <span className="status st-wait">
+                    <T s={'{hoursLeft} hours left'} v={{ hoursLeft }} />
+                  </span>
                 </div>
                 <div className="muted" style={{ fontSize: 14, marginTop: 8, lineHeight: 1.55 }}>
-                  {review.priceCents ? `Your ${usd(review.priceCents)} is held in escrow. ` : ''}Check the files and the domain setup, then approve to pay the seller. If something is wrong, report it
-                  before the time runs out.
+                  <T
+                    s={'{v0}Check the files and the domain setup, then approve to pay the seller. If something is wrong, report it before the time runs out.'}
+                    v={{ v0: review.priceCents ? `Your ${usd(review.priceCents)} is held in escrow. ` : '' }}
+                  />
                 </div>
                 <div className="bar" style={{ marginTop: 14, maxWidth: 420 }}>
                   <i style={{ width: `${Math.round(Math.min(1, Math.max(0, 1 - hoursLeft / REVIEW_HOURS)) * 100)}%` }} />
@@ -111,24 +130,26 @@ export default async function BuyerOverview() {
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link className="btn ghost" href={`/orders/${review.id}#problem`} prefetch={false}>
-                  Report a problem
+                  <T s={'Report a problem'} />
                 </Link>
                 <Link className="btn" href={`/orders/${review.id}#accept`} prefetch={false}>
-                  Approve &amp; release
+                  <T s={'Approve & release'} />
                 </Link>
               </div>
             </section>
           ) : (
             <section className="glass card" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap', borderColor: '#CFE9DF' }}>
               <div style={{ flex: '1 1 320px' }}>
-                <h2>Nothing is waiting for your review</h2>
+                <h2>
+                  <T s={'Nothing is waiting for your review'} />
+                </h2>
                 <div className="muted" style={{ fontSize: 14, marginTop: 8, lineHeight: 1.55 }}>
-                  When a seller delivers, you get {REVIEW_HOURS} hours to check it before the money is released. Websites are free for early users during the beta.
+                  <T s={'When a seller delivers, you get {REVIEW_HOURS} hours to check it before the money is released. Websites are free for early users during the beta.'} v={{ REVIEW_HOURS }} />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link className="btn" href="/websites" prefetch={false}>
-                  Browse websites
+                  <T s={'Browse websites'} />
                 </Link>
               </div>
             </section>
@@ -137,8 +158,12 @@ export default async function BuyerOverview() {
           <div className="grid2">
             <section className="glass card">
               <div className="row" style={{ marginBottom: 6 }}>
-                <h2>To do</h2>
-                <span className={todo.length ? 'status st-wait' : 'status st-ok'}>{todo.length} items</span>
+                <h2>
+                  <T s={'To do'} />
+                </h2>
+                <span className={todo.length ? 'status st-wait' : 'status st-ok'}>
+                  <T s={'{length} items'} v={{ length: todo.length }} />
+                </span>
               </div>
               {todo.length ? (
                 todo.slice(0, 6).map((t) => (
@@ -153,16 +178,18 @@ export default async function BuyerOverview() {
               ) : (
                 <div className="li">
                   <div style={{ flex: 1, fontSize: 14 }} className="muted">
-                    Nothing to do right now.
+                    <T s={'Nothing to do right now.'} />
                   </div>
                 </div>
               )}
             </section>
             <section className="glass card">
               <div className="row" style={{ marginBottom: 6 }}>
-                <h2>Latest updates</h2>
+                <h2>
+                  <T s={'Latest updates'} />
+                </h2>
                 <Link className="tag" style={{ margin: 0 }} href="/dashboard/buyer/notifications" prefetch={false}>
-                  See all
+                  <T s={'See all'} />
                 </Link>
               </div>
               {v.notes.length ? (
@@ -178,7 +205,7 @@ export default async function BuyerOverview() {
               ) : (
                 <div className="li">
                   <div style={{ flex: 1, fontSize: 14 }} className="muted">
-                    Nothing yet. Order updates show up here.
+                    <T s={'Nothing yet. Order updates show up here.'} />
                   </div>
                 </div>
               )}
@@ -187,20 +214,32 @@ export default async function BuyerOverview() {
 
           <section className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="row" style={{ padding: '14px 14px 4px' }}>
-              <h2>Recent orders</h2>
+              <h2>
+                <T s={'Recent orders'} />
+              </h2>
               <Link className="tag" style={{ margin: 0 }} href="/dashboard/buyer/orders" prefetch={false}>
-                All orders
+                <T s={'All orders'} />
               </Link>
             </div>
             <div className="tbl">
               <table>
                 <thead>
                   <tr>
-                    <th>Order</th>
-                    <th>Item</th>
-                    <th>Amount</th>
-                    <th>Payment</th>
-                    <th>Status</th>
+                    <th>
+                      <T s={'Order'} />
+                    </th>
+                    <th>
+                      <T s={'Item'} />
+                    </th>
+                    <th>
+                      <T s={'Amount'} />
+                    </th>
+                    <th>
+                      <T s={'Payment'} />
+                    </th>
+                    <th>
+                      <T s={'Status'} />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,7 +262,10 @@ export default async function BuyerOverview() {
                   ) : (
                     <tr>
                       <td colSpan={5} className="muted">
-                        No orders yet. <Link href="/websites">Browse websites</Link>
+                        <T s={'No orders yet.'} />{' '}
+                        <Link href="/websites">
+                          <T s={'Browse websites'} />
+                        </Link>
                       </td>
                     </tr>
                   )}

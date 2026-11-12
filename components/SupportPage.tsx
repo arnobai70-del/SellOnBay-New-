@@ -4,6 +4,7 @@ import { ConversationPanel } from './ConversationPanel';
 import { TicketForm } from './TicketForm';
 import type { Ticket } from '@/lib/messaging/store';
 
+import { T } from '@/components/i18n/T';
 const WORD: Record<Ticket['status'], [string, string]> = { open: ['Waiting for SellOnBay', 'st-wait'], waiting_user: ['SellOnBay answered', 'st-info'], closed: ['Closed', 'st-draft'] };
 const ago = (t: number, now: number) => {
   const h = Math.round((now - t) / 3_600_000);
@@ -49,7 +50,7 @@ export function SupportPage({
           ))
         ) : (
           <p className="muted" style={{ margin: 10, fontSize: 14 }}>
-            No tickets yet.
+            <T s={'No tickets yet.'} />
           </p>
         )}
       </aside>
@@ -59,7 +60,9 @@ export function SupportPage({
             <div className="row">
               <div>
                 <h2>{shown.subject}</h2>
-                <div className="tag">Opened {new Date(shown.createdAt).toUTCString().slice(0, 16)} · SellOnBay handles every message; keep contact details and payments on SellOnBay</div>
+                <div className="tag">
+                  <T s={'Opened {v0} · SellOnBay handles every message; keep contact details and payments on SellOnBay'} v={{ v0: new Date(shown.createdAt).toUTCString().slice(0, 16) }} />
+                </div>
               </div>
               <span className={`status ${WORD[shown.status][1]}`}>{WORD[shown.status][0]}</span>
             </div>
@@ -67,7 +70,7 @@ export function SupportPage({
               <div style={{ padding: '12px 14px', borderRadius: 14, background: 'rgba(255,255,255,.7)', border: '1px solid #DCE7EC', fontSize: 14 }} className="row">
                 <span>{me === 'buyer' ? 'Your money stays in escrow while a problem is open' : 'The buyer’s money stays in escrow while this is open'}</span>
                 <Link className="btn sm ghost" href={`/orders/${shown.orderId}`} prefetch={false}>
-                  Open the order
+                  <T s={'Open the order'} />
                 </Link>
               </div>
             )}

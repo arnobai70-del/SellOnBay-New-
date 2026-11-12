@@ -9,6 +9,7 @@ import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { savedSocial } from '@/lib/site/contentStore';
 
+import { T } from '@/components/i18n/T';
 export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/sell', { alternates: { canonical: '/sell' } });
 
@@ -54,7 +55,7 @@ export default async function Sell() {
       <section style={{ padding: '80px 0 24px', display: 'flex', gap: 40, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ flex: '1 1 440px', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-            For developers
+            <T s={'For developers'} />
           </span>
           <h1 style={{ fontSize: 'clamp(38px,5vw,58px)', fontWeight: 300, lineHeight: 1.08 }}>
             <span className="hl">
@@ -86,7 +87,9 @@ export default async function Sell() {
         <Earnings />
       </section>
       <section className="sec" id="how">
-        <h2 style={{ fontSize: 28, marginBottom: 18 }}>From upload to payout</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 18 }}>
+          <T s={'From upload to payout'} />
+        </h2>
         <div className="grid3">
           {STEPS.map(([t, d], i) => (
             <div key={t} className="glass card">
@@ -101,7 +104,9 @@ export default async function Sell() {
       </section>
       <section className="sec grid2">
         <div className="glass card">
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>What we check before going live</h2>
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>
+            <T s={'What we check before going live'} />
+          </h2>
           {CHECKS.map((c) => (
             <div key={c} className="rq">
               <i aria-hidden="true">✓</i> {c}
@@ -109,7 +114,9 @@ export default async function Sell() {
           ))}
         </div>
         <div className="glass card">
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>Fees, simply</h2>
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>
+            <T s={'Fees, simply'} />
+          </h2>
           <div className="tbl">
             <table>
               <tbody>
@@ -132,12 +139,14 @@ export default async function Sell() {
           </div>
           <div className="tag">{PAYOUT_FEE_TEXT}</div>
           <div className="tag">
-            {PAYOUT_TEXT}, after the buyer&apos;s {REVIEW_HOURS}-hour review. By PayPal, Payoneer, Wise or bank transfer worldwide.
+            <T s={"{PAYOUT_TEXT}, after the buyer's {REVIEW_HOURS}-hour review. By PayPal, Payoneer, Wise or bank transfer worldwide."} v={{ PAYOUT_TEXT, REVIEW_HOURS }} />
           </div>
         </div>
       </section>
       <section className="sec" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2 style={{ fontSize: 28, marginBottom: 8 }}>Seller questions</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 8 }}>
+          <T s={'Seller questions'} />
+        </h2>
         {[
           ['What do I need to start?', 'An account, an identity document for verification, and a payout account (PayPal, Payoneer, Wise or a bank).'],
           ['How long does review take?', 'A person checks every website. If something is missing, the reviewer tells you exactly what to fix.'],

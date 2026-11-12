@@ -31,7 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             JS everything stays visible. Backticks only, no quotes or < > &, so the text needs no escaping. */}
         <script id="motion-flag">{'if(!matchMedia(`(prefers-reduced-motion: reduce)`).matches)document.documentElement.classList.add(`motion`)'}</script>
         <a className="sob-skip" href="#main">
-          Skip to content
+          {i18n.tx('Skip to content')}
         </a>
         <TxProvider dict={i18n.clientDict}>{children}</TxProvider>
         {/* Loads nothing until the visitor accepts analytics in the cookie notice. */}

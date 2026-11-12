@@ -18,6 +18,8 @@ import { listAttempts, listMethods, listRefunds } from '@/lib/payments/store';
 import { getSettings } from '@/lib/settings';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Orders and payments', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +40,7 @@ const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', dra
  * requests to approve or decline sit with the payments, as they replace them. Refunds and the refund of a paid order (the old payments tool) follow.
  */
 export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/orders', roles: ['admin'], scope: ['delivery', 'support', 'finance'] });
   const sp = await searchParams;
   const tab = TABS.find(([k]) => k === sp.tab) ?? TABS[0];
@@ -71,44 +74,58 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
   const decided = beta.filter((r) => r.decidedAt).slice(0, 50);
   const beta_ = settings.paymentsMode === 'beta_free';
   return (
-    <AdminShell viewer={viewer} active="orders" file="admin-orders" title="Orders & payments" head={false}>
+    <AdminShell viewer={viewer} active="orders" file="admin-orders" title={tx('Orders & payments')} head={false}>
       <div className="row">
         <div>
-          <h1>Orders &amp; payments</h1>
+          <h1>
+            <T s={'Orders & payments'} />
+          </h1>
           <div className="tag">{beta_ ? 'Free beta: nothing is charged. Approve a request to release its files.' : 'Every website and domain order, its payment and its escrow state'}</div>
         </div>
         <Link className="btn ghost" href="/admin/reports" prefetch={false}>
-          Export orders
+          <T s={'Export orders'} />
         </Link>
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Orders this month</div>
+          <div className="l">
+            <T s={'Orders this month'} />
+          </div>
           <div className="v">{month.length}</div>
           <div className="s">
-            {month.filter((o) => !o.domain).length} websites · {month.filter((o) => o.domain).length} with a domain
+            {month.filter((o) => !o.domain).length} <T s={'websites ·'} /> {month.filter((o) => o.domain).length} <T s={'with a domain'} />
           </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Awaiting payment check</div>
+          <div className="l">
+            <T s={'Awaiting payment check'} />
+          </div>
           <div className="v">{attempts.length + waiting.length}</div>
           <div className="s">{beta_ ? `${waiting.length} free beta requests` : 'Manual methods'}</div>
         </div>
         <div className="glass kpi">
-          <div className="l">In escrow review</div>
+          <div className="l">
+            <T s={'In escrow review'} />
+          </div>
           <div className="v">{inReview.length}</div>
-          <div className="s">{usd(inReview.reduce((s, o) => s + (o.fundedAt ? o.priceCents - o.refundedCents : 0), 0))} held</div>
+          <div className="s">
+            {usd(inReview.reduce((s, o) => s + (o.fundedAt ? o.priceCents - o.refundedCents : 0), 0))} <T s={'held'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Refunded</div>
+          <div className="l">
+            <T s={'Refunded'} />
+          </div>
           <div className="v">{refundedMonth.length}</div>
-          <div className="s">{usd(refundedMonth.reduce((s, o) => s + o.refundedCents, 0))} this month</div>
+          <div className="s">
+            {usd(refundedMonth.reduce((s, o) => s + o.refundedCents, 0))} <T s={'this month'} />
+          </div>
         </div>
       </div>
 
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 8px' }}>
-          <div className="seg" role="tablist" aria-label="Order status">
+          <div className="seg" role="tablist" aria-label={tx('Order status')}>
             {TABS.map(([k, l]) => (
               <Link key={k} role="tab" className={k === tab[0] ? 'on' : ''} aria-selected={k === tab[0]} href={k === 'all' ? '/admin/orders' : `/admin/orders?tab=${k}`} prefetch={false}>
                 {l}
@@ -118,23 +135,39 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           <form action="/admin/orders" method="get" role="search" style={{ maxWidth: 280, width: '100%' }}>
             {tab[0] !== 'all' && <input type="hidden" name="tab" value={tab[0]} />}
             <label htmlFor="of" className="hidden-label">
-              Filter orders
+              <T s={'Filter orders'} />
             </label>
-            <input id="of" name="q" defaultValue={sp.q ?? ''} className="input" placeholder="Filter by order, buyer or seller" style={{ maxWidth: 280, borderRadius: 999 }} />
+            <input id="of" name="q" defaultValue={sp.q ?? ''} className="input" placeholder={tx('Filter by order, buyer or seller')} style={{ maxWidth: 280, borderRadius: 999 }} />
           </form>
         </div>
         <div className="tbl">
           <table>
             <thead>
               <tr>
-                <th>Order</th>
-                <th>Item</th>
-                <th>Buyer</th>
-                <th>Seller</th>
-                <th>Method</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Escrow</th>
+                <th>
+                  <T s={'Order'} />
+                </th>
+                <th>
+                  <T s={'Item'} />
+                </th>
+                <th>
+                  <T s={'Buyer'} />
+                </th>
+                <th>
+                  <T s={'Seller'} />
+                </th>
+                <th>
+                  <T s={'Method'} />
+                </th>
+                <th>
+                  <T s={'Amount'} />
+                </th>
+                <th>
+                  <T s={'Status'} />
+                </th>
+                <th>
+                  <T s={'Escrow'} />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -164,7 +197,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                         {review !== null && review > 0 ? (
                           <>
                             <div className="tag" style={{ margin: '0 0 6px' }}>
-                              {Math.round(review / 3_600_000)}h left
+                              <T s={'{v0}h left'} v={{ v0: Math.round(review / 3_600_000) }} />
                             </div>
                             <div className="bar">
                               <i style={{ width: `${Math.round(Math.min(1, Math.max(0, 1 - review / (REVIEW_HOURS * 3_600_000))) * 100)}%` }} />
@@ -202,20 +235,32 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           <div className="row" style={{ padding: '14px 14px 4px' }}>
             <h2>{beta_ ? 'Requests and payments to verify' : 'Payments to verify'}</h2>
             <span className="tag" style={{ margin: 0 }}>
-              Match the reference with your bank or wallet statement
+              <T s={'Match the reference with your bank or wallet statement'} />
             </span>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Order</th>
-                  <th>Method</th>
-                  <th>Reference</th>
-                  <th>Amount</th>
-                  <th>Status</th>
                   <th>
-                    <span className="hidden-label">Actions</span>
+                    <T s={'Order'} />
+                  </th>
+                  <th>
+                    <T s={'Method'} />
+                  </th>
+                  <th>
+                    <T s={'Reference'} />
+                  </th>
+                  <th>
+                    <T s={'Amount'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
+                  <th>
+                    <span className="hidden-label">
+                      <T s={'Actions'} />
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -230,7 +275,9 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                         </Link>
                         <div className="tag">{plainWords(o?.title ?? r.productKey)}</div>
                       </td>
-                      <td>Free beta</td>
+                      <td>
+                        <T s={'Free beta'} />
+                      </td>
                       <td>
                         {r.name} · {r.email}
                         <div className="tag">
@@ -242,7 +289,9 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       </td>
                       <td>$0</td>
                       <td>
-                        <span className="status st-wait">Pending</span>
+                        <span className="status st-wait">
+                          <T s={'Pending'} />
+                        </span>
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -260,28 +309,32 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       <td style={{ fontWeight: 500 }}>
                         {orderCode(a.orderId)}
                         <div className="tag">
-                          {plainWords(o?.title ?? 'Order')} · due {o ? usd(o.priceCents) : '?'}
+                          <T s={'{v0} · due {v1}'} v={{ v0: plainWords(o?.title ?? 'Order'), v1: o ? usd(o.priceCents) : '?' }} />
                         </div>
                       </td>
                       <td>{methodName.get(a.methodId ?? '') ?? 'Transfer'}</td>
                       <td>
-                        Ref {a.reference}
+                        <T s={'Ref {reference}'} v={{ reference: a.reference }} />
                         <div className="tag">
-                          Paid on {a.paidOn} · reported {when(a.createdAt)}
+                          <T s={'Paid on {paidOn} · reported {v1}'} v={{ paidOn: a.paidOn, v1: when(a.createdAt) }} />
                         </div>
                         {a.proofPath ? (
                           <a className="tag" style={{ display: 'block' }} href={`/api/admin/payments/${a.id}/proof`} target="_blank" rel="noopener noreferrer">
-                            Open the proof (logged)
+                            <T s={'Open the proof (logged)'} />
                           </a>
                         ) : (
-                          <div className="tag">No proof attached.</div>
+                          <div className="tag">
+                            <T s={'No proof attached.'} />
+                          </div>
                         )}
                       </td>
                       <td>
                         {usd(a.amountClaimedCents)} {a.currency}
                       </td>
                       <td>
-                        <span className="status st-wait">Pending</span>
+                        <span className="status st-wait">
+                          <T s={'Pending'} />
+                        </span>
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', textAlign: 'left' }}>
@@ -314,7 +367,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                 {!waiting.length && !attempts.length && (
                   <tr>
                     <td colSpan={6} className="muted">
-                      Nothing to verify. A buyer&apos;s report or screenshot is never proof: check it against the statement.
+                      <T s={"Nothing to verify. A buyer's report or screenshot is never proof: check it against the statement."} />
                     </td>
                   </tr>
                 )}
@@ -327,9 +380,11 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       {decided.length > 0 && (
         <section className="glass card">
           <div className="row" style={{ marginBottom: 6 }}>
-            <h2>Decided requests</h2>
+            <h2>
+              <T s={'Decided requests'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              With the buyer&apos;s feedback
+              <T s={"With the buyer's feedback"} />
             </span>
           </div>
           {decided.map((r) => {
@@ -344,11 +399,14 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                   <span className="muted">
                     · {r.name} · {r.email}
                   </span>
-                  {r.declineReason && <div className="tag">Reason: {r.declineReason}</div>}
+                  {r.declineReason && (
+                    <div className="tag">
+                      <T s={'Reason: {declineReason}'} v={{ declineReason: r.declineReason }} />
+                    </div>
+                  )}
                   {f && (
                     <div className="tag">
-                      Feedback: {f.rating} of 5.{f.worked ? ` Worked: ${f.worked}.` : ''}
-                      {f.improve ? ` Improve: ${f.improve}.` : ''}
+                      <T s={'Feedback: {rating} of 5.{v1}{v2}'} v={{ rating: f.rating, v1: f.worked ? ` Worked: ${f.worked}.` : '', v2: f.improve ? ` Improve: ${f.improve}.` : '' }} />
                     </div>
                   )}
                 </div>
@@ -361,9 +419,11 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       <div className="grid2">
         <section className="glass card" id="refunds">
           <div className="row" style={{ marginBottom: 6 }}>
-            <h2>Refunds ({refunds.length})</h2>
+            <h2>
+              <T s={'Refunds ({length})'} v={{ length: refunds.length }} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              Send the money back by the same route, then record it
+              <T s={'Send the money back by the same route, then record it'} />
             </span>
           </div>
           {refunds.length ? (
@@ -371,7 +431,8 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
               <div key={r.id} className="li" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <span className={r.status === 'approved' ? 'status st-info' : 'status st-wait'}>{r.status === 'approved' ? 'Approved' : 'Requested'}</span>
                 <div style={{ flex: '1 1 200px', minWidth: 0, fontSize: 14 }}>
-                  {usd(r.amountCents)} to the buyer of {plainWords(byId.get(r.orderId)?.title ?? 'an order')} ({r.kind})<div className="tag">{r.reason}</div>
+                  <T s={'{v0} to the buyer of {v1} ({kind})'} v={{ v0: usd(r.amountCents), v1: plainWords(byId.get(r.orderId)?.title ?? 'an order'), kind: r.kind }} />
+                  <div className="tag">{r.reason}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {r.status === 'requested' && <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'approve' }} fields={[]} openLabel="Approve" submit="Approve refund" tone="blue" />}
@@ -394,13 +455,17 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             ))
           ) : (
             <p className="muted" style={{ fontSize: 14, margin: '8px 0 0' }}>
-              No refunds waiting. Nothing is refunded automatically.
+              <T s={'No refunds waiting. Nothing is refunded automatically.'} />
             </p>
           )}
         </section>
         <section className="glass card">
-          <h2>Refund a paid order</h2>
-          <div className="tag">For an order that is paid but not yet accepted. Delivered orders go through Disputes.</div>
+          <h2>
+            <T s={'Refund a paid order'} />
+          </h2>
+          <div className="tag">
+            <T s={'For an order that is paid but not yet accepted. Delivered orders go through Disputes.'} />
+          </div>
           <AdminForm
             endpoint="/api/admin/orders/refund-by-id"
             openLabel="Refund an order"

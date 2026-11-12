@@ -9,6 +9,8 @@ import { shortDate } from '@/lib/glass/orderStatus';
 import { allPosts, type Post } from '@/lib/posts';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Guides', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +18,20 @@ const TONE: Record<Post['status'], [string, PillTone]> = { draft: ['Draft', 'dra
 
 /* Admin › Content › Guides (owner, 2026-11-08): every guide with its state; open one to write in the block editor. */
 export default async function GuidesAdmin() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/guides', roles: ['admin'], scope: 'content' });
   const posts = await allPosts();
   return (
     <AdminShell
       viewer={viewer}
       active="guides"
-      title="Guides"
+      title={tx('Guides')}
       subtitle="Write, schedule and publish guides. Every publish is in the audit log."
-      actions={<Button href="/admin/content/guides/edit">New guide</Button>}
+      actions={
+        <Button href="/admin/content/guides/edit">
+          <T s={'New guide'} />
+        </Button>
+      }
     >
       <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
         <DataTable<Post>

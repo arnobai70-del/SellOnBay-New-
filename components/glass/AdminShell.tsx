@@ -4,6 +4,7 @@ import { adminBadges } from '@/lib/glass/admin';
 import { getSettings } from '@/lib/settings';
 import { DashboardShell } from './DashboardShell';
 
+import { T } from '@/components/i18n/T';
 const HEALTH = { ok: ['#3F8F77', 'All systems normal'], warn: ['#C9962E', 'Something needs a look'], bad: ['#C2553F', 'Something is wrong'], off: ['#A9B8C0', 'Not set up'] } as const;
 
 /* The admin pages' shell (design-reference/admin*.html): live counts on the menu and the system health card at the foot of the sidebar. */
@@ -49,7 +50,7 @@ export async function AdminShell({
             {text}
           </div>
           <Link href="/admin/system" className="tag" style={{ display: 'block' }} prefetch={false}>
-            View system health
+            <T s={'View system health'} />
           </Link>
         </>
       }

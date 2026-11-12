@@ -8,6 +8,8 @@ import { PAYOUT_METHODS } from '@/lib/payoutDetails';
 import { paypalConfigured } from '@/lib/providers/payment';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Payouts', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +20,7 @@ const METHOD_NAME = Object.fromEntries(PAYOUT_METHODS) as Record<string, string>
 const STATUSES = ['scheduled', 'exported', 'paid', 'failed'] as const;
 
 export default async function Payouts({ searchParams }: { searchParams: Promise<{ method?: string; status?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/finance/payouts', roles: ['admin'], scope: 'finance' });
   const q = await searchParams;
   const method = q.method && q.method in METHOD_NAME ? q.method : '';
@@ -36,28 +39,44 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
   const paypal = paypalConfigured();
   const toExport = all.filter((p) => p.status === 'scheduled' || p.status === 'exported');
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-payouts" title="Payouts">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-payouts" title={tx('Payouts')}>
       <div className="kpis">
         <div className="kpi">
-          <small>Waiting to be sent</small>
+          <small>
+            <T s={'Waiting to be sent'} />
+          </small>
           <b>{money(sum(open))}</b>
-          <em>{open.length} payouts</em>
+          <em>
+            <T s={'{length} payouts'} v={{ length: open.length }} />
+          </em>
         </div>
         <div className="kpi">
-          <small>Paid, last 30 days</small>
+          <small>
+            <T s={'Paid, last 30 days'} />
+          </small>
           <b>{money(sum(paidLately))}</b>
-          <em>{paidLately.length} payouts</em>
+          <em>
+            <T s={'{length} payouts'} v={{ length: paidLately.length }} />
+          </em>
         </div>
         <div className="kpi">
-          <small>Failed</small>
+          <small>
+            <T s={'Failed'} />
+          </small>
           <b>{everything.filter((p) => p.status === 'failed').length}</b>
-          <em>Orders wait for the next batch</em>
+          <em>
+            <T s={'Orders wait for the next batch'} />
+          </em>
         </div>
         {PAYOUT_METHODS.map(([m, label]) => (
           <div className="kpi" key={m}>
-            <small>{label}, waiting</small>
+            <small>
+              <T s={'{label}, waiting'} v={{ label }} />
+            </small>
             <b>{money(sum(open.filter((p) => p.method === m)))}</b>
-            <em>{methods.filter((x) => x.method === m).length} sellers use it</em>
+            <em>
+              {methods.filter((x) => x.method === m).length} <T s={'sellers use it'} />
+            </em>
           </div>
         ))}
       </div>
@@ -65,18 +84,22 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Weekly payouts</h2>
+            <h2>
+              <T s={'Weekly payouts'} />
+            </h2>
             <p className="tag">
-              Sellers are paid for orders accepted at least 7 days ago. Make the batch (it also runs every Thursday UTC), download the CSV, send the money with Payoneer, Wise or the bank, then mark
-              each payout paid with the transfer reference. Sellers who chose PayPal can be paid with one click (Send with PayPal), then Check PayPal marks it paid when it arrives. Nothing is sent
-              unless you click.
+              <T
+                s={
+                  'Sellers are paid for orders accepted at least 7 days ago. Make the batch (it also runs every Thursday UTC), download the CSV, send the money with Payoneer, Wise or the bank, then mark each payout paid with the transfer reference. Sellers who chose PayPal can be paid with one click (Send with PayPal), then Check PayPal marks it paid when it arrives. Nothing is sent unless you click.'
+                }
+              />
             </p>
           </div>
         </div>
         <PlanButton week={week} />
-        <div className="sob-acts" aria-label="Filter payouts">
+        <div className="sob-acts" aria-label={tx('Filter payouts')}>
           <Link className={'btn sm' + (!method && !status ? '' : ' ghost')} href="/admin/finance/payouts">
-            All
+            <T s={'All'} />
           </Link>
           {PAYOUT_METHODS.map(([m, label]) => (
             <Link key={m} className={'btn sm' + (method === m ? '' : ' ghost')} href={`/admin/finance/payouts?method=${m}${status ? `&status=${status}` : ''}`}>
@@ -91,30 +114,50 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
         </div>
         {toExport.length > 0 && (
           <p>
-            Waiting weeks:{' '}
+            <T s={'Waiting weeks:'} />{' '}
             {[...new Set(toExport.map((p) => p.weekStart))].map((w) => (
               <form key={w} method="post" action={`/api/admin/payouts/csv?week=${w}`} style={{ display: 'inline' }}>
                 <button type="submit" className="btn sm" style={{ marginRight: 8 }}>
-                  Download CSV for {w}
+                  <T s={'Download CSV for {w}'} v={{ w }} />
                 </button>
               </form>
             ))}
           </p>
         )}
-        {all.length === 0 && <p className="muted">No payouts yet. They appear once an accepted order has passed its 7-day hold.</p>}
+        {all.length === 0 && (
+          <p className="muted">
+            <T s={'No payouts yet. They appear once an accepted order has passed its 7-day hold.'} />
+          </p>
+        )}
         {weeks.map((w) => (
           <div key={w} className="tbl">
-            <h3 style={{ marginTop: 18 }}>Week starting {w}</h3>
+            <h3 style={{ marginTop: 18 }}>
+              <T s={'Week starting {w}'} v={{ w }} />
+            </h3>
             <table className="sob-stack">
               <thead>
                 <tr>
-                  <th>Seller</th>
-                  <th>Method</th>
-                  <th>Send to</th>
-                  <th>Amount</th>
-                  <th>Orders</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th>
+                    <T s={'Seller'} />
+                  </th>
+                  <th>
+                    <T s={'Method'} />
+                  </th>
+                  <th>
+                    <T s={'Send to'} />
+                  </th>
+                  <th>
+                    <T s={'Amount'} />
+                  </th>
+                  <th>
+                    <T s={'Orders'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
+                  <th>
+                    <T s={'Action'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -135,7 +178,9 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                         {p.orderIds.length}
                         {orders.get(p.id)?.length ? (
                           <details>
-                            <summary>Show</summary>
+                            <summary>
+                              <T s={'Show'} />
+                            </summary>
                             <ul>
                               {orders.get(p.id)!.map((o) => (
                                 <li key={o.id}>
@@ -151,9 +196,7 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                         {p.status}
                         {p.reference ? ` (${p.reference})` : ''}
                         <small style={{ display: 'block' }}>
-                          Made {day(p.createdAt)}
-                          {p.exportedAt ? `, sent ${day(p.exportedAt)}` : ''}
-                          {p.paidAt ? `, paid ${day(p.paidAt)}` : ''}
+                          <T s={'Made {v0}{v1}{v2}'} v={{ v0: day(p.createdAt), v1: p.exportedAt ? `, sent ${day(p.exportedAt)}` : '', v2: p.paidAt ? `, paid ${day(p.paidAt)}` : '' }} />
                         </small>
                       </td>
                       <td data-label="Action">
@@ -188,7 +231,11 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                             />
                           </>
                         )}
-                        {p.status === 'scheduled' && <small className="muted">Download the CSV first</small>}
+                        {p.status === 'scheduled' && (
+                          <small className="muted">
+                            <T s={'Download the CSV first'} />
+                          </small>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -201,21 +248,39 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
       <div className="glass card sob-sec" id="methods">
         <div className="row sob-hd">
           <div>
-            <h2>Seller payout methods</h2>
-            <p className="tag">Where each seller wants to be paid. When a seller changes it, you are told here and by email. Only you see the full account.</p>
+            <h2>
+              <T s={'Seller payout methods'} />
+            </h2>
+            <p className="tag">
+              <T s={'Where each seller wants to be paid. When a seller changes it, you are told here and by email. Only you see the full account.'} />
+            </p>
           </div>
         </div>
-        {methods.length === 0 && <p className="muted">No seller has saved a payout method yet. Sellers add it on their dashboard.</p>}
+        {methods.length === 0 && (
+          <p className="muted">
+            <T s={'No seller has saved a payout method yet. Sellers add it on their dashboard.'} />
+          </p>
+        )}
         {methods.length > 0 && (
           <div className="tbl">
             <table className="sob-stack">
               <thead>
                 <tr>
-                  <th>Seller</th>
-                  <th>Method</th>
-                  <th>Account</th>
-                  <th>Verified</th>
-                  <th>Status</th>
+                  <th>
+                    <T s={'Seller'} />
+                  </th>
+                  <th>
+                    <T s={'Method'} />
+                  </th>
+                  <th>
+                    <T s={'Account'} />
+                  </th>
+                  <th>
+                    <T s={'Verified'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -228,7 +293,7 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                     <td data-label="Method">{METHOD_NAME[m.method] ?? m.method}</td>
                     <td data-label="Account">{m.account}</td>
                     <td data-label="Verified">
-                      Email {m.verified.email ? 'yes' : 'no'}, phone {m.verified.phone ? 'yes' : 'no'}, ID {m.verified.id ? 'yes' : 'no'}
+                      <T s={'Email {v0}, phone {v1}, ID {v2}'} v={{ v0: m.verified.email ? 'yes' : 'no', v1: m.verified.phone ? 'yes' : 'no', v2: m.verified.id ? 'yes' : 'no' }} />
                     </td>
                     <td data-label="Status">{m.banned ? 'Banned: payouts held' : 'Active'}</td>
                   </tr>

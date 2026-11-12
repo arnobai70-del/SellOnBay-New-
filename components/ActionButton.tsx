@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 /*
  * One button (with an optional short note) that posts a small JSON action and then refreshes or goes to a page the server names.
  * Used for buyer actions on requests and quotations. The server decides everything; this only sends the choice.
@@ -80,7 +81,7 @@ export function ActionButton({
         </button>
         {needsStep && (
           <button type="button" className="btn sm ghost" onClick={() => setOpen(false)} disabled={busy}>
-            Cancel
+            <T s={'Cancel'} />
           </button>
         )}
       </div>

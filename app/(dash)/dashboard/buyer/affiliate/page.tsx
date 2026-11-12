@@ -10,6 +10,8 @@ import { publicWebsites, websitePath } from '@/lib/glass/catalog';
 import { SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Affiliate', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,7 @@ const day = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 10) : 
  * seller joins with the same account; the affiliate role keeps its own money and permissions.
  */
 export default async function AffiliateDashboard() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer/affiliate', roles: ['buyer', 'seller', 'admin'] });
   const s = await affSettings();
   // the demo build has no accounts: one demo affiliate stands in, only on a server marked as a demo (never in production)
@@ -31,24 +34,34 @@ export default async function AffiliateDashboard() {
   const now = Date.now();
   const sites = d ? (await publicWebsites()).filter((w) => productEligible(s, w.id)).map((w) => ({ key: w.id, name: w.name, path: websitePath(w.id) })) : [];
   return (
-    <BuyerShell viewer={shellViewer} active="affiliate" file="buyer-websites" title="Affiliate" subtitle="Share SellOnBay websites and earn on verified sales.">
+    <BuyerShell viewer={shellViewer} active="affiliate" file="buyer-websites" title={tx('Affiliate')} subtitle="Share SellOnBay websites and earn on verified sales.">
       {!d ? (
         <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <h2>Join the affiliate program</h2>
+          <h2>
+            <T s={'Join the affiliate program'} />
+          </h2>
           {!s.enabled ? (
             <>
               <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-                The affiliate program is not open yet.
+                <T s={'The affiliate program is not open yet.'} />
               </p>
               <span className="status st-draft" style={{ alignSelf: 'flex-start' }}>
-                Coming soon
+                <T s={'Coming soon'} />
               </span>
             </>
           ) : userId ? (
             <>
               <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-                Use your SellOnBay account; no new account is needed. You can share links and earn straight away; {s.targetSales} verified sales within {s.qualificationDays} days make you a Verified
-                Affiliate. <Link href="/affiliates">How it works</Link>.
+                <T
+                  s={
+                    'Use your SellOnBay account; no new account is needed. You can share links and earn straight away; {targetSales} verified sales within {qualificationDays} days make you a Verified Affiliate.'
+                  }
+                  v={{ targetSales: s.targetSales, qualificationDays: s.qualificationDays }}
+                />{' '}
+                <Link href="/affiliates">
+                  <T s={'How it works'} />
+                </Link>
+                .
               </p>
               <AffJoinForm
                 termsVersion={s.termsVersion}
@@ -60,18 +73,24 @@ export default async function AffiliateDashboard() {
               />
             </>
           ) : (
-            <p className="muted">The dashboard needs an account.</p>
+            <p className="muted">
+              <T s={'The dashboard needs an account.'} />
+            </p>
           )}
         </section>
       ) : (
         <>
-          {!s.enabled && <p className="sob-note">The affiliate program is paused: new referrals are not tracked right now. Everything you earned stays yours, and you can still withdraw.</p>}
+          {!s.enabled && (
+            <p className="sob-note">
+              <T s={'The affiliate program is paused: new referrals are not tracked right now. Everything you earned stays yours, and you can still withdraw.'} />
+            </p>
+          )}
           <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
               <div>
                 <h2>{d.affiliate.displayName || 'Your affiliate account'}</h2>
                 <div className="tag">
-                  Code {d.affiliate.code} · joined {day(d.affiliate.createdAt)} · terms {d.affiliate.termsVersion}
+                  <T s={'Code {code} · joined {v1} · terms {termsVersion}'} v={{ code: d.affiliate.code, v1: day(d.affiliate.createdAt), termsVersion: d.affiliate.termsVersion }} />
                 </div>
               </div>
               <span className={`status ${STATUS_TONE[d.affiliate.status]}`} style={d.affiliate.status === 'qualified' ? { background: '#1A8F5C', color: '#fff' } : undefined}>
@@ -82,10 +101,16 @@ export default async function AffiliateDashboard() {
             {d.affiliate.status === 'pending' && (
               <>
                 <div className="tag" style={{ margin: 0 }}>
-                  Qualification: {d.qualificationSales} of {s.targetSales} verified sales ·{' '}
-                  {d.affiliate.qualificationEndsAt > now ? `${Math.ceil((d.affiliate.qualificationEndsAt - now) / 86_400_000)} days left` : 'window ended; we may extend it'}
+                  <T
+                    s={'Qualification: {qualificationSales} of {targetSales} verified sales · {v2}'}
+                    v={{
+                      qualificationSales: d.qualificationSales,
+                      targetSales: s.targetSales,
+                      v2: d.affiliate.qualificationEndsAt > now ? `${Math.ceil((d.affiliate.qualificationEndsAt - now) / 86_400_000)} days left` : 'window ended; we may extend it',
+                    }}
+                  />
                 </div>
-                <div className="bar" aria-label="Qualification progress">
+                <div className="bar" aria-label={tx('Qualification progress')}>
                   <i style={{ width: `${Math.min(100, Math.round((d.qualificationSales / Math.max(1, s.targetSales)) * 100))}%` }} />
                 </div>
               </>
@@ -120,9 +145,13 @@ export default async function AffiliateDashboard() {
           </div>
 
           <section className="glass card">
-            <h2 style={{ marginBottom: 8 }}>Your links</h2>
+            <h2 style={{ marginBottom: 8 }}>
+              <T s={'Your links'} />
+            </h2>
             {d.affiliate.status === 'suspended' || d.affiliate.status === 'rejected' ? (
-              <p className="muted">Links are paused on this account.</p>
+              <p className="muted">
+                <T s={'Links are paused on this account.'} />
+              </p>
             ) : (
               <AffLinkGenerator code={d.affiliate.code} base={SITE_URL} sites={sites} />
             )}
@@ -130,14 +159,24 @@ export default async function AffiliateDashboard() {
 
           <div className="grid2">
             <section className="glass card">
-              <h2 style={{ marginBottom: 8 }}>Withdraw</h2>
+              <h2 style={{ marginBottom: 8 }}>
+                <T s={'Withdraw'} />
+              </h2>
               <p className="muted" style={{ margin: '0 0 10px', fontSize: 14 }}>
-                From {usd(s.minWithdrawalCents)}. An admin checks each request and pays it by hand to your payout method.
+                <T s={'From {v0}. An admin checks each request and pays it by hand to your payout method.'} v={{ v0: usd(s.minWithdrawalCents) }} />
               </p>
-              {d.affiliate.payoutMethod ? <AffWithdrawForm availableCents={d.availableCents} minCents={s.minWithdrawalCents} /> : <div className="tag">Add your payout method first.</div>}
+              {d.affiliate.payoutMethod ? (
+                <AffWithdrawForm availableCents={d.availableCents} minCents={s.minWithdrawalCents} />
+              ) : (
+                <div className="tag">
+                  <T s={'Add your payout method first.'} />
+                </div>
+              )}
             </section>
             <section className="glass card">
-              <h2 style={{ marginBottom: 8 }}>Profile and payout</h2>
+              <h2 style={{ marginBottom: 8 }}>
+                <T s={'Profile and payout'} />
+              </h2>
               <AffProfileForm
                 displayName={d.affiliate.displayName}
                 publicLeaderboard={d.affiliate.publicLeaderboard}
@@ -149,23 +188,33 @@ export default async function AffiliateDashboard() {
 
           <section className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="row" style={{ padding: '14px 14px 4px' }}>
-              <h2>Commissions</h2>
+              <h2>
+                <T s={'Commissions'} />
+              </h2>
             </div>
             <div className="tbl" style={{ overflowX: 'auto' }}>
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Sale</th>
-                    <th>Amount</th>
-                    <th>Status</th>
+                    <th>
+                      <T s={'Date'} />
+                    </th>
+                    <th>
+                      <T s={'Sale'} />
+                    </th>
+                    <th>
+                      <T s={'Amount'} />
+                    </th>
+                    <th>
+                      <T s={'Status'} />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {d.commissions.length === 0 && (
                     <tr>
                       <td colSpan={4} className="muted">
-                        No commissions yet.
+                        <T s={'No commissions yet.'} />
                       </td>
                     </tr>
                   )}
@@ -190,8 +239,14 @@ export default async function AffiliateDashboard() {
 
           <div className="grid2">
             <section className="glass card">
-              <h2 style={{ marginBottom: 8 }}>Withdrawals</h2>
-              {d.withdrawals.length === 0 && <p className="muted">None yet.</p>}
+              <h2 style={{ marginBottom: 8 }}>
+                <T s={'Withdrawals'} />
+              </h2>
+              {d.withdrawals.length === 0 && (
+                <p className="muted">
+                  <T s={'None yet.'} />
+                </p>
+              )}
               {d.withdrawals.map((w) => (
                 <div key={w.id} className="li" style={{ fontSize: 14 }}>
                   <span style={{ flex: 1 }}>
@@ -210,8 +265,14 @@ export default async function AffiliateDashboard() {
               ))}
             </section>
             <section className="glass card">
-              <h2 style={{ marginBottom: 8 }}>Recent activity</h2>
-              {d.activity.length === 0 && <p className="muted">Nothing yet. Share a link to get started.</p>}
+              <h2 style={{ marginBottom: 8 }}>
+                <T s={'Recent activity'} />
+              </h2>
+              {d.activity.length === 0 && (
+                <p className="muted">
+                  <T s={'Nothing yet. Share a link to get started.'} />
+                </p>
+              )}
               {d.activity.map((x, i) => (
                 <div key={i} className="li" style={{ fontSize: 14 }}>
                   <span className="tag" style={{ margin: 0, minWidth: 86 }}>
@@ -222,7 +283,9 @@ export default async function AffiliateDashboard() {
               ))}
             </section>
           </div>
-          <div className="tag">Buyers&apos; names and details are never shown. Earnings are not guaranteed; refunds reverse commissions.</div>
+          <div className="tag">
+            <T s={"Buyers' names and details are never shown. Earnings are not guaranteed; refunds reverse commissions."} />
+          </div>
         </>
       )}
     </BuyerShell>

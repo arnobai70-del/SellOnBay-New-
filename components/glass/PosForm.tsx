@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
 /*
  * "POS · Manual order" of design-reference/admin-orders.html. It posts to the same cash desk as before (/api/admin/pos, Finance, live payments
  * only): the buyer's account email, the listing, the cash taken and the receipt number. The split shown is the flat fee from lib/config.ts.
@@ -34,15 +35,21 @@ export function PosForm({ items, keepBps, reviewHours, open }: { items: { key: s
   return (
     <section id="pos" className="glass card" style={{ flex: '1 1 340px', display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
-        <h2>POS · Manual order</h2>
+        <h2>
+          <T s={'POS · Manual order'} />
+        </h2>
         <div className="tag">{open ? 'For cash taken in person. Cash is held like a verified transfer.' : 'Opens when live payments are on. In the free beta nothing is charged.'}</div>
       </div>
       <div className="field">
-        <label htmlFor="be">Buyer email</label>
+        <label htmlFor="be">
+          <T s={'Buyer email'} />
+        </label>
         <input id="be" className="input" placeholder="buyer@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!open} />
       </div>
       <div className="field">
-        <label htmlFor="it">Website or domain</label>
+        <label htmlFor="it">
+          <T s={'Website or domain'} />
+        </label>
         <select
           id="it"
           className="input"
@@ -61,40 +68,56 @@ export function PosForm({ items, keepBps, reviewHours, open }: { items: { key: s
               </option>
             ))
           ) : (
-            <option value="">No live websites yet</option>
+            <option value="">
+              <T s={'No live websites yet'} />
+            </option>
           )}
         </select>
       </div>
       <div>
-        <div style={{ fontSize: 13, color: '#3D5563', marginBottom: 6 }}>Payment method</div>
+        <div style={{ fontSize: 13, color: '#3D5563', marginBottom: 6 }}>
+          <T s={'Payment method'} />
+        </div>
         <div className="seg">
           <button type="button" className="on" aria-pressed="true">
-            Cash
+            <T s={'Cash'} />
           </button>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12 }}>
         <div className="field">
-          <label htmlFor="am">Amount</label>
+          <label htmlFor="am">
+            <T s={'Amount'} />
+          </label>
           <input id="am" className="input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={!open} />
         </div>
         <div className="field">
-          <label htmlFor="tx">Receipt number</label>
+          <label htmlFor="tx">
+            <T s={'Receipt number'} />
+          </label>
           <input id="tx" className="input" placeholder="e.g. R-1001" maxLength={40} value={receipt} onChange={(e) => setReceipt(e.target.value)} disabled={!open} />
         </div>
       </div>
       <div style={{ padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.7)', border: '1px solid #DCE7EC', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
         <div className="row">
-          <span className="muted">Seller gets ({keepBps / 100}%)</span>
+          <span className="muted">
+            <T s={'Seller gets ({v0}%)'} v={{ v0: keepBps / 100 }} />
+          </span>
           <span>{usd(seller)}</span>
         </div>
         <div className="row">
-          <span className="muted">Platform share ({100 - keepBps / 100}%)</span>
+          <span className="muted">
+            <T s={'Platform share ({v0}%)'} v={{ v0: 100 - keepBps / 100 }} />
+          </span>
           <span>{usd(cents - seller)}</span>
         </div>
         <div className="row">
-          <span className="muted">Escrow</span>
-          <span>{reviewHours}-hour review starts on delivery</span>
+          <span className="muted">
+            <T s={'Escrow'} />
+          </span>
+          <span>
+            <T s={'{reviewHours}-hour review starts on delivery'} v={{ reviewHours }} />
+          </span>
         </div>
       </div>
       <button className="btn" type="button" onClick={send} disabled={!open || busy || !email || !key || !receipt}>

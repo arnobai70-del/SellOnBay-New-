@@ -6,6 +6,8 @@ import { Button } from './Button';
 import { Field } from './Field';
 import { Switch } from './Switch';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 const post = async (url: string, body: unknown) => {
   const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const data = ((await res?.json().catch(() => null)) ?? {}) as { error?: string; issues?: { message?: string }[]; next?: string };
@@ -72,6 +74,7 @@ export function SellSwitch() {
 
 export type StoreValues = { username: string; headline: string; bio: string; skills: string[]; customAvailable: boolean; replyTime: string; storePaused: boolean };
 export function StoreForm({ initial }: { initial: StoreValues }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [v, setV] = useState(initial);
   const [state, setState] = useState<'idle' | 'busy' | 'saved'>('idle');
   const [error, setError] = useState('');
@@ -94,7 +97,7 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
         hint="sellonbay.com/sellers/your-name. Letters, numbers and dashes."
         maxLength={40}
       />
-      <Field label="Headline" value={v.headline} onChange={(e) => setV({ ...v, headline: e.target.value })} maxLength={120} placeholder="Frontend developer · Next.js & React" />
+      <Field label="Headline" value={v.headline} onChange={(e) => setV({ ...v, headline: e.target.value })} maxLength={120} placeholder={tx('Frontend developer · Next.js & React')} />
       <Field as="textarea" label="About" value={v.bio} onChange={(e) => setV({ ...v, bio: e.target.value })} maxLength={1000} />
       <Field
         label="Skills (comma separated, up to 8)"
@@ -111,17 +114,29 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
         }
       />
       <Field as="select" label="Usual reply time shown to buyers" value={v.replyTime} onChange={(e) => setV({ ...v, replyTime: e.target.value })}>
-        <option value="">Not shown</option>
-        <option>Within a few hours</option>
-        <option>Within 24 hours</option>
-        <option>Within 2 days</option>
+        <option value="">
+          <T s={'Not shown'} />
+        </option>
+        <option>
+          <T s={'Within a few hours'} />
+        </option>
+        <option>
+          <T s={'Within 24 hours'} />
+        </option>
+        <option>
+          <T s={'Within 2 days'} />
+        </option>
       </Field>
       <div className="li">
-        <span style={{ flex: 1 }}>Show &ldquo;Available for customization&rdquo;</span>
+        <span style={{ flex: 1 }}>
+          <T s={'Show “Available for customization”'} />
+        </span>
         <Switch label="Available for customization" checked={v.customAvailable} onChange={(on) => setV({ ...v, customAvailable: on })} />
       </div>
       <div className="li">
-        <span style={{ flex: 1 }}>Pause my store (vacation)</span>
+        <span style={{ flex: 1 }}>
+          <T s={'Pause my store (vacation)'} />
+        </span>
         <Switch label="Pause my store" checked={v.storePaused} onChange={(on) => setV({ ...v, storePaused: on })} />
       </div>
       {error && (
@@ -135,7 +150,7 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
         </Button>
         {state === 'saved' && (
           <span className="tag" role="status">
-            Saved
+            <T s={'Saved'} />
           </span>
         )}
       </div>
@@ -163,13 +178,19 @@ export function VerificationForm() {
       }}
     >
       <Field as="select" label="Kind of ID" name="docType" defaultValue="passport">
-        <option value="passport">Passport</option>
-        <option value="national_id">National ID card</option>
-        <option value="driver_licence">Driver licence</option>
+        <option value="passport">
+          <T s={'Passport'} />
+        </option>
+        <option value="national_id">
+          <T s={'National ID card'} />
+        </option>
+        <option value="driver_licence">
+          <T s={'Driver licence'} />
+        </option>
       </Field>
       <Field as="select" label="Country that issued it" name="country" defaultValue="" required>
         <option value="" disabled>
-          Choose a country
+          <T s={'Choose a country'} />
         </option>
         {COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>

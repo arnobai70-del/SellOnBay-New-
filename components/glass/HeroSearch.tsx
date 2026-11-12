@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* The home hero's search of design-reference/index.html: the Websites / Domains tabs pick where the same box searches (GET forms, so it works without JS). */
 export function HeroSearch({ placeholder }: { placeholder: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [tab, setTab] = useState<'websites' | 'domains'>('websites');
   const sites = tab === 'websites';
   return (
@@ -11,14 +14,14 @@ export function HeroSearch({ placeholder }: { placeholder: string }) {
       <div
         className="fade-in"
         role="tablist"
-        aria-label="Search type"
+        aria-label={tx('Search type')}
         style={{ display: 'flex', padding: 4, borderRadius: 999, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC', marginTop: 8, animationDelay: '.55s' }}
       >
         <button type="button" role="tab" aria-selected={sites} className={sites ? 'stab on' : 'stab'} onClick={() => setTab('websites')}>
-          Websites
+          <T s={'Websites'} />
         </button>
         <button type="button" role="tab" aria-selected={!sites} className={sites ? 'stab' : 'stab on'} onClick={() => setTab('domains')}>
-          Domains
+          <T s={'Domains'} />
         </button>
       </div>
       <form
@@ -43,7 +46,8 @@ export function HeroSearch({ placeholder }: { placeholder: string }) {
           style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter), Inter, sans-serif', color: '#2B4250', outline: 'none', minHeight: 44 }}
         />{' '}
         <button className="btn" type="submit">
-          Search<span className="sob-hide-sm">{sites ? ' websites' : ' domains'}</span>
+          <T s={'Search'} />
+          <span className="sob-hide-sm">{sites ? ' websites' : ' domains'}</span>
         </button>
       </form>
     </>

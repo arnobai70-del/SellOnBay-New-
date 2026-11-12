@@ -8,6 +8,8 @@ import { CONFIG } from '@/lib/config';
 import { MAX_HOURS, hoursText } from '@/lib/deliveryTime';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Settings', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -15,24 +17,31 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
 
 export default async function Settings() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/settings/platform', roles: ['admin'], scope: 'super' });
   const s = await getSettings();
   const history = (await auditList(300)).filter((e) => e.action === 'settings_changed').slice(0, 15);
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-settings" title="Settings">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-settings" title={tx('Settings')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>What is sold, and for how much</h2>
+            <h2>
+              <T s={'What is sold, and for how much'} />
+            </h2>
             <p className="tag">
-              While the shop opens in small steps, products cost from {money(s.priceMinCents)} to {money(s.priceMaxCents)}, with setup help or customisation added. This applies to new and saved
-              listings; a listing already live stays as it is. To open up later, raise the highest price here.
+              <T
+                s={
+                  'While the shop opens in small steps, products cost from {v0} to {v1}, with setup help or customisation added. This applies to new and saved listings; a listing already live stays as it is. To open up later, raise the highest price here.'
+                }
+                v={{ v0: money(s.priceMinCents), v1: money(s.priceMaxCents) }}
+              />
             </p>
           </div>
         </div>
         <div className="sob-item">
           <b>
-            Price range: {money(s.priceMinCents)} to {money(s.priceMaxCents)}
+            <T s={'Price range: {v0} to {v1}'} v={{ v0: money(s.priceMinCents), v1: money(s.priceMaxCents) }} />
           </b>
           <AdminForm
             endpoint="/api/admin/settings"
@@ -47,8 +56,12 @@ export default async function Settings() {
           />
         </div>
         <div className="sob-item">
-          <b>Safety check from {s.holdNewBuyerMinCents ? money(s.holdNewBuyerMinCents) : 'never'}</b>
-          <p className="muted">A paid order from an account under a week old, of this size or more, waits for an admin before the seller starts. 0 turns it off.</p>
+          <b>
+            <T s={'Safety check from {v0}'} v={{ v0: s.holdNewBuyerMinCents ? money(s.holdNewBuyerMinCents) : 'never' }} />
+          </b>
+          <p className="muted">
+            <T s={'A paid order from an account under a week old, of this size or more, waits for an admin before the seller starts. 0 turns it off.'} />
+          </p>
           <AdminForm
             endpoint="/api/admin/settings"
             fields={[{ name: 'holdNewBuyerMinCents', label: 'Size in dollars (0 = never)', kind: 'text', required: true }, why]}
@@ -59,13 +72,15 @@ export default async function Settings() {
         </div>
         <div className="sob-item">
           <b>
-            Early access bar:{' '}
+            <T s={'Early access bar:'} />{' '}
             <span className={s.earlyAccessOn ? 'status st-ok' : 'status'}>
               <i />
               {s.earlyAccessOn ? 'On' : 'Off'}
             </span>
           </b>
-          <p className="muted">Shown on top of every page: &ldquo;{barText(s)}&rdquo;</p>
+          <p className="muted">
+            <T s={'Shown on top of every page: “{v0}”'} v={{ v0: barText(s) }} />
+          </p>
           <AdminForm
             endpoint="/api/admin/settings"
             fields={[
@@ -88,15 +103,23 @@ export default async function Settings() {
         </div>
         <div className="sob-item" data-delivery-hours>
           <b>
-            Delivery in hours:{' '}
+            <T s={'Delivery in hours:'} />{' '}
             <span className={s.deliveryHoursOn ? 'status st-ok' : 'status'}>
               <i />
               {s.deliveryHoursOn ? 'On' : 'Off'}
             </span>
           </b>
           <p className="muted">
-            {s.deliveryHoursOn ? `Sellers can promise ${allowedHours(s).map(hoursText).join(', ')}` : 'Sellers promise whole days only'}, or {CONFIG.delivery.minDays} to {CONFIG.delivery.maxDays}{' '}
-            days. The timer starts when the buyer pays. A listing that already promises hours keeps them when a choice is removed here; an admin can set any time on one listing from its edit page.
+            <T
+              s={
+                '{v0}, or {minDays} to {maxDays} days. The timer starts when the buyer pays. A listing that already promises hours keeps them when a choice is removed here; an admin can set any time on one listing from its edit page.'
+              }
+              v={{
+                v0: s.deliveryHoursOn ? `Sellers can promise ${allowedHours(s).map(hoursText).join(', ')}` : 'Sellers promise whole days only',
+                minDays: CONFIG.delivery.minDays,
+                maxDays: CONFIG.delivery.maxDays,
+              }}
+            />
           </p>
           <AdminForm
             endpoint="/api/admin/settings"
@@ -126,15 +149,18 @@ export default async function Settings() {
         </div>
         <div className="sob-item" data-examples>
           <b>
-            Example listings:{' '}
+            <T s={'Example listings:'} />{' '}
             <span className={s.showExamples ? 'status st-ok' : 'status'}>
               <i />
               {s.showExamples ? 'Shown' : examplesAllowed() ? 'Hidden' : 'Removed'}
             </span>
           </b>
           <p className="muted">
-            The made-up starter products and developer profiles that show how the shop works. They are marked Example, have no ratings or sales, and cannot be bought. Hide them once real sellers have
-            listed enough. On a live site with a database they are always removed, so there is nothing to switch.
+            <T
+              s={
+                'The made-up starter products and developer profiles that show how the shop works. They are marked Example, have no ratings or sales, and cannot be bought. Hide them once real sellers have listed enough. On a live site with a database they are always removed, so there is nothing to switch.'
+              }
+            />
           </p>
           {examplesAllowed() && (
             <AdminForm
@@ -161,10 +187,16 @@ export default async function Settings() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Recent changes</h2>
+            <h2>
+              <T s={'Recent changes'} />
+            </h2>
           </div>
         </div>
-        {history.length === 0 && <p className="muted">Nothing has been changed yet. The standard values are in use.</p>}
+        {history.length === 0 && (
+          <p className="muted">
+            <T s={'Nothing has been changed yet. The standard values are in use.'} />
+          </p>
+        )}
         <ul className="sob-list">
           {history.map((e, i) => (
             <li key={i}>

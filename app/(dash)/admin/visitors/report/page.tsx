@@ -8,6 +8,7 @@ import { dayOf } from '@/lib/analyticsCore';
 import { METRICS, METRIC_LABEL } from '@/lib/metrics';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
 export const metadata: Metadata = { title: 'Daily report', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -22,20 +23,26 @@ export default async function DailyReport({ searchParams }: { searchParams: Prom
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Visitors on {day}</h2>
+            <h2>
+              <T s={'Visitors on {day}'} v={{ day }} />
+            </h2>
             <p className="tag">
-              {saved
-                ? `Stored by the daily job on ${new Date(saved.madeAt).toISOString().slice(0, 16).replace('T', ' ')} UTC.`
-                : 'Built now from the counts so far; the daily job stores it the day after.'}{' '}
-              Days run on UTC time.
+              <T
+                s={'{v0} Days run on UTC time.'}
+                v={{
+                  v0: saved
+                    ? `Stored by the daily job on ${new Date(saved.madeAt).toISOString().slice(0, 16).replace('T', ' ')} UTC.`
+                    : 'Built now from the counts so far; the daily job stores it the day after.',
+                }}
+              />
             </p>
           </div>
           <div className="sob-an-range">
             <Link href="/admin/visitors/details" className="btn ghost sm">
-              All visitors
+              <T s={'All visitors'} />
             </Link>
             <a href={`/api/admin/analytics/report?day=${day}`} className="btn sm" download>
-              Download spreadsheet
+              <T s={'Download spreadsheet'} />
             </a>
           </div>
         </div>
@@ -45,8 +52,12 @@ export default async function DailyReport({ searchParams }: { searchParams: Prom
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Site activity</h2>
-            <p className="tag">What happened on the site that day, from the same counters as the Risk page.</p>
+            <h2>
+              <T s={'Site activity'} />
+            </h2>
+            <p className="tag">
+              <T s={'What happened on the site that day, from the same counters as the Risk page.'} />
+            </p>
           </div>
         </div>
         <div className="tbl">
@@ -68,16 +79,26 @@ export default async function DailyReport({ searchParams }: { searchParams: Prom
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>What drew people</h2>
+            <h2>
+              <T s={'What drew people'} />
+            </h2>
           </div>
         </div>
-        <h3 className="sob-an-h">Most opened products</h3>
+        <h3 className="sob-an-h">
+          <T s={'Most opened products'} />
+        </h3>
         <TopTable rows={r.products} what="Product" link={(k) => `/product/${k}`} />
-        <h3 className="sob-an-h">Most opened categories</h3>
+        <h3 className="sob-an-h">
+          <T s={'Most opened categories'} />
+        </h3>
         <TopTable rows={r.categories} what="Category" />
-        <h3 className="sob-an-h">Product attraction</h3>
+        <h3 className="sob-an-h">
+          <T s={'Product attraction'} />
+        </h3>
         <AttractionTable rows={r.attraction} />
-        <h3 className="sob-an-h">Most opened pages</h3>
+        <h3 className="sob-an-h">
+          <T s={'Most opened pages'} />
+        </h3>
         <TopTable rows={r.pages.map((p) => ({ ...p, name: p.key }))} what="Page" />
       </div>
     </DashShell>

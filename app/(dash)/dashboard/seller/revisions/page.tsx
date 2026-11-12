@@ -13,6 +13,8 @@ import { policiesOf, revisionsFor } from '@/lib/revisions/store';
 import { requestableProduct } from '@/lib/requests/products';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Revisions', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +26,7 @@ const usd = (c: number | null) => (c === null ? 'not offered' : `$${(c / 100).to
  * (proposed here, approved by SellOnBay's Catalog team before quotations use them). The seller never talks to the buyer directly.
  */
 export default async function SellerRevisions() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/revisions', roles: ['seller'] });
   const me = viewer?.id ?? null;
   const todo = me ? await revisionsFor({ sellerId: me, statuses: ['assigned', 'release_pending'] }) : [];
@@ -39,16 +42,22 @@ export default async function SellerRevisions() {
     }),
   );
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller-revisions" title="Revisions">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="seller" active="seller-revisions" title={tx('Revisions')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Revisions to do</h2>
-            <p className="tag">SellOnBay checks each request with the buyer and tells you what to change. Your revised work goes to SellOnBay first, then to the buyer.</p>
+            <h2>
+              <T s={'Revisions to do'} />
+            </h2>
+            <p className="tag">
+              <T s={'SellOnBay checks each request with the buyer and tells you what to change. Your revised work goes to SellOnBay first, then to the buyer.'} />
+            </p>
           </div>
         </div>
         {todo.length === 0 ? (
-          <p className="muted">Nothing to do right now.</p>
+          <p className="muted">
+            <T s={'Nothing to do right now.'} />
+          </p>
         ) : (
           <ul className="sob-list" data-seller-revisions>
             {todo.map((r) => {
@@ -57,12 +66,18 @@ export default async function SellerRevisions() {
               return (
                 <li key={r.id}>
                   <div className="sob-grow">
-                    <b>{o?.title ?? 'Order'}</b> · {r.kind ? KIND_TEXT[r.kind] : ''} · asked {day(r.createdAt)}
+                    <b>{o?.title ?? 'Order'}</b> <T s={'· {v0} · asked {v1}'} v={{ v0: r.kind ? KIND_TEXT[r.kind] : '', v1: day(r.createdAt) }} />
                     <p>{r.description}</p>
-                    {r.decisionNote && <p className="muted">SellOnBay: {r.decisionNote}</p>}
+                    {r.decisionNote && (
+                      <p className="muted">
+                        <T s={'SellOnBay: {decisionNote}'} v={{ decisionNote: r.decisionNote }} />
+                      </p>
+                    )}
                     {r.status === 'release_pending' ? (
                       <>
-                        <small className="muted">Sent. Waiting for SellOnBay to release it to the buyer.</small>{' '}
+                        <small className="muted">
+                          <T s={'Sent. Waiting for SellOnBay to release it to the buyer.'} />
+                        </small>{' '}
                         {r.releaseDueAt && <SlaClock dueAt={r.releaseDueAt} slaHours={CONFIG.release.slaHours} />}
                       </>
                     ) : (
@@ -80,22 +95,31 @@ export default async function SellerRevisions() {
           </ul>
         )}
         {recent.length > 0 && (
-          <p className="muted">Recently delivered: {recent.map((r) => `${orders.get(r.orderId)?.title ?? 'order'} (${r.status === 'closed' ? 'closed' : 'with the buyer'})`).join(', ')}</p>
+          <p className="muted">
+            <T s={'Recently delivered:'} /> {recent.map((r) => `${orders.get(r.orderId)?.title ?? 'order'} (${r.status === 'closed' ? 'closed' : 'with the buyer'})`).join(', ')}
+          </p>
         )}
       </div>
 
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Revision terms of your listings</h2>
+            <h2>
+              <T s={'Revision terms of your listings'} />
+            </h2>
             <p className="tag">
-              What each listing includes after delivery: how many changes, for how long, what counts as a change, and the price of an extra one. Faults in what you delivered are always fixed free and
-              never counted. SellOnBay approves the terms before they go into quotations.
+              <T
+                s={
+                  'What each listing includes after delivery: how many changes, for how long, what counts as a change, and the price of an extra one. Faults in what you delivered are always fixed free and never counted. SellOnBay approves the terms before they go into quotations.'
+                }
+              />
             </p>
           </div>
         </div>
         {terms.length === 0 ? (
-          <p className="muted">You have no listings yet.</p>
+          <p className="muted">
+            <T s={'You have no listings yet.'} />
+          </p>
         ) : (
           <ul className="sob-list">
             {terms.map(({ l, approved, proposed, rejected }) => (

@@ -7,6 +7,8 @@ import { publicSellers } from '@/lib/glass/catalog';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const generateMetadata = () => pageMetadata('/sellers', { alternates: { canonical: '/sellers' } });
 
 const AV = ['#E6E2F4', '#DCEBF5', '#F1E8DD', '#DCF0E7', '#E8EEF2', '#F6E0EA'];
@@ -22,6 +24,7 @@ const initials = (n: string) =>
  * filtered by a skill tab and "Available for custom work". The filters are in the address, so the page works without JavaScript.
  */
 export default async function Sellers({ searchParams }: { searchParams: Promise<{ q?: string; custom?: string; skill?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { q = '', custom, skill = '' } = await searchParams;
   const [all, words, copy] = await Promise.all([publicSellers(), pageWords('/sellers'), pageCopy('sellers')]);
   const tagsOf = (s: (typeof all)[number]) => [...new Set([...s.skills, ...s.websites.map((w) => w.stack).filter((x): x is string => !!x)])];
@@ -57,22 +60,22 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
             {skill && <input type="hidden" name="skill" value={skill} />}
             {custom === '1' && <input type="hidden" name="custom" value="1" />}
             <label htmlFor="ss" className="hidden-label">
-              Search sellers
+              <T s={'Search sellers'} />
             </label>
             <input
               id="ss"
               name="q"
               defaultValue={q}
-              placeholder="Search by name or skill"
+              placeholder={tx('Search by name or skill')}
               style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 42 }}
             />
             <button className="btn sm" type="submit">
-              Search
+              <T s={'Search'} />
             </button>
           </form>
-          <div className="seg" role="tablist" aria-label="Skill">
+          <div className="seg" role="tablist" aria-label={tx('Skill')}>
             <Link role="tab" className={!skill ? 'on' : ''} aria-selected={!skill} href={href({ custom })} prefetch={false}>
-              All
+              <T s={'All'} />
             </Link>
             {skills.map((t) => (
               <Link key={t} role="tab" className={skill === t ? 'on' : ''} aria-selected={skill === t} href={href({ skill: t, custom })} prefetch={false}>
@@ -99,7 +102,7 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
             >
               {custom === '1' ? '✓' : ''}
             </span>{' '}
-            Available for custom work
+            <T s={'Available for custom work'} />
           </Link>
         </div>
       </header>
@@ -141,7 +144,7 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
                 <div className="row" style={{ marginTop: 4 }}>
                   <span className={s.customAvailable ? 'status st-ok' : 'status st-draft'}>{s.customAvailable ? 'Available for custom work' : 'Not taking custom work'}</span>
                   <Link className="btn sm" href={`/sellers/${s.handle}`} prefetch={false}>
-                    View store
+                    <T s={'View store'} />
                   </Link>
                 </div>
               </div>
@@ -150,20 +153,30 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
         </section>
       ) : (
         <section className="glass card">
-          <h2 style={{ fontSize: 22 }}>No sellers match</h2>
+          <h2 style={{ fontSize: 22 }}>
+            <T s={'No sellers match'} />
+          </h2>
           <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-            Try another name or skill, or <Link href="/sellers">see every seller</Link>.
+            <T s={'Try another name or skill, or'} />{' '}
+            <Link href="/sellers">
+              <T s={'see every seller'} />
+            </Link>
+            .
           </p>
         </section>
       )}
       <section className="sec">
         <div className="glass card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
           <div>
-            <h2 style={{ fontSize: 24, fontWeight: 300 }}>Build websites? Sell them here.</h2>
-            <div className="tag">Keep {PLAN_KEEP_TEXT} of every sale</div>
+            <h2 style={{ fontSize: 24, fontWeight: 300 }}>
+              <T s={'Build websites? Sell them here.'} />
+            </h2>
+            <div className="tag">
+              <T s={'Keep {PLAN_KEEP_TEXT} of every sale'} v={{ PLAN_KEEP_TEXT }} />
+            </div>
           </div>
           <Link className="btn" href="/sell">
-            Become a seller
+            <T s={'Become a seller'} />
           </Link>
         </div>
       </section>

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
+import { T } from '@/components/i18n/T';
 /* The reset link already signed this person in, so they only need to choose a new password. */
 export function ResetClient() {
   const [pw, setPw] = useState('');
@@ -43,13 +44,17 @@ export function ResetClient() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
       <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 400 }}>Choose a new password</h1>
+        <h1 style={{ fontSize: 30, fontWeight: 400 }}>
+          <T s={'Choose a new password'} />
+        </h1>
         <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-          You will be signed in right after.
+          <T s={'You will be signed in right after.'} />
         </p>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="field">
-            <label htmlFor="r-pw">New password</label>
+            <label htmlFor="r-pw">
+              <T s={'New password'} />
+            </label>
             <div style={{ position: 'relative' }}>
               <input
                 className="input"
@@ -82,10 +87,14 @@ export function ResetClient() {
                 {show ? 'Hide' : 'Show'}
               </button>
             </div>
-            <small>At least 8 characters.</small>
+            <small>
+              <T s={'At least 8 characters.'} />
+            </small>
           </div>
           <div className="field">
-            <label htmlFor="r-pw2">Type it again</label>
+            <label htmlFor="r-pw2">
+              <T s={'Type it again'} />
+            </label>
             <input className="input" id="r-pw2" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} required autoComplete="new-password" />
           </div>
           {error && (

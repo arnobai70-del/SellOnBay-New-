@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { type Attraction, type DayLine, type Named, type Top, DAY_FIELDS, LEVEL_LABEL } from '@/lib/analyticsCore';
 
+import { T } from '@/components/i18n/T';
 /* The tables of the admin Visitors page and its daily report (app/(dash)/admin/visitors/details). */
 const LEVEL_CHIP: Record<Attraction['level'], string> = { strong: 'status st-ok', fair: 'status st-wait', weak: 'status st-bad', few: 'status st-draft' };
 
@@ -21,7 +22,9 @@ export function DaysTable({ days }: { days: DayLine[] }) {
       <table className="">
         <thead>
           <tr>
-            <th>Day</th>
+            <th>
+              <T s={'Day'} />
+            </th>
             {DAY_FIELDS.map(([k, label]) => (
               <th key={k}>{label}</th>
             ))}
@@ -61,10 +64,14 @@ export function CompareTable({ today, before }: { today: DayLine; before: DayLin
       <table className="">
         <thead>
           <tr>
-            <th>Number</th>
+            <th>
+              <T s={'Number'} />
+            </th>
             <th>{today.day}</th>
             <th>{before.day}</th>
-            <th>Change</th>
+            <th>
+              <T s={'Change'} />
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -94,8 +101,12 @@ export function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: strin
         <thead>
           <tr>
             <th>{what}</th>
-            <th>Opens</th>
-            <th>Different visitors</th>
+            <th>
+              <T s={'Opens'} />
+            </th>
+            <th>
+              <T s={'Different visitors'} />
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -127,11 +138,21 @@ export function AttractionTable({ rows }: { rows: Named<Attraction>[] }) {
       <table className="">
         <thead>
           <tr>
-            <th>Product</th>
-            <th>People who opened it</th>
-            <th>People who clicked Buy</th>
-            <th>Share who clicked Buy</th>
-            <th>Attraction</th>
+            <th>
+              <T s={'Product'} />
+            </th>
+            <th>
+              <T s={'People who opened it'} />
+            </th>
+            <th>
+              <T s={'People who clicked Buy'} />
+            </th>
+            <th>
+              <T s={'Share who clicked Buy'} />
+            </th>
+            <th>
+              <T s={'Attraction'} />
+            </th>
           </tr>
         </thead>
         <tbody>

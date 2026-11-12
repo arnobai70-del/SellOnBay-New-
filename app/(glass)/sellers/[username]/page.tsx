@@ -7,6 +7,7 @@ import { pkgOffered } from '@/lib/data';
 import { sellerByHandle } from '@/lib/glass/catalog';
 import { getSettings } from '@/lib/settings';
 
+import { T } from '@/components/i18n/T';
 type Props = { params: Promise<{ username: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -60,30 +61,38 @@ export default async function SellerStore({ params }: Props) {
         <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
           <div>
             <div className="stat">{s.websites.length}</div>
-            <div className="tag">Websites</div>
+            <div className="tag">
+              <T s={'Websites'} />
+            </div>
           </div>
           <div>
             <div className="stat">{s.sold}</div>
-            <div className="tag">Sales</div>
+            <div className="tag">
+              <T s={'Sales'} />
+            </div>
           </div>
           <div>
             <div className="stat">{s.joined ? new Date(s.joined).getUTCFullYear() : '—'}</div>
-            <div className="tag">Member since</div>
+            <div className="tag">
+              <T s={'Member since'} />
+            </div>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
           <Link className="btn ghost" href="/dashboard/buyer/support?new=1" prefetch={false}>
-            Message
+            <T s={'Message'} />
           </Link>
           <Link href="/report-abuse" style={{ fontSize: 12, color: '#566C78' }} prefetch={false}>
-            Report this seller
+            <T s={'Report this seller'} />
           </Link>
         </div>
       </section>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 24 }}>
         <div style={{ flex: '999 1 560px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div>
-            <h2 style={{ fontSize: 22, marginBottom: 10 }}>About</h2>
+            <h2 style={{ fontSize: 22, marginBottom: 10 }}>
+              <T s={'About'} />
+            </h2>
             <p className="muted" style={{ margin: 0, lineHeight: 1.65, fontSize: 15 }}>
               {s.about || `${s.name} sells full-stack websites on SellOnBay, each with a live demo and escrow protection.`}
             </p>
@@ -105,16 +114,23 @@ export default async function SellerStore({ params }: Props) {
                   {s.reviews ? '★'.repeat(Math.round(s.rating)) + '☆'.repeat(5 - Math.round(s.rating)) : '☆☆☆☆☆'}
                 </div>
                 <div className="tag">
-                  {s.reviews} verified {s.reviews === 1 ? 'buyer' : 'buyers'}
+                  <T s={'{reviews} verified {v1}'} v={{ reviews: s.reviews, v1: s.reviews === 1 ? 'buyer' : 'buyers' }} />
                 </div>
               </div>
               <div style={{ flex: '1 1 260px', fontSize: 14, lineHeight: 1.6 }}>
-                <b style={{ fontWeight: 500 }}>Reviews</b> <span className="muted">· verified buyers only</span>
+                <b style={{ fontWeight: 500 }}>
+                  <T s={'Reviews'} />
+                </b>{' '}
+                <span className="muted">
+                  <T s={'· verified buyers only'} />
+                </span>
                 <br />
                 <span className="muted">{s.reviews ? 'Read them on each website page.' : 'No reviews yet. Only buyers who received a website can review it.'}</span>
               </div>
             </div>
-            <h2 style={{ fontSize: 22, marginBottom: 16 }}>Websites by {first}</h2>
+            <h2 style={{ fontSize: 22, marginBottom: 16 }}>
+              <T s={'Websites by {first}'} v={{ first }} />
+            </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 20 }}>
               {s.websites.map((p) => (
                 <WebsiteCard key={p.id} p={p} />
@@ -125,8 +141,14 @@ export default async function SellerStore({ params }: Props) {
         <aside className="glass" style={{ flex: '1 1 300px', maxWidth: 380, padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: 20 }}>Request customization</h2>
-              {beta && <span className="status st-draft">Coming soon</span>}
+              <h2 style={{ fontSize: 20 }}>
+                <T s={'Request customization'} />
+              </h2>
+              {beta && (
+                <span className="status st-draft">
+                  <T s={'Coming soon'} />
+                </span>
+              )}
             </div>
             <div className="muted" style={{ fontSize: 14, marginTop: 6 }}>
               {beta ? 'Paid custom work is available after the beta.' : 'Paid through escrow, like a website. You pay nothing until you accept a quotation.'}
@@ -135,7 +157,9 @@ export default async function SellerStore({ params }: Props) {
           <form action="/checkout" method="get" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <input type="hidden" name="pkg" value="custom" />
             <div className="field">
-              <label htmlFor="tp">Based on website</label>
+              <label htmlFor="tp">
+                <T s={'Based on website'} />
+              </label>
               <select id="tp" name="id" className="input" disabled={beta || !custom.length}>
                 {(custom.length ? custom : s.websites).map((w) => (
                   <option key={w.id} value={w.id}>
@@ -145,9 +169,13 @@ export default async function SellerStore({ params }: Props) {
               </select>
             </div>
             <button className="btn" type="submit" style={{ width: '100%' }} disabled={beta || !custom.length}>
-              Send request
+              <T s={'Send request'} />
             </button>
-            {!beta && !custom.length && <div className="tag">This seller does not offer customization on a website yet.</div>}
+            {!beta && !custom.length && (
+              <div className="tag">
+                <T s={'This seller does not offer customization on a website yet.'} />
+              </div>
+            )}
           </form>
         </aside>
       </div>

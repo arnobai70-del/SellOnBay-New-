@@ -9,6 +9,8 @@ import { METRICS, METRIC_LABEL, findAnomalies, series } from '@/lib/metrics';
 import { switchStates } from '@/lib/switches';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Risk', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -16,23 +18,30 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 const why = { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
 
 export default async function Risk() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/security/risk', roles: ['admin'], scope: 'finance' });
   const [days, holds, switches, rules] = await Promise.all([series(14), listHolds(), switchStates(), listSellerRules()]);
   const odd = findAnomalies(days.slice(-CONFIG.risk.anomaly.baselineDays - 1));
   const today = days[days.length - 1];
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-risk" title="Risk">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-risk" title={tx('Risk')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Today</h2>
-            <p className="tag">Counted as it happens. A number far above the days before it (at least {CONFIG.risk.anomaly.factor} times the average) sends an alert.</p>
+            <h2>
+              <T s={'Today'} />
+            </h2>
+            <p className="tag">
+              <T s={'Counted as it happens. A number far above the days before it (at least {factor} times the average) sends an alert.'} v={{ factor: CONFIG.risk.anomaly.factor }} />
+            </p>
           </div>
         </div>
         {odd.length > 0 && (
           <div className="sob-alert">
             <div>
-              <b>Unusual today</b>
+              <b>
+                <T s={'Unusual today'} />
+              </b>
               <span>{odd.map((a) => `${METRIC_LABEL[a.metric]}: ${a.today} (usually ${a.average})`).join(', ')}</span>
             </div>
           </div>
@@ -49,7 +58,9 @@ export default async function Risk() {
           <table className="">
             <thead>
               <tr>
-                <th>Day</th>
+                <th>
+                  <T s={'Day'} />
+                </th>
                 {METRICS.map((m) => (
                   <th key={m}>{METRIC_LABEL[m]}</th>
                 ))}
@@ -72,9 +83,14 @@ export default async function Risk() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Emergency switch</h2>
+            <h2>
+              <T s={'Emergency switch'} />
+            </h2>
             <p className="tag">
-              When a flood of fake buyers comes, pause checkout for new buyers only. Signed-out visitors and accounts younger than {CONFIG.limits.newAccountDays} days cannot order; everyone else can.
+              <T
+                s={'When a flood of fake buyers comes, pause checkout for new buyers only. Signed-out visitors and accounts younger than {newAccountDays} days cannot order; everyone else can.'}
+                v={{ newAccountDays: CONFIG.limits.newAccountDays }}
+              />
             </p>
           </div>
         </div>
@@ -101,19 +117,29 @@ export default async function Risk() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Orders waiting for a safety check ({holds.length})</h2>
+            <h2>
+              <T s={'Orders waiting for a safety check ({length})'} v={{ length: holds.length }} />
+            </h2>
             <p className="tag">
-              Paid orders from a flagged buyer, or from an account under {CONFIG.limits.newAccountDays} days paying {money((await getSettings()).holdNewBuyerMinCents)} or more. The money is in escrow.
-              The seller cannot start and no file is released until you decide. Release lets it go ahead; cancel refunds the buyer from escrow.
+              <T
+                s={
+                  'Paid orders from a flagged buyer, or from an account under {newAccountDays} days paying {v1} or more. The money is in escrow. The seller cannot start and no file is released until you decide. Release lets it go ahead; cancel refunds the buyer from escrow.'
+                }
+                v={{ newAccountDays: CONFIG.limits.newAccountDays, v1: money((await getSettings()).holdNewBuyerMinCents) }}
+              />
             </p>
           </div>
         </div>
-        {holds.length === 0 && <p className="muted">Nothing is waiting.</p>}
+        {holds.length === 0 && (
+          <p className="muted">
+            <T s={'Nothing is waiting.'} />
+          </p>
+        )}
         {holds.map((h) => (
           <div className="sob-item" key={h.orderId}>
             <b>{h.title || 'Order'}</b>{' '}
             <small className="muted">
-              {money(h.priceCents)} · {h.orderId.slice(0, 8)} · {new Date(h.createdAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
+              <T s={'{v0} · {v1} · {v2} UTC'} v={{ v0: money(h.priceCents), v1: h.orderId.slice(0, 8), v2: new Date(h.createdAt).toISOString().slice(0, 16).replace('T', ' ') }} />
             </small>
             <p>{h.reason}</p>
             <AdminForm
@@ -141,26 +167,38 @@ export default async function Risk() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Seller reserve</h2>
+            <h2>
+              <T s={'Seller reserve'} />
+            </h2>
             <p className="tag">
-              A share of a seller&apos;s earnings kept back for some days after the payout hold, to cover a refund or chargeback that comes late. The site-wide default is {CONFIG.reserve.percent}{' '}
-              percent for {CONFIG.reserve.days} days ({CONFIG.reserve.percent === 0 ? 'off' : 'on'}). Set a different rule for one seller below.
+              <T
+                s={
+                  "A share of a seller's earnings kept back for some days after the payout hold, to cover a refund or chargeback that comes late. The site-wide default is {percent} percent for {days} days ({v2}). Set a different rule for one seller below."
+                }
+                v={{ percent: CONFIG.reserve.percent, days: CONFIG.reserve.days, v2: CONFIG.reserve.percent === 0 ? 'off' : 'on' }}
+              />
             </p>
           </div>
         </div>
-        {rules.length === 0 && <p className="muted">No seller has their own rule.</p>}
+        {rules.length === 0 && (
+          <p className="muted">
+            <T s={'No seller has their own rule.'} />
+          </p>
+        )}
         {rules.map((r) => (
           <div className="sob-item" key={r.sellerId}>
             <b>{r.sellerId.slice(0, 8)}</b>{' '}
             <small className="muted">
-              {r.percent} percent for {r.days} days
+              <T s={'{percent} percent for {days} days'} v={{ percent: r.percent, days: r.days }} />
             </small>
             <p>{r.note}</p>
             <AdminForm endpoint="/api/admin/risk/reserve" fixed={{ sellerId: r.sellerId, remove: true }} fields={[why]} submit="Back to the default" openLabel="Remove the rule" tone="line" />
           </div>
         ))}
         <div className="sob-item">
-          <b>Set a rule for a seller</b>
+          <b>
+            <T s={'Set a rule for a seller'} />
+          </b>
           <AdminForm
             endpoint="/api/admin/risk/reserve"
             fields={[
@@ -179,15 +217,22 @@ export default async function Risk() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Clean up</h2>
+            <h2>
+              <T s={'Clean up'} />
+            </h2>
             <p className="tag">
-              Removing a fake account bans it for good and deletes the reviews and abuse reports it wrote. Orders, chat, downloads and the logs are kept as evidence. An account with a paid order is
-              refused: use a dispute or a refund, and remove its reviews with the second form.
+              <T
+                s={
+                  'Removing a fake account bans it for good and deletes the reviews and abuse reports it wrote. Orders, chat, downloads and the logs are kept as evidence. An account with a paid order is refused: use a dispute or a refund, and remove its reviews with the second form.'
+                }
+              />
             </p>
           </div>
         </div>
         <div className="sob-item">
-          <b>Remove a fake account</b>
+          <b>
+            <T s={'Remove a fake account'} />
+          </b>
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'account' }}
@@ -198,7 +243,9 @@ export default async function Risk() {
           />
         </div>
         <div className="sob-item">
-          <b>Remove all reviews by an account</b>
+          <b>
+            <T s={'Remove all reviews by an account'} />
+          </b>
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'reviews_by' }}
@@ -209,7 +256,9 @@ export default async function Risk() {
           />
         </div>
         <div className="sob-item">
-          <b>Remove a fake review</b>
+          <b>
+            <T s={'Remove a fake review'} />
+          </b>
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'review' }}

@@ -7,6 +7,8 @@ import { CATEGORY_SLUGS, publicWebsites, websiteCategories } from '@/lib/glass/c
 import { rankWebsites } from '@/lib/glass/search';
 import { HUBS } from '@/lib/seo/hubs';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 type Raw = Record<string, string | string[] | undefined>;
 const many = (v: string | string[] | undefined) =>
   (Array.isArray(v) ? v : v ? [v] : [])
@@ -24,6 +26,7 @@ const INCLUDES = [
  * The smart search ranks the words when there are some (lib/glass/search.ts). `category` fixes the category on a category page.
  */
 export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const q: BrowseQuery = { ...readQuery(raw, CATEGORY_SLUGS), ...(category ? { category } : {}) };
   const tech = many(raw.tech);
   const inc = many(raw.inc).filter((x) => INCLUDES.some(([k]) => k === x));
@@ -63,13 +66,15 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
   return (
     <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
       <MobileToggle label="Filters" className="sob-mt-filters">
-        <aside className="glass sob-filters" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label="Filters">
-          <div style={{ fontSize: 18, padding: '0 12px' }}>Filters</div>
+        <aside className="glass sob-filters" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label={tx('Filters')}>
+          <div style={{ fontSize: 18, padding: '0 12px' }}>
+            <T s={'Filters'} />
+          </div>
           <div className="flabel" style={{ padding: '0 12px' }}>
-            Category
+            <T s={'Category'} />
           </div>
           <Link className={q.category ? 'fopt' : 'fopt on'} href={href({ category: '' })} prefetch={false} aria-current={q.category ? undefined : 'page'}>
-            All websites
+            <T s={'All websites'} />
           </Link>{' '}
           {HUBS.map((h) => (
             <Link key={h.slug} className={q.category === h.slug ? 'fopt on' : 'fopt'} href={href({ category: h.slug })} prefetch={false} aria-current={q.category === h.slug ? 'page' : undefined}>
@@ -83,24 +88,24 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
             {front.length > 0 && (
               <>
                 <div className="flabel" style={{ padding: '0 12px' }}>
-                  Technology
+                  <T s={'Technology'} />
                 </div>
                 {front.map((t) => check('tech', t, tech.includes(t), t))}
               </>
             )}
             <div className="flabel" style={{ padding: '0 12px' }}>
-              Price
+              <T s={'Price'} />
             </div>
             <div style={{ display: 'flex', gap: 8, padding: '0 12px' }}>
               <div style={{ flex: 1 }}>
                 <label htmlFor="pmin" className="tag" style={{ display: 'block', marginBottom: 4 }}>
-                  Min
+                  <T s={'Min'} />
                 </label>
                 <input id="pmin" name="min" className="input" inputMode="decimal" defaultValue={q.min ?? ''} placeholder="$" />
               </div>
               <div style={{ flex: 1 }}>
                 <label htmlFor="pmax" className="tag" style={{ display: 'block', marginBottom: 4 }}>
-                  Max
+                  <T s={'Max'} />
                 </label>
                 <input id="pmax" name="max" className="input" inputMode="decimal" defaultValue={q.max ?? ''} placeholder="$" />
               </div>
@@ -108,22 +113,22 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
             {back.length > 0 && (
               <>
                 <div className="flabel" style={{ padding: '0 12px' }}>
-                  Backend &amp; database
+                  <T s={'Backend & database'} />
                 </div>
                 {back.map((t) => check('tech', t, tech.includes(t), t))}
               </>
             )}
             <div className="flabel" style={{ padding: '0 12px' }}>
-              Rating
+              <T s={'Rating'} />
             </div>
             {check('rated', '1', q.rated, '4 stars and up')}
             <div className="flabel" style={{ padding: '0 12px' }}>
-              Includes
+              <T s={'Includes'} />
             </div>
             {INCLUDES.map(([k, l]) => check('inc', k, inc.includes(k), l))}
             <div style={{ padding: '14px 12px 0' }}>
               <button className="btn ghost" type="submit" style={{ width: '100%' }}>
-                Apply filters
+                <T s={'Apply filters'} />
               </button>
             </div>
           </form>
@@ -148,7 +153,9 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
               .map(([k, v]) => (
                 <input key={k} type="hidden" name={k} value={String(v)} />
               ))}
-            <label htmlFor="sort">Sort</label>
+            <label htmlFor="sort">
+              <T s={'Sort'} />
+            </label>
             <select id="sort" name="sort" className="input" defaultValue={q.sort} style={{ width: 'auto', minWidth: 160, borderRadius: 999 }}>
               {SORTS.map((s) => (
                 <option key={s} value={s}>
@@ -157,7 +164,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
               ))}
             </select>
             <button className="btn sm ghost" type="submit">
-              Sort
+              <T s={'Sort'} />
             </button>
           </form>
         </div>
@@ -169,24 +176,26 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
           </div>
         ) : (
           <div className="glass card" style={{ padding: 22 }}>
-            <h2 style={{ fontSize: 22 }}>Nothing matches yet</h2>
+            <h2 style={{ fontSize: 22 }}>
+              <T s={'Nothing matches yet'} />
+            </h2>
             <p className="muted" style={{ margin: '8px 0 14px', fontSize: 14 }}>
-              Try fewer filters, or see every website.
+              <T s={'Try fewer filters, or see every website.'} />
             </p>
             <Link className="btn ghost" href="/websites" prefetch={false}>
-              Clear filters
+              <T s={'Clear filters'} />
             </Link>
           </div>
         )}
         {r.pages > 1 && (
-          <nav aria-label="Pages" style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 32 }}>
+          <nav aria-label={tx('Pages')} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 32 }}>
             {Array.from({ length: r.pages }, (_, i) => i + 1).map((n) => (
               <Link key={n} className={n === r.page ? 'pg on' : 'pg'} href={href({ page: n })} prefetch={false} aria-current={n === r.page ? 'page' : undefined}>
                 {n}
               </Link>
             ))}
             {r.page < r.pages && (
-              <Link className="pg" href={href({ page: r.page + 1 })} prefetch={false} aria-label="Next page">
+              <Link className="pg" href={href({ page: r.page + 1 })} prefetch={false} aria-label={tx('Next page')}>
                 ›
               </Link>
             )}

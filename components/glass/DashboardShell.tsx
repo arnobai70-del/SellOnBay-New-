@@ -9,6 +9,7 @@ import { GlassPage } from './GlassPage';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { getI18n } from '@/lib/i18n/server';
 
+import { T } from '@/components/i18n/T';
 const initials = (name: string) =>
   name
     .trim()
@@ -106,10 +107,16 @@ export async function DashboardShell({
                 })}
               </Fragment>
             ))}
-            {others.length > 0 && <div className="grp">Switch view</div>}
+            {others.length > 0 && (
+              <div className="grp">
+                <T s={'Switch view'} />
+              </div>
+            )}
             {others.map((r) => (
               <Link key={r} className="mi" href={ROLE_MENUS[r].home} prefetch={false}>
-                <span>{ROLE_MENUS[r].label} view</span>
+                <span>
+                  <T s={'{label} view'} v={{ label: ROLE_MENUS[r].label }} />
+                </span>
               </Link>
             ))}
             <div className="sob-sidecard" style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
@@ -117,7 +124,7 @@ export async function DashboardShell({
               {signedIn && (
                 <form action={signOut} style={{ marginTop: sideCard ? 8 : 0 }}>
                   <button type="submit" className="tag" style={{ display: 'block', margin: 0, padding: 0, border: 0, background: 'none', cursor: 'pointer', color: '#1A5444' }}>
-                    Sign out
+                    <T s={'Sign out'} />
                   </button>
                 </form>
               )}

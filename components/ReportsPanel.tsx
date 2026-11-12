@@ -4,6 +4,7 @@ import { CONFIG } from '@/lib/config';
 import { defaultRange, fileGone, SALE_STATES } from '@/lib/reports/rules';
 import { exportsBy } from '@/lib/reports/service';
 
+import { T } from '@/components/i18n/T';
 const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
 
 /*
@@ -20,14 +21,23 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
         <div>
           <h2>{scope === 'seller' ? 'Your sales as PDF' : 'Sales report (PDF)'}</h2>
           <p className="tag">
-            Figures are what each order recorded (price, commission and the seller&apos;s share), never today&apos;s prices. At most {CONFIG.reports.maxRowsPerPdf.toLocaleString('en-US')} sales per
-            file; more are split into numbered parts. Files are deleted after {CONFIG.reports.pdfKeepHours} hours.
-            {scope === 'seller' ? ' Buyer names and contact details are never included.' : ''}
+            <T
+              s={
+                "Figures are what each order recorded (price, commission and the seller's share), never today's prices. At most {v0} sales per file; more are split into numbered parts. Files are deleted after {pdfKeepHours} hours.{v2}"
+              }
+              v={{
+                v0: CONFIG.reports.maxRowsPerPdf.toLocaleString('en-US'),
+                pdfKeepHours: CONFIG.reports.pdfKeepHours,
+                v2: scope === 'seller' ? ' Buyer names and contact details are never included.' : '',
+              }}
+            />
           </p>
         </div>
       </div>
       {!on ? (
-        <p className="muted">Sales PDF exports are switched off. A Super Admin can switch them on under Feature flags.</p>
+        <p className="muted">
+          <T s={'Sales PDF exports are switched off. A Super Admin can switch them on under Feature flags.'} />
+        </p>
       ) : (
         <AdminForm
           endpoint={scope === 'seller' ? '/api/seller/reports/sales' : '/api/admin/reports/sales'}
@@ -61,13 +71,18 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
           {mine.map((e) => (
             <li key={e.id}>
               <div className="sob-grow">
-                {e.scope === 'buyer' ? 'Receipt' : `Part ${e.part} of ${e.parts}`} · {e.rowCount} {e.rowCount === 1 ? 'row' : 'rows'} · made {when(e.createdAt)}
+                <T
+                  s={'{v0} · {rowCount} {v2} · made {v3}'}
+                  v={{ v0: e.scope === 'buyer' ? 'Receipt' : `Part ${e.part} of ${e.parts}`, rowCount: e.rowCount, v2: e.rowCount === 1 ? 'row' : 'rows', v3: when(e.createdAt) }}
+                />
               </div>
               {fileGone(e) ? (
-                <small className="muted">Deleted after {CONFIG.reports.pdfKeepHours} hours</small>
+                <small className="muted">
+                  <T s={'Deleted after {pdfKeepHours} hours'} v={{ pdfKeepHours: CONFIG.reports.pdfKeepHours }} />
+                </small>
               ) : (
                 <a className="btn ghost sm" href={`/api/reports/${e.id}`}>
-                  Download
+                  <T s={'Download'} />
                 </a>
               )}
             </li>

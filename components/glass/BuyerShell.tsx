@@ -3,6 +3,7 @@ import { SellSwitch } from './SellerForms';
 import { buyerBadges } from '@/lib/glass/buyer';
 import { DashboardShell } from './DashboardShell';
 
+import { T } from '@/components/i18n/T';
 /* The buyer dashboard's shell with its live menu counts. A server component, so each page only says which item it is. */
 export async function BuyerShell({
   viewer,
@@ -40,15 +41,25 @@ export async function BuyerShell({
       unread={counts.unread}
       sideCard={
         <>
-          <div style={{ fontSize: 13, fontWeight: 500 }}>Want to sell?</div>
-          <div className="tag">Keep {PLAN_KEEP_TEXT} of every sale</div>
+          <div style={{ fontSize: 13, fontWeight: 500 }}>
+            <T s={'Want to sell?'} />
+          </div>
+          <div className="tag">
+            <T s={'Keep {PLAN_KEEP_TEXT} of every sale'} v={{ PLAN_KEEP_TEXT }} />
+          </div>
           <div style={{ marginTop: 10 }}>
             <SellSwitch />
           </div>
         </>
       }
     >
-      {viewer ? children : <p className="muted">The dashboard needs an account. There are no accounts in demo mode.</p>}
+      {viewer ? (
+        children
+      ) : (
+        <p className="muted">
+          <T s={'The dashboard needs an account. There are no accounts in demo mode.'} />
+        </p>
+      )}
     </DashboardShell>
   );
 }

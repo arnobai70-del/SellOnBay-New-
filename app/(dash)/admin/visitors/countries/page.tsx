@@ -6,6 +6,8 @@ import { isFlagOn } from '@/lib/featureFlags';
 import { ga4Countries } from '@/lib/ga4Country';
 import { requireViewer } from '@/lib/supabase/viewer';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Visitors by country', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,7 @@ const RANGES = [7, 30, 90] as const;
  * total on this page or anywhere else.
  */
 export default async function Countries({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/visitors/countries', roles: ['admin'], scope: ['content', 'finance'] });
   const d = Number((await searchParams).d);
   const days = (RANGES as readonly number[]).includes(d) ? d : 30;
@@ -25,23 +28,27 @@ export default async function Countries({ searchParams }: { searchParams: Promis
   const fpOn = await isFlagOn('analytics.first_party_country');
   const fp = fpOn ? await firstPartyCountries(from, to) : [];
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-countries" title="Visitors by country">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-countries" title={tx('Visitors by country')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Visitors by country</h2>
+            <h2>
+              <T s={'Visitors by country'} />
+            </h2>
             <p className="tag">
-              {from} to {to} (UTC).{' '}
+              <T s={'{from} to {to} (UTC).'} v={{ from, to }} />{' '}
               {RANGES.map((r) => (
                 <a key={r} href={`?d=${r}`} aria-current={r === days ? 'page' : undefined} style={{ marginRight: 8 }}>
-                  {r} days
+                  <T s={'{r} days'} v={{ r }} />
                 </a>
               ))}
             </p>
             <p className="muted">
-              The two panels count different people, so their numbers differ and are never added together. GA4 counts only visitors who accepted analytics, whose browser ran the script and who were
-              not blocked; a visitor is a browser cookie. First-party counts every visitor without Do Not Track or Global Privacy Control; a visitor is a keyed hash of address and browser per day, so
-              a new device is a new visitor. GA4 can also hide very small numbers.
+              <T
+                s={
+                  'The two panels count different people, so their numbers differ and are never added together. GA4 counts only visitors who accepted analytics, whose browser ran the script and who were not blocked; a visitor is a browser cookie. First-party counts every visitor without Do Not Track or Global Privacy Control; a visitor is a keyed hash of address and browser per day, so a new device is a new visitor. GA4 can also hide very small numbers.'
+                }
+              />
             </p>
           </div>
         </div>
@@ -50,24 +57,40 @@ export default async function Countries({ searchParams }: { searchParams: Promis
       <div className="glass card sob-sec" data-country-source="ga4">
         <div className="row sob-hd">
           <div>
-            <h2>From GA4 (consenting visitors only)</h2>
-            <p className="tag">Read from the GA4 property behind G-FEK9C0CM04 through the GA4 Data API.</p>
+            <h2>
+              <T s={'From GA4 (consenting visitors only)'} />
+            </h2>
+            <p className="tag">
+              <T s={'Read from the GA4 property behind G-FEK9C0CM04 through the GA4 Data API.'} />
+            </p>
           </div>
         </div>
         {ga4.state !== 'ok' ? (
           <p className="muted">{ga4.note}</p>
         ) : ga4.rows.length === 0 ? (
-          <p className="muted">No GA4 data for these days.</p>
+          <p className="muted">
+            <T s={'No GA4 data for these days.'} />
+          </p>
         ) : (
           <>
             <table className="tbl">
               <thead>
                 <tr>
-                  <th scope="col">Country</th>
-                  <th scope="col">Users</th>
-                  <th scope="col">Sessions</th>
-                  <th scope="col">Page views</th>
-                  <th scope="col">Key events</th>
+                  <th scope="col">
+                    <T s={'Country'} />
+                  </th>
+                  <th scope="col">
+                    <T s={'Users'} />
+                  </th>
+                  <th scope="col">
+                    <T s={'Sessions'} />
+                  </th>
+                  <th scope="col">
+                    <T s={'Page views'} />
+                  </th>
+                  <th scope="col">
+                    <T s={'Key events'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -82,7 +105,9 @@ export default async function Countries({ searchParams }: { searchParams: Promis
                 ))}
               </tbody>
             </table>
-            <small className="muted">Last updated {new Date(ga4.fetchedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC (kept for an hour).</small>
+            <small className="muted">
+              <T s={'Last updated {v0} UTC (kept for an hour).'} v={{ v0: new Date(ga4.fetchedAt).toISOString().slice(0, 16).replace('T', ' ') }} />
+            </small>
           </>
         )}
       </div>
@@ -90,20 +115,32 @@ export default async function Countries({ searchParams }: { searchParams: Promis
       <div className="glass card sob-sec" data-country-source="first-party">
         <div className="row sob-hd">
           <div>
-            <h2>First-party (SellOnBay&apos;s own count)</h2>
-            <p className="tag">A two-letter country per visitor per day from the proxy in front of the site. No address is stored.</p>
+            <h2>
+              <T s={"First-party (SellOnBay's own count)"} />
+            </h2>
+            <p className="tag">
+              <T s={'A two-letter country per visitor per day from the proxy in front of the site. No address is stored.'} />
+            </p>
           </div>
         </div>
         {!fpOn ? (
-          <p className="muted">Switched off. It waits for legal and privacy approval (blocker B-12) and a trusted proxy country header on the server.</p>
+          <p className="muted">
+            <T s={'Switched off. It waits for legal and privacy approval (blocker B-12) and a trusted proxy country header on the server.'} />
+          </p>
         ) : fp.length === 0 ? (
-          <p className="muted">No visitors counted by country for these days.</p>
+          <p className="muted">
+            <T s={'No visitors counted by country for these days.'} />
+          </p>
         ) : (
           <table className="tbl">
             <thead>
               <tr>
-                <th scope="col">Country code</th>
-                <th scope="col">Visitors</th>
+                <th scope="col">
+                  <T s={'Country code'} />
+                </th>
+                <th scope="col">
+                  <T s={'Visitors'} />
+                </th>
               </tr>
             </thead>
             <tbody>

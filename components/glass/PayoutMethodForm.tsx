@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 const HINT: Record<string, [label: string, hint: string]> = {
   paypal: ['PayPal email', 'The email of your PayPal account'],
   payoneer: ['Payoneer email', 'The email of your Payoneer account'],
@@ -15,6 +17,7 @@ const HINT: Record<string, [label: string, hint: string]> = {
  * the account, and Save (/api/seller/payout, the same as before; we email the seller whenever it changes).
  */
 export function PayoutMethodForm({ methods, current }: { methods: [string, string][]; current: string | null }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [method, setMethod] = useState(methods[0]?.[0] ?? '');
   const [account, setAccount] = useState('');
@@ -23,11 +26,13 @@ export function PayoutMethodForm({ methods, current }: { methods: [string, strin
   const [label, hint] = HINT[method] ?? ['Account', 'Where to send it'];
   return (
     <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <h2>Payout method</h2>
+      <h2>
+        <T s={'Payout method'} />
+      </h2>
       <div className="tag" style={{ margin: 0 }}>
-        Now: {current ?? 'not set yet. Add it so your weekly payouts can be sent.'}
+        <T s={'Now: {v0}'} v={{ v0: current ?? 'not set yet. Add it so your weekly payouts can be sent.' }} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 10 }} role="radiogroup" aria-label="How you want to be paid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 10 }} role="radiogroup" aria-label={tx('How you want to be paid')}>
         {methods.map(([m, l]) => (
           <button key={m} type="button" className={m === method ? 'pm on' : 'pm'} role="radio" aria-checked={m === method} onClick={() => setMethod(m)}>
             <b style={{ fontWeight: 500 }}>{l}</b>
@@ -42,7 +47,7 @@ export function PayoutMethodForm({ methods, current }: { methods: [string, strin
         <input id="ac" className="input" value={account} onChange={(e) => setAccount(e.target.value)} placeholder={hint} maxLength={300} />
       </div>
       <div style={{ padding: '12px 14px', borderRadius: 12, background: '#FBF3E3', border: '1px solid #F0DDB4', fontSize: 13, color: '#6E4B12' }}>
-        We email you whenever these details change, so nobody can move your money quietly.
+        <T s={'We email you whenever these details change, so nobody can move your money quietly.'} />
       </div>
       <button
         className="btn"

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { sellerBadges } from '@/lib/glass/seller';
 import { DashboardShell } from './DashboardShell';
 
+import { T } from '@/components/i18n/T';
 /* The seller dashboard's shell: live menu counts, the public store link and the way back to buying (one account buys and sells, owner 2026-11-07). */
 export async function SellerShell({
   viewer,
@@ -41,18 +42,26 @@ export async function SellerShell({
       unread={counts.unread}
       sideCard={
         <>
-          <div style={{ fontSize: 13, fontWeight: 500 }}>Your public store</div>
+          <div style={{ fontSize: 13, fontWeight: 500 }}>
+            <T s={'Your public store'} />
+          </div>
           <div className="tag">{handle ? `sellonbay.com/sellers/${handle}` : 'Choose your store name in Store & analytics'}</div>
           <Link className="btn sm ghost" href={handle ? `/sellers/${handle}` : '/dashboard/seller/store'} prefetch={false} style={{ marginTop: 10 }}>
             {handle ? 'View store' : 'Set up store'}
           </Link>{' '}
           <Link className="tag" href="/dashboard/buyer" prefetch={false} style={{ display: 'block', marginTop: 8 }}>
-            Switch to buying
+            <T s={'Switch to buying'} />
           </Link>
         </>
       }
     >
-      {viewer ? children : <p className="muted">The dashboard needs an account. There are no accounts in demo mode.</p>}
+      {viewer ? (
+        children
+      ) : (
+        <p className="muted">
+          <T s={'The dashboard needs an account. There are no accounts in demo mode.'} />
+        </p>
+      )}
     </DashboardShell>
   );
 }

@@ -214,6 +214,13 @@ async function oneAtATime<T>(key: string, run: () => Promise<T>): Promise<T> {
  * order already waiting for payment, so they cannot end up paying twice. Signed-out demo orders have no buyer to match on and are always new.
  */
 export async function createOrder(i: NewOrder, now = Date.now()): Promise<Order> {
+  const o = await createOrderOnce(i, now);
+  // An affiliate referral (lib/affiliates, owner 2026-11-12): remembered after the order exists; it never blocks or changes the order.
+  await import('../affiliates/service').then((m) => m.attributeFromRequest('order', o.id, i.buyerId ?? null, i.productKey ?? '')).catch(() => {});
+  return o;
+}
+
+async function createOrderOnce(i: NewOrder, now: number): Promise<Order> {
   if (!i.buyerId) return insertOrder(i, now);
   const buyerId = i.buyerId;
   return oneAtATime(buyerId, async () => {

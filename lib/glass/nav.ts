@@ -82,6 +82,7 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
           { key: 'websites', label: 'My websites', href: '/dashboard/buyer/websites' },
           { key: 'domains', label: 'Domains', href: '/dashboard/buyer/domains' },
           { key: 'subscription', label: 'Subscription', href: '/dashboard/buyer/subscription' }, // buyer subscriptions (owner, 2026-11-12)
+          { key: 'affiliate', label: 'Affiliate', href: '/dashboard/buyer/affiliate' }, // affiliate program (owner, 2026-11-12)
         ],
       },
       {
@@ -119,7 +120,13 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
           { key: 'notifications', label: 'Notifications', href: '/dashboard/seller/notifications' },
         ],
       },
-      { name: 'Grow', items: [{ key: 'store', label: 'Store & analytics', href: '/dashboard/seller/store' }] },
+      {
+        name: 'Grow',
+        items: [
+          { key: 'store', label: 'Store & analytics', href: '/dashboard/seller/store' },
+          { key: 'affiliate', label: 'Affiliate', href: '/dashboard/buyer/affiliate' }, // the same affiliate dashboard for sellers (owner, 2026-11-12)
+        ],
+      },
       { name: 'Account', items: [{ key: 'account', label: 'Account & security', href: '/dashboard/seller/account' }] },
     ],
   },
@@ -147,6 +154,7 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
           { key: 'finance', label: 'Finance & payouts', href: '/admin/finance' },
           { key: 'reports', label: 'Reports', href: '/admin/reports' },
           { key: 'subscriptions', label: 'Subscription Management', href: '/admin/subscriptions' }, // buyer and seller subscriptions (owner, 2026-11-12)
+          { key: 'affiliates', label: 'Affiliate Management', href: '/admin/affiliates' }, // affiliate program (owner, 2026-11-12)
         ],
       },
       { name: 'People', items: [{ key: 'users', label: 'Users & roles', href: '/admin/users' }] },

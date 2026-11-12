@@ -363,6 +363,7 @@ export async function subscribe(buyerId: string, planId: string, couponCode: str
     }
   } else mem.subs.set(sub.id, sub);
   await logEvent({ subscriptionId: sub.id, planId, actorId: buyerId, event: 'subscribed', meta: { amount: sub.amountCents, coupon: sub.couponCode } });
+  await import('../affiliates/service').then((m) => m.attributeFromRequest('buyer_sub', sub.id, buyerId)).catch(() => {}); // an affiliate referral (lib/affiliates)
   return ok(sub);
 }
 

@@ -52,6 +52,11 @@ export async function authenticate(formData: FormData) {
     if (up.error) return back(friendly(up.error.message));
     // Role is set here on the server. The browser can never choose its own role. The account exists before the email is confirmed, so this runs first.
     if (wantsSeller && up.data.user) await createAdminClient().from('profiles').update({ role: 'seller' }).eq('id', up.data.user.id).eq('role', 'buyer');
+    // An affiliate referral (lib/affiliates): a sign-up is a lead, never a commission.
+    if (up.data.user) {
+      const uid = up.data.user.id;
+      await import('@/lib/affiliates/service').then((m) => m.attributeFromRequest('signup', uid, uid)).catch(() => {});
+    }
     if (!up.data.session || !up.data.user) return back('Check your email to confirm your account, then sign in.');
     userId = up.data.user.id;
   } else {

@@ -51,6 +51,7 @@ const ALWAYS_ON_PAGE: RegExp[] = [
 
 /* API routes (path after /api), most specific first. */
 const API_RULES: [RegExp, ModuleKey][] = [
+  [/^\/affiliates(\/|$)/, 'payouts'], // the affiliate program (lib/affiliates): joining, links, earnings and withdrawals
   [/^\/admin\/(seo|posts)(\/|$)/, 'seo'],
   [/^\/admin\/disputes(\/|$)/, 'disputes'],
   [/^\/admin\/payouts(\/|$)/, 'payouts'],
@@ -86,6 +87,7 @@ const API_RULES: [RegExp, ModuleKey][] = [
 
 /* Pages, most specific first. Pages in no module (home, how it works, FAQ, policies, sell landing page) are always open. */
 const PAGE_RULES: [RegExp, ModuleKey][] = [
+  [/^\/affiliates(\/|$)/, 'catalog'], // the public affiliate program page
   [/^\/admin\/seo(\/|$)/, 'seo'],
   [/^\/admin\/support\/disputes(\/|$)/, 'disputes'],
   [/^\/admin\/finance\/payouts(\/|$)/, 'payouts'],

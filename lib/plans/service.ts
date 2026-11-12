@@ -46,6 +46,7 @@ export async function requestPlan(sellerId: string, code: string, billing: strin
       { sellerId, planId: plan.id, billing: billing as Billing, status: 'requested', priceCents: priceFor(plan, billing as Billing) },
       { actorId: sellerId, event: 'requested', from: null, to: 'requested', reason: `${plan.name}, ${billing}`, meta: { plan: plan.code, version: plan.version } },
     );
+    await import('../affiliates/service').then((m) => m.attributeFromRequest('seller_sub', sub.id, sellerId)).catch(() => {}); // an affiliate referral (lib/affiliates)
     return { ok: true, value: sub };
   } catch (e) {
     return fail(409, (e as Error).message);

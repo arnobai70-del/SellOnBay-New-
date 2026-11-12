@@ -1,6 +1,7 @@
 import { BETA_BANNER_TEXT } from '@/lib/config';
 import { pageCopy } from '@/lib/content/copy';
 import { PUBLIC_LINKS } from '@/lib/glass/nav';
+import { affSettings } from '@/lib/affiliates/service';
 import { getSettings } from '@/lib/settings';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 import { GlassPage } from './GlassPage';
@@ -19,7 +20,16 @@ export async function PublicFrame({ file, children, chrome = true }: { file: str
         <main id="main">{children}</main>
       </GlassPage>
     );
-  const [{ paymentsMode }, routes, social, nav, foot] = await Promise.all([getSettings(), contactRoutes(), savedSocial(), pageCopy('nav'), pageCopy('footer')]);
+  const [{ paymentsMode }, routes, social, nav, foot, aff] = await Promise.all([
+    getSettings(),
+    contactRoutes(),
+    savedSocial(),
+    pageCopy('nav'),
+    pageCopy('footer'),
+    affSettings().catch(() => ({ enabled: false })),
+  ]);
+  // The Affiliate Program link shows only while the program is on (Admin › Affiliate Management).
+  const links = [...PUBLIC_LINKS, ...(aff.enabled ? [{ label: 'Affiliate Program', href: '/affiliates' }] : [])];
   return (
     <GlassPage file={file}>
       {paymentsMode === 'beta_free' && (
@@ -29,7 +39,7 @@ export async function PublicFrame({ file, children, chrome = true }: { file: str
       )}
       <MaintenanceBanner />
       <div className="wrap">
-        <PublicNav links={PUBLIC_LINKS.map((l) => ({ ...l, label: nav.t('links', l.href.slice(1), l.label) }))} />
+        <PublicNav links={links.map((l) => ({ ...l, label: nav.t('links', l.href.slice(1), l.label) }))} />
         <main id="main">{children}</main>
         <PublicFooter routes={routes} social={social} tagline={foot.t('main', 'tagline')} contactTitle={foot.t('main', 'contact')} />
       </div>

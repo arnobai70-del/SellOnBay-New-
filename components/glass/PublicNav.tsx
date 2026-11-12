@@ -20,11 +20,17 @@ export function PublicNav({
   account = { label: 'Sign in', href: '/signin' },
   showCart = true,
   search = true,
+  home = '/',
+  words = { search: 'Search', cart: 'Cart', cartCount: 'Cart · {n}', openMenu: 'Open menu', closeMenu: 'Close menu' },
+  langSwitch = null,
 }: {
   links?: NavLink[];
   account?: NavLink;
   showCart?: boolean;
   search?: boolean;
+  home?: string;
+  words?: { search: string; cart: string; cartCount: string; openMenu: string; closeMenu: string };
+  langSwitch?: React.ReactNode;
 }) {
   const path = usePathname() ?? '/';
   const cartCount = useCart().length;
@@ -39,11 +45,11 @@ export function PublicNav({
   }, [menu]);
   return (
     <nav className="glass nav" aria-label="Main">
-      <Link className="logo" href="/" prefetch={false}>
+      <Link className="logo" href={home} prefetch={false}>
         <BrandMark />
         {BRAND_NAME}
       </Link>
-      <button type="button" className="sob-burger" aria-expanded={menu} aria-controls="sob-navlinks" aria-label={menu ? 'Close menu' : 'Open menu'} onClick={() => setMenu((v) => !v)}>
+      <button type="button" className="sob-burger" aria-expanded={menu} aria-controls="sob-navlinks" aria-label={menu ? words.closeMenu : words.openMenu} onClick={() => setMenu((v) => !v)}>
         <span aria-hidden="true" />
       </button>
       <div id="sob-navlinks" className={menu ? 'navlinks open' : 'navlinks'}>
@@ -54,12 +60,13 @@ export function PublicNav({
         ))}
       </div>
       <div className="sob-navr">
-        {search && <SearchBox compact placeholder="Search" />}
+        {search && <SearchBox compact placeholder={words.search} />}
         {showCart && (
           <Link className="btn ghost" href="/cart" prefetch={false} data-track="cart">
-            {cartCount > 0 ? `Cart · ${cartCount}` : 'Cart'}
+            {cartCount > 0 ? words.cartCount.replace('{n}', String(cartCount)) : words.cart}
           </Link>
         )}
+        {langSwitch}
         <AccountMenu fallback={account} />
       </div>
     </nav>

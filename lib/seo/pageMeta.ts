@@ -1,4 +1,5 @@
 import 'server-only';
+import { localizeMetadata } from '../i18n/seo';
 import { recordRevision } from '../cms/history';
 import type { Metadata } from 'next';
 import { revalidatePath } from 'next/cache';
@@ -79,8 +80,10 @@ export async function pageMetadata(path: string, extra: Metadata = {}): Promise<
   // The share card falls back to the saved meta words when no share words are set.
   const out = applyControls(path, base, { ...ctl, ogTitle: ctl.ogTitle || (ctl.ogImage || ctl.ogDescription ? title : ''), ogDescription: ctl.ogDescription });
   if (preview) return { ...out, robots: { index: false, follow: false } };
+  // Each language's own address, hreflang and translated SEO words (lib/i18n/seo.ts).
+  const local = await localizeMetadata(path, out);
   // Outside the five categories (legal pages, help, the seller page) a page stays reachable but is not offered to search engines.
-  return !isHubPath(path) && !INDEXED_PAGES.includes(path) ? { ...out, robots: { index: false, follow: true } } : out;
+  return !isHubPath(path) && !INDEXED_PAGES.includes(path) ? { ...local, robots: { index: false, follow: true } } : local;
 }
 
 export async function setPageSeo(adminId: string | null, path: string, v: PageSeo): Promise<{ ok: true } | { ok: false; status: number; error: string }> {

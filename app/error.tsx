@@ -1,6 +1,6 @@
 'use client';
 
-import { GlassPage } from '@/components/glass/GlassPage';
+import { GlassFrame as GlassPage } from '@/components/glass/GlassFrame';
 
 /* A server error, drawn as the error card of design-reference/404.html. */
 export default function Error({ reset }: { error: Error; reset: () => void }) {

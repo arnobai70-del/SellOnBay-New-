@@ -13,6 +13,9 @@ import { betaEligible } from '@/lib/beta/rules';
 import { visibleProduct } from '@/lib/catalog';
 import { BUGFIX_DAYS, REVIEW_HOURS } from '@/lib/config';
 import { pageCopy } from '@/lib/content/copy';
+import { localizedPath } from '@/lib/i18n/config';
+import { getI18n } from '@/lib/i18n/server';
+import { alternateLanguages } from '@/lib/i18n/seo';
 import { pkgOffered } from '@/lib/data';
 import { deliveryText } from '@/lib/deliveryTime';
 import { examplesBuyable } from '@/lib/examples';
@@ -45,9 +48,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const f = await find(slug);
   if (!f) return { title: 'Not found', robots: { index: false } };
-  const m = listingMetadata(f.product, f.status, (await allPageSeo())[listingPath(f.product.id)], f.ctl);
-  const canonical = websitePath(f.product.id);
-  return f.ctl.canonical ? m : { ...m, alternates: { ...m.alternates, canonical }, openGraph: { ...m.openGraph, url: canonical } };
+  // In another language (lib/i18n): the listing's translated name, description and SEO words, its own address and the other languages.
+  const i = await getI18n();
+  const id = f.product.id;
+  const product = { ...f.product, name: i.pick(`product.${id}.name`, f.product.name), desc: i.pick(`product.${id}.description`, f.product.desc) };
+  const m = listingMetadata(product, f.status, (await allPageSeo())[listingPath(id)], f.ctl);
+  const canonical = localizedPath(websitePath(id), i.lang);
+  const languages = alternateLanguages(websitePath(id), i.languages);
+  const seo =
+    i.lang === 'en' ? {} : { title: i.pick(`product.${id}.seoTitle`, String(m.title ?? product.name)), description: i.pick(`product.${id}.seoDescription`, String(m.description ?? product.desc)) };
+  return f.ctl.canonical && i.lang === 'en'
+    ? { ...m, alternates: { ...m.alternates, languages } }
+    : { ...m, ...seo, alternates: { ...m.alternates, canonical, languages }, openGraph: { ...m.openGraph, ...seo, url: canonical, locale: i.lang } };
 }
 
 const TINTS = ['#D3EEE4', '#DDEAF6', '#E6E2F4', '#F1E8DD'];
@@ -68,8 +80,9 @@ export default async function Website({ params }: Props) {
   const { slug } = await params;
   const f = await find(slug);
   if (!f) notFound();
-  if (publicSlug(f.product.id) !== slug) permanentRedirect(websitePath(f.product.id)); // an old address with "template" in it
-  const p = f.product;
+  const i18n = await getI18n();
+  if (publicSlug(f.product.id) !== slug) permanentRedirect(localizedPath(websitePath(f.product.id), i18n.lang)); // an old address with "template" in it
+  const p = { ...f.product, name: i18n.pick(`product.${f.product.id}.name`, f.product.name), desc: i18n.pick(`product.${f.product.id}.description`, f.product.desc) }; // translated words (lib/i18n)
   const [cats, reviews, rating, settings, sites, sellers, copy] = await Promise.all([
     websiteCategories(),
     reviewsFor(p.id),

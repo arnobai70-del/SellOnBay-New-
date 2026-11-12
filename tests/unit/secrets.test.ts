@@ -39,6 +39,7 @@ const ALLOWED: Record<string, string[]> = {
     'app/demo/[id]/[[...path]]/route.ts',
     'lib/maintenance/state.ts',
     'lib/seo/redirectRead.ts',
+    'lib/i18n/settingsRead.ts', // the language list for proxy.ts, the same way (owner, 2026-11-12)
     'lib/blogMedia.ts',
     'lib/secrets.ts', // the other keys are made from it when they are not set
     CHECK,

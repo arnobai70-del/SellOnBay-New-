@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getI18n } from '@/lib/i18n/server';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 import { affSettings, leaderboard } from '@/lib/affiliates/service';
 import { COMMISSION_KINDS, joinFeeCents, KIND_LABEL } from '@/lib/affiliates/rules';
@@ -28,7 +29,7 @@ const DEFAULT_FAQ: [string, string][] = [
 export default async function AffiliatesPage() {
   // Public at all times (owner, 2026-11-12): everyone can read about the program. While it is off the page says it opens soon and offers no
   // way to join; registration, link tracking and commissions stay closed on the server either way.
-  const s = await affSettings();
+  const [s, i] = await Promise.all([affSettings(), getI18n()]); // words in the page's language (lib/i18n)
   const top = s.enabled && s.leaderboardPublic ? (await leaderboard(undefined, true)).slice(0, 5) : [];
   const fee = joinFeeCents(s);
   const badges = s.badges.filter((b) => b.enabled);
@@ -36,23 +37,23 @@ export default async function AffiliatesPage() {
   return (
     <PublicFrame file="sell">
       <section style={{ padding: '72px 0 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-        <span className="badge">Affiliate Program</span>
-        <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>Share websites you like. Earn on every verified sale.</h1>
+        <span className="badge">{i.t('aff.badge')}</span>
+        <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>{i.t('aff.title')}</h1>
         <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
           {s.intro}
         </p>
         {s.enabled ? (
           <Link className="btn" href="/dashboard/buyer/affiliate" prefetch={false}>
-            Join the affiliate program
+            {i.t('aff.join')}
           </Link>
         ) : (
           <span className="status st-draft" style={{ fontSize: 15, padding: '8px 16px' }}>
-            Opening soon
+            {i.t('aff.soon')}
           </span>
         )}
         {!s.enabled && (
           <p className="muted" style={{ margin: 0, maxWidth: 560, fontSize: 14 }}>
-            The SellOnBay affiliate program is not open for registration yet. Everything below is how it will work; check back soon.
+            {i.t('aff.soonText')}
           </p>
         )}
         <div className="tag">
@@ -62,7 +63,7 @@ export default async function AffiliatesPage() {
 
       {s.benefits.filter((b) => b.on).length > 0 && (
         <section className="sec">
-          <h2 style={{ fontSize: 28, marginBottom: 18 }}>Benefits</h2>
+          <h2 style={{ fontSize: 28, marginBottom: 18 }}>{i.t('aff.benefits')}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
             {s.benefits
               .filter((b) => b.on)
@@ -77,7 +78,7 @@ export default async function AffiliatesPage() {
 
       <section className="sec grid2">
         <div className="glass card">
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>Commission rates</h2>
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.rates')}</h2>
           <div className="tbl">
             <table>
               <tbody>
@@ -93,7 +94,7 @@ export default async function AffiliatesPage() {
           <div className="tag">On the eligible net amount: what the buyer paid less refunds, without taxes, domains or hosting.</div>
         </div>
         <div className="glass card">
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>Qualification</h2>
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.qualification')}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
             New affiliates start as <b>Qualification pending</b> and can share links and earn straight away. Reach {s.targetSales} verified, paid, non-refunded sales within {s.qualificationDays} days
             to become a <b style={{ color: '#1A8F5C' }}>SellOnBay Verified Affiliate</b>
@@ -103,7 +104,7 @@ export default async function AffiliatesPage() {
       </section>
 
       <section className="sec">
-        <h2 style={{ fontSize: 28, marginBottom: 18 }}>How it works</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 18 }}>{i.t('aff.how')}</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
           {[
             ['Join', 'Use your SellOnBay account; no new account is needed.'],
@@ -126,7 +127,7 @@ export default async function AffiliatesPage() {
 
       {badges.length > 0 && (
         <section className="sec">
-          <h2 style={{ fontSize: 28, marginBottom: 18 }}>Badges</h2>
+          <h2 style={{ fontSize: 28, marginBottom: 18 }}>{i.t('aff.badges')}</h2>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {badges.map((b) => (
               <span key={b.key} className="status" style={{ background: b.color, color: '#fff' }} title={b.reward || undefined}>
@@ -184,14 +185,14 @@ export default async function AffiliatesPage() {
 
       <section className="sec grid2">
         <div className="glass card">
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>Payments and withdrawals</h2>
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.payments')}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
             Sale paid → refund period over → commission approved → available balance → you ask for a withdrawal (from {usd(s.minWithdrawalCents)}) → we check it → we pay by hand and record the
             reference. A balance is never shown as paid before it is.
           </p>
         </div>
         <div className="glass card">
-          <h2 style={{ fontSize: 22, marginBottom: 8 }}>Tracking and privacy</h2>
+          <h2 style={{ fontSize: 22, marginBottom: 8 }}>{i.t('aff.privacy')}</h2>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>
             A referral is remembered only in browsers that accepted analytics cookies, for {s.cookieDays} days. We count clicks without storing who clicked, and affiliates never see buyers&apos; names
             or details. See the <Link href="/legal/privacy">privacy policy</Link>.
@@ -200,7 +201,7 @@ export default async function AffiliatesPage() {
       </section>
 
       <section className="sec">
-        <h2 style={{ fontSize: 28, marginBottom: 8 }}>Affiliate terms</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 8 }}>{i.t('aff.terms')}</h2>
         <div className="glass card" style={{ fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
           {s.terms}
           <div className="tag">Version {s.termsVersion}. You accept the version shown when you join.</div>
@@ -208,7 +209,7 @@ export default async function AffiliatesPage() {
       </section>
 
       <section className="sec" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2 style={{ fontSize: 28, marginBottom: 8 }}>Questions</h2>
+        <h2 style={{ fontSize: 28, marginBottom: 8 }}>{i.t('aff.questions')}</h2>
         {faq.map(([q, a]) => (
           <details key={q} className="glass">
             <summary>{q}</summary>

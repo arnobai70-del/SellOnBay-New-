@@ -17,17 +17,23 @@ export function PublicFooter({
   social = [],
   tagline = 'Full-stack websites and domains, bought safely with escrow.',
   contactTitle = 'Contact',
+  home = '/',
+  createdBy = 'Created by',
+  langSwitch = null,
 }: {
   columns?: FooterColumn[];
   routes?: ContactRoutes;
   social?: SocialLink[];
   tagline?: string;
   contactTitle?: string;
+  home?: string;
+  createdBy?: string;
+  langSwitch?: React.ReactNode;
 }) {
   return (
     <footer style={{ marginTop: 72, padding: '32px 0 8px', borderTop: '1px solid #D9E5EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 24 }}>
       <div>
-        <Link className="logo" href="/" prefetch={false}>
+        <Link className="logo" href={home} prefetch={false}>
           <BrandMark />
           {BRAND_NAME}
         </Link>
@@ -35,6 +41,7 @@ export function PublicFooter({
           {tagline}
         </p>
         <SocialRow links={social} />
+        {langSwitch && <div style={{ marginTop: 12 }}>{langSwitch}</div>}
       </div>
       {columns.map((c) => (
         <div key={c.title} style={COL}>
@@ -65,7 +72,7 @@ export function PublicFooter({
         </span>
         <span aria-hidden="true">·</span>
         <span>
-          Created by{' '}
+          {createdBy}{' '}
           <a href={`mailto:${EMAIL_ROUTES.dev}`} style={A}>
             {EMAIL_ROUTES.dev}
           </a>

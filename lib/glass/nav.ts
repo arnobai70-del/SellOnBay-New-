@@ -175,6 +175,7 @@ export const ROLE_MENUS: Record<GlassRole, RoleMenu> = {
           { key: 'system', label: 'Server health', href: '/admin/system' },
           { key: 'security', label: 'Security & logs', href: '/admin/security' },
           { key: 'settings', label: 'Settings', href: '/admin/settings' },
+          { key: 'languages', label: 'Language Management', href: '/admin/languages' }, // languages and translations (owner, 2026-11-12)
         ],
       },
     ],

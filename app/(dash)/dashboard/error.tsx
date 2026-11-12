@@ -1,5 +1,5 @@
 'use client';
-import { GlassPage } from '@/components/glass/GlassPage';
+import { GlassFrame as GlassPage } from '@/components/glass/GlassFrame';
 
 /* If a dashboard page cannot be read, say so and let the person try again, instead of a blank screen. In the design's glass card. */
 export default function DashError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {

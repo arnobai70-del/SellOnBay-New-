@@ -1,0 +1,42 @@
+import 'server-only';
+import { headers } from 'next/headers';
+import { bundled, format, lookup } from './catalog';
+import { dirOf, HEADER, liveLanguages, SOURCE, type Dir, type Language } from './config';
+import { languageSettings } from './settingsRead';
+import { publishedWords } from './store';
+
+/*
+ * The language of this request (owner, 2026-11-12). proxy.ts sets the header on every request (it overwrites anything a visitor sends): the
+ * /<code>/ prefix on public pages, the saved choice elsewhere. Only an enabled and published language is used; anything else is English.
+ */
+export async function requestLang(): Promise<string> {
+  let asked = SOURCE;
+  try {
+    asked = (await headers()).get(HEADER) ?? SOURCE;
+  } catch {
+    return SOURCE; // outside a request (build, tests)
+  }
+  if (asked === SOURCE) return SOURCE;
+  const s = await languageSettings();
+  return liveLanguages(s).some((l) => l.code === asked) ? asked : SOURCE;
+}
+
+export type I18n = {
+  lang: string;
+  dir: Dir;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  /* A word that may not exist in the catalogue (product words): its translation, else the given English. */
+  pick: (key: string, english: string) => string;
+  languages: Language[];
+};
+
+/* The words of one language: the admin's published edits over the bundled draft, English for anything missing. Only this language is loaded. */
+export async function getI18n(lang?: string): Promise<I18n> {
+  const code = lang ?? (await requestLang());
+  const s = await languageSettings();
+  const languages = liveLanguages(s);
+  if (code === SOURCE) return { lang: SOURCE, dir: 'ltr', t: (k, v) => format(lookup(k, {}, {}), v), pick: (_k, english) => english, languages };
+  const [pub, bundle] = await Promise.all([publishedWords(code), bundled(code)]);
+  const pick = (k: string, english: string) => (pub[k]?.trim() ? pub[k] : bundle[k]?.trim() ? bundle[k] : english);
+  return { lang: code, dir: dirOf(s, code), t: (k, v) => format(lookup(k, pub, bundle), v), pick, languages };
+}

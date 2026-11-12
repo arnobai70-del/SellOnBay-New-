@@ -10,7 +10,16 @@ import { COOKIE_EVENT, COOKIE_KEY } from './GoogleAnalytics';
  */
 const KEY = COOKIE_KEY;
 
-export function CookieNotice() {
+export type CookieWords = { region: string; text: string; more: string; needed: string; all: string; link: string };
+const ENGLISH: CookieWords = {
+  region: 'Cookies',
+  text: 'We use the cookies the site needs to work, like keeping you signed in. With your OK we also use Google Analytics to see which pages help, and never for advertising. The live chat (Tawk.to) sets its own cookies so a conversation carries on.',
+  more: 'What we store',
+  needed: 'Only what is needed',
+  all: 'Accept analytics',
+  link: '/legal/privacy#cookies',
+};
+export function CookieNotice({ words = ENGLISH }: { words?: CookieWords }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     try {
@@ -30,17 +39,16 @@ export function CookieNotice() {
   };
   if (!show) return null;
   return (
-    <div className="glass sob-cookie" role="region" aria-label="Cookies">
+    <div className="glass sob-cookie" role="region" aria-label={words.region}>
       <p>
-        We use the cookies the site needs to work, like keeping you signed in. With your OK we also use Google Analytics to see which pages help, and never for advertising. The live chat (Tawk.to)
-        sets its own cookies so a conversation carries on. <Link href="/legal/privacy#cookies">What we store</Link>
+        {words.text} <Link href={words.link}>{words.more}</Link>
       </p>
       <div className="sob-cookie-actions">
         <button className="btn ghost sm" type="button" onClick={() => answer('1')}>
-          Only what is needed
+          {words.needed}
         </button>
         <button className="btn sm" type="button" onClick={() => answer('all')}>
-          Accept analytics
+          {words.all}
         </button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 /*
  * Social media links (owner, 2026-11-08: Admin › Settings › Contact & social; before that Admin > Site builder). Pure, tested. Only https addresses
  * on each network's own domains are kept, at most one per network, so a saved link can never point somewhere else. The list order is the order on
@@ -24,7 +25,7 @@ export type SocialLink = { network: Network; url: string; enabled?: false };
 
 /* Is this address an https link on that network's own domain? Returns the clean address or a reason. */
 export function checkSocialUrl(network: string, url: unknown): { ok: true; url: string } | { ok: false; error: string } {
-  if (!Object.hasOwn(NETWORKS, network)) return { ok: false, error: 'Unknown network.' };
+  if (!Object.hasOwn(NETWORKS, network)) return { ok: false, error: tx('Unknown network.') };
   const label = NETWORKS[network as Network].label;
   let u: URL;
   try {

@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 /*
  * CMS history (SellOnBay 2.0, placeholder P04). Pure, tested.
  * Every save of a site-builder or SEO setting becomes a numbered revision of its app_settings key; a rollback saves an older revision again,
@@ -44,11 +45,11 @@ export function nextRevision(
   history: Revision[],
   input: { key: string; value: unknown; action: 'save' | 'rollback'; fromVersion?: number },
 ): { ok: true; version: number } | { ok: false; error: string } {
-  if (!trackedKey(input.key)) return { ok: false, error: 'This setting has no history.' };
+  if (!trackedKey(input.key)) return { ok: false, error: tx('This setting has no history.') };
   const latest = history.reduce((m, r) => (r.key === input.key ? Math.max(m, r.version) : m), 0);
   if (input.action === 'rollback') {
-    if (!input.fromVersion || !history.some((r) => r.key === input.key && r.version === input.fromVersion)) return { ok: false, error: 'That revision does not exist.' };
-    if (input.fromVersion === latest) return { ok: false, error: 'That revision is already the current one.' };
+    if (!input.fromVersion || !history.some((r) => r.key === input.key && r.version === input.fromVersion)) return { ok: false, error: tx('That revision does not exist.') };
+    if (input.fromVersion === latest) return { ok: false, error: tx('That revision is already the current one.') };
   }
   return { ok: true, version: latest + 1 };
 }

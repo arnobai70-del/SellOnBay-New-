@@ -4,6 +4,8 @@ import { buildReport, savedReport } from '@/lib/analytics';
 import { reportCsv } from '@/lib/analyticsCore';
 import { METRIC_LABEL } from '@/lib/metrics';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +16,7 @@ export async function GET(req: Request) {
   const a = await adminOnly(['content', 'finance']);
   if (!a.ok) return a.res;
   const day = new URL(req.url).searchParams.get('day') ?? '';
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day))) return NextResponse.json({ error: 'Use a date like 2026-10-21.' }, { status: 400 });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day))) return jsonT({ error: tx('Use a date like 2026-10-21.') }, { status: 400 });
   const r = (await savedReport(day)) ?? (await buildReport(day));
   return new NextResponse(reportCsv(r, METRIC_LABEL), {
     headers: {

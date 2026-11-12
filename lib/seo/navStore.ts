@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
@@ -40,15 +41,15 @@ export async function navMenu(): Promise<MenuEntry[]> {
 
 export async function setNavConfig(adminId: string | null, v: NavConfig): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   const next = cleanNav(v, KNOWN);
-  if (next.order.length !== v.order.length || next.hidden.length !== v.hidden.length) return { ok: false, status: 400, error: 'Unknown menu entry.' };
+  if (next.order.length !== v.order.length || next.hidden.length !== v.hidden.length) return { ok: false, status: 400, error: tx('Unknown menu entry.') };
   g.__navCache = undefined;
   const before = await navConfig(0);
-  if (JSON.stringify(before) === JSON.stringify(next)) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (JSON.stringify(before) === JSON.stringify(next)) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY, value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else mem.saved = next;
   g.__navCache = undefined;
   await audit(adminId, 'seo_nav_changed', 'settings', KEY, { from: before, to: next });

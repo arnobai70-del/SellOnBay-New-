@@ -49,6 +49,18 @@ test.describe('Languages', () => {
     expect((await request.get(`${DEMO}/hi/websites`)).status()).toBe(404); // Hindi is still a draft
   });
 
+  test('an API error reaches the person in their saved language; English without a choice', async ({ playwright }) => {
+    const ask = async (cookie: string) => {
+      const ctx = await playwright.request.newContext({ extraHTTPHeaders: { origin: DEMO, ...(cookie ? { cookie } : {}) } });
+      const r = await ctx.post(`${DEMO}/api/account/language`, { data: { lang: 'xx' } });
+      const body = { status: r.status(), error: ((await r.json()) as { error?: string }).error };
+      await ctx.dispose();
+      return body;
+    };
+    expect(await ask('sob_lang=bn')).toEqual({ status: 400, error: 'ওই ভাষা উপলব্ধ নয়।' });
+    expect(await ask('')).toEqual({ status: 400, error: 'That language is not available.' });
+  });
+
   test('the switcher opens the same page in the language, and the choice is kept on the next pages and the dashboards', async ({ page }) => {
     await page.goto(`${DEMO}/websites`);
     await page.locator('#lang-top').selectOption('bn');

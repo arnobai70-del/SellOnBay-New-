@@ -4,6 +4,8 @@ import { domainProvider, isLiveRegistrar } from '@/lib/providers/domain';
 import { domainQuery } from '@/lib/schemas';
 import { parseWith } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +16,7 @@ export async function GET(req: Request) {
   const q = parseWith(domainQuery, new URL(req.url).searchParams.get('name') ?? '', 'That name is too long.');
   if (!q.ok) return q.res;
   const name = cleanName(q.data);
-  if (name.length < 2) return NextResponse.json({ error: 'Type at least 2 letters or numbers.' }, { status: 400 });
+  if (name.length < 2) return jsonT({ error: tx('Type at least 2 letters or numbers.') }, { status: 400 });
   const provider = domainProvider();
   if (provider.name === 'unconfigured') {
     return NextResponse.json(
@@ -25,6 +27,6 @@ export async function GET(req: Request) {
   try {
     return NextResponse.json({ name, live: isLiveRegistrar(provider), results: await provider.search(name) }, { headers: { 'cache-control': 'no-store' } });
   } catch {
-    return NextResponse.json({ error: 'Domain availability verification is temporarily unavailable.' }, { status: 503, headers: { 'cache-control': 'no-store' } });
+    return jsonT({ error: tx('Domain availability verification is temporarily unavailable.') }, { status: 503, headers: { 'cache-control': 'no-store' } });
   }
 }

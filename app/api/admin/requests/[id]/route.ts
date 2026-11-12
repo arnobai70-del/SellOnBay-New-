@@ -5,6 +5,7 @@ import { AuditError } from '@/lib/admin/audit';
 import { adminRequestAction, draftQuote } from '@/lib/requests/service';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const line = z.object({ label: z.string().max(120), cents: z.coerce.number(), kind: z.string().max(20), passThroughVerified: z.boolean().optional() });
@@ -34,9 +35,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       d.action === 'draft_quote'
         ? await draftQuote(a.id, id, { lines: d.lines, terms: d.terms, overrideReason: d.overrideReason })
         : await adminRequestAction(a.id, id, d.action, { note: d.note, expiresInDays: d.expiresInDays, requirements: d.requirements, sellerId: d.sellerId || null });
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

@@ -5,6 +5,9 @@ import { emailProvider } from './providers/email';
 import { orderStore } from './orders/store';
 import { createAdminClient } from './supabase/server';
 import { outboxReady, queueEmail } from './emailQueue';
+import { SOURCE } from './i18n/config';
+import { liveLangOr } from './i18n/recipient';
+import { requestLang } from './i18n/server';
 
 /*
  * One function for every notification: an in-app row for the person and, when we know their address, an email through the email provider.
@@ -25,11 +28,14 @@ async function pg() {
   return ready.ok;
 }
 
-async function addressOf(userId: string): Promise<string | null> {
+/* The person's address and the language their emails go out in (lib/i18n/recipient.ts). One account read for both. */
+async function recipientOf(userId: string): Promise<{ email: string; lang: string } | null> {
   if (!UUID.test(userId) || (await orderStore()).kind !== 'postgres') return null;
   const { data } = await createAdminClient().auth.admin.getUserById(userId);
-  return data.user?.email ?? null;
+  const email = data.user?.email;
+  return email ? { email, lang: await liveLangOr(data.user?.user_metadata?.lang) } : null;
 }
+const addressOf = async (userId: string) => (await recipientOf(userId))?.email ?? null;
 
 /* Returns true once the in-app notification is stored; email delivery is best-effort and reported separately. */
 export async function notify(userId: string | null | undefined, kind: NotificationKind, payload: Payload = {}, opts: { dedupe?: string; email?: boolean } = {}): Promise<boolean> {
@@ -57,8 +63,11 @@ export async function notify(userId: string | null | undefined, kind: Notificati
       try {
         // With the queue (migration 0051) the email goes out after the response and is retried; without it, at once as before.
         if (stored && UUID.test(userId) && emailProvider().name !== 'unconfigured' && (await outboxReady()) && (await queueEmail(notificationId))) return true;
-        const to = await addressOf(userId);
-        if (to) await emailProvider().send({ to, subject, text, idempotencyKey: `notification/${notificationId}` });
+        const who = await recipientOf(userId);
+        if (who) {
+          const mail = who.lang === SOURCE ? { subject, text } : ((await renderNotification(kind, payload, who.lang)) ?? { subject, text });
+          await emailProvider().send({ to: who.email, subject: mail.subject, text: mail.text, idempotencyKey: `notification/${notificationId}` });
+        }
       } catch {
         // Never log recipient details, provider response bodies or credentials.
         console.error('Notification email delivery failed:', kind);
@@ -71,8 +80,10 @@ export async function notify(userId: string | null | undefined, kind: Notificati
   }
 }
 
-export async function notificationsFor(userId: string, limit = 50): Promise<Notification[]> {
+/* The person's notifications, worded in the language of the page that shows them (English outside a request). */
+export async function notificationsFor(userId: string, limit = 50, lang?: string): Promise<Notification[]> {
   if (await pg()) {
+    const code = lang ?? (await requestLang());
     const { data, error } = await createAdminClient()
       .from('notifications')
       .select('id, user_id, kind, payload, read_at, created_at')
@@ -83,7 +94,7 @@ export async function notificationsFor(userId: string, limit = 50): Promise<Noti
     return Promise.all(
       (data ?? []).map(async (r) => {
         const k = r.kind as NotificationKind;
-        const tpl = (await renderNotification(k, r.payload ?? {})) ?? { subject: r.kind, text: '' };
+        const tpl = (await renderNotification(k, r.payload ?? {}, code)) ?? { subject: r.kind, text: '' };
         return { id: r.id, userId: r.user_id, kind: k, payload: r.payload ?? {}, read: !!r.read_at, at: Date.parse(r.created_at), ...tpl };
       }),
     );

@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 /*
  * Admin permissions (owner decision D-H). An admin holds one or more scopes; Super Admin holds every power. Pure, so it is tested; the server
  * reads the scopes from profiles.admin_scopes (migration 0055) in lib/admin/guard.ts and lib/supabase/viewer.ts.
@@ -46,9 +47,9 @@ export function hasScope(scopes: readonly AdminScope[], need: AdminScope | reado
 
 /* Checks a set of scopes a Super Admin wants to give someone. Returns the cleaned list, or a problem in plain words. */
 export function checkScopeChange(next: readonly string[]): { ok: true; scopes: AdminScope[] } | { ok: false; error: string } {
-  if (next.some((s) => (RESERVED_SCOPES as readonly string[]).includes(s))) return { ok: false, error: 'The Negotiator role is not available yet.' };
-  if (next.some((s) => !isScope(s))) return { ok: false, error: 'Unknown permission.' };
+  if (next.some((s) => (RESERVED_SCOPES as readonly string[]).includes(s))) return { ok: false, error: tx('The Negotiator role is not available yet.') };
+  if (next.some((s) => !isScope(s))) return { ok: false, error: tx('Unknown permission.') };
   const scopes = [...new Set(next)] as AdminScope[];
-  if (!scopes.length) return { ok: false, error: 'Give at least one permission, or change the account back to a buyer.' };
+  if (!scopes.length) return { ok: false, error: tx('Give at least one permission, or change the account back to a buyer.') };
   return { ok: true, scopes };
 }

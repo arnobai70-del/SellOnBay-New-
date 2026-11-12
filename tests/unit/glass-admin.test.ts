@@ -146,5 +146,5 @@ describe('admin pages', () => {
     expect(src('app/api/admin/verifications/[id]/route.ts')).toMatch(/adminOnly\('finance'\)/);
   });
   it('the test email is development only', () =>
-    expect(src('app/api/admin/test-email/route.ts')).toMatch(/NODE_ENV !== 'development'\) return NextResponse\.json\(\{ error: 'Not found\.' \}, \{ status: 404 \}\)/));
+    expect(src('app/api/admin/test-email/route.ts')).toMatch(/NODE_ENV !== 'development'\) return jsonT\(\{ error: tx\('Not found\.'\) \}, \{ status: 404 \}\)/));
 });

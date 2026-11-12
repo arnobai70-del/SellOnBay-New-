@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { LIMITS, deletePost, savePost } from '@/lib/posts';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const text = (max: number) => z.string().max(max).default('');
@@ -36,9 +37,9 @@ export async function POST(req: Request) {
   const d = body.data;
   if (d.action === 'delete') {
     const r = await deletePost(a.id, d.id);
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   }
   const { action: _a, id, ...input } = d;
   const r = await savePost(a.id, id, input);
-  return r.ok ? NextResponse.json({ ok: true, id: r.value.id, slug: r.value.slug }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, id: r.value.id, slug: r.value.slug }) : jsonT({ error: r.error }, { status: r.status });
 }

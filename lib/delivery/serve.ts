@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { CONFIG } from '../config';
@@ -85,7 +86,7 @@ export async function sendBuffer(req: Request, buf: Buffer, name: string, ev: Om
 /* Stream a seller's file to a buyer; the hash of what was sent goes in the download log. */
 export function sendUpstream(upstream: Response, name: string, ev: Omit<DownloadEvent, 'file_hash' | 'bytes'>) {
   const declared = Number(upstream.headers.get('content-length') ?? 0);
-  if (declared > MAX_FILE_BYTES) return NextResponse.json({ error: 'That file is too large to deliver here.' }, { status: 413 });
+  if (declared > MAX_FILE_BYTES) return NextResponse.json({ error: tx('That file is too large to deliver here.') }, { status: 413 });
   const body = hashedStream(upstream.body as ReadableStream<Uint8Array>, MAX_FILE_BYTES, (hash, bytes, complete) => void logDownload({ ...ev, file_hash: complete ? hash : PARTIAL + hash, bytes }));
   return new NextResponse(body, { headers: headers(name) });
 }
@@ -97,7 +98,7 @@ export function sendUpstream(upstream: Response, name: string, ev: Omit<Download
 export function sendApproved(upstream: Response, name: string, ev: Omit<DownloadEvent, 'file_hash' | 'bytes'>, sha256: string) {
   const max = CONFIG.files.maxArchiveMb * 1024 * 1024;
   const declared = Number(upstream.headers.get('content-length') ?? 0);
-  if (declared > max) return NextResponse.json({ error: 'That file is too large to deliver here.' }, { status: 413 });
+  if (declared > max) return NextResponse.json({ error: tx('That file is too large to deliver here.') }, { status: 413 });
   const body = hashedStream(
     upstream.body as ReadableStream<Uint8Array>,
     max,

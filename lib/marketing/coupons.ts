@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { CONFIG } from '../config';
 
 /*
@@ -13,13 +14,13 @@ export function checkCoupon(raw: unknown): { ok: true; value: Coupon } | { ok: f
   const code = String(r.code ?? '')
     .trim()
     .toUpperCase();
-  if (!/^[A-Z0-9][A-Z0-9-]{2,23}$/.test(code)) return { ok: false, error: 'Use 3 to 24 letters, numbers and dashes for the code.' };
+  if (!/^[A-Z0-9][A-Z0-9-]{2,23}$/.test(code)) return { ok: false, error: tx('Use 3 to 24 letters, numbers and dashes for the code.') };
   const percentOff = Number(r.percentOff);
-  if (!Number.isInteger(percentOff) || percentOff < 1 || percentOff > 90) return { ok: false, error: 'The discount is a whole percent from 1 to 90.' };
+  if (!Number.isInteger(percentOff) || percentOff < 1 || percentOff > 90) return { ok: false, error: tx('The discount is a whole percent from 1 to 90.') };
   const endsOn = r.endsOn ? String(r.endsOn) : null;
-  if (endsOn && !/^\d{4}-\d{2}-\d{2}$/.test(endsOn)) return { ok: false, error: 'Write the end date as YYYY-MM-DD.' };
+  if (endsOn && !/^\d{4}-\d{2}-\d{2}$/.test(endsOn)) return { ok: false, error: tx('Write the end date as YYYY-MM-DD.') };
   const maxUses = r.maxUses === null || r.maxUses === undefined || r.maxUses === '' ? null : Number(r.maxUses);
-  if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 100_000)) return { ok: false, error: 'Uses is a whole number, or empty for no limit.' };
+  if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 100_000)) return { ok: false, error: tx('Uses is a whole number, or empty for no limit.') };
   return { ok: true, value: { code, percentOff, endsOn, maxUses, active: r.active !== false } };
 }
 

@@ -160,9 +160,21 @@
       "client": true,
       "files": ["app/(dash)/admin/security/blocks/page.tsx"]
     },
+    "A buyer reported a payment of {amount} by {method}. Check it against the funds actually received before marking it reconciled.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "A change is saved as the plan's next version: running seller subscriptions and every recorded order fee keep theirs.": {
       "client": true,
       "files": ["app/(dash)/admin/subscriptions/SellerSection.tsx"]
+    },
+    "A commission of {amount} is approved": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "A custom term is 1 to 3650 days.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
     },
     "A defect is always fixed free and never counted. An included change uses one of the order's included revisions, inside its window. Anything else is a paid change or a new feature: write the requirement set and it becomes a custom request the buyer confirms, gets quoted and pays into escrow first.": {
       "client": true,
@@ -180,6 +192,10 @@
       "client": true,
       "files": ["app/(dash)/admin/security/page.tsx"]
     },
+    "A new GitHub invite for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "A new rate applies to commissions made from now on; every commission keeps the rate it was made with. Nothing is ever paid for recruiting affiliates.": {
       "client": true,
       "files": ["components/glass/AffSettingsForm.tsx"]
@@ -187,6 +203,10 @@
     "A new version": {
       "client": true,
       "files": ["components/SourceUpload.tsx"]
+    },
+    "A new version of {title} is ready": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "A paid order from an account under a week old, of this size or more, waits for an admin before the seller starts. 0 turns it off.": {
       "client": true,
@@ -200,9 +220,21 @@
       "client": true,
       "files": ["components/glass/UploadSection.tsx"]
     },
+    "A problem was reported on {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "A public page with the install steps or the guide. Must start with https.": {
       "client": true,
       "files": ["components/SellForm.tsx"]
+    },
+    "A quotation differs from the listed price ({listed} listed, {quoted} quoted). A Super Admin must approve it before it is sent.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "A quotation has 1 to 20 lines.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "A referral is remembered only in browsers that accepted analytics cookies, for {cookieDays} days. We count clicks without storing who clicked, and affiliates never see buyers' names or details. See the": {
       "client": true,
@@ -215,6 +247,10 @@
     "A reserve of {v0} is kept back for a few days and then becomes available.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/page.tsx"]
+    },
+    "A seller asked for the {plan} plan ({billing}). Send payment instructions and activate it under Sellers once Finance has reconciled the payment.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "A seller published a new version of a live digital product. Open the new files in a sandbox, then approve or reject. Approving tells every buyer whose update period is still running.": {
       "client": true,
@@ -236,6 +272,14 @@
       "client": true,
       "files": ["components/SellForm.tsx"]
     },
+    "A warning about your messages": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "A website needs a demo link, or the hosted demo the seller uploaded.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
     "A yearly plan lets you choose several websites with full source code, a licence and a year of support. Single websites can still be bought the usual way.": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/subscription/page.tsx"]
@@ -247,6 +291,14 @@
     "About this website": {
       "client": false,
       "files": ["app/(glass)/websites/[slug]/page.tsx"]
+    },
+    "About your request for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "About {hours} hours are left. After that the order is accepted for you.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Abuse reports": {
       "client": true,
@@ -275,6 +327,10 @@
     "Account health": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/page.tsx"]
+    },
+    "Account not found.": {
+      "client": false,
+      "files": ["lib/reserve.ts"]
     },
     "Accounts": {
       "client": true,
@@ -379,6 +435,10 @@
       "client": true,
       "files": ["components/SiteBuilder.tsx"]
     },
+    "Add a picture of the front of your ID.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
+    },
     "Add a question": {
       "client": true,
       "files": ["components/PageControlsForm.tsx", "components/SiteBuilder.tsx"]
@@ -435,6 +495,26 @@
       "client": true,
       "files": ["components/glass/AccountMenu.tsx"]
     },
+    "Admin accounts cannot buy. Use your own account.": {
+      "client": false,
+      "files": ["lib/auth/guards.ts"]
+    },
+    "Admin accounts do not sell.": {
+      "client": false,
+      "files": ["app/api/account/sell/route.ts"]
+    },
+    "Admin accounts sign in with password and authenticator code only.": {
+      "client": false,
+      "files": ["lib/admin/guard.ts", "lib/auth/guards.ts"]
+    },
+    "Admin alert: {what}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Admin authentication is unavailable.": {
+      "client": false,
+      "files": ["lib/admin/guard.ts"]
+    },
     "Admin edits": {
       "client": true,
       "files": ["app/(dash)/admin/languages/page.tsx"]
@@ -442,6 +522,10 @@
     "Admin overview": {
       "client": false,
       "files": ["app/(dash)/admin/page.tsx"]
+    },
+    "Ads cannot carry contact details, links or payment instructions. The ad links to the listing.": {
+      "client": false,
+      "files": ["lib/ads/rules.ts"]
     },
     "Affiliate": {
       "client": true,
@@ -470,6 +554,10 @@
     "All buyers": {
       "client": true,
       "files": ["app/(dash)/admin/marketing/page.tsx"]
+    },
+    "All details are in the admin dashboard under Payouts.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "All listings": {
       "client": true,
@@ -555,9 +643,17 @@
       "client": true,
       "files": ["components/PageControlsForm.tsx"]
     },
+    "An import of this listing is already being checked.": {
+      "client": false,
+      "files": ["lib/files/legacy.ts"]
+    },
     "An order delivered by GitHub invite was refunded or cancelled after the invite went out. The seller removes the buyer from the private repository and says so; then you check and confirm. There is no GitHub automation yet. Items where the seller says it is done come first.": {
       "client": true,
       "files": ["app/(dash)/admin/listings/repo/page.tsx"]
+    },
+    "An uploaded file passed archive, secret and malware checks and waits for human review in Catalog.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Answer": {
       "client": true,
@@ -714,6 +810,10 @@
     "Avg. rating": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/store/page.tsx"]
+    },
+    "Avoid promises we cannot keep, such as \"guaranteed\" or \"#1\".": {
+      "client": false,
+      "files": ["lib/ads/rules.ts"]
     },
     "Awaiting payment check": {
       "client": true,
@@ -984,6 +1084,10 @@
       "client": true,
       "files": ["app/(dash)/admin/users/page.tsx"]
     },
+    "Buyers already have the files of this listing, so the files link cannot change. Publish a new version instead.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts"]
+    },
     "Buyers get exactly the file SellOnBay approved, from private storage, only after the order is funded or approved. A change is a new upload and a new version; an approved file never changes.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/websites/page.tsx"]
@@ -991,6 +1095,10 @@
     "Buyers never see your phone or email. Your country decides which payout methods you can use; payout details live in Earnings & payouts.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/account/page.tsx"]
+    },
+    "Buyers whose update period is still running have been told and can download it.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Buyers' names and details are never shown. Earnings are not guaranteed; refunds reverse commissions.": {
       "client": true,
@@ -1196,9 +1304,17 @@
       "client": true,
       "files": ["components/SellForm.tsx"]
     },
+    "Choose Meta or Google Ads.": {
+      "client": false,
+      "files": ["lib/ads/rules.ts"]
+    },
     "Choose a country": {
       "client": true,
       "files": ["components/glass/SellerForms.tsx"]
+    },
+    "Choose a licence.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "Choose a network": {
       "client": true,
@@ -1208,9 +1324,49 @@
       "client": true,
       "files": ["components/ResetClient.tsx"]
     },
+    "Choose a picture.": {
+      "client": false,
+      "files": ["app/api/admin/posts/image/route.ts", "app/api/admin/seo/product/route.ts"]
+    },
+    "Choose a rating from 1 to 5.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
+    },
+    "Choose a time in the future.": {
+      "client": false,
+      "files": ["app/api/admin/guides/route.ts"]
+    },
+    "Choose a version.": {
+      "client": false,
+      "files": ["app/api/admin/pages/route.ts"]
+    },
     "Choose a website": {
       "client": true,
       "files": ["components/glass/SubForms.tsx"]
+    },
+    "Choose bank transfer or local wallet.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Choose how you paid.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Choose how you want it delivered.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "Choose one of your live listings.": {
+      "client": false,
+      "files": ["lib/ads/rules.ts"]
+    },
+    "Choose the country that issued it.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
+    },
+    "Choose the kind of ID.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
     },
     "Choose up to": {
       "client": true,
@@ -1223,6 +1379,10 @@
     "Choose your country": {
       "client": true,
       "files": ["app/(glass)/checkout/BetaForm.tsx"]
+    },
+    "Choose your country.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
     },
     "Choose your site as a": {
       "client": true,
@@ -1388,13 +1548,103 @@
       "client": true,
       "files": ["components/glass/AffiliateForms.tsx"]
     },
+    "Could not change the address.": {
+      "client": false,
+      "files": ["lib/seo/slug.ts"]
+    },
     "Could not load your messages just now.": {
       "client": true,
       "files": ["components/ConversationPanel.tsx"]
     },
+    "Could not open the file.": {
+      "client": false,
+      "files": ["app/api/admin/verifications/[id]/file/route.ts"]
+    },
+    "Could not read the picture.": {
+      "client": false,
+      "files": ["lib/blogMedia.ts"]
+    },
+    "Could not remove that sign-in. Try again.": {
+      "client": false,
+      "files": ["app/api/account/links/route.ts"]
+    },
+    "Could not remove. Nothing was changed.": {
+      "client": false,
+      "files": ["lib/maintenance/service.ts"]
+    },
+    "Could not save the change.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts", "lib/featureFlags.ts"]
+    },
+    "Could not save the listing.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts"]
+    },
+    "Could not save the picture.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts"]
+    },
+    "Could not save the rule.": {
+      "client": false,
+      "files": ["lib/reserve.ts"]
+    },
+    "Could not save the setting.": {
+      "client": false,
+      "files": ["lib/settings.ts"]
+    },
+    "Could not save the switch.": {
+      "client": false,
+      "files": ["lib/switches.ts"]
+    },
+    "Could not save your name. Try again in a moment.": {
+      "client": false,
+      "files": ["app/api/account/profile/route.ts"]
+    },
+    "Could not save.": {
+      "client": false,
+      "files": [
+        "lib/seo/controlStore.ts",
+        "lib/seo/hubStore.ts",
+        "lib/seo/navStore.ts",
+        "lib/seo/pageMeta.ts",
+        "lib/seo/pageWords.ts",
+        "lib/seo/redirectStore.ts",
+        "lib/seo/robotsStore.ts",
+        "lib/seo/site.ts",
+        "lib/site/contentStore.ts"
+      ]
+    },
+    "Could not save. Nothing was changed.": {
+      "client": false,
+      "files": ["app/api/admin/verifications/[id]/route.ts", "lib/maintenance/service.ts"]
+    },
+    "Could not save. Please try again.": {
+      "client": false,
+      "files": ["app/api/account/details/route.ts", "app/api/seller/listings/beta/route.ts", "app/api/seller/verification/route.ts"]
+    },
     "Could not send your request. Please try again.": {
       "client": true,
       "files": ["app/(glass)/checkout/BetaForm.tsx"]
+    },
+    "Could not send. Please try again.": {
+      "client": false,
+      "files": ["app/api/contact/route.ts"]
+    },
+    "Could not start linking. Try again.": {
+      "client": false,
+      "files": ["app/api/account/links/route.ts"]
+    },
+    "Could not store the file. Please try again.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
+    },
+    "Could not store the picture.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts", "lib/blogMedia.ts"]
+    },
+    "Could not switch. Please try again.": {
+      "client": false,
+      "files": ["app/api/account/sell/route.ts"]
     },
     "Counted as it happens. A number far above the days before it (at least {factor} times the average) sends an alert.": {
       "client": true,
@@ -1427,6 +1677,10 @@
     "Coupon code (optional)": {
       "client": true,
       "files": ["components/glass/SubForms.tsx"]
+    },
+    "Coupon not found.": {
+      "client": false,
+      "files": ["app/api/admin/coupons/route.ts"]
     },
     "Coupons & offers": {
       "client": true,
@@ -1484,6 +1738,10 @@
       "client": false,
       "files": ["app/(dash)/dashboard/buyer/domains/page.tsx"]
     },
+    "Daily report for {day}: {visitors} visitors": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Daily reports": {
       "client": true,
       "files": ["app/(dash)/admin/visitors/details/page.tsx"]
@@ -1526,6 +1784,14 @@
       "client": true,
       "files": ["app/(dash)/admin/support/disputes/page.tsx"]
     },
+    "Decision on {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Decision: {decision}. {note}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Default admin language": {
       "client": true,
       "files": ["app/(dash)/admin/settings/page.tsx"]
@@ -1566,9 +1832,29 @@
       "client": true,
       "files": ["components/DeliveryForm.tsx"]
     },
+    "Delivery in hours must be a whole number.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "Delivery in hours needs migration 0054 first.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts"]
+    },
     "Delivery in hours:": {
       "client": true,
       "files": ["app/(dash)/admin/settings/platform/page.tsx"]
+    },
+    "Delivery of {title} is due soon": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Delivery returned: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Delivery takes 1 to 60 days.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "Delivery time": {
       "client": true,
@@ -1593,6 +1879,18 @@
     "Describe the picture": {
       "client": true,
       "files": ["components/SiteBuilder.tsx"]
+    },
+    "Describe what counts as a revision.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts", "lib/revisions/rules.ts"]
+    },
+    "Describe what should change (20 to 4,000 characters).": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
+    },
+    "Describe what you need built (at least 50 characters).": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "Description": {
       "client": true,
@@ -1650,6 +1948,10 @@
       "client": true,
       "files": ["app/(dash)/admin/support/page.tsx"]
     },
+    "Dispute not found.": {
+      "client": false,
+      "files": ["app/api/admin/disputes/[id]/decide/route.ts", "app/api/disputes/[id]/evidence/route.ts", "app/api/disputes/[id]/reply/route.ts"]
+    },
     "Disputes": {
       "client": false,
       "files": ["app/(dash)/admin/support/disputes/page.tsx"]
@@ -1678,6 +1980,10 @@
       "client": true,
       "files": ["app/(dash)/admin/domains/page.tsx", "app/(glass)/checkout/BetaForm.tsx", "app/(glass)/checkout/page.tsx"]
     },
+    "Domain availability verification is temporarily unavailable.": {
+      "client": false,
+      "files": ["app/api/domains/route.ts"]
+    },
     "Domain cart": {
       "client": true,
       "files": ["app/(glass)/domains/page.tsx"]
@@ -1702,6 +2008,10 @@
       "client": true,
       "files": ["app/(glass)/websites/[slug]/page.tsx"]
     },
+    "Domain registration is not available yet. Use a domain you already own.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
     "Domain status": {
       "client": false,
       "files": ["app/(dash)/admin/domains/page.tsx"]
@@ -1719,6 +2029,10 @@
     "Domains are registered with these details. Sellers never see your phone or email.": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/account/page.tsx"]
+    },
+    "Domains need the database.": {
+      "client": false,
+      "files": ["app/api/admin/domains/route.ts"]
     },
     "Double-entry ledger, escrow balance, seller payouts and reconciliation · fee {PLAN_FEE_TEXT} · {PAYOUT_TEXT}": {
       "client": true,
@@ -1804,6 +2118,14 @@
       "client": true,
       "files": ["app/(dash)/admin/seo/categories/page.tsx"]
     },
+    "Each file can be at most 5 MB.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
+    },
+    "Each group needs a title of 3 to 60 characters.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
+    },
     "Each link works for 24 hours, and you can ask for a new one.": {
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
@@ -1824,13 +2146,25 @@
       "client": true,
       "files": ["app/(dash)/admin/orders/releases/page.tsx"]
     },
+    "Each network can be added once.": {
+      "client": false,
+      "files": ["app/api/admin/contact-social/route.ts"]
+    },
     "Each paid order has its messages with SellOnBay here, and the earlier buyer and seller chat to read. Emails, phone numbers, links and outside payments are blocked.": {
       "client": true,
       "files": ["app/(dash)/messages/page.tsx"]
     },
+    "Each question is 5 to 200 characters and each answer 10 to 1,200.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
+    },
     "Each save of the menu, footer, home sections, page blocks and SEO settings is kept. Putting an older one back runs the same checks as a save and adds a new entry; nothing is erased.": {
       "client": true,
       "files": ["app/(dash)/admin/content/site/history/page.tsx"]
+    },
+    "Each step has a title of 3 to 60 characters and a line of 10 to 240.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
     },
     "Each text is kept as numbered versions. Published versions never change. Every text must be reviewed by a lawyer before launch; a version shows \"Not yet reviewed by a lawyer\" until a Super Admin records that review.": {
       "client": true,
@@ -2022,13 +2356,80 @@
       "client": true,
       "files": ["app/(dash)/admin/settings/page.tsx"]
     },
+    "Enter a GitHub username like octocat, or leave it empty.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
     "Enter a coupon code at checkout. The discount is shown before you confirm.": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/account/page.tsx"]
     },
+    "Enter a domain like yourbrand.com, or leave it empty.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
+    },
+    "Enter a valid email address.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
+    },
+    "Enter the amount that actually arrived, in cents. If nothing arrived, reject the payment instead.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Enter the amount you sent.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Enter the date you paid (not in the future).": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Enter the reference on your bank or wallet statement (3 to 120 characters).": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Enter the transaction reference from your bank or wallet (3 to 100 characters).": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Enter when the money arrived.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Enter your GitHub username, like octocat.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
+    "Enter your authenticator code first.": {
+      "client": false,
+      "files": [
+        "app/api/account/delete-request/route.ts",
+        "app/api/account/export/route.ts",
+        "app/api/disputes/[id]/evidence/route.ts",
+        "app/api/disputes/[id]/reply/route.ts",
+        "app/api/orders/[id]/deliver/route.ts",
+        "app/api/orders/[id]/extra/route.ts",
+        "app/api/orders/[id]/handover/route.ts",
+        "lib/admin/guard.ts",
+        "lib/auth/guards.ts",
+        "lib/seller/guard.ts"
+      ]
+    },
     "Enter your code": {
       "client": true,
       "files": ["components/MfaClient.tsx"]
+    },
+    "Enter your domain like mybusiness.com, or leave it empty.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "Enter your domain, like mybusiness.com.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
+    "Enter your name.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
     },
     "Escrow": {
       "client": true,
@@ -2058,6 +2459,10 @@
       "client": true,
       "files": ["components/glass/SubAdminForms.tsx"]
     },
+    "Every line needs a short name without < or >.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
     "Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.": {
       "client": true,
       "files": ["components/SellForm.tsx"]
@@ -2069,6 +2474,10 @@
     "Every live listing in Google": {
       "client": true,
       "files": ["app/(dash)/admin/seo/listings/page.tsx"]
+    },
+    "Every menu item needs a name and an address (a path like /faq or an https address).": {
+      "client": false,
+      "files": ["lib/site/contentStore.ts"]
     },
     "Every page": {
       "client": true,
@@ -2146,9 +2555,17 @@
       "client": true,
       "files": ["app/(dash)/admin/settings/platform/page.tsx"]
     },
+    "Example products are paid with the test cards.": {
+      "client": false,
+      "files": ["app/api/paypal/start/route.ts"]
+    },
     "Excluded websites": {
       "client": true,
       "files": ["components/glass/AffSettingsForm.tsx"]
+    },
+    "Exclusive rights need a recorded legal/IP review (who checked, and what about earlier buyers).": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "Expires": {
       "client": true,
@@ -2198,9 +2615,25 @@
       "client": true,
       "files": ["components/PageControlsForm.tsx"]
     },
+    "Extra work can only be paid on an order that is funded.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/extra/[rid]/approve/route.ts"]
+    },
+    "Extra work for {title}: {request}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Extra work paid for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Extra work you sent": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/customization/page.tsx"]
+    },
+    "Extra-work payments require a connected real payment provider.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/extra/[rid]/approve/route.ts"]
     },
     "Failed": {
       "client": true,
@@ -2261,6 +2694,14 @@
     "Figures are what each order recorded (price, commission and the seller's share), never today's prices. At most {v0} sales per file; more are split into numbered parts. Files are deleted after {pdfKeepHours} hours.{v2}": {
       "client": true,
       "files": ["components/ReportsPanel.tsx"]
+    },
+    "File check for {title}: {result}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "File passed the automatic checks: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Files": {
       "client": true,
@@ -2333,6 +2774,10 @@
     "Five template categories": {
       "client": true,
       "files": ["app/(dash)/admin/seo/categories/page.tsx"]
+    },
+    "Five test emails an hour.": {
+      "client": false,
+      "files": ["app/api/admin/test-email/route.ts"]
     },
     "Fixed in the code (lib/config.ts); the owner decides changes": {
       "client": true,
@@ -2482,6 +2927,10 @@
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/domains/page.tsx"]
     },
+    "GitHub removes an invitation that is not accepted in time. Accept it now and confirm in your order. If it already ran out, ask the seller to send it again.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "GitHub user {v0} · order {outcome} · asked {v2} UTC": {
       "client": true,
       "files": ["app/(dash)/admin/listings/repo/page.tsx"]
@@ -2490,9 +2939,29 @@
       "client": true,
       "files": ["components/RequestForm.tsx"]
     },
+    "Give 1 to 8 groups of questions.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
+    },
+    "Give at least one permission, or change the account back to a buyer.": {
+      "client": false,
+      "files": ["lib/admin/scopes.ts"]
+    },
     "Give feedback": {
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
+    },
+    "Give the method a short name (2 to 80 characters).": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Give the plan a name.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts", "lib/plans/admin.ts"]
+    },
+    "Give your app a name.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
     },
     "Go to checkout": {
       "client": true,
@@ -2525,6 +2994,10 @@
     "Gross sales": {
       "client": true,
       "files": ["app/(dash)/admin/page.tsx", "app/(dash)/admin/reports/page.tsx"]
+    },
+    "Guide not found.": {
+      "client": false,
+      "files": ["app/api/admin/guides/route.ts"]
     },
     "Guides": {
       "client": true,
@@ -2601,6 +3074,10 @@
     "How each sale is split": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
+    },
+    "How is {title} working for you?": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "How it looks in Google": {
       "client": true,
@@ -2766,6 +3243,14 @@
       "client": true,
       "files": ["components/QuoteEditor.tsx"]
     },
+    "Included revisions need a window of at least one day.": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
+    },
+    "Included revisions: 0 to 50.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts", "lib/revisions/rules.ts"]
+    },
     "Included websites (addresses, comma separated)": {
       "client": true,
       "files": ["components/glass/AffSettingsForm.tsx"]
@@ -2794,6 +3279,18 @@
       "client": true,
       "files": ["app/(glass)/domains/page.tsx"]
     },
+    "It ends on {until}. Renew to keep the licence and free support for your chosen websites. Your sites keep running either way.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "It expires on {date}. Renew it so your site stays online.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "It has been a week. Two minutes of feedback helps us a lot: {url}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Item": {
       "client": true,
       "files": ["app/(dash)/(exact)/dashboard/buyer/requests/[id]/page.tsx", "app/(dash)/admin/orders/page.tsx", "app/(dash)/dashboard/buyer/orders/page.tsx", "app/(dash)/dashboard/buyer/page.tsx"]
@@ -2810,6 +3307,18 @@
       "client": true,
       "files": ["components/BuyersOnly.tsx"]
     },
+    "Keep emails, phone numbers and links out of the tags.": {
+      "client": false,
+      "files": ["lib/listingTags.ts"]
+    },
+    "Keep emails, phone numbers and links out of your name.": {
+      "client": false,
+      "files": ["lib/account/profileName.ts"]
+    },
+    "Keep emails, phone numbers and links out of your store.": {
+      "client": false,
+      "files": ["app/api/seller/store/route.ts"]
+    },
     "Keep emails, phone numbers and outside links out: buyers talk to you inside an order": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/store/page.tsx"]
@@ -2817,6 +3326,18 @@
     "Keep it here. Emails, phone numbers, links and paying outside SellOnBay are blocked, so both of you stay protected.": {
       "client": true,
       "files": ["components/OrderChat.tsx"]
+    },
+    "Keep the company name under 120 characters.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
+    },
+    "Keep the reason under 500 characters.": {
+      "client": false,
+      "files": ["lib/featureFlags.ts", "lib/reserve.ts", "lib/settings.ts", "lib/switches.ts"]
+    },
+    "Keep the scope and support terms under 1,000 characters each.": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
     },
     "Keep this post out of Google (noindex)": {
       "client": true,
@@ -2918,6 +3439,14 @@
       "client": true,
       "files": ["app/(glass)/feedback/[id]/FeedbackForm.tsx"]
     },
+    "Leave out < and > in the words.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
+    "Leave out < and > in what you write.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
     "Ledger entries": {
       "client": true,
       "files": ["app/(dash)/admin/finance/page.tsx"]
@@ -2930,9 +3459,17 @@
       "client": true,
       "files": ["app/(dash)/admin/listings/files/page.tsx"]
     },
+    "Legal and support pages must stay published.": {
+      "client": false,
+      "files": ["lib/seo/controlStore.ts"]
+    },
     "Legal documents": {
       "client": true,
       "files": ["app/(dash)/admin/settings/legal/page.tsx"]
+    },
+    "Legal texts are Markdown; HTML is not allowed.": {
+      "client": false,
+      "files": ["lib/legal/rules.ts"]
     },
     "Legal/IP review (who checked, and what happens to earlier buyers' licences)": {
       "client": true,
@@ -3045,6 +3582,10 @@
     "Listing content, price and pictures": {
       "client": true,
       "files": ["app/(dash)/admin/seo/pages/edit/page.tsx"]
+    },
+    "Listing not found.": {
+      "client": false,
+      "files": ["app/api/admin/listings/sale/route.ts", "app/api/seller/files/route.ts", "app/api/seller/listings/beta/route.ts", "app/api/seller/listings/sale/route.ts"]
     },
     "Listing page": {
       "client": true,
@@ -3209,6 +3750,10 @@
     "Messages about this order": {
       "client": true,
       "files": ["components/OrderChat.tsx"]
+    },
+    "Messages now go through SellOnBay. Use \"Messages with SellOnBay\" on the order.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/messages/route.ts", "app/api/orders/[id]/messages/route.ts"]
     },
     "Meta description": {
       "client": true,
@@ -3433,6 +3978,10 @@
       "client": true,
       "files": ["app/(glass)/guides/page.tsx"]
     },
+    "New message about {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "New offer": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/websites/page.tsx"]
@@ -3444,6 +3993,10 @@
     "New plans are on their way.": {
       "client": true,
       "files": ["app/(glass)/subscriptions/page.tsx"]
+    },
+    "New version waiting for review: {title} {version}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "New versions": {
       "client": false,
@@ -3480,6 +4033,10 @@
     "No affiliates yet.": {
       "client": true,
       "files": ["app/(dash)/admin/affiliates/page.tsx"]
+    },
+    "No block was complete. Fill in the text, address or picture.": {
+      "client": false,
+      "files": ["lib/site/contentStore.ts"]
     },
     "No blocked messages yet.": {
       "client": true,
@@ -3524,6 +4081,10 @@
     "No extra work yet.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/customization/page.tsx"]
+    },
+    "No files on this listing.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/source/route.ts"]
     },
     "No identity check is waiting.": {
       "client": true,
@@ -3629,6 +4190,10 @@
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/orders/page.tsx"]
     },
+    "No payouts to export for that week.": {
+      "client": false,
+      "files": ["app/api/admin/payouts/csv/route.ts"]
+    },
     "No payouts waiting. {PAYOUT_TEXT}.": {
       "client": true,
       "files": ["app/(dash)/admin/finance/page.tsx"]
@@ -3652,6 +4217,10 @@
     "No proof attached.": {
       "client": true,
       "files": ["app/(dash)/admin/orders/page.tsx", "app/(dash)/admin/orders/payments/page.tsx"]
+    },
+    "No proof for this payment.": {
+      "client": false,
+      "files": ["app/api/admin/payments/[id]/proof/route.ts"]
     },
     "No redirects yet.": {
       "client": true,
@@ -3677,6 +4246,10 @@
       "client": false,
       "files": ["app/(dash)/admin/domains/page.tsx"]
     },
+    "No released file for this revision.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/revisions/[rid]/route.ts"]
+    },
     "No requests yet.": {
       "client": true,
       "files": ["app/(dash)/admin/orders/beta/page.tsx"]
@@ -3688,6 +4261,10 @@
     "No results for “{typed}”.": {
       "client": true,
       "files": ["components/glass/SearchBox.tsx"]
+    },
+    "No review for that order.": {
+      "client": false,
+      "files": ["lib/clean.ts"]
     },
     "No reviews yet. Only buyers who received this website can review it.": {
       "client": true,
@@ -3725,6 +4302,18 @@
       "client": true,
       "files": ["app/(dash)/admin/subscriptions/page.tsx"]
     },
+    "No such listing.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts", "lib/seo/slug.ts"]
+    },
+    "No such picture.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts"]
+    },
+    "No such redirect.": {
+      "client": false,
+      "files": ["lib/seo/redirectStore.ts"]
+    },
     "No tickets yet.": {
       "client": true,
       "files": ["components/SupportPage.tsx"]
@@ -3761,6 +4350,10 @@
       "client": true,
       "files": ["app/(dash)/admin/listings/page.tsx", "app/(dash)/admin/orders/[id]/page.tsx", "app/(dash)/admin/orders/releases/page.tsx", "app/(dash)/admin/orders/requests/page.tsx"]
     },
+    "Not a page of this site.": {
+      "client": false,
+      "files": ["app/api/admin/preview/route.ts"]
+    },
     "Not accepted (recent)": {
       "client": true,
       "files": ["app/(dash)/admin/listings/files/page.tsx"]
@@ -3768,6 +4361,10 @@
     "Not allowed · reverse instead": {
       "client": true,
       "files": ["app/(dash)/admin/finance/page.tsx"]
+    },
+    "Not allowed.": {
+      "client": false,
+      "files": ["app/api/cron/orders/route.ts", "app/api/cron/payouts/route.ts", "app/api/disputes/[id]/evidence/route.ts", "lib/admin/guard.ts"]
     },
     "Not available yet. Promotions wait for Meta and Google to confirm that SellOnBay may connect sellers' ad accounts, and for a legal review of the terms. Nothing is connected and nothing is charged.": {
       "client": true,
@@ -3777,9 +4374,24 @@
       "client": true,
       "files": ["app/(dash)/admin/marketing/promotions/page.tsx"]
     },
+    "Not available.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/extra/route.ts"]
+    },
     "Not connected": {
       "client": true,
       "files": ["app/(dash)/admin/domains/page.tsx"]
+    },
+    "Not found.": {
+      "client": false,
+      "files": [
+        "app/api/admin/guides/[id]/revisions/route.ts",
+        "app/api/admin/test-email/route.ts",
+        "app/api/admin/verifications/[id]/file/route.ts",
+        "app/api/admin/verifications/[id]/route.ts",
+        "app/api/conversations/[type]/[id]/route.ts",
+        "app/api/orders/[id]/revisions/[rid]/route.ts"
+      ]
     },
     "Not offered": {
       "client": true,
@@ -3812,6 +4424,23 @@
     "Note to the buyer (optional)": {
       "client": true,
       "files": ["components/QuoteEditor.tsx"]
+    },
+    "Nothing changed.": {
+      "client": false,
+      "files": [
+        "app/api/admin/contact-social/route.ts",
+        "lib/admin/productEdit.ts",
+        "lib/seo/controlStore.ts",
+        "lib/seo/hubStore.ts",
+        "lib/seo/navStore.ts",
+        "lib/seo/pageMeta.ts",
+        "lib/seo/pageWords.ts",
+        "lib/seo/redirectStore.ts",
+        "lib/seo/robotsStore.ts",
+        "lib/seo/site.ts",
+        "lib/seo/slug.ts",
+        "lib/site/contentStore.ts"
+      ]
     },
     "Nothing earned yet. Your first accepted order shows up here.": {
       "client": true,
@@ -3889,6 +4518,10 @@
       "client": true,
       "files": ["app/(dash)/admin/security/blocks/page.tsx"]
     },
+    "Nothing to change.": {
+      "client": false,
+      "files": ["lib/settings.ts"]
+    },
     "Nothing to check.": {
       "client": true,
       "files": ["app/(dash)/admin/orders/payments/page.tsx"]
@@ -3904,6 +4537,10 @@
     "Nothing to request yet": {
       "client": true,
       "files": ["app/(glass)/checkout/page.tsx"]
+    },
+    "Nothing to save.": {
+      "client": false,
+      "files": ["app/api/admin/contact-social/route.ts"]
     },
     "Nothing to verify. A buyer's report or screenshot is never proof: check it against the statement.": {
       "client": true,
@@ -4009,13 +4646,37 @@
       "client": true,
       "files": ["app/(glass)/websites/[slug]/page.tsx"]
     },
+    "Only Delivery can release or return work.": {
+      "client": false,
+      "files": ["app/api/admin/revisions/[id]/route.ts"]
+    },
+    "Only a Super Admin can approve a price that differs from the listed price.": {
+      "client": false,
+      "files": ["app/api/admin/quotations/[id]/route.ts"]
+    },
     "Only a Super Admin can change the language list. You can edit translations.": {
       "client": true,
       "files": ["app/(dash)/admin/languages/page.tsx"]
     },
+    "Only a Super Admin can change the social links.": {
+      "client": false,
+      "files": ["app/api/admin/site/route.ts"]
+    },
     "Only a Super Admin can change these settings.": {
       "client": true,
       "files": ["app/(dash)/admin/affiliates/page.tsx"]
+    },
+    "Only a Super Admin can do this.": {
+      "client": false,
+      "files": ["app/api/admin/legal/route.ts"]
+    },
+    "Only a seller account can do this.": {
+      "client": false,
+      "files": ["lib/auth/guards.ts", "lib/seller/guard.ts"]
+    },
+    "Only a seller listing can be renamed.": {
+      "client": false,
+      "files": ["lib/seo/slug.ts"]
     },
     "Only sellers with a verified identity and payout method can be paid. Download a week's CSV, send, then mark each one paid.": {
       "client": true,
@@ -4048,6 +4709,14 @@
     "Open POS": {
       "client": true,
       "files": ["app/(dash)/admin/settings/page.tsx"]
+    },
+    "Open Payouts in the admin dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Open Versions in the admin dashboard, check the files, then approve or reject.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Open a support ticket": {
       "client": true,
@@ -4109,6 +4778,10 @@
       "client": true,
       "files": ["app/(dash)/admin/subscriptions/SellerSection.tsx"]
     },
+    "Open the admin dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Open the demo and the files, check the price, then decide. The seller is told your note. Open the files in a sandbox first.": {
       "client": true,
       "files": ["app/(dash)/admin/listings/all/page.tsx"]
@@ -4136,6 +4809,14 @@
       "client": true,
       "files": ["app/(dash)/admin/support/disputes/page.tsx", "app/(dash)/admin/support/page.tsx"]
     },
+    "Open the order to read it and reply. Keep everything on the platform, it protects both of you.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Open the order to read the reply and add evidence if you need to.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Open the page": {
       "client": true,
       "files": ["app/(dash)/admin/settings/legal/page.tsx", "components/PageWordsForm.tsx"]
@@ -4155,6 +4836,10 @@
     "Open tickets": {
       "client": true,
       "files": ["app/(dash)/admin/support/page.tsx", "app/(dash)/dashboard/buyer/page.tsx"]
+    },
+    "Open your dashboard for details.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Open your order": {
       "client": true,
@@ -4206,6 +4891,38 @@
       "client": true,
       "files": ["app/(dash)/admin/support/disputes/page.tsx", "app/(dash)/admin/support/page.tsx"]
     },
+    "Order not found, or it has no buyer account.": {
+      "client": false,
+      "files": ["app/api/admin/domains/route.ts"]
+    },
+    "Order not found.": {
+      "client": false,
+      "files": [
+        "app/api/demo/orders/[id]/accept/route.ts",
+        "app/api/demo/orders/[id]/cancel/route.ts",
+        "app/api/demo/orders/[id]/certificate/route.ts",
+        "app/api/demo/orders/[id]/confirm-access/route.ts",
+        "app/api/demo/orders/[id]/dispute/route.ts",
+        "app/api/demo/orders/[id]/download/route.ts",
+        "app/api/demo/orders/[id]/evidence/route.ts",
+        "app/api/demo/orders/[id]/extra/[rid]/approve/route.ts",
+        "app/api/demo/orders/[id]/extra/[rid]/decline/route.ts",
+        "app/api/demo/orders/[id]/extra/route.ts",
+        "app/api/demo/orders/[id]/messages/route.ts",
+        "app/api/demo/orders/[id]/pay/route.ts",
+        "app/api/demo/orders/[id]/review/route.ts",
+        "app/api/demo/orders/[id]/route.ts",
+        "app/api/demo/orders/[id]/skip/route.ts",
+        "app/api/orders/[id]/accept/route.ts",
+        "app/api/orders/[id]/deliver/route.ts",
+        "app/api/orders/[id]/extra/route.ts",
+        "app/api/orders/[id]/handover/route.ts",
+        "app/api/orders/[id]/revisions/[rid]/route.ts",
+        "app/api/orders/[id]/source/route.ts",
+        "app/api/paypal/start/route.ts",
+        "app/api/seller/files/route.ts"
+      ]
+    },
     "Order status": {
       "client": false,
       "files": ["app/(dash)/admin/orders/page.tsx"]
@@ -4213,6 +4930,10 @@
     "Order updates and domain renewal reminders": {
       "client": true,
       "files": ["app/(dash)/admin/marketing/page.tsx"]
+    },
+    "Order waiting for a safety check: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Order {v0}": {
       "client": true,
@@ -4273,6 +4994,10 @@
     "Our own count (approximate)": {
       "client": true,
       "files": ["app/(dash)/admin/visitors/page.tsx"]
+    },
+    "Our team confirmed that the buyer no longer has access to the repository for this order.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Overview": {
       "client": true,
@@ -4450,6 +5175,14 @@
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/subscription/page.tsx"]
     },
+    "PayPal could not start the payment. Nothing was charged. Please try again.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/extra/[rid]/approve/route.ts", "app/api/paypal/start/route.ts"]
+    },
+    "PayPal is not connected yet.": {
+      "client": false,
+      "files": ["app/api/paypal/start/route.ts"]
+    },
     "Payment": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/page.tsx"]
@@ -4474,6 +5207,14 @@
       "client": true,
       "files": ["app/(glass)/websites/[slug]/page.tsx"]
     },
+    "Payment is verified and SellOnBay authorised the work. Send your delivery through your seller dashboard; it is checked and released by our team.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Payment is verified and the files are ready. Approve or refuse the release by {due}.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Payment is verified and the files are ready. Check them, then approve the release. Nothing reaches the buyer before you do.": {
       "client": true,
       "files": ["app/(dash)/admin/orders/releases/page.tsx"]
@@ -4490,6 +5231,14 @@
       "client": true,
       "files": ["components/glass/SubAdminForms.tsx"]
     },
+    "Payment received for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Payment received for {title}, waiting for a short check": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Payment reference": {
       "client": true,
       "files": ["components/glass/SubForms.tsx"]
@@ -4497,6 +5246,10 @@
     "Payment to check": {
       "client": true,
       "files": ["app/(dash)/admin/subscriptions/page.tsx"]
+    },
+    "Payment to reconcile: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Payments": {
       "client": true,
@@ -4541,6 +5294,10 @@
     "Payout queue": {
       "client": true,
       "files": ["app/(dash)/admin/finance/page.tsx"]
+    },
+    "Payout: {what}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Payouts": {
       "client": false,
@@ -4590,6 +5347,14 @@
       "client": true,
       "files": ["components/PreviewShell.tsx"]
     },
+    "Pick a delivery time from the list.": {
+      "client": false,
+      "files": ["lib/deliveryTime.ts"]
+    },
+    "Pick a domain from the list.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
     "Pick a report, a date range, then export. Beta requests are counted, at $0.": {
       "client": true,
       "files": ["app/(dash)/admin/reports/page.tsx"]
@@ -4601,6 +5366,30 @@
     "Pick a website for": {
       "client": true,
       "files": ["app/(glass)/websites/page.tsx"]
+    },
+    "Pick at least one computer.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
+    "Pick how you want to be paid.": {
+      "client": false,
+      "files": ["lib/payoutDetails.ts"]
+    },
+    "Pick one of the allowed prices for customisation.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
+    "Pick one of the allowed prices for setup help.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
+    "Pick one of the categories of this kind of product.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
+    "Pick one of the licence types.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
     },
     "Pick up to 12 live listings:": {
       "client": true,
@@ -4634,9 +5423,25 @@
       "client": true,
       "files": ["components/SellForm.tsx"]
     },
+    "Placeholders look like {{title}}: lower-case letters and _ only.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
+    },
+    "Plain text only, no HTML.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
+    },
+    "Plain text only.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
     "Plan": {
       "client": true,
       "files": ["app/(dash)/admin/subscriptions/page.tsx", "app/(dash)/admin/users/sellers/page.tsx"]
+    },
+    "Plan request from a seller: {plan}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Planned": {
       "client": true,
@@ -4666,9 +5471,21 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
     },
+    "Please complete the check and try again.": {
+      "client": false,
+      "files": ["app/api/contact/route.ts"]
+    },
     "Please do not include email addresses or phone numbers. SellOnBay handles all messages.": {
       "client": true,
       "files": ["components/RequestForm.tsx"]
+    },
+    "Please do not include email addresses, phone numbers or messenger links. SellOnBay handles all communication.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "Please keep each answer under 2000 characters.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
     },
     "Position": {
       "client": true,
@@ -4740,6 +5557,10 @@
         "components/glass/WebsitesBrowser.tsx"
       ]
     },
+    "Price change waiting for Super Admin: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Price changes waiting for Super Admin ({length})": {
       "client": true,
       "files": ["app/(dash)/admin/orders/requests/page.tsx"]
@@ -4763,6 +5584,14 @@
     "Prices and commission are fixed per plan version. Existing orders keep the fee they were made with.": {
       "client": true,
       "files": ["app/(dash)/admin/users/sellers/page.tsx"]
+    },
+    "Prices are whole cents from $0 to $100,000.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
+    },
+    "Prices are whole cents from $0.": {
+      "client": false,
+      "files": ["lib/plans/admin.ts"]
     },
     "Prices per extension": {
       "client": true,
@@ -4912,6 +5741,10 @@
       "client": false,
       "files": ["app/(dash)/admin/orders/requests/page.tsx"]
     },
+    "Purchases now start with a request. Open the product and choose \"Request to buy\"; SellOnBay will send you a quotation.": {
+      "client": false,
+      "files": ["app/api/demo/orders/route.ts"]
+    },
     "Put": {
       "client": true,
       "files": ["components/SellForm.tsx"]
@@ -4980,6 +5813,10 @@
       "client": true,
       "files": ["app/(dash)/admin/page.tsx"]
     },
+    "Quotation accepted: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Quotation v{version}": {
       "client": true,
       "files": ["app/(dash)/admin/orders/requests/page.tsx"]
@@ -5043,6 +5880,10 @@
     "Reason: {overrideReason}": {
       "client": true,
       "files": ["app/(dash)/admin/orders/requests/page.tsx"]
+    },
+    "Reason: {reason}. Payment for this order is held. The seller replies within {replyHours} hours and an admin decides within {decisionDays} days.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Receipt": {
       "client": true,
@@ -5115,6 +5956,10 @@
     "Refund a paid order": {
       "client": true,
       "files": ["app/(dash)/admin/orders/page.tsx", "app/(dash)/admin/orders/payments/page.tsx"]
+    },
+    "Refund for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Refund policy": {
       "client": true,
@@ -5196,6 +6041,14 @@
       "client": true,
       "files": ["app/(dash)/admin/orders/[id]/page.tsx"]
     },
+    "Release overdue: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Release waiting: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Released after review": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
@@ -5252,6 +6105,14 @@
     "Remove question": {
       "client": true,
       "files": ["components/glass/AffSettingsForm.tsx", "components/glass/SubAdminForms.tsx"]
+    },
+    "Remove the buyer from the repository: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Remove the special characters.": {
+      "client": false,
+      "files": ["lib/payoutDetails.ts"]
     },
     "Remove {name}": {
       "client": true,
@@ -5329,9 +6190,25 @@
       "client": false,
       "files": ["app/(dash)/admin/listings/repo/page.tsx"]
     },
+    "Repository access removal to confirm: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Repository access removed: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Request customization": {
       "client": true,
       "files": ["app/(glass)/sellers/[username]/page.tsx", "app/(glass)/websites/[slug]/page.tsx"]
+    },
+    "Request not found.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/extra/[rid]/approve/route.ts", "app/api/demo/orders/[id]/extra/[rid]/decline/route.ts"]
+    },
+    "Request received, we'll review it shortly": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Request to buy": {
       "client": true,
@@ -5393,6 +6270,10 @@
       "client": true,
       "files": ["app/(dash)/admin/support/page.tsx"]
     },
+    "Review time for {title} ends soon": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Reviewer checklist": {
       "client": true,
       "files": ["components/glass/UploadSection.tsx"]
@@ -5421,9 +6302,17 @@
       "client": true,
       "files": ["app/(dash)/admin/orders/revisions/page.tsx"]
     },
+    "Revision update: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Revision window (days)": {
       "client": true,
       "files": ["components/QuoteEditor.tsx"]
+    },
+    "Revision window: 0 to 365 days.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts", "lib/revisions/rules.ts"]
     },
     "Revision {version}{v1}": {
       "client": true,
@@ -5522,6 +6411,10 @@
     "Sales by category": {
       "client": true,
       "files": ["app/(dash)/admin/reports/page.tsx"]
+    },
+    "Sales need the database.": {
+      "client": false,
+      "files": ["app/api/admin/listings/sale/route.ts", "app/api/seller/listings/sale/route.ts"]
     },
     "Sales per month": {
       "client": true,
@@ -5711,6 +6604,10 @@
       "client": true,
       "files": ["app/(dash)/admin/support/page.tsx"]
     },
+    "See the affiliate dashboard for details.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "See the offer": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/websites/page.tsx"]
@@ -5731,6 +6628,10 @@
       "client": true,
       "files": ["app/(glass)/affiliates/page.tsx"]
     },
+    "SellOnBay approved the release. Your files, licence and documents are in your order. Download links expire after 24 hours; you can ask for a new one.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "SellOnBay checks each request with the buyer and tells you what to change. Your revised work goes to SellOnBay first, then to the buyer.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/revisions/page.tsx"]
@@ -5739,13 +6640,41 @@
       "client": true,
       "files": ["components/ConversationPanel.tsx"]
     },
+    "SellOnBay has confirmed your payment. Your order now waits for its files to be approved and released by our team.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "SellOnBay home page (general link)": {
       "client": true,
       "files": ["components/glass/AffiliateForms.tsx"]
     },
+    "SellOnBay is reviewing this order before anything is released. You will be told when you can deliver.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/deliver/route.ts"]
+    },
     "SellOnBay pays the discount; the seller always gets their share of the list price.": {
       "client": true,
       "files": ["components/glass/CouponTools.tsx"]
+    },
+    "SellOnBay refunded {amount}. {note}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "SellOnBay returned the delivery.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "SellOnBay sent you a quotation of {total}. It is valid until {until}. Review the terms and accept it to continue.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "SellOnBay updated your seller plan ({plan}): it is now {status}. Open your seller dashboard for the details.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "SellOnBay will review your request and reply with a quotation or a question. Nothing is charged until you accept a quotation.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "SellOnBay: {decisionNote}": {
       "client": true,
@@ -5890,9 +6819,29 @@
       "client": true,
       "files": ["components/AuthClient.tsx"]
     },
+    "Send the addresses.": {
+      "client": false,
+      "files": ["lib/site/contact.ts"]
+    },
+    "Send the form again.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
+    },
     "Send the money back by the same route, then record it": {
       "client": true,
       "files": ["app/(dash)/admin/orders/page.tsx"]
+    },
+    "Send the payment details as a form.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/payments/route.ts"]
+    },
+    "Send the request as JSON.": {
+      "client": false,
+      "files": ["app/api/requests/route.ts"]
+    },
+    "Send this delivery for release from your seller dashboard. SellOnBay approves the release.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/deliver/route.ts"]
     },
     "Send to": {
       "client": true,
@@ -6086,6 +7035,30 @@
       "client": true,
       "files": ["components/AuthClient.tsx"]
     },
+    "Sign in first.": {
+      "client": false,
+      "files": [
+        "app/api/account/delete-request/route.ts",
+        "app/api/account/details/route.ts",
+        "app/api/account/export/route.ts",
+        "app/api/account/links/route.ts",
+        "app/api/account/profile/route.ts",
+        "app/api/account/sell/route.ts",
+        "app/api/affiliates/route.ts",
+        "app/api/beta/[id]/feedback/route.ts",
+        "app/api/beta/requests/route.ts",
+        "app/api/disputes/[id]/reply/route.ts",
+        "app/api/notifications/route.ts",
+        "app/api/orders/[id]/accept/route.ts",
+        "app/api/orders/[id]/deliver/route.ts",
+        "app/api/orders/[id]/extra/route.ts",
+        "app/api/orders/[id]/handover/route.ts",
+        "app/api/subscriptions/route.ts",
+        "lib/admin/guard.ts",
+        "lib/auth/guards.ts",
+        "lib/seller/guard.ts"
+      ]
+    },
     "Sign in or create an account": {
       "client": true,
       "files": ["components/AuthClient.tsx"]
@@ -6153,6 +7126,10 @@
     "Social links": {
       "client": true,
       "files": ["components/glass/ContactSocialEditor.tsx"]
+    },
+    "Some of your messages were blocked because they shared contact details or asked to pay outside {brand}. After {blocks} blocked messages in {days} days your account is suspended for a while. Keep everything on the platform, it protects both sides.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Something went wrong while reading it. Try again. If it keeps happening, send us this code{v0}": {
       "client": true,
@@ -6341,9 +7318,21 @@
       "client": true,
       "files": ["app/(dash)/(exact)/dashboard/buyer/requests/[id]/page.tsx"]
     },
+    "Support and updates last 0 to 730 days.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "Support and updates last 0, 30, 90, 180 or 365 days.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
     "Support days": {
       "client": true,
       "files": ["components/QuoteEditor.tsx"]
+    },
+    "Support is 0 to 3650 days.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
     },
     "Support needs an account. There are no accounts in demo mode.": {
       "client": true,
@@ -6425,6 +7414,14 @@
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
     },
+    "Tell us how you will use it (at least 10 characters).": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "Tell us what you will use it for.": {
+      "client": false,
+      "files": ["lib/beta/rules.ts"]
+    },
     "Template categories": {
       "client": true,
       "files": ["app/(dash)/admin/seo/categories/page.tsx", "app/(dash)/admin/seo/page.tsx"]
@@ -6444,6 +7441,10 @@
     "Terms version": {
       "client": true,
       "files": ["components/glass/AffSettingsForm.tsx"]
+    },
+    "Test-card payments are only available for example products. Live checkout is not connected yet.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/pay/route.ts"]
     },
     "Testers": {
       "client": true,
@@ -6473,6 +7474,10 @@
       "client": true,
       "files": ["app/(glass)/checkout/success/page.tsx"]
     },
+    "Thank you. Your weekly payouts can now be sent.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Thanks for your review.": {
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
@@ -6484,6 +7489,90 @@
     "Thanks. We will answer by email.": {
       "client": true,
       "files": ["app/(glass)/help/ContactForm.tsx"]
+    },
+    "That address is already used by another category.": {
+      "client": false,
+      "files": ["lib/seo/hubStore.ts"]
+    },
+    "That address is already used by another listing.": {
+      "client": false,
+      "files": ["lib/seo/slug.ts"]
+    },
+    "That amount is far above the amount due. Check it and try again.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "That code already exists.": {
+      "client": false,
+      "files": ["app/api/admin/coupons/route.ts"]
+    },
+    "That could not be read.": {
+      "client": false,
+      "files": ["lib/validate.ts"]
+    },
+    "That file is too large to deliver here.": {
+      "client": false,
+      "files": ["lib/delivery/serve.ts"]
+    },
+    "That is already the current value.": {
+      "client": false,
+      "files": ["lib/settings.ts"]
+    },
+    "That is not an account id.": {
+      "client": false,
+      "files": ["lib/reserve.ts"]
+    },
+    "That is not an order id.": {
+      "client": false,
+      "files": ["lib/clean.ts"]
+    },
+    "That language is not available.": {
+      "client": false,
+      "files": ["app/api/account/language/route.ts"]
+    },
+    "That page cannot be changed here.": {
+      "client": false,
+      "files": ["lib/seo/controlStore.ts", "lib/seo/pageMeta.ts"]
+    },
+    "That page cannot have blocks.": {
+      "client": false,
+      "files": ["lib/site/contentStore.ts"]
+    },
+    "That page has no words to change here.": {
+      "client": false,
+      "files": ["lib/seo/pageWords.ts"]
+    },
+    "That product is not available.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
+    "That reference is too short.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "That revision does not exist.": {
+      "client": false,
+      "files": ["lib/cms/restore.ts", "lib/cms/rules.ts"]
+    },
+    "That revision is already the current one.": {
+      "client": false,
+      "files": ["lib/cms/rules.ts"]
+    },
+    "That store name is taken. Try another.": {
+      "client": false,
+      "files": ["app/api/seller/store/route.ts"]
+    },
+    "The E-commerce category is the home page; its address cannot change.": {
+      "client": false,
+      "files": ["lib/seo/hubStore.ts"]
+    },
+    "The GitHub invite for {title} has run out": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The Negotiator role is not available yet.": {
+      "client": false,
+      "files": ["lib/admin/scopes.ts"]
     },
     "The affiliate program is not open yet.": {
       "client": true,
@@ -6497,17 +7586,57 @@
       "client": true,
       "files": ["components/PageWordsForm.tsx"]
     },
+    "The built-in text cannot be put back from here. Publish a new version instead.": {
+      "client": false,
+      "files": ["lib/cms/restore.ts"]
+    },
+    "The buyer accepted the quotation and an order was created. It waits for payment.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The buyer did not accept it in time. Send the invite again from your seller dashboard so the order can go on.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The buyer paid {price} into escrow. The deadline moved out by {days} days. You can start.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The buyer was refunded from escrow. You do not need to do anything for this order.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "The buyer's money is held in escrow until they accept": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/orders/page.tsx"]
+    },
+    "The certificate is made once the order is accepted.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/certificate/route.ts"]
+    },
+    "The check can only call this site.": {
+      "client": false,
+      "files": ["lib/seo/linkCheck.ts"]
     },
     "The check has not run yet.": {
       "client": true,
       "files": ["app/(dash)/admin/seo/links/page.tsx"]
     },
+    "The check ran a moment ago. Wait 30 seconds.": {
+      "client": false,
+      "files": ["lib/seo/linkCheck.ts"]
+    },
     "The checks did not answer in time.": {
       "client": true,
       "files": ["app/(dash)/admin/page.tsx", "app/(dash)/admin/settings/page.tsx"]
+    },
+    "The colour is a hex value like #5FA88F.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
+    },
+    "The commission is 0% to 100%.": {
+      "client": false,
+      "files": ["lib/plans/admin.ts"]
     },
     "The cookie is set only in browsers that accepted analytics cookies. The first affiliate wins; self-referrals never count.": {
       "client": true,
@@ -6521,9 +7650,37 @@
       "client": true,
       "files": ["components/glass/BuyerShell.tsx", "components/glass/SellerShell.tsx"]
     },
+    "The days must be a whole number from 0 to 180.": {
+      "client": false,
+      "files": ["lib/reserve.ts"]
+    },
+    "The delivery time has passed. The buyer can cancel for a full refund.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The demo link must start with https.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
+    "The discount is a whole percent from 1 to 90.": {
+      "client": false,
+      "files": ["lib/marketing/coupons.ts"]
+    },
+    "The documentation link must start with https.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
     "The domain is yours. Ask us for the authorization code to move it to another registrar any time after 60 days from registration.": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/domains/page.tsx"]
+    },
+    "The end time has already passed.": {
+      "client": false,
+      "files": ["lib/maintenance/service.ts"]
+    },
+    "The expiry date has passed.": {
+      "client": false,
+      "files": ["app/api/admin/domains/route.ts"]
     },
     "The file behind the link can be up to {maxFileMb} MB. We read it once when you submit, and a bigger file cannot be approved.": {
       "client": true,
@@ -6533,13 +7690,29 @@
       "client": true,
       "files": ["app/(dash)/admin/listings/files/page.tsx"]
     },
+    "The files link must start with https.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
     "The first guides are being written": {
       "client": true,
       "files": ["app/(glass)/guides/page.tsx"]
     },
+    "The free sample link must start with https.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
     "The home page’s meta title and description are set on": {
       "client": true,
       "files": ["app/(dash)/admin/seo/pages/edit/page.tsx"]
+    },
+    "The hour choices are a list of numbers.": {
+      "client": false,
+      "files": ["lib/settings.ts"]
+    },
+    "The included revisions are used up. Treat it as a paid change.": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
     },
     "The last {v0} changes, newest first. Kept by the database; nobody can edit them.": {
       "client": true,
@@ -6548,6 +7721,10 @@
     "The line under the heading. Empty = the built-in intro. {length} / {intro}": {
       "client": true,
       "files": ["components/PageWordsForm.tsx"]
+    },
+    "The listing limit is 0 or more.": {
+      "client": false,
+      "files": ["lib/plans/admin.ts"]
     },
     "The listing's files": {
       "client": true,
@@ -6569,6 +7746,82 @@
       "client": true,
       "files": ["app/(dash)/admin/visitors/details/page.tsx"]
     },
+    "The name must be 3 to 60 characters.": {
+      "client": false,
+      "files": ["lib/productEditRules.ts"]
+    },
+    "The number of websites is 0 to 1000.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
+    },
+    "The order is closed. The money held in escrow goes back to the buyer.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The order was {outcome}. Remove GitHub user {github} from your private repository, then press \"I removed the access\" on your seller dashboard. Our team then confirms it.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The payment could not be matched to funds received.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The payment is held safely in escrow. The seller can start now, and delivery is due in {days} days.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The payment is held safely in escrow. The seller can start now, and delivery is due in {hours} hours.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The payment is safe in escrow. Our team is doing a short safety check on this order before work starts. Please do not start yet. We will tell you as soon as it is cleared, and your delivery time starts again then.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The percent must be a whole number from 0 to 100.": {
+      "client": false,
+      "files": ["lib/reserve.ts"]
+    },
+    "The picture is larger than 4 MB.": {
+      "client": false,
+      "files": ["app/api/admin/seo/product/route.ts", "lib/admin/productEdit.ts"]
+    },
+    "The picture is larger than 5 MB.": {
+      "client": false,
+      "files": ["app/api/admin/posts/image/route.ts"]
+    },
+    "The plan key uses 2 to 40 lowercase letters, numbers and dashes.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
+    },
+    "The price of an extra revision is whole cents, or empty.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
+    "The price of an extra revision is whole cents.": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
+    },
+    "The proof can be at most 5 MB.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/payments/route.ts"]
+    },
+    "The proof could not be opened.": {
+      "client": false,
+      "files": ["app/api/admin/payments/[id]/proof/route.ts"]
+    },
+    "The revision window has ended. Treat it as a paid change.": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
+    },
+    "The safety check is done. You can start now. The delivery time you had left when the check began starts again now.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The sale passed its refund period. The amount is now in your available balance on the affiliate dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "The same bytes are already approved for {twins} other listing(s). Check this is not a copied product.": {
       "client": true,
       "files": ["app/(dash)/admin/listings/files/page.tsx"]
@@ -6577,9 +7830,17 @@
       "client": true,
       "files": ["components/SiteBuilder.tsx"]
     },
+    "The seller asks for {price} and {days} more days. Approve and pay it into escrow, or decline. Nothing starts before it is paid.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "The seller connects your domain to your website when it goes live. To point it somewhere else, ask us and we change the records for you.": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/domains/page.tsx"]
+    },
+    "The seller does not offer that option. Pick another.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
     },
     "The seller is paid only after you approve, or after {REVIEW_HOURS} hours": {
       "client": true,
@@ -6589,13 +7850,45 @@
       "client": true,
       "files": ["app/(glass)/cart/CartClient.tsx"]
     },
+    "The seller replied on {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "The seller replies within 48 hours. You decide within 5 days. Payment for the order is held until then. Read the evidence and the order history first.": {
       "client": true,
       "files": ["app/(dash)/admin/support/disputes/page.tsx"]
     },
+    "The seller says the buyer was removed from the repository. Check it, then confirm in Repository access in the admin dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The seller sent your invite again. Accept it on GitHub within {days} days, then confirm in your order that you can open it.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "The share picture must be uploaded here or be an https address.": {
+      "client": false,
+      "files": ["lib/content/registry.ts"]
+    },
     "The site": {
       "client": true,
       "files": ["app/(dash)/admin/system/page.tsx"]
+    },
+    "The start date is after the end date.": {
+      "client": false,
+      "files": ["lib/reports/rules.ts"]
+    },
+    "The subject is 3 to 150 characters.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
+    },
+    "The term is monthly, yearly or custom.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
+    },
+    "The text is 10 to 4,000 characters.": {
+      "client": false,
+      "files": ["lib/cms/docs.ts"]
     },
     "The title above is the page's H1, so headings in the post start at H2. Pictures: PNG, JPEG, WebP or GIF up to 5 MB. Videos: YouTube, Vimeo or an .mp4 / .webm link.": {
       "client": true,
@@ -6605,17 +7898,41 @@
       "client": true,
       "files": ["app/(dash)/admin/seo/page.tsx"]
     },
+    "The total must be more than zero.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
+    },
     "The two panels count different people, so their numbers differ and are never added together. GA4 counts only visitors who accepted analytics, whose browser ran the script and who were not blocked; a visitor is a browser cookie. First-party counts every visitor without Do Not Track or Global Privacy Control; a visitor is a keyed hash of address and browser per day, so a new device is a new visitor. GA4 can also hide very small numbers.": {
       "client": true,
       "files": ["app/(dash)/admin/visitors/countries/page.tsx"]
+    },
+    "The version was not approved. Fix what the note says and publish it again.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.": {
       "client": true,
       "files": ["app/(dash)/admin/settings/maintenance/page.tsx"]
     },
+    "There is an update on a revision.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "There is an update on your request.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "There is no draft to preview.": {
       "client": true,
       "files": ["app/(dash)/admin/content/cms/preview/page.tsx"]
+    },
+    "There is no revision waiting for your work on this order.": {
+      "client": false,
+      "files": ["app/api/seller/files/route.ts"]
+    },
+    "There is nothing to show before the order is paid.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/evidence/route.ts"]
     },
     "These orders were refunded or cancelled after you sent the GitHub invite. Remove the buyer from your private repository, then tell us.": {
       "client": true,
@@ -6641,6 +7958,34 @@
       "client": true,
       "files": ["app/(dash)/admin/listings/page.tsx", "components/ListingReviewCard.tsx"]
     },
+    "This account cannot ask for extra work right now.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/extra/route.ts"]
+    },
+    "This account cannot do that right now.": {
+      "client": false,
+      "files": ["lib/auth/guards.ts"]
+    },
+    "This account cannot do that.": {
+      "client": false,
+      "files": ["lib/seller/guard.ts"]
+    },
+    "This account cannot do this.": {
+      "client": false,
+      "files": ["app/api/affiliates/route.ts", "app/api/subscriptions/route.ts"]
+    },
+    "This account cannot leave reviews.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/review/route.ts"]
+    },
+    "This account cannot make requests.": {
+      "client": false,
+      "files": ["app/api/beta/requests/route.ts"]
+    },
+    "This account cannot sell.": {
+      "client": false,
+      "files": ["app/api/account/sell/route.ts"]
+    },
     "This browser": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/account/page.tsx", "app/(dash)/dashboard/seller/account/page.tsx"]
@@ -6649,9 +7994,21 @@
       "client": true,
       "files": ["components/OrderChat.tsx"]
     },
+    "This check was already decided.": {
+      "client": false,
+      "files": ["app/api/admin/verifications/[id]/route.ts"]
+    },
+    "This coupon is not valid.": {
+      "client": false,
+      "files": ["lib/buyerSubs/rules.ts"]
+    },
     "This device": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/account/page.tsx", "app/(dash)/dashboard/seller/account/page.tsx"]
+    },
+    "This document already has a draft. Edit that one.": {
+      "client": false,
+      "files": ["lib/legal/rules.ts"]
     },
     "This is": {
       "client": true,
@@ -6660,6 +8017,14 @@
     "This is what buyers will see, in the same order as every other listing. Change anything with Edit.": {
       "client": true,
       "files": ["components/SellForm.tsx"]
+    },
+    "This listing has no legacy file to import (or it already has an approved version).": {
+      "client": false,
+      "files": ["lib/files/legacy.ts"]
+    },
+    "This listing is above the price limit for now. Ask the seller to lower the price.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
     },
     "This month": {
       "client": true,
@@ -6673,6 +8038,59 @@
       "client": true,
       "files": ["app/(dash)/admin/marketing/page.tsx"]
     },
+    "This needs an account. There are none in demo mode.": {
+      "client": false,
+      "files": [
+        "app/api/account/details/route.ts",
+        "app/api/account/links/route.ts",
+        "app/api/account/profile/route.ts",
+        "app/api/account/sell/route.ts",
+        "app/api/seller/listings/beta/route.ts",
+        "app/api/seller/store/route.ts",
+        "app/api/seller/verification/route.ts",
+        "lib/auth/guards.ts"
+      ]
+    },
+    "This needs the database.": {
+      "client": false,
+      "files": ["app/api/admin/verifications/[id]/file/route.ts", "app/api/admin/verifications/[id]/route.ts"]
+    },
+    "This order cannot be cancelled now.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/cancel/route.ts"]
+    },
+    "This order changed while paying. Reload the page before trying again.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/pay/route.ts"]
+    },
+    "This order has no included revisions. Treat it as a paid change.": {
+      "client": false,
+      "files": ["lib/revisions/rules.ts"]
+    },
+    "This order has waited longer than the 12-hour release target. Nothing is released automatically; please decide now.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "This order is delivered through a repository. Send the invite; the review starts when the buyer confirms access.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/deliver/route.ts"]
+    },
+    "This order is due within {hours} hours. Deliver it on time to keep the buyer's trust.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "This order is not ready to accept.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/accept/route.ts", "app/api/orders/[id]/accept/route.ts"]
+    },
+    "This order is not waiting for your delivery.": {
+      "client": false,
+      "files": ["app/api/seller/files/route.ts"]
+    },
+    "This order needs a look": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "This page could not load": {
       "client": true,
       "files": ["app/(dash)/dashboard/error.tsx"]
@@ -6681,9 +8099,25 @@
       "client": true,
       "files": ["components/PageControlsForm.tsx"]
     },
+    "This payment does not match the order. Nothing was charged.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/pay/route.ts"]
+    },
+    "This product is delivered at once, so express is not needed.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
     "This seller does not offer customization on a website yet.": {
       "client": true,
       "files": ["app/(glass)/sellers/[username]/page.tsx"]
+    },
+    "This seller does not offer express delivery.": {
+      "client": false,
+      "files": ["lib/commerce/quote.ts"]
+    },
+    "This setting has no history.": {
+      "client": false,
+      "files": ["lib/cms/restore.ts", "lib/cms/rules.ts"]
     },
     "This year · {PLAN_KEEP_TEXT}": {
       "client": true,
@@ -6704,6 +8138,14 @@
     "Thursday payouts": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/page.tsx"]
+    },
+    "Tick the box to accept the order.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/accept/route.ts", "app/api/orders/[id]/accept/route.ts"]
+    },
+    "Tick the box to confirm you understand how requests work.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "Ticket type": {
       "client": false,
@@ -6785,9 +8227,73 @@
       "client": true,
       "files": ["app/(dash)/admin/visitors/details/page.tsx"]
     },
+    "Too many cash sales this hour.": {
+      "client": false,
+      "files": ["app/api/admin/pos/route.ts"]
+    },
+    "Too many changes. Try again later.": {
+      "client": false,
+      "files": ["app/api/account/details/route.ts"]
+    },
+    "Too many download links requested. Try again in an hour.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/download/route.ts", "app/api/orders/[id]/revisions/[rid]/route.ts", "app/api/orders/[id]/source/route.ts"]
+    },
+    "Too many messages were blocked. You can use the account again after {until}. Contact support if you think this is a mistake.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Too many messages. Please try again later.": {
+      "client": false,
+      "files": ["app/api/contact/route.ts"]
+    },
+    "Too many payment reports this hour. Try again later.": {
+      "client": false,
+      "files": ["app/api/orders/[id]/payments/route.ts"]
+    },
+    "Too many plan requests today. Try again tomorrow.": {
+      "client": false,
+      "files": ["app/api/seller/plan/route.ts"]
+    },
+    "Too many questions from this connection. Try again later.": {
+      "client": false,
+      "files": ["lib/presale/service.ts"]
+    },
     "Too many refreshes. Wait a minute and load the page again.": {
       "client": true,
       "files": ["app/(dash)/admin/system/page.tsx"]
+    },
+    "Too many requests. Please try again later.": {
+      "client": false,
+      "files": ["app/api/affiliates/route.ts", "app/api/beta/requests/route.ts", "app/api/subscriptions/route.ts"]
+    },
+    "Too many searches. Wait a moment.": {
+      "client": false,
+      "files": ["app/api/search/route.ts"]
+    },
+    "Too many tries today.": {
+      "client": false,
+      "files": ["app/api/account/delete-request/route.ts"]
+    },
+    "Too many tries. Start the order again.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/pay/route.ts", "app/api/paypal/start/route.ts"]
+    },
+    "Too many tries. Try again later.": {
+      "client": false,
+      "files": ["app/api/account/sell/route.ts"]
+    },
+    "Too many tries. Wait a while.": {
+      "client": false,
+      "files": ["app/api/quotations/[id]/route.ts"]
+    },
+    "Too many uploads this hour. Try again later.": {
+      "client": false,
+      "files": ["app/api/seller/files/route.ts"]
+    },
+    "Too many uploads today. Try again tomorrow.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
     },
     "Top bar": {
       "client": true,
@@ -6877,6 +8383,14 @@
       "client": true,
       "files": ["app/(dash)/admin/settings/page.tsx", "components/glass/CouponTools.tsx"]
     },
+    "Type DELETE to confirm.": {
+      "client": false,
+      "files": ["app/api/account/delete-request/route.ts"]
+    },
+    "Type at least 2 letters or numbers.": {
+      "client": false,
+      "files": ["app/api/domains/route.ts"]
+    },
     "Type at least two letters in the search box above.": {
       "client": true,
       "files": ["app/(dash)/admin/search/page.tsx"]
@@ -6896,6 +8410,50 @@
     "Under maintenance": {
       "client": true,
       "files": ["components/MaintenanceForm.tsx"]
+    },
+    "Unknown category.": {
+      "client": false,
+      "files": ["lib/seo/hubStore.ts"]
+    },
+    "Unknown document.": {
+      "client": false,
+      "files": ["app/api/admin/cms/docs/route.ts"]
+    },
+    "Unknown feature.": {
+      "client": false,
+      "files": ["lib/featureFlags.ts"]
+    },
+    "Unknown listing.": {
+      "client": false,
+      "files": ["lib/seo/hubStore.ts"]
+    },
+    "Unknown menu entry.": {
+      "client": false,
+      "files": ["lib/seo/navStore.ts"]
+    },
+    "Unknown module.": {
+      "client": false,
+      "files": ["lib/maintenance/service.ts"]
+    },
+    "Unknown network.": {
+      "client": false,
+      "files": ["lib/site/social.ts"]
+    },
+    "Unknown page.": {
+      "client": false,
+      "files": ["app/api/admin/pages/route.ts"]
+    },
+    "Unknown permission.": {
+      "client": false,
+      "files": ["lib/admin/scopes.ts"]
+    },
+    "Unknown plan.": {
+      "client": false,
+      "files": ["lib/plans/admin.ts"]
+    },
+    "Unknown switch.": {
+      "client": false,
+      "files": ["lib/switches.ts"]
     },
     "Unpublish": {
       "client": true,
@@ -6920,6 +8478,10 @@
     "Update days": {
       "client": true,
       "files": ["components/QuoteEditor.tsx"]
+    },
+    "Update on your request for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Update the reference": {
       "client": true,
@@ -6957,9 +8519,45 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
     },
+    "Uploads need the database. Paste a picture address instead.": {
+      "client": false,
+      "files": ["app/api/admin/posts/image/route.ts"]
+    },
+    "Use 3 to 24 letters, numbers and dashes for the code.": {
+      "client": false,
+      "files": ["lib/marketing/coupons.ts"]
+    },
     "Use 301 when a page moved for good (search engines move their listing to the new address) and 302 for a short change. A listing’s address is changed from its Edit page, which adds the 301 for you. A redirect cannot start at a live page of the site, at the home page, or at an account, checkout, payment, admin or download address.": {
       "client": true,
       "files": ["app/(dash)/admin/seo/redirects/page.tsx"]
+    },
+    "Use a PNG, JPEG or WebP picture.": {
+      "client": false,
+      "files": ["lib/admin/productEdit.ts"]
+    },
+    "Use a PNG, JPEG, WebP or GIF picture.": {
+      "client": false,
+      "files": ["lib/blogMedia.ts"]
+    },
+    "Use a PNG, JPEG, WebP picture or a PDF.": {
+      "client": false,
+      "files": ["app/api/seller/verification/route.ts"]
+    },
+    "Use a date like 2026-10-04.": {
+      "client": false,
+      "files": ["app/api/admin/payouts/csv/route.ts"]
+    },
+    "Use a date like 2026-10-21.": {
+      "client": false,
+      "files": ["app/api/admin/analytics/report/route.ts"]
+    },
+    "Use a three-letter currency code, like USD or BDT.": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Use a two-letter country code, like BD or US.": {
+      "client": false,
+      "files": ["lib/requests/rules.ts"]
     },
     "Use with a website": {
       "client": true,
@@ -6988,6 +8586,10 @@
     "Uses MIT or Apache 2.0 parts": {
       "client": true,
       "files": ["components/SellForm.tsx"]
+    },
+    "Uses is a whole number, or empty for no limit.": {
+      "client": false,
+      "files": ["lib/marketing/coupons.ts"]
     },
     "Uses other licensed parts": {
       "client": true,
@@ -7032,6 +8634,18 @@
     "Version {termsVersion}. You accept the version shown when you join.": {
       "client": true,
       "files": ["app/(glass)/affiliates/page.tsx"]
+    },
+    "Version {version} is out. What changed: {changelog}. Open your order and use \"Get my files\" to download it. Your updates run until {until}.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Version {version} of {title} is live": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Version {version} of {title} was not published": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Version {version} · {v1}": {
       "client": true,
@@ -7153,9 +8767,25 @@
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/subscription/page.tsx"]
     },
+    "We asked the seller to send a new one. Accept it and confirm in your order. If you do not confirm, access counts as confirmed on {date} and your time to check it starts then.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "We could not accept the document: {reason}. Please send it again from Earnings & payouts.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "We could not approve this request": {
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
+    },
+    "We could not approve this request. {reason}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "We could not confirm your payment for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "We email you a link to set a new one": {
       "client": true,
@@ -7165,9 +8795,17 @@
       "client": true,
       "files": ["components/glass/PayoutMethodForm.tsx"]
     },
+    "We have your request for {title}. It is free during the beta and no payment is taken. We'll email you when it has been reviewed.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "We need a passport, national ID card or driver licence once, before the first payout. Only our finance team can see it; buyers never do.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
+    },
+    "We received your request for {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "We sent you a link to verify your email. Verifying protects your orders and domains. It can take a minute, and it may be in your spam folder.": {
       "client": true,
@@ -7540,6 +9178,14 @@
       "client": true,
       "files": ["components/OrderChat.tsx"]
     },
+    "Write a message first.": {
+      "client": false,
+      "files": ["lib/messaging/rules.ts"]
+    },
+    "Write a name of 2 to 80 characters.": {
+      "client": false,
+      "files": ["lib/account/profileName.ts"]
+    },
     "Write a post": {
       "client": true,
       "files": ["app/(dash)/admin/seo/page.tsx"]
@@ -7548,21 +9194,65 @@
       "client": true,
       "files": ["app/(dash)/admin/orders/requests/[id]/page.tsx"]
     },
+    "Write one \"network https-address\" per line, for example: instagram https://instagram.com/sellonbay": {
+      "client": false,
+      "files": ["lib/site/contentStore.ts"]
+    },
     "Write or preview": {
       "client": true,
       "files": ["components/PostEditor.tsx"]
+    },
+    "Write the account details in 5 to 200 characters.": {
+      "client": false,
+      "files": ["lib/payoutDetails.ts"]
+    },
+    "Write the account number or IBAN, the bank name and the account holder.": {
+      "client": false,
+      "files": ["lib/payoutDetails.ts"]
+    },
+    "Write the amount of cash taken.": {
+      "client": false,
+      "files": ["app/api/admin/pos/route.ts"]
     },
     "Write the domain you own above; the seller connects it for you.": {
       "client": true,
       "files": ["app/(glass)/checkout/BetaForm.tsx"]
     },
+    "Write the end date as YYYY-MM-DD.": {
+      "client": false,
+      "files": ["lib/marketing/coupons.ts"]
+    },
+    "Write the extra revision price in dollars, or leave it empty.": {
+      "client": false,
+      "files": ["app/api/seller/revision-policy/route.ts"]
+    },
+    "Write the full text (at least 20 characters).": {
+      "client": false,
+      "files": ["lib/legal/rules.ts"]
+    },
     "Write the notice…": {
       "client": false,
       "files": ["app/(dash)/admin/marketing/page.tsx"]
     },
+    "Write the payment instructions buyers see (10 to 2000 characters).": {
+      "client": false,
+      "files": ["lib/payments/rules.ts"]
+    },
+    "Write the reason for the seller (at least 5 characters).": {
+      "client": false,
+      "files": ["app/api/admin/verifications/[id]/route.ts"]
+    },
+    "Write why (at least 5 characters). It goes in the audit log.": {
+      "client": false,
+      "files": ["lib/clean.ts", "lib/featureFlags.ts", "lib/reserve.ts", "lib/settings.ts", "lib/switches.ts"]
+    },
     "Write your answer": {
       "client": true,
       "files": ["components/ReplyForm.tsx"]
+    },
+    "Write your bKash account number, for example 01712345678.": {
+      "client": false,
+      "files": ["lib/payoutDetails.ts"]
     },
     "Yearly": {
       "client": true,
@@ -7571,6 +9261,18 @@
     "Yes. Use it with any website you buy here.": {
       "client": true,
       "files": ["app/(glass)/domains/page.tsx"]
+    },
+    "You already downloaded your data a few times today. Try again tomorrow.": {
+      "client": false,
+      "files": ["app/api/account/export/route.ts"]
+    },
+    "You are a SellOnBay Verified Affiliate": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "You are asking too fast. Wait a few minutes and try again.": {
+      "client": false,
+      "files": ["lib/presale/service.ts"]
     },
     "You are opening the": {
       "client": true,
@@ -7592,9 +9294,25 @@
       "client": true,
       "files": ["app/(dash)/messages/page.tsx"]
     },
+    "You can now choose {credits} websites with full source code. Open Subscription in your dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "You can start: {title}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "You can still save a draft and finish later.": {
       "client": true,
       "files": ["components/SellForm.tsx"]
+    },
+    "You cannot decide your own check.": {
+      "client": false,
+      "files": ["app/api/admin/verifications/[id]/route.ts"]
+    },
+    "You changed your name many times just now. Try again in an hour.": {
+      "client": false,
+      "files": ["app/api/account/profile/route.ts"]
     },
     "You confirmed these on {v0}. The quotation is based on them.": {
       "client": true,
@@ -7616,9 +9334,17 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/orders/page.tsx"]
     },
+    "You have a new message from SellOnBay. Open your messages to read it.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "You have no listings yet.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/revisions/page.tsx"]
+    },
+    "You have {hours} hours to check it. Accept it, or open a problem. If you do nothing it is accepted for you.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "You keep {PLAN_KEEP_TEXT} of every sale · {PAYOUT_TEXT}": {
       "client": true,
@@ -7636,6 +9362,10 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/page.tsx"]
     },
+    "You reached the qualification target. Your green Verified Affiliate badge is on your affiliate dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "You replied: {reply}": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/page.tsx"]
@@ -7648,13 +9378,25 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
     },
+    "Your GitHub invite for {title} runs out soon": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your account can buy too. Download a copy of your data, or ask us to delete your account.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/account/page.tsx"]
     },
+    "Your account is suspended for a while": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your admin account does not have permission for that page.": {
       "client": true,
       "files": ["app/(dash)/admin/page.tsx"]
+    },
+    "Your admin account does not have permission for this.": {
+      "client": false,
+      "files": ["lib/admin/guard.ts"]
     },
     "Your answers go straight to our team. Would you also leave a public review for other buyers?": {
       "client": true,
@@ -7686,7 +9428,7 @@
     },
     "Your domain": {
       "client": true,
-      "files": ["components/glass/BetaOrderView.tsx"]
+      "files": ["components/glass/BetaOrderView.tsx", "emails/templates.ts"]
     },
     "Your domain (optional now)": {
       "client": true,
@@ -7696,13 +9438,61 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/page.tsx"]
     },
+    "Your earnings": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your earnings are paid out weekly, {holdDays} days after acceptance. The buyer has a {bugfixDays}-day bug-fix guarantee.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your earnings will now be sent to: {now}. Before: {was}. If you did not do this, change your password and contact support at once.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your files": {
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
     },
+    "Your files are almost ready.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/download/route.ts", "app/api/orders/[id]/source/route.ts"]
+    },
+    "Your files are available once your payment is held in escrow.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/download/route.ts", "app/api/orders/[id]/source/route.ts"]
+    },
+    "Your files are ready. Open the order in your dashboard to download them and to start your domain steps.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your files could not be prepared just now. Try again in a minute.": {
+      "client": false,
+      "files": ["app/api/demo/orders/[id]/download/route.ts"]
+    },
+    "Your files for {title} are ready": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your identity check needs another look": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your identity is verified": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your licence and support for the websites you chose now run until {until}.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your links": {
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/affiliate/page.tsx"]
+    },
+    "Your listing {name} was {decision}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Your listings, reviewer feedback and new uploads. A change to a link or a file sends a listing back for review.": {
       "client": true,
@@ -7732,6 +9522,14 @@
       "client": true,
       "files": ["components/SellForm.tsx"]
     },
+    "Your payout details were changed": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your payout was sent": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your plan": {
       "client": true,
       "files": ["components/glass/SellerPlanCard.tsx"]
@@ -7752,6 +9550,10 @@
       "client": true,
       "files": ["components/glass/SellerShell.tsx"]
     },
+    "Your quotation for {title} is ready": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your rating": {
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx", "components/glass/StarRating.tsx"]
@@ -7763,6 +9565,10 @@
     "Your reply": {
       "client": true,
       "files": ["components/ReplyForm.tsx"]
+    },
+    "Your request for {title} is approved": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Your requests": {
       "client": false,
@@ -7776,9 +9582,17 @@
       "client": true,
       "files": ["components/glass/BetaOrderView.tsx"]
     },
+    "Your seller plan: {plan} is {status}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your store {v0} “Available for customization”.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/customization/page.tsx"]
+    },
+    "Your upload was checked.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "Your website price (USD, from ${min})": {
       "client": true,
@@ -7792,9 +9606,45 @@
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/page.tsx"]
     },
+    "Your withdrawal of {amount} is {status}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "Your {PLAN_KEEP_TEXT} share, statements and how you get paid. {PAYOUT_TEXT}.": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/payouts/page.tsx"]
+    },
+    "Your {title} subscription ends soon": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your {title} subscription is active": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "Your {title} subscription is renewed": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "a few days": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "a manual method": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "a plan": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "a product": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "a request": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "account": {
       "client": true,
@@ -7832,6 +9682,10 @@
       "client": true,
       "files": ["app/(glass)/cart/CartClient.tsx"]
     },
+    "bKash is only for sellers in Bangladesh. Set your country first, or pick another way.": {
+      "client": false,
+      "files": ["lib/payoutDetails.ts"]
+    },
     "banned": {
       "client": true,
       "files": ["app/(dash)/admin/users/page.tsx"]
@@ -7859,6 +9713,10 @@
     "chosen. Click to change.": {
       "client": true,
       "files": ["components/SellForm.tsx"]
+    },
+    "done": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "e.g. LAUNCH20": {
       "client": true,
@@ -7904,6 +9762,10 @@
       "client": true,
       "files": ["components/SellForm.tsx"]
     },
+    "it was not clear enough": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "left to check it": {
       "client": true,
       "files": ["components/HowItWorks.tsx"]
@@ -7920,13 +9782,37 @@
       "client": true,
       "files": ["app/(dash)/dashboard/seller/store/page.tsx"]
     },
+    "made": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "more money": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "mybusiness.com": {
       "client": true,
       "files": ["components/RequestForm.tsx"]
     },
+    "new": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "new this month": {
       "client": true,
       "files": ["app/(dash)/admin/users/page.tsx"]
+    },
+    "none": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "none yet": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "not given": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "octocat": {
       "client": true,
@@ -7968,9 +9854,17 @@
       "client": true,
       "files": ["app/(dash)/dashboard/buyer/orders/page.tsx", "app/(glass)/subscriptions/page.tsx"]
     },
+    "refunded": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "refused": {
       "client": true,
       "files": ["app/(dash)/admin/security/page.tsx"]
+    },
+    "reviewed": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "robots.txt": {
       "client": true,
@@ -7984,6 +9878,10 @@
       "client": true,
       "files": ["app/(glass)/sellers/page.tsx"]
     },
+    "see your order": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "seller dashboard": {
       "client": true,
       "files": ["components/AuthClient.tsx"]
@@ -7996,9 +9894,53 @@
       "client": true,
       "files": ["app/(dash)/admin/security/blocks/page.tsx"]
     },
+    "something needs a look": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "something to look at": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "soon": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "the abuse reports": {
       "client": true,
       "files": ["app/(dash)/admin/support/page.tsx"]
+    },
+    "the agreed amount": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the buyer": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the date shown": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the deadline shown": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the end of your update period": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the extra work": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the new account": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "the payout method on your account": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "this month": {
       "client": true,
@@ -8007,6 +9949,10 @@
     "this week": {
       "client": true,
       "files": ["app/(dash)/admin/domains/page.tsx"]
+    },
+    "updated": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "waiting for the person": {
       "client": true,
@@ -8027,6 +9973,26 @@
     "www.": {
       "client": true,
       "files": ["app/(glass)/domains/page.tsx"]
+    },
+    "yesterday": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "your order": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "your payment": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "your plan": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "your product": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "your share": {
       "client": true,
@@ -8072,6 +10038,10 @@
       "client": true,
       "files": ["app/(dash)/admin/seo/robots/page.tsx"]
     },
+    "{amount} were sent with {method}. It can take a few days to show.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "{cat} · {v1} · now in: {v2}": {
       "client": true,
       "files": ["app/(dash)/admin/seo/categories/page.tsx"]
@@ -8091,6 +10061,10 @@
     "{code} · joined {v1} · terms {termsVersion}": {
       "client": true,
       "files": ["app/(dash)/admin/affiliates/page.tsx"]
+    },
+    "{domain} expires soon": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "{from} to {to} (UTC).": {
       "client": true,
@@ -8172,9 +10146,25 @@
       "client": true,
       "files": ["app/(dash)/admin/languages/page.tsx"]
     },
+    "{min} to {max}": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "{name} · {email} · {country}{v3}{v4} · {v5} UTC": {
       "client": true,
       "files": ["app/(dash)/admin/orders/beta/page.tsx"]
+    },
+    "{note} Open the order to see it.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{note} Open your listing to see the details.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{note} Open your requests to see it.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "{n} item · checkout with escrow protection": {
       "client": true,
@@ -8199,6 +10189,18 @@
     "{percent} percent for {days} days": {
       "client": true,
       "files": ["app/(dash)/admin/security/risk/page.tsx"]
+    },
+    "{reason} ({price} USD). Release or cancel it in Risk in the admin dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{reason} Open your order to see what to do next.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{reason} Please fix it and send it again.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "{refundedN} of {length}": {
       "client": true,
@@ -8231,6 +10233,30 @@
     "{supportDays} days": {
       "client": true,
       "files": ["app/(dash)/admin/subscriptions/page.tsx"]
+    },
+    "{title} is cleared, you can start": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{title} is late": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{title} is ready to review": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{title} was accepted": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{title} was cancelled": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
+    "{title} was cancelled after a safety check": {
+      "client": false,
+      "files": ["emails/templates.ts"]
     },
     "{total} refused, last {v1} UTC": {
       "client": true,
@@ -8464,6 +10490,10 @@
       "client": true,
       "files": ["app/(dash)/(exact)/dashboard/buyer/requests/[id]/page.tsx"]
     },
+    "{visitors} visitors ({repeat} came back), {pages} pages opened, {orders} orders. Most opened product: {top}. The full report is under Visitors in the admin dashboard.": {
+      "client": false,
+      "files": ["emails/templates.ts"]
+    },
     "{waiting} items": {
       "client": true,
       "files": ["app/(dash)/admin/page.tsx"]
@@ -8511,6 +10541,10 @@
     "· {v0} · asked {v1}": {
       "client": true,
       "files": ["app/(dash)/dashboard/seller/revisions/page.tsx"]
+    },
+    "…": {
+      "client": false,
+      "files": ["lib/i18n/jsonT.ts"]
     },
     "★ {v0} from {count} verified {v2}": {
       "client": true,

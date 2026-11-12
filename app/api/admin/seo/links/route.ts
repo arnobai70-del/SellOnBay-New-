@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminOnly } from '@/lib/admin/guard';
 import { runLinkCheck } from '@/lib/seo/linkCheck';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -13,5 +14,5 @@ export async function POST(req: Request) {
   const a = await adminOnly('content');
   if (!a.ok) return a.res;
   const r = await runLinkCheck(a.id, new URL(req.url).origin);
-  return r.ok ? NextResponse.json({ ok: true, broken: r.report.broken.length, checked: r.report.checked }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, broken: r.report.broken.length, checked: r.report.checked }) : jsonT({ error: r.error }, { status: r.status });
 }

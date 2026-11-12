@@ -9,6 +9,8 @@ import { maintenanceFor } from '@/lib/maintenance/service';
 import { pageControls, setPageControls } from '@/lib/seo/controlStore';
 import { setPageSeo } from '@/lib/seo/pageMeta';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({ key: z.string().max(40), action: z.enum(['draft', 'publish', 'discard', 'restore']), doc: z.unknown().optional(), version: z.number().int().optional() });
@@ -25,7 +27,7 @@ export async function GET(req: Request) {
   const a = await adminOnly('content');
   if (!a.ok) return a.res;
   const key = new URL(req.url).searchParams.get('key') ?? '';
-  if (!def(key)) return NextResponse.json({ error: 'Unknown page.' }, { status: 404 });
+  if (!def(key)) return jsonT({ error: tx('Unknown page.') }, { status: 404 });
   const [draft, published, history] = await Promise.all([draftOf<PageDoc>(`page:${key}`), publishedOf<PageDoc>(`page:${key}`, true), revisionsOf(PUBLISHED(`page:${key}`), 30)]);
   return NextResponse.json({ draft, published, history: history.map((r) => ({ version: r.version, at: r.at, action: r.action })) }, { headers: { 'cache-control': 'no-store' } });
 }
@@ -44,9 +46,9 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const { key, action, doc, version } = body.data;
   const d = def(key);
-  if (!d) return NextResponse.json({ error: 'Unknown page.' }, { status: 404 });
+  if (!d) return jsonT({ error: tx('Unknown page.') }, { status: 404 });
   const name = `page:${key}` as const;
-  const fail = (r: { ok: false; status: number; error: string }) => NextResponse.json({ error: r.error }, { status: r.status });
+  const fail = (r: { ok: false; status: number; error: string }) => jsonT({ error: r.error }, { status: r.status });
   if (action === 'draft') {
     const r = await saveDraft(a.id, a.scopes, name, doc);
     return r.ok ? NextResponse.json({ ok: true }) : fail(r);
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
     return r.ok ? NextResponse.json({ ok: true }) : fail(r);
   }
   if (action === 'restore') {
-    if (!version) return NextResponse.json({ error: 'Choose a version.' }, { status: 400 });
+    if (!version) return jsonT({ error: tx('Choose a version.') }, { status: 400 });
     const r = await rollback(a.id, PUBLISHED(name), version);
     return r.ok ? NextResponse.json({ ok: true }) : fail(r);
   }

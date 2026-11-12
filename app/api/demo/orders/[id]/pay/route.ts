@@ -10,6 +10,8 @@ import { paySchema } from '@/lib/schemas';
 import { idOf, readJson } from '@/lib/validate';
 import { bump } from '@/lib/metrics';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const MAX_TRIES = 8;
@@ -19,12 +21,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const closed = await maintenanceFor('checkout'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const found = await orderFor(await idOf(params));
-  if (!found) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  if (!found) return jsonT({ error: tx('Order not found.') }, { status: 404 });
   // Never allow a fake card event to create escrow/entitlements for a real seller or developer.
   // This applies even to already-funded orders and regardless of NODE_ENV.
-  if (!canUseDemoPayment(found)) return NextResponse.json({ error: 'Test-card payments are only available for example products. Live checkout is not connected yet.' }, { status: 403 });
+  if (!canUseDemoPayment(found)) return jsonT({ error: tx('Test-card payments are only available for example products. Live checkout is not connected yet.') }, { status: 403 });
   if (found.state !== 'awaiting_payment') return NextResponse.json({ ok: true, already: true });
-  if (found.attempts >= MAX_TRIES) return NextResponse.json({ error: 'Too many tries. Start the order again.' }, { status: 429 });
+  if (found.attempts >= MAX_TRIES) return jsonT({ error: tx('Too many tries. Start the order again.') }, { status: 429 });
   const parsed = await readJson(req, paySchema, { allowEmpty: true });
   if (!parsed.ok) return parsed.res;
   const b = parsed.data;
@@ -35,13 +37,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const name = found.domain.name;
     const dot = name.indexOf('.');
     const hit = (await domainProvider().search(name.slice(0, dot))).find((r) => r.tld === name.slice(dot));
-    if (!hit?.available) return NextResponse.json({ error: `${name} is no longer available. Nothing was charged.`, code: 'domain_gone' }, { status: 409 });
+    if (!hit?.available) return jsonT({ error: `${name} is no longer available. Nothing was charged.`, code: 'domain_gone' }, { status: 409 });
   }
 
   const o = await countAttempt(found);
   const r = await fakePayments.chargeTestCard({ orderId: o.id, amountCents: o.priceCents, card, otp: b.otp ? String(b.otp) : undefined });
   if (!r.ok && r.code !== 'requires_action') await bump('failed_payments');
-  if (!r.ok) return NextResponse.json({ error: r.message, code: r.code }, { status: r.code === 'requires_action' ? 202 : 402 });
+  if (!r.ok) return jsonT({ error: r.message, code: r.code }, { status: r.code === 'requires_action' ? 202 : 402 });
 
   // The provider's "payment succeeded" event goes through the same handler a real webhook would use.
   const out = await handlePaymentEvent(fakePayments.name, {
@@ -53,11 +55,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     at: Date.now(),
     card: { brand: r.brand, last4: r.last4 },
   });
-  if (out.status === 'rejected') return NextResponse.json({ error: 'This payment does not match the order. Nothing was charged.' }, { status: 409 });
+  if (out.status === 'rejected') return jsonT({ error: tx('This payment does not match the order. Nothing was charged.') }, { status: 409 });
   // Ignored (for example another tab moved the order first): say paid only when the order really is funded now.
   if (out.status === 'ignored') {
     const now = await getOrder(o.id);
-    if (!now || !isFundedState(now.state)) return NextResponse.json({ error: 'This order changed while paying. Reload the page before trying again.' }, { status: 409 });
+    if (!now || !isFundedState(now.state)) return jsonT({ error: tx('This order changed while paying. Reload the page before trying again.') }, { status: 409 });
   }
   return NextResponse.json({ ok: true });
 }

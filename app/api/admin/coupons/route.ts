@@ -5,6 +5,8 @@ import { maintenanceFor } from '@/lib/maintenance/service';
 import { checkCoupon, COUPON_LIMIT } from '@/lib/marketing/coupons';
 import { saveCoupons, savedCoupons } from '@/lib/site/contentStore';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -29,14 +31,14 @@ export async function POST(req: Request) {
   let next = list;
   if (b.action === 'add') {
     const c = checkCoupon({ code, percentOff: b.percentOff, endsOn: b.endsOn || null, maxUses: b.maxUses ?? null, active: true });
-    if (!c.ok) return NextResponse.json({ error: c.error }, { status: 400 });
-    if (list.some((x) => x.code === code)) return NextResponse.json({ error: 'That code already exists.' }, { status: 409 });
-    if (list.length >= COUPON_LIMIT) return NextResponse.json({ error: `At most ${COUPON_LIMIT} coupons.` }, { status: 400 });
+    if (!c.ok) return jsonT({ error: c.error }, { status: 400 });
+    if (list.some((x) => x.code === code)) return jsonT({ error: tx('That code already exists.') }, { status: 409 });
+    if (list.length >= COUPON_LIMIT) return jsonT({ error: `At most ${COUPON_LIMIT} coupons.` }, { status: 400 });
     next = [...list, c.value];
   } else {
-    if (!list.some((x) => x.code === code)) return NextResponse.json({ error: 'Coupon not found.' }, { status: 404 });
+    if (!list.some((x) => x.code === code)) return jsonT({ error: tx('Coupon not found.') }, { status: 404 });
     next = b.action === 'remove' ? list.filter((x) => x.code !== code) : list.map((x) => (x.code === code ? { ...x, active: !x.active } : x));
   }
   const r = await saveCoupons(a.id, next);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

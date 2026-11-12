@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { BRAND_DOMAIN } from '../brand';
 import { EMAIL_ROUTES, type EmailPurpose } from '../emailRouting';
 
@@ -10,7 +11,7 @@ export const CONTACT_KEYS = Object.keys(EMAIL_ROUTES) as EmailPurpose[];
 const OWN = new RegExp(`^[a-z0-9](?:[a-z0-9._+-]{0,62}[a-z0-9])?@${BRAND_DOMAIN.replace(/\./g, '\\.')}$`);
 
 export function checkContact(raw: unknown): { ok: true; value: Partial<ContactRoutes> } | { ok: false; error: string } {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, error: 'Send the addresses.' };
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, error: tx('Send the addresses.') };
   const value: Partial<ContactRoutes> = {};
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
     if (!(CONTACT_KEYS as string[]).includes(k)) return { ok: false, error: `Unknown address: ${k}.` };

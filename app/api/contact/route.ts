@@ -11,6 +11,8 @@ import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -33,11 +35,11 @@ export async function POST(req: Request) {
   const m = body.data;
   if (m.website || m.elapsedMs < 1500) return NextResponse.json({ ok: true }); // a bot: it learns nothing
   const ip = clientIp(req);
-  if (!(await limit(`contact:${ip}`, 5, 3_600_000))) return NextResponse.json({ error: 'Too many messages. Please try again later.' }, { status: 429 });
-  if (!(await verifyTurnstile(m.token || undefined, ip))) return NextResponse.json({ error: 'Please complete the check and try again.' }, { status: 400 });
+  if (!(await limit(`contact:${ip}`, 5, 3_600_000))) return jsonT({ error: tx('Too many messages. Please try again later.') }, { status: 429 });
+  if (!(await verifyTurnstile(m.token || undefined, ip))) return jsonT({ error: tx('Please complete the check and try again.') }, { status: 400 });
   if (supabaseConfigured) {
     const { error } = await createAdminClient().from('contact_messages').insert({ name: m.name, email: m.email, topic: m.topic, order_ref: m.orderRef, message: m.message });
-    if (error) return NextResponse.json({ error: 'Could not send. Please try again.' }, { status: 500 });
+    if (error) return jsonT({ error: tx('Could not send. Please try again.') }, { status: 500 });
   }
   // The message is saved, so a mail problem does not lose it.
   const routes = await contactRoutes();

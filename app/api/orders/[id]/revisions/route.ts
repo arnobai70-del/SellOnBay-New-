@@ -4,6 +4,7 @@ import { buyerOnly } from '@/lib/auth/guards';
 import { requestRevision } from '@/lib/revisions/service';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ description: z.string().max(4000), hint: z.enum(['defect', 'change']), consent: z.boolean() });
@@ -17,5 +18,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await requestRevision(who.id, await idOf(params), body.data);
-  return r.ok ? NextResponse.json({ ok: true, id: r.value.id }) : NextResponse.json({ error: r.error, blocked: r.blocked ?? false }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, id: r.value.id }) : jsonT({ error: r.error, blocked: r.blocked ?? false }, { status: r.status });
 }

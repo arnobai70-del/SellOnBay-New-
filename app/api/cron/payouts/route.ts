@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { checkPaypalPayout, listPayouts, planPayouts } from '@/lib/payouts';
 import { beat } from '@/lib/heartbeat';
 import { recordRun } from '@/lib/cronRuns';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -12,7 +14,7 @@ export async function POST(req: Request) {
   const given = (req.headers.get('authorization') ?? '').replace(/^Bearer /, '');
   const a = Buffer.from(given),
     b = Buffer.from(secret);
-  if (!secret || a.length !== b.length || !timingSafeEqual(a, b)) return NextResponse.json({ error: 'Not allowed.' }, { status: 401 });
+  if (!secret || a.length !== b.length || !timingSafeEqual(a, b)) return jsonT({ error: tx('Not allowed.') }, { status: 401 });
   // Each run is recorded for the admin system page (lib/cronRuns.ts); a failure is recorded and thrown on as before.
   const { r, checked } = await recordRun('payouts', async () => {
     const r = await planPayouts(Date.now(), null);

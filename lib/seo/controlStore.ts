@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
@@ -36,19 +37,19 @@ export async function pageControls(path: string): Promise<PageControls> {
 }
 
 export async function setPageControls(adminId: string | null, path: string, v: PageControls): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
-  if (path !== '/' && !seoPage(path) && !(await listingPage(path))) return { ok: false, status: 404, error: 'That page cannot be changed here.' };
+  if (path !== '/' && !seoPage(path) && !(await listingPage(path))) return { ok: false, status: 404, error: tx('That page cannot be changed here.') };
   const next = cleanControls(v);
   const bad = controlsProblem(v);
   if (bad) return { ok: false, status: 400, error: bad };
-  if (isLocked(path) && next.status !== 'published') return { ok: false, status: 400, error: 'Legal and support pages must stay published.' };
+  if (isLocked(path) && next.status !== 'published') return { ok: false, status: 400, error: tx('Legal and support pages must stay published.') };
   g.__pageCtlCache = undefined;
   const before = (await allControls())[path] ?? DEFAULT_CONTROLS;
-  if (JSON.stringify(before) === JSON.stringify(next)) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (JSON.stringify(before) === JSON.stringify(next)) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY(path), value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else mem.saved[path] = next;
   g.__pageCtlCache = undefined;
   forgetClosedProducts();

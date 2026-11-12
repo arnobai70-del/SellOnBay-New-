@@ -2,6 +2,8 @@ import { draftMode } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { adminOnly } from '@/lib/admin/guard';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -22,7 +24,7 @@ export async function GET(req: Request) {
   const a = await adminOnly('content');
   if (!a.ok) return a.res;
   const path = url.searchParams.get('path') ?? '/';
-  if (!/^\/(?!\/)[^\s\\]*$/.test(path) || path.length > 300) return NextResponse.json({ error: 'Not a page of this site.' }, { status: 400 });
+  if (!/^\/(?!\/)[^\s\\]*$/.test(path) || path.length > 300) return jsonT({ error: tx('Not a page of this site.') }, { status: 400 });
   draft.enable();
   const to = new URL(path, url);
   to.searchParams.set('draft', '1');

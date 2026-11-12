@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { audit } from '../admin/audit';
 import { orderStore } from '../orders/store';
 import { createAdminClient } from '../supabase/server';
@@ -84,12 +85,12 @@ export async function setSeo(adminId: string | null, patch: Partial<SeoSettings>
   const bad = seoProblem(next);
   if (bad) return { ok: false, status: 400, error: bad };
   const changed = (Object.keys(clean) as SeoKey[]).filter((k) => before[k] !== next[k]);
-  if (!changed.length) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (!changed.length) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await pg()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert(changed.map((k) => ({ key: KEY(k), value: next[k], changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() })));
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else for (const k of changed) mem.saved[k] = next[k];
   g.__seoCache = undefined;
   await audit(adminId, 'seo_changed', 'settings', changed.join(','), { from: Object.fromEntries(changed.map((k) => [k, before[k]])), to: Object.fromEntries(changed.map((k) => [k, next[k]])) });

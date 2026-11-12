@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { publicSlug } from '@/lib/glass/publicSlug';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
@@ -63,7 +64,7 @@ async function save(adminId: string | null, next: Allocation, what: string, ref:
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY, value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false as const, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false as const, status: 500, error: tx('Could not save.') };
   } else mem.saved = next;
   g.__hubAllocCache = undefined;
   await audit(adminId, what, 'settings', ref, { from: before, to: next });
@@ -80,23 +81,23 @@ type Result = { ok: true } | { ok: false; status: number; error: string };
 
 /* Put one listing in a hub, keep it out of all of them ("none"), or give it back to the automatic rule ("auto"). */
 export async function setAssignment(adminId: string | null, productId: string, to: string): Promise<Result> {
-  if (!/^[A-Za-z0-9_-]{1,80}$/.test(productId)) return { ok: false, status: 400, error: 'Unknown listing.' };
-  if (to !== 'auto' && to !== 'none' && !hubFor(to)) return { ok: false, status: 400, error: 'Unknown category.' };
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(productId)) return { ok: false, status: 400, error: tx('Unknown listing.') };
+  if (to !== 'auto' && to !== 'none' && !hubFor(to)) return { ok: false, status: 400, error: tx('Unknown category.') };
   g.__hubAllocCache = undefined;
   const before = await allocation(0);
   const assign = { ...before.assign };
   if (to === 'auto') delete assign[productId];
   else assign[productId] = to;
-  if (JSON.stringify(assign) === JSON.stringify(before.assign)) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (JSON.stringify(assign) === JSON.stringify(before.assign)) return { ok: false, status: 409, error: tx('Nothing changed.') };
   return save(adminId, { ...before, assign }, 'seo_hub_assignment_changed', productId, before);
 }
 
 export async function setHubLimit(adminId: string | null, slug: string, n: number): Promise<Result> {
-  if (!hubFor(slug)) return { ok: false, status: 404, error: 'Unknown category.' };
+  if (!hubFor(slug)) return { ok: false, status: 404, error: tx('Unknown category.') };
   if (!Number.isInteger(n) || n < 1 || n > HUB_LIMIT_MAX) return { ok: false, status: 400, error: `Pick a number from 1 to ${HUB_LIMIT_MAX}.` };
   g.__hubAllocCache = undefined;
   const before = await allocation(0);
-  if ((before.limits[slug] ?? HUB_LIMIT) === n) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if ((before.limits[slug] ?? HUB_LIMIT) === n) return { ok: false, status: 409, error: tx('Nothing changed.') };
   return save(adminId, { ...before, limits: { ...before.limits, [slug]: n } }, 'seo_hub_limit_changed', slug, before);
 }
 
@@ -159,19 +160,19 @@ export async function hubByEnding(ending: string): Promise<HubCopy | null> {
 /* Gives a category its own address ending (empty goes back to the built-in one). The built-in address is sent to the new one with a 301. */
 export async function setHubSlug(adminId: string | null, slug: string, ending: string): Promise<Result> {
   const hub = hubFor(slug);
-  if (!hub) return { ok: false, status: 404, error: 'Unknown category.' };
-  if (hub.slug === 'ecommerce') return { ok: false, status: 400, error: 'The E-commerce category is the home page; its address cannot change.' };
+  if (!hub) return { ok: false, status: 404, error: tx('Unknown category.') };
+  if (hub.slug === 'ecommerce') return { ok: false, status: 400, error: tx('The E-commerce category is the home page; its address cannot change.') };
   const next = ending.trim().toLowerCase();
   g.__hubAllocCache = undefined;
   const before = await allocation(0);
   const now = hubPublicSlug(hub, before);
   const want = next || hub.slug;
-  if (want === now) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (want === now) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (next) {
     const bad = slugProblem(next);
     if (bad) return { ok: false, status: 400, error: bad };
     if (next !== hub.slug && (HUBS.some((h) => h.slug === next) || categoryFor('templates', next) || Object.entries(before.slugs).some(([k, v]) => k !== hub.slug && v === next)))
-      return { ok: false, status: 409, error: 'That address is already used by another category.' };
+      return { ok: false, status: 409, error: tx('That address is already used by another category.') };
   }
   const slugs = { ...before.slugs };
   if (want === hub.slug) delete slugs[hub.slug];

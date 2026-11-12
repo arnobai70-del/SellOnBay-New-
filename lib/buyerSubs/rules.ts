@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 /*
  * Buyer subscriptions (owner, 2026-11-12): the rules, pure and tested. Every plan value comes from the admin panel (buyer_sub_plans); this file
  * only checks and computes. Expiry ends the licence to keep using the code and the free support; it never switches off a website or deletes
@@ -118,22 +119,22 @@ export const daysOf = (p: Pick<Plan, 'period' | 'periodDays'>) => (p.period === 
 /* An admin's plan form, checked. Prices are in cents. */
 export function checkPlan(raw: Record<string, unknown>): { ok: true; value: Omit<Plan, 'id' | 'archivedAt'> } | { ok: false; error: string } {
   const key = str(raw.key, 40).toLowerCase();
-  if (!/^[a-z0-9-]{2,40}$/.test(key)) return { ok: false, error: 'The plan key uses 2 to 40 lowercase letters, numbers and dashes.' };
+  if (!/^[a-z0-9-]{2,40}$/.test(key)) return { ok: false, error: tx('The plan key uses 2 to 40 lowercase letters, numbers and dashes.') };
   const name = str(raw.name, 60);
-  if (!name) return { ok: false, error: 'Give the plan a name.' };
+  if (!name) return { ok: false, error: tx('Give the plan a name.') };
   const priceCents = int(raw.priceCents, 0, 10_000_000);
   const renewalCents = int(raw.renewalCents, 0, 10_000_000);
-  if (priceCents === null || renewalCents === null) return { ok: false, error: 'Prices are whole cents from $0 to $100,000.' };
+  if (priceCents === null || renewalCents === null) return { ok: false, error: tx('Prices are whole cents from $0 to $100,000.') };
   const period = (['month', 'year', 'custom'] as const).find((p) => p === raw.period) ?? null;
-  if (!period) return { ok: false, error: 'The term is monthly, yearly or custom.' };
+  if (!period) return { ok: false, error: tx('The term is monthly, yearly or custom.') };
   const periodDays = int(raw.periodDays ?? 365, 1, 3650);
-  if (periodDays === null) return { ok: false, error: 'A custom term is 1 to 3650 days.' };
+  if (periodDays === null) return { ok: false, error: tx('A custom term is 1 to 3650 days.') };
   const websiteLimit = int(raw.websiteLimit, 0, 1000);
-  if (websiteLimit === null) return { ok: false, error: 'The number of websites is 0 to 1000.' };
+  if (websiteLimit === null) return { ok: false, error: tx('The number of websites is 0 to 1000.') };
   const supportDays = int(raw.supportDays, 0, 3650);
-  if (supportDays === null) return { ok: false, error: 'Support is 0 to 3650 days.' };
+  if (supportDays === null) return { ok: false, error: tx('Support is 0 to 3650 days.') };
   const color = str(raw.color, 7) || '#5FA88F';
-  if (!/^#[0-9A-Fa-f]{6}$/.test(color)) return { ok: false, error: 'The colour is a hex value like #5FA88F.' };
+  if (!/^#[0-9A-Fa-f]{6}$/.test(color)) return { ok: false, error: tx('The colour is a hex value like #5FA88F.') };
   const benefits = Array.isArray(raw.benefits)
     ? raw.benefits
         .map((b) => ({ text: str((b as Benefit)?.text, 120), on: (b as Benefit)?.on !== false }))
@@ -191,7 +192,7 @@ export function priceWithCoupon(cents: number, code: string | null | undefined, 
   const c = (code ?? '').trim().toUpperCase();
   if (!c) return { cents, coupon: null };
   const found = coupons.find((x) => x.code.toUpperCase() === c);
-  if (!found || !couponLive(found, today)) return { cents, coupon: null, error: 'This coupon is not valid.' };
+  if (!found || !couponLive(found, today)) return { cents, coupon: null, error: tx('This coupon is not valid.') };
   return { cents: Math.max(0, Math.round((cents * (100 - found.percentOff)) / 100)), coupon: found };
 }
 

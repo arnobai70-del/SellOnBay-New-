@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from './i18n/tx';
 import { auditStrict } from './admin/audit';
 import { orderStore } from './orders/store';
 import { createAdminClient } from './supabase/server';
@@ -59,10 +60,10 @@ export async function flagStates(): Promise<FlagState[]> {
 
 /* Switches one declared flag. Super Admin only (checked by the caller with adminOnly('super')), reason required, audited before it counts. */
 export async function setFlag(adminId: string | null, key: string, on: boolean, reason: string): Promise<Result> {
-  if (!isFlagKey(key)) return { ok: false, status: 400, error: 'Unknown feature.' };
+  if (!isFlagKey(key)) return { ok: false, status: 400, error: tx('Unknown feature.') };
   const why = reason.trim();
-  if (why.length < 5) return { ok: false, status: 400, error: 'Write why (at least 5 characters). It goes in the audit log.' };
-  if (why.length > 500) return { ok: false, status: 400, error: 'Keep the reason under 500 characters.' };
+  if (why.length < 5) return { ok: false, status: 400, error: tx('Write why (at least 5 characters). It goes in the audit log.') };
+  if (why.length > 500) return { ok: false, status: 400, error: tx('Keep the reason under 500 characters.') };
   const locked = flagDef(key).locked;
   if (locked && on) return { ok: false, status: 409, error: locked };
   const before = await isFlagOn(key);
@@ -73,7 +74,7 @@ export async function setFlag(adminId: string | null, key: string, on: boolean, 
     const { error } = await createAdminClient()
       .from('switches')
       .upsert({ key: PREFIX + key, enabled: on, reason: why, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save the change.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save the change.') };
   } else mem.set(key, { on, reason: why, at: Date.now() });
   forgetFlags();
   return { ok: true };

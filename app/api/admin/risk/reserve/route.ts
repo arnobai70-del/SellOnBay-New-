@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { removeSellerReserve, setSellerReserve } from '@/lib/reserve';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -26,5 +27,5 @@ export async function POST(req: Request) {
   const { sellerId, percent, days, remove, note, reason } = body.data;
   const why = note || reason;
   const r = remove ? await removeSellerReserve(a.id, sellerId, why) : await setSellerReserve(a.id, sellerId, percent ?? Number.NaN, days ?? Number.NaN, why);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

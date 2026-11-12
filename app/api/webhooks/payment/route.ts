@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { handlePaymentEvent } from '@/lib/orders/payments';
 import { paymentProvider } from '@/lib/providers/payment';
 import { IgnoredWebhook, WebhookError } from '@/lib/providers/payment/types';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     event = await provider.parseWebhook(req);
   } catch (e) {
     if (e instanceof IgnoredWebhook) return NextResponse.json({ status: 'ignored' });
-    if (e instanceof WebhookError) return NextResponse.json({ error: e.message }, { status: 400 });
+    if (e instanceof WebhookError) return jsonT({ error: e.message }, { status: 400 });
     throw e;
   }
   const out = await handlePaymentEvent(provider.name, event);

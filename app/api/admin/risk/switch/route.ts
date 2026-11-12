@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { SWITCHES, setSwitch, type SwitchKey } from '@/lib/switches';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ key: z.enum(Object.keys(SWITCHES) as [SwitchKey, ...SwitchKey[]]), state: z.enum(['on', 'off']), reason: z.string().max(500).default('') });
@@ -17,5 +18,5 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await setSwitch(a.id, body.data.key, body.data.state === 'on', body.data.reason);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

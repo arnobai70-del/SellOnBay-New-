@@ -3,6 +3,7 @@ import { sellerOnly } from '@/lib/auth/guards';
 import { completeUpload, runChecks } from '@/lib/files/service';
 import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -15,7 +16,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   if (!who.ok) return who.res;
   const id = await idOf(params);
   const r = await completeUpload(who.id, id);
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
   if (r.value.state === 'checking')
     after(() =>
       runChecks(id).then(

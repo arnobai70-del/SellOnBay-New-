@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { isPkg, pkgCost, pkgOffered, type Pkg, type Product } from '../data';
 import { deliveryOf, platformOf, storeOf } from '../apps';
 import { productRecord } from '../catalog';
@@ -57,35 +58,35 @@ const OWN = /^(?=.{4,80}$)([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/;
 export async function quoteSite(i: SiteInput): Promise<Quote> {
   const rec = await productRecord(String(i.productId ?? ''));
   // Only a live listing can be bought; a made-up starter is always "live".
-  if (!rec || rec.status !== 'live') return { error: 'That product is not available.' };
+  if (!rec || rec.status !== 'live') return { error: tx('That product is not available.') };
   const p = rec.product;
   if (p.example && !examplesBuyable()) return { error: EXAMPLE_NOTE };
   const real = !!p.sellerId; // a seller's own listing, not a starter
   // A banned or suspended seller cannot take new orders: they could not deliver them (they are locked out) and must not be paid for them.
-  if (real && (await accountLockedOut(p.sellerId))) return { error: 'That product is not available.' };
+  if (real && (await accountLockedOut(p.sellerId))) return { error: tx('That product is not available.') };
   if (real) {
     const max = (await getSettings()).priceMaxCents;
-    if ((p.price + pkgCost(p, isPkg(i.pkg) ? i.pkg : 'asis')) * 100 > max) return { error: 'This listing is above the price limit for now. Ask the seller to lower the price.' };
+    if ((p.price + pkgCost(p, isPkg(i.pkg) ? i.pkg : 'asis')) * 100 > max) return { error: tx('This listing is above the price limit for now. Ask the seller to lower the price.') };
   }
   const pkg: Pkg = isPkg(i.pkg) ? i.pkg : 'asis';
   const pl = platformOf(p),
     app = pl !== 'web',
     dv = deliveryOf(p),
     installer = dv === 'installer';
-  if (!pkgOffered(p, pkg)) return { error: 'The seller does not offer that option. Pick another.' };
+  if (!pkgOffered(p, pkg)) return { error: tx('The seller does not offer that option. Pick another.') };
   const lines: Line[] = [[p.name + PKG_LABEL[app ? 'app' : 'web'][pkg], (p.price + pkgCost(p, pkg)) * 100]];
   let domain: { name: string; source: 'own' | 'new' } | undefined;
 
   if (dv === null || dv === 'host') {
     if (i.domainMode === 'new') {
       if (!mayOfferNewDomain(domainProvider())) {
-        return { error: 'Domain registration is not available yet. Use a domain you already own.' };
+        return { error: tx('Domain registration is not available yet. Use a domain you already own.') };
       }
       const raw = String(i.domainName ?? '').toLowerCase();
       const dot = raw.indexOf('.');
       const name = cleanName(dot > 0 ? raw.slice(0, dot) : raw),
         tld = dot > 0 ? raw.slice(dot) : '';
-      if (name.length < 2 || !ALL_TLDS.some(([t]) => t === tld)) return { error: 'Pick a domain from the list.' };
+      if (name.length < 2 || !ALL_TLDS.some(([t]) => t === tld)) return { error: tx('Pick a domain from the list.') };
       const hit = (await domainProvider().search(name)).find((r) => r.tld === tld);
       if (!hit || !hit.available) return { error: `${name}${tld} is no longer available. Pick another.` };
       domain = { name: name + tld, source: 'new' };
@@ -96,7 +97,7 @@ export async function quoteSite(i: SiteInput): Promise<Quote> {
         .toLowerCase()
         .replace(/^https?:\/\//, '')
         .replace(/\/.*$/, '');
-      if (!OWN.test(own)) return { error: 'Enter your domain, like mybusiness.com.' };
+      if (!OWN.test(own)) return { error: tx('Enter your domain, like mybusiness.com.') };
       domain = { name: own, source: 'own' };
     }
   }
@@ -108,8 +109,8 @@ export async function quoteSite(i: SiteInput): Promise<Quote> {
   const instantNow = dv === 'download' && pkg === 'asis' && deliveryTypeOf(p) === 'download';
   const x = expressOf(p);
   if (i.express === true) {
-    if (!x) return { error: 'This seller does not offer express delivery.' };
-    if (instantNow) return { error: 'This product is delivered at once, so express is not needed.' };
+    if (!x) return { error: tx('This seller does not offer express delivery.') };
+    if (instantNow) return { error: tx('This product is delivered at once, so express is not needed.') };
     if (!expressHelps(p)) return { error: `This product is already delivered within ${CONFIG.delivery.expressHours} hours, so express is not needed.` };
     lines.push([EXPRESS_LABEL, x * 100]);
   }
@@ -119,18 +120,18 @@ export async function quoteSite(i: SiteInput): Promise<Quote> {
     appName = String(i.appName ?? '')
       .trim()
       .slice(0, 30);
-    if (appName.length < 2) return { error: 'Give your app a name.' };
+    if (appName.length < 2) return { error: tx('Give your app a name.') };
   }
   if (installer) {
     oses = (Array.isArray(i.oses) ? i.oses : []).filter((o): o is string => ['Windows', 'macOS', 'Linux'].includes(o as string));
-    if (!oses.length) return { error: 'Pick at least one computer.' };
+    if (!oses.length) return { error: tx('Pick at least one computer.') };
   }
   let github: string | undefined;
   if (deliveryTypeOf(p) === 'repo_access') {
     github = String(i.github ?? '')
       .trim()
       .replace(/^@/, '');
-    if (!GITHUB_NAME.test(github)) return { error: 'Enter your GitHub username, like octocat.' };
+    if (!GITHUB_NAME.test(github)) return { error: tx('Enter your GitHub username, like octocat.') };
   }
   return {
     instant: dv === 'download' && pkg === 'asis' && deliveryTypeOf(p) === 'download',

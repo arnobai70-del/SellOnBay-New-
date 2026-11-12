@@ -5,6 +5,7 @@ import { AuditError } from '@/lib/admin/audit';
 import { refundOrder } from '@/lib/payments/service';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ reason: z.string().max(1000) });
@@ -20,9 +21,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!body.ok) return body.res;
   try {
     const r = await refundOrder(a.id, id, body.data.reason);
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

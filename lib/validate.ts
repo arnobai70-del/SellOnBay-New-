@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { jsonT } from './i18n/jsonT';
+import { tx } from './i18n/tx';
 
 /*
  * Every route reads its input through a Zod schema from here. Shape and length are checked first; the route then applies its own rules
@@ -27,11 +29,13 @@ export function parseWith<S extends z.ZodType>(schema: S, value: unknown, messag
   return { ok: false, res: bad(message, r.error.issues[0]?.path.join('.') || undefined) };
 }
 
-/* Reads a JSON body and checks it. With `allowEmpty` a missing body counts as an empty object. */
+/* Reads a JSON body and checks it. With `allowEmpty` a missing body counts as an empty object. The message is in the person's language (jsonT). */
 export async function readJson<S extends z.ZodType>(req: Request, schema: S, opts: { allowEmpty?: boolean } = {}): Promise<Parsed<z.infer<S>>> {
   const raw = await req.json().catch(() => (opts.allowEmpty ? {} : undefined));
-  if (raw === undefined) return { ok: false, res: bad('That could not be read.') };
-  return parseWith(schema, raw);
+  const r = raw === undefined ? null : schema.safeParse(raw);
+  if (r?.success) return { ok: true, data: r.data };
+  const field = r?.error.issues[0]?.path.join('.') || undefined;
+  return { ok: false, res: await jsonT({ error: tx('That could not be read.'), ...(field ? { field } : {}) }, { status: 400 }) };
 }
 
 export const text = (max: number) => z.string().max(max);

@@ -5,6 +5,7 @@ import { CONTROL_MAX } from '@/lib/seo/controls';
 import { setPageControls } from '@/lib/seo/controlStore';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -37,5 +38,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const { path, ...controls } = body.data;
   const r = await setPageControls(a.id, path, controls);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

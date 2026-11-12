@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { adminMoveAffiliate, adminQualification, adminReverseCommission, decideWithdrawal, saveAffSettings } from '@/lib/affiliates/service';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.discriminatedUnion('action', [
@@ -48,5 +49,5 @@ export async function POST(req: Request) {
           : b.action === 'withdrawal'
             ? await decideWithdrawal(a.id, b.id, b.decision, b.reference || b.note)
             : await adminReverseCommission(a.id, b.id, b.reason || b.note);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

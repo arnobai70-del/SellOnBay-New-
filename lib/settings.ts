@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from './i18n/tx';
 import { audit } from './admin/audit';
 import { examplesAllowed } from './exampleMode';
 import { CONFIG } from './config';
@@ -73,7 +74,7 @@ export function problemWith(s: Settings): string | null {
   if (typeof s.earlyAccessOn !== 'boolean') return 'The early access bar is on or off.';
   if (typeof s.showExamples !== 'boolean') return 'The example listings are shown or hidden.';
   if (typeof s.deliveryHoursOn !== 'boolean') return 'Delivery in hours is on or off.';
-  const h = typeof s.deliveryHourChoices === 'string' ? parseHourChoices(s.deliveryHourChoices) : { ok: false as const, error: 'The hour choices are a list of numbers.' };
+  const h = typeof s.deliveryHourChoices === 'string' ? parseHourChoices(s.deliveryHourChoices) : { ok: false as const, error: tx('The hour choices are a list of numbers.') };
   if (!h.ok) return h.error;
   if (s.deliveryHoursOn && !h.hours.length) return 'Give at least one hour choice, or turn delivery in hours off.';
   if (typeof s.allowedCountries !== 'string' || !/^\s*([A-Z]{2}\s*(,\s*[A-Z]{2}\s*)*)?$/.test(s.allowedCountries))
@@ -140,10 +141,10 @@ export const forgetSettings = () => {
 /* Changes one or more settings together. A reason is required. The result is checked as a whole before anything is saved. */
 export async function setSettings(adminId: string | null, patch: Partial<Settings>, reason: string): Promise<Result> {
   const why = reason.trim();
-  if (why.length < 5) return { ok: false, status: 400, error: 'Write why (at least 5 characters). It goes in the audit log.' };
-  if (why.length > 500) return { ok: false, status: 400, error: 'Keep the reason under 500 characters.' };
+  if (why.length < 5) return { ok: false, status: 400, error: tx('Write why (at least 5 characters). It goes in the audit log.') };
+  if (why.length > 500) return { ok: false, status: 400, error: tx('Keep the reason under 500 characters.') };
   const keys = (Object.keys(patch) as Key[]).filter((k) => k in DEFAULTS && patch[k] !== undefined);
-  if (!keys.length) return { ok: false, status: 400, error: 'Nothing to change.' };
+  if (!keys.length) return { ok: false, status: 400, error: tx('Nothing to change.') };
   forgetSettings();
   const before = await getSettings();
   const next = { ...before, ...Object.fromEntries(keys.map((k) => [k, patch[k]])) } as Settings;
@@ -152,12 +153,12 @@ export async function setSettings(adminId: string | null, patch: Partial<Setting
   const bad = problemWith(next);
   if (bad) return { ok: false, status: 400, error: bad };
   const changed = keys.filter((k) => before[k] !== next[k]);
-  if (!changed.length) return { ok: false, status: 409, error: 'That is already the current value.' };
+  if (!changed.length) return { ok: false, status: 409, error: tx('That is already the current value.') };
   if (await pg()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert(changed.map((k) => ({ key: k, value: next[k], changed_by: adminId, changed_at: new Date().toISOString() })));
-    if (error) return { ok: false, status: 500, error: 'Could not save the setting.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save the setting.') };
   } else for (const k of changed) (mem.saved as Record<string, unknown>)[k] = next[k];
   forgetSettings();
   await audit(adminId, 'settings_changed', 'settings', changed.join(','), {

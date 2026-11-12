@@ -5,6 +5,8 @@ import { maintenanceFor } from '@/lib/maintenance/service';
 import { postById, saveRevision, savePost } from '@/lib/posts';
 import type { Post } from '@/lib/postRules';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -43,11 +45,11 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const d = body.data;
   const before = d.id ? await postById(d.id) : null;
-  if (d.id && !before) return NextResponse.json({ error: 'Guide not found.' }, { status: 404 });
+  if (d.id && !before) return jsonT({ error: tx('Guide not found.') }, { status: 404 });
   // An autosave never changes what is on the site: it keeps the guide's state and only stores the words.
   const status = d.autosave ? (before?.status ?? 'draft') : STATUS[d.action];
   const publishAt = d.action === 'schedule' ? (d.publishAt ? Date.parse(d.publishAt) : null) : before?.publishAt;
-  if (!d.autosave && d.action === 'schedule' && (!publishAt || publishAt <= Date.now())) return NextResponse.json({ error: 'Choose a time in the future.' }, { status: 400 });
+  if (!d.autosave && d.action === 'schedule' && (!publishAt || publishAt <= Date.now())) return jsonT({ error: tx('Choose a time in the future.') }, { status: 400 });
   const r = await savePost(a.id, before?.id ?? null, {
     slug: d.slug,
     title: d.title,
@@ -68,7 +70,7 @@ export async function POST(req: Request) {
     canonical: d.canonical,
     publishAt: publishAt ?? undefined,
   });
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
   await saveRevision(a.id, r.value, d.autosave);
   return NextResponse.json({ ok: true, id: r.value.id, slug: r.value.slug, status: r.value.status, savedAt: r.value.updatedAt });
 }

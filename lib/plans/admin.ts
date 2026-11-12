@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { audit } from '../admin/audit';
 import { createAdminClient } from '../supabase/server';
 import { isPlanCode, PLANS_V1, FLAT_PLAN, PLAN_CODES, type Plan, type PlanCode } from './rules';
@@ -114,7 +115,7 @@ export const offeredNow = (rows: PlanRow[]) => Object.fromEntries(PLAN_CODES.map
 /* An admin's seller plan form, checked. Prices in cents, the commission in basis points (15% = 1500). */
 export function checkSellerPlan(raw: Record<string, unknown>): { ok: true; value: Omit<Plan, 'id' | 'version'> } | { ok: false; error: string } {
   const code = raw.code;
-  if (!isPlanCode(code)) return { ok: false, error: 'Unknown plan.' };
+  if (!isPlanCode(code)) return { ok: false, error: tx('Unknown plan.') };
   const n = (v: unknown, lo: number, hi: number) => (Number.isInteger(Number(v)) && Number(v) >= lo && Number(v) <= hi ? Number(v) : null);
   const name = String(raw.name ?? '')
     .trim()
@@ -123,10 +124,10 @@ export function checkSellerPlan(raw: Record<string, unknown>): { ok: true; value
   const yearlyCents = n(raw.yearlyCents, 0, 10_000_000);
   const commissionBps = n(raw.commissionBps, 0, 10_000);
   const listingLimit = n(raw.listingLimit, 0, 100_000);
-  if (!name) return { ok: false, error: 'Give the plan a name.' };
-  if (monthlyCents === null || yearlyCents === null) return { ok: false, error: 'Prices are whole cents from $0.' };
-  if (commissionBps === null) return { ok: false, error: 'The commission is 0% to 100%.' };
-  if (listingLimit === null) return { ok: false, error: 'The listing limit is 0 or more.' };
+  if (!name) return { ok: false, error: tx('Give the plan a name.') };
+  if (monthlyCents === null || yearlyCents === null) return { ok: false, error: tx('Prices are whole cents from $0.') };
+  if (commissionBps === null) return { ok: false, error: tx('The commission is 0% to 100%.') };
+  if (listingLimit === null) return { ok: false, error: tx('The listing limit is 0 or more.') };
   return { ok: true, value: { code, name, monthlyCents, yearlyCents, commissionBps, listingLimit, featured: raw.featured === true } };
 }
 

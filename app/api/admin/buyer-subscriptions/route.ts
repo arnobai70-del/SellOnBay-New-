@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { adminExtend, adminMove, archivePlan, cancelWithRefund, decidePayment, duplicatePlan, refundPayment, savePlan, saveSubSettings } from '@/lib/buyerSubs/service';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.discriminatedUnion('action', [
@@ -63,5 +64,5 @@ export async function POST(req: Request) {
                   : b.action === 'cancelRefund'
                     ? await cancelWithRefund(a.id, b.id, b.reason || b.note)
                     : await adminExtend(a.id, b.id, b.days ?? Number(b.note));
-  return r.ok ? NextResponse.json({ ok: true, value: r.value }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, value: r.value }) : jsonT({ error: r.error }, { status: r.status });
 }

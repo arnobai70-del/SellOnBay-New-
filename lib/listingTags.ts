@@ -1,3 +1,4 @@
+import { tx } from './i18n/tx';
 import { isBlocked } from './chatFilter';
 import { CONFIG } from './config';
 
@@ -16,7 +17,7 @@ export function cleanTags(raw: string): { ok: true; tags: string[] } | { ok: fal
     if (!t || tags.includes(t)) continue;
     if (t.length < tagMinChars || t.length > tagMaxChars) return { ok: false, error: `Each tag is ${tagMinChars} to ${tagMaxChars} characters ("${t.slice(0, 30)}").` };
     if (!WORDS.test(t)) return { ok: false, error: `Tags use letters, numbers and spaces only ("${t.slice(0, 30)}").` };
-    if (isBlocked(t)) return { ok: false, error: 'Keep emails, phone numbers and links out of the tags.' };
+    if (isBlocked(t)) return { ok: false, error: tx('Keep emails, phone numbers and links out of the tags.') };
     tags.push(t);
   }
   if (tags.length > maxTags) return { ok: false, error: `Use up to ${maxTags} tags.` };

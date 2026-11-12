@@ -7,6 +7,8 @@ import { refundAtProvider } from '@/lib/orders/service';
 import { paymentProvider } from '@/lib/providers/payment';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -26,9 +28,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const id = await idOf(params);
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
-  if (!(await getDispute(id))) return NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });
+  if (!(await getDispute(id))) return jsonT({ error: tx('Dispute not found.') }, { status: 404 });
   const r = await decide(id, a.id, body.data);
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
   const { order, dispute } = r.value;
   // A full refund after an earlier partial one gives back only the rest (the order keeps the earlier amount in refundedCents).
   if (dispute.decision === 'refund_full') await refundAtProvider(order);

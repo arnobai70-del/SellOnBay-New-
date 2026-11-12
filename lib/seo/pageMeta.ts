@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { localizeMetadata } from '../i18n/seo';
 import { recordRevision } from '../cms/history';
 import type { Metadata } from 'next';
@@ -87,18 +88,18 @@ export async function pageMetadata(path: string, extra: Metadata = {}): Promise<
 }
 
 export async function setPageSeo(adminId: string | null, path: string, v: PageSeo): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
-  if (!seoPage(path) && !(await listingPage(path))) return { ok: false, status: 404, error: 'That page cannot be changed here.' };
+  if (!seoPage(path) && !(await listingPage(path))) return { ok: false, status: 404, error: tx('That page cannot be changed here.') };
   const next = { title: v.title.trim(), description: v.description.trim() };
   const bad = pageSeoProblem(next);
   if (bad) return { ok: false, status: 400, error: bad };
   g.__pageSeoCache = undefined;
   const before = (await allPageSeo())[path] ?? EMPTY;
-  if (before.title === next.title && before.description === next.description) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (before.title === next.title && before.description === next.description) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY(path), value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else mem.saved[path] = next;
   g.__pageSeoCache = undefined;
   await audit(adminId, 'seo_page_changed', 'settings', path, { from: before, to: next });

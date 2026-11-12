@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminOnly } from '@/lib/admin/guard';
 import { exporterName, exportSales } from '@/lib/reports/service';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 
@@ -15,5 +16,5 @@ export async function POST(req: Request) {
   const r = await exportSales({ id: a.id ?? 'demo-admin', name: await exporterName(a.id), scope: 'admin' }, raw && typeof raw === 'object' ? raw : {});
   return r.ok
     ? NextResponse.json({ ok: true, batch: r.value.batchId, files: r.value.files.map((f) => ({ id: f.id, part: f.part, rows: f.rowCount })) })
-    : NextResponse.json({ error: r.error }, { status: r.status });
+    : jsonT({ error: r.error }, { status: r.status });
 }

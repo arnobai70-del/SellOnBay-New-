@@ -7,6 +7,8 @@ import { discardDraft, publishDraft, saveDraft } from '@/lib/cms/docStore';
 import { TEMPLATES } from '@/emails/templates';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const { action, doc, text = '', subject = '' } = body.data;
-  if (!isDocName(doc) || (isEmailDoc(doc) && !Object.hasOwn(TEMPLATES, doc.slice(6)))) return NextResponse.json({ error: 'Unknown document.' }, { status: 404 });
+  if (!isDocName(doc) || (isEmailDoc(doc) && !Object.hasOwn(TEMPLATES, doc.slice(6)))) return jsonT({ error: tx('Unknown document.') }, { status: 404 });
   const name = doc as DocName;
   try {
     const r =
@@ -37,9 +39,9 @@ export async function POST(req: Request) {
         : action === 'publish'
           ? await publishDraft(a.id, a.scopes, name)
           : await saveDraft(a.id, a.scopes, name, name === 'faq' ? parseFaqText(text) : name === 'how_it_works' ? parseHowText(text) : { subject, text });
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

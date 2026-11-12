@@ -1,3 +1,4 @@
+import { tx } from './i18n/tx';
 /*
  * Where a seller's earnings are sent: the method (bank, Payoneer or Wise, as allowed by migration 0021) and the account. Admins pay by hand
  * from the weekly CSV, so the account is plain text the seller writes (an IBAN and bank name, or the Payoneer or Wise email).
@@ -16,19 +17,19 @@ const NAMES: Record<string, string> = Object.fromEntries(PAYOUT_METHODS);
 export const payoutMethodsFor = (country: string | null | undefined) => PAYOUT_METHODS.filter(([m]) => m !== 'bkash' || country === 'BD');
 
 export function checkPayoutDetails(method: unknown, account: unknown, country?: string | null): { ok: true; method: PayoutMethod; account: string } | { ok: false; error: string } {
-  if (typeof method !== 'string' || !(method in NAMES)) return { ok: false, error: 'Pick how you want to be paid.' };
-  if (method === 'bkash' && country !== 'BD') return { ok: false, error: 'bKash is only for sellers in Bangladesh. Set your country first, or pick another way.' };
+  if (typeof method !== 'string' || !(method in NAMES)) return { ok: false, error: tx('Pick how you want to be paid.') };
+  if (method === 'bkash' && country !== 'BD') return { ok: false, error: tx('bKash is only for sellers in Bangladesh. Set your country first, or pick another way.') };
   if (method === 'bkash') {
     const n = typeof account === 'string' ? account.replace(/[\s-]/g, '') : '';
-    if (!/^(\+?880|0)1[3-9]\d{8}$/.test(n)) return { ok: false, error: 'Write your bKash account number, for example 01712345678.' };
+    if (!/^(\+?880|0)1[3-9]\d{8}$/.test(n)) return { ok: false, error: tx('Write your bKash account number, for example 01712345678.') };
     return { ok: true, method: 'bkash', account: n };
   }
   const a = typeof account === 'string' ? account.replace(/\s+/g, ' ').trim() : '';
-  if (/[\u0000-\u001f\u007f]/.test(typeof account === 'string' ? account.replace(/[\r\n\t]/g, ' ') : '')) return { ok: false, error: 'Remove the special characters.' };
-  if (a.length < 5 || a.length > 200) return { ok: false, error: 'Write the account details in 5 to 200 characters.' };
+  if (/[\u0000-\u001f\u007f]/.test(typeof account === 'string' ? account.replace(/[\r\n\t]/g, ' ') : '')) return { ok: false, error: tx('Remove the special characters.') };
+  if (a.length < 5 || a.length > 200) return { ok: false, error: tx('Write the account details in 5 to 200 characters.') };
   if ((method === 'payoneer' || method === 'wise' || method === 'paypal') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a))
     return { ok: false, error: `Write the email address of your ${NAMES[method]} account.` };
-  if (method === 'bank' && !/\d{4}/.test(a)) return { ok: false, error: 'Write the account number or IBAN, the bank name and the account holder.' };
+  if (method === 'bank' && !/\d{4}/.test(a)) return { ok: false, error: tx('Write the account number or IBAN, the bank name and the account holder.') };
   return { ok: true, method: method as PayoutMethod, account: a };
 }
 

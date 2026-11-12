@@ -7,6 +7,8 @@ import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({ lang: z.string().max(5) });
@@ -22,7 +24,7 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const lang = body.data.lang.toLowerCase();
-  if (!isCode(lang) || !liveLanguages(await languageSettings()).some((l) => l.code === lang)) return NextResponse.json({ error: 'That language is not available.' }, { status: 400 });
+  if (!isCode(lang) || !liveLanguages(await languageSettings()).some((l) => l.code === lang)) return jsonT({ error: tx('That language is not available.') }, { status: 400 });
   let saved = false;
   if (supabaseConfigured) {
     const sb = await createClient();

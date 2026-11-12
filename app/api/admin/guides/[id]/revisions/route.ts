@@ -5,6 +5,8 @@ import { audit } from '@/lib/admin/audit';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { postById, revisions, saveRevision, savePost } from '@/lib/posts';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -41,10 +43,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!body.ok) return body.res;
   const p = await postById(id);
   const rev = (await revisions(id)).find((r) => r.id === body.data.revisionId);
-  if (!p || !rev) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+  if (!p || !rev) return jsonT({ error: tx('Not found.') }, { status: 404 });
   await saveRevision(a.id, p, false);
   const r = await savePost(a.id, p.id, { ...p, title: rev.title, bodyHtml: rev.bodyHtml, bodyJson: rev.bodyJson });
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
   await audit(a.id, 'post_revision_restored', 'post', p.id, { revision: rev.id });
   return NextResponse.json({ ok: true });
 }

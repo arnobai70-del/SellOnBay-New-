@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { renameListingSlug } from '@/lib/seo/slug';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ slug: z.string().max(80), newSlug: z.string().max(80) });
@@ -17,5 +18,5 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await renameListingSlug(a.id, body.data.slug.trim(), body.data.newSlug.trim().toLowerCase());
-  return r.ok ? NextResponse.json({ ok: true, to: r.to }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, to: r.to }) : jsonT({ error: r.error }, { status: r.status });
 }

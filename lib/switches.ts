@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from './i18n/tx';
 import { audit } from './admin/audit';
 import { isNewAccount } from './guard';
 import { orderStore } from './orders/store';
@@ -46,12 +47,12 @@ export async function switchStates(): Promise<SwitchState[]> {
 
 export async function setSwitch(adminId: string | null, key: SwitchKey, enabled: boolean, reason: string): Promise<Result> {
   const why = reason.trim();
-  if (!(key in SWITCHES)) return { ok: false, status: 400, error: 'Unknown switch.' };
-  if (why.length < 5) return { ok: false, status: 400, error: 'Write why (at least 5 characters). It goes in the audit log.' };
-  if (why.length > 500) return { ok: false, status: 400, error: 'Keep the reason under 500 characters.' };
+  if (!(key in SWITCHES)) return { ok: false, status: 400, error: tx('Unknown switch.') };
+  if (why.length < 5) return { ok: false, status: 400, error: tx('Write why (at least 5 characters). It goes in the audit log.') };
+  if (why.length > 500) return { ok: false, status: 400, error: tx('Keep the reason under 500 characters.') };
   if (await pg()) {
     const { error } = await createAdminClient().from('switches').upsert({ key, enabled, reason: why, changed_by: adminId, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save the switch.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save the switch.') };
   } else mem.set(key, { enabled, reason: why, at: Date.now() });
   await audit(adminId, enabled ? 'switch_on' : 'switch_off', 'switch', key, { reason: why });
   return { ok: true };

@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
@@ -57,18 +58,18 @@ export async function pageWords(path: string): Promise<ShownWords> {
 
 export async function setPageWords(adminId: string | null, path: string, v: PageWordsInput): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   const spec = seoPage(path)?.words;
-  if (!spec) return { ok: false, status: 404, error: 'That page has no words to change here.' };
+  if (!spec) return { ok: false, status: 404, error: tx('That page has no words to change here.') };
   const next = { heading: v.heading.trim(), intro: v.intro.trim(), body: v.body.replace(/\r\n?/g, '\n').trim() };
   const bad = pageWordsProblem(next, spec);
   if (bad) return { ok: false, status: 400, error: bad };
   g.__pageWordsCache = undefined;
   const before = (await allPageWords())[path] ?? EMPTY;
-  if (before.heading === next.heading && before.intro === next.intro && before.body === next.body) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (before.heading === next.heading && before.intro === next.intro && before.body === next.body) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY(path), value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else mem.saved[path] = next;
   g.__pageWordsCache = undefined;
   // Both versions go in the audit log in full, so an earlier text can always be copied back.

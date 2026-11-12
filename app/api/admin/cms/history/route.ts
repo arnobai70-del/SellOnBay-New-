@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { rollback } from '@/lib/cms/restore';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ key: z.string().min(1).max(300), version: z.coerce.number().int().min(1) });
@@ -17,5 +18,5 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await rollback(a.id, body.data.key, body.data.version);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

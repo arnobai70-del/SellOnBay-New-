@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from './i18n/tx';
 import { randomUUID } from 'node:crypto';
 import { BUCKET } from './demoStore';
 import { supabaseConfigured } from './supabase/env';
@@ -28,7 +29,7 @@ export const typeOfName = (name: string) => TYPES[name.slice(name.lastIndexOf('.
 
 export async function saveBlogImage(bytes: Uint8Array): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   let ext = sniff(bytes);
-  if (!ext) return { ok: false, error: 'Use a PNG, JPEG, WebP or GIF picture.' };
+  if (!ext) return { ok: false, error: tx('Use a PNG, JPEG, WebP or GIF picture.') };
   // Optimised (owner, 2026-11-08): at most 1,600 pixels wide, re-encoded as WebP, metadata (location, camera) dropped. A GIF stays as it is, so it keeps moving.
   if (ext !== 'gif') {
     try {
@@ -36,12 +37,12 @@ export async function saveBlogImage(bytes: Uint8Array): Promise<{ ok: true; url:
       bytes = new Uint8Array(await sharp(bytes).rotate().resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer());
       ext = 'webp';
     } catch {
-      return { ok: false, error: 'Could not read the picture.' };
+      return { ok: false, error: tx('Could not read the picture.') };
     }
   }
   const name = `${randomUUID()}.${ext}`;
   const { error } = await createAdminClient().storage.from(BUCKET).upload(`${DIR}/${name}`, bytes, { contentType: TYPES[ext], upsert: false });
-  if (error) return { ok: false, error: 'Could not store the picture.' };
+  if (error) return { ok: false, error: tx('Could not store the picture.') };
   return { ok: true, url: `/blog/media/${name}` };
 }
 

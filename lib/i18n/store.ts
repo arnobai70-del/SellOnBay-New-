@@ -4,6 +4,7 @@ import { audit } from '../admin/audit';
 import { orderStore } from '../orders/store';
 import { createAdminClient } from '../supabase/server';
 import { englishCatalog, placeholderProblem, type Catalog } from './catalog';
+import { TX_PREFIX } from './tx';
 import { BUILTIN, cleanLanguages, SOURCE, type LanguageSettings } from './config';
 import { forgetLanguages, LANG_KEY, languageSettings, languagesMem } from './settingsRead';
 
@@ -60,10 +61,11 @@ const refresh = () => {
 
 const DRAFT = (lang: string) => `i18n:draft:${lang}`;
 const PUB = (lang: string) => `i18n:pub:${lang}`;
+/* A word's key: a dotted key, or "tx:" and the English sentence (lib/i18n/tx.ts). */
+const okKey = (k: string) => /^[\w.+&'/ -]{1,200}$/.test(k) || (k.startsWith(TX_PREFIX) && k.length <= 400 && !/[\u0000-\u0009\u000b-\u001f]/.test(k));
 const clean = (raw: unknown): Catalog => {
   const out: Catalog = {};
-  if (raw && typeof raw === 'object')
-    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) if (/^[\w.+&'/ -]{1,200}$/.test(k) && typeof v === 'string' && v.trim()) out[k] = v.slice(0, 4000);
+  if (raw && typeof raw === 'object') for (const [k, v] of Object.entries(raw as Record<string, unknown>)) if (okKey(k) && typeof v === 'string' && v.trim()) out[k] = v.slice(0, 4000);
   return out;
 };
 export const publishedWords = async (lang: string): Promise<Catalog> => (lang === SOURCE ? {} : clean(await read(PUB(lang))));
@@ -77,7 +79,7 @@ export async function saveDraftWords(adminId: string | null, lang: string, words
   const existing = await draftWords(lang);
   const draft: Catalog = Object.keys(existing).length ? existing : await publishedWords(lang); // a first draft starts from what is published
   for (const [k, raw] of Object.entries(words).slice(0, 2000)) {
-    if (!/^[\w.+&'/ -]{1,200}$/.test(k)) continue;
+    if (!okKey(k)) continue;
     const v = typeof raw === 'string' ? raw.trim().slice(0, 4000) : '';
     if (!v) {
       delete draft[k];

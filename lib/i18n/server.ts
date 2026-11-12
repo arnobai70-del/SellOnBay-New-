@@ -1,6 +1,7 @@
 import 'server-only';
 import { headers } from 'next/headers';
-import { bundled, format, lookup } from './catalog';
+import { bundled, clientStrings, format, lookup } from './catalog';
+import { TX_PREFIX, txLookup, type Dict } from './tx';
 import { dirOf, HEADER, liveLanguages, SOURCE, type Dir, type Language } from './config';
 import { languageSettings } from './settingsRead';
 import { publishedWords } from './store';
@@ -27,6 +28,10 @@ export type I18n = {
   t: (key: string, vars?: Record<string, string | number>) => string;
   /* A word that may not exist in the catalogue (product words): its translation, else the given English. */
   pick: (key: string, english: string) => string;
+  /* An interface word by its English text (lib/i18n/tx.ts). */
+  tx: (english: string, vars?: Record<string, string | number>) => string;
+  /* The words client components need, for this language only (empty for English: nothing is sent). */
+  clientDict: Dict;
   languages: Language[];
 };
 
@@ -35,8 +40,11 @@ export async function getI18n(lang?: string): Promise<I18n> {
   const code = lang ?? (await requestLang());
   const s = await languageSettings();
   const languages = liveLanguages(s);
-  if (code === SOURCE) return { lang: SOURCE, dir: 'ltr', t: (k, v) => format(lookup(k, {}, {}), v), pick: (_k, english) => english, languages };
+  if (code === SOURCE) return { lang: SOURCE, dir: 'ltr', t: (k, v) => format(lookup(k, {}, {}), v), pick: (_k, english) => english, tx: (e, v) => txLookup(null, e, v), clientDict: {}, languages };
   const [pub, bundle] = await Promise.all([publishedWords(code), bundled(code)]);
   const pick = (k: string, english: string) => (pub[k]?.trim() ? pub[k] : bundle[k]?.trim() ? bundle[k] : english);
-  return { lang: code, dir: dirOf(s, code), t: (k, v) => format(lookup(k, pub, bundle), v), pick, languages };
+  const word = (e: string) => (pub[TX_PREFIX + e]?.trim() ? pub[TX_PREFIX + e] : bundle[TX_PREFIX + e]?.trim() ? bundle[TX_PREFIX + e] : e);
+  const clientDict: Dict = {};
+  for (const e of clientStrings()) if (word(e) !== e) clientDict[e] = word(e);
+  return { lang: code, dir: dirOf(s, code), t: (k, v) => format(lookup(k, pub, bundle), v), pick, tx: (e, v) => txLookup({ [e]: word(e) }, e, v), clientDict, languages };
 }

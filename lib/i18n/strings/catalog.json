@@ -1,0 +1,346 @@
+{
+ "strings": {
+  "Add a website from its page.": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Apply": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Available after beta": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Back to cart": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Beta: free in exchange for your feedback. No payment is taken.": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Browse websites": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Card or bank transfer": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Choose your country": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Coming soon": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Company (optional)": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Could not send your request. Please try again.": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Country": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Coupon code": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Coupons are not ready yet.": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Domain": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Domain name": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Email": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Escrow protection": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Find a domain": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Free beta": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Free during beta": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Full name": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Go to checkout": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "How it works": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "I agree to the": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "I already have a domain": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "In the beta nothing is charged.": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Included": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "License": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Loading your cart.": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Loading your cart…": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Nothing is charged": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Payment method": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Protected by escrow": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Refund policy": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Registered in your own name. You own it, not the seller. We check availability by hand.": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Remove": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Remove {name}": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Send request": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Sending": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Standard license · by {seller}": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Subtotal": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Summary": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Terms": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "The seller is paid only after your {hours}-hour review.": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Total": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "What happens next": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "What will you use it for?": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Write the domain you own above; the seller connects it for you.": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Your cart": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Your cart is empty": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "Your details": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "Your name": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "and": {
+   "client": true,
+   "files": [
+    "app/(glass)/checkout/BetaForm.tsx"
+   ]
+  },
+  "available after beta": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "{n} item · checkout with escrow protection": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  },
+  "{n} items · checkout with escrow protection": {
+   "client": true,
+   "files": [
+    "app/(glass)/cart/CartClient.tsx"
+   ]
+  }
+ }
+}

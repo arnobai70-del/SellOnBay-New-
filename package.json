@@ -23,7 +23,8 @@
     "db:backup": "node scripts/db-backup.mjs",
     "db:restore": "node scripts/db-restore.mjs",
     "storage:backup": "node scripts/storage-backup.mjs",
-    "storage:restore": "node scripts/storage-restore.mjs"
+    "storage:restore": "node scripts/storage-restore.mjs",
+    "i18n:extract": "node scripts/i18n-extract.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

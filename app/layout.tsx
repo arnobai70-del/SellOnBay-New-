@@ -4,9 +4,8 @@ import { Suspense } from 'react';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { isStaging } from '@/lib/stage';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
-import { dirOf } from '@/lib/i18n/config';
-import { requestLang } from '@/lib/i18n/server';
-import { languageSettings } from '@/lib/i18n/settingsRead';
+import { TxProvider } from '@/components/i18n/TxProvider';
+import { getI18n } from '@/lib/i18n/server';
 
 const description = 'Ready-made websites and small tools, live on your own domain in 1 to 7 days. Payment is held until you accept.';
 
@@ -22,8 +21,9 @@ export const metadata: Metadata = {
 
 // The page's language and direction come from the request (lib/i18n): /bn/… is Bengali, Arabic is right to left. English otherwise.
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const lang = await requestLang();
-  const dir = dirOf(await languageSettings(), lang);
+  const i18n = await getI18n();
+  const lang = i18n.lang;
+  const dir = i18n.dir;
   return (
     <html lang={lang} dir={dir} suppressHydrationWarning>
       <body>
@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a className="sob-skip" href="#main">
           Skip to content
         </a>
-        {children}
+        <TxProvider dict={i18n.clientDict}>{children}</TxProvider>
         {/* Loads nothing until the visitor accepts analytics in the cookie notice. */}
         <Suspense fallback={null}>
           <GoogleAnalytics />

@@ -32,6 +32,7 @@ import {
   type LeaderRow,
   type Settings,
 } from './rules';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; // app_settings.changed_by references an account
 
 /*
  * The affiliate program, server side (owner, 2026-11-12). A separate system: it reads orders, buyer subscription payments and seller plans to
@@ -122,7 +123,9 @@ export async function saveAffSettings(adminId: string | null, raw: unknown): Pro
   const next = cleanSettings(raw);
   const before = await affSettings();
   if (await pg()) {
-    const { error } = await db().from('app_settings').upsert({ key: KEY, value: next, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    const { error } = await db()
+      .from('app_settings')
+      .upsert({ key: KEY, value: next, changed_at: new Date().toISOString(), changed_by: UUID.test(adminId ?? '') ? adminId : null }, { onConflict: 'key' });
     if (error) return fail(500, 'Could not save the affiliate settings.');
   } else mem.settings = next;
   await audit(adminId, next.enabled === before.enabled ? 'affiliates_settings' : next.enabled ? 'affiliates_on' : 'affiliates_off', 'affiliates', 'settings', {
@@ -625,7 +628,7 @@ async function approveCommissionAtomic(id: string, now: number): Promise<string>
   }
   const c = mem.comms.find((x) => x.id === id);
   if (!c) return 'not_found';
-  if (c.status !== 'pending') return c.status;
+  if (c.status !== 'pending') return `already_${c.status}`;
   const amount = commissionCents(c.basisCents, c.rateBps);
   if (amount <= 0) return 'zero';
   mem.ledger.push({ affiliate_id: c.affiliateId, entry_key: `commission:${id}`, kind: 'commission', amount_cents: amount, commission_id: id, withdrawal_id: null, at: new Date(now).toISOString() });

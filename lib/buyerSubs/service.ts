@@ -28,6 +28,7 @@ import {
   type SubStatus,
   type Subscription,
 } from './rules';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; // app_settings.changed_by references an account
 
 /*
  * Buyer subscriptions (owner, 2026-11-12), server side. Tables from migration 0085 (server only); before it is applied, or without a database,
@@ -128,7 +129,9 @@ export async function saveSubSettings(adminId: string | null, raw: Partial<SubSe
     allowedMethods: Array.isArray(raw.allowedMethods) ? raw.allowedMethods.filter((x): x is string => typeof x === 'string' && /^[\w-]{1,64}$/.test(x)).slice(0, 20) : [],
   };
   if (await pg()) {
-    const { error } = await createAdminClient().from('app_settings').upsert({ key: SETTINGS_KEY, value: next, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    const { error } = await createAdminClient()
+      .from('app_settings')
+      .upsert({ key: SETTINGS_KEY, value: next, changed_at: new Date().toISOString(), changed_by: UUID.test(adminId ?? '') ? adminId : null }, { onConflict: 'key' });
     if (error) return fail(500, 'Could not save the settings.');
   } else mem.settings = next;
   await audit(adminId, next.enabled ? 'buyer_subs_on' : 'buyer_subs_off', 'buyer_subs', 'settings', { faq: faq.length });

@@ -430,6 +430,25 @@ describe('which orders earn', () => {
   });
 });
 
+describe('the production checks (supabase/checks): preflight before 0086, postcheck after 0087', () => {
+  it('every row says ok on a database at 0085, and again after 0086 and 0087', async () => {
+    const db = new PGlite({ extensions: { pg_trgm } });
+    await db.exec(STAND_INS);
+    const files = migrationFiles() as { file: string; sql: string }[];
+    for (const f of files.filter((x) => x.file < '0086')) await db.exec(forPglite(f.sql));
+    const rows = async (name: string) => (await db.query<{ check: string; ok: boolean }>(readFileSync(`supabase/checks/${name}.sql`, 'utf8'))).rows;
+    const pre = await rows('affiliates-preflight');
+    expect(pre.length).toBe(8);
+    expect(pre.filter((r) => !r.ok)).toEqual([]);
+    for (const f of files.filter((x) => x.file >= '0086')) await db.exec(forPglite(f.sql));
+    const post = await rows('affiliates-postcheck');
+    expect(post.length).toBe(11);
+    expect(post.filter((r) => !r.ok)).toEqual([]);
+    expect((await rows('affiliates-preflight')).filter((r) => !r.ok).length).toBeGreaterThan(0); // and the preflight now refuses a second run
+    await db.close();
+  }, 180_000);
+});
+
 describe('migration 0086: client access and the rollback script (in-process Postgres)', () => {
   it('anon and signed-in roles cannot read or write; the rollback removes only the affiliate tables and 0086 applies again', async () => {
     const db = new PGlite({ extensions: { pg_trgm } });

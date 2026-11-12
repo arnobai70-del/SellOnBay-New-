@@ -109,7 +109,8 @@ describe.skipIf(!HAVE)('affiliate money on a real Postgres with concurrent sessi
     const before = balance();
     const runs = await race(20, () => `select affiliate_approve_commission('${c}');`);
     expect(runs.every((r) => r.ok)).toBe(true);
-    expect(runs.filter((r) => r.out.endsWith('approved')).length).toBe(20); // the first approves, the rest see it already approved
+    expect(runs.filter((r) => /(^|\n)approved$/.test(r.out)).length).toBe(1); // exactly one call books it
+    expect(runs.filter((r) => r.out.endsWith('already_approved')).length).toBe(19); // the rest see it already approved
     expect(num(`select count(*) from affiliate_ledger where entry_key = 'commission:${c}'`)).toBe(1);
     expect(balance() - before).toBe(1500);
   }, 60_000);

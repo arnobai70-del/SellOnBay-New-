@@ -72,16 +72,35 @@ new status together, or nothing.
 | `tests/unit/affiliates-pg.test.ts` | a REAL Postgres 17 server in a throwaway cluster (temp folder, own port, deleted after): 20 racing approvals book once; 10 racing inserts of one paid thing make one commission; approve and reverse racing always net to zero; 10 racing withdrawal requests reserve once; 10 racing payouts book once; an injected failure after the ledger write rolls the whole step back; a killed connection mid-transaction saves nothing; no direct writes or deletes for the app role; no function access for browser roles. Skipped where PostgreSQL is not installed (`PG_BIN`). |
 | `tests/unit/affiliates-dashboard.test.ts` | the signed-in dashboard rendered on the server with a real approved commission, a pending one, a paid withdrawal, badges, rank and activity |
 | `tests/e2e/affiliates.spec.ts` (demo build) | off by default; all twelve admin sections; every editor (target, rates, minimum, cookie, badges, benefits, questions, terms, leaderboard) shows on the public page; off with a confirmation; the demo account joins, gets links, saves a payout method, opts out; the cookie is set only with analytics consent; suspend and reactivate; CSV download; phone and desktop widths |
+| `tests/unit/affiliates-staging.test.ts` | the REAL staging Supabase project (`occketfmjwciilzuddkv`, refuses any other): functions resolve with the app's exact parameters and are refused to browsers; the server key cannot write the ledger or withdrawals or delete; real sign-in reads nothing; a referred order goes funded → delivered → accepted and is approved once (domain left out of the basis); 10 racing withdrawals reserve once; 10 racing payouts book once; a disputed and refunded order reverses its pending commission; a refunded buyer subscription payment reverses its approved commission (in once, out once). Run with `AFF_STAGING=1`. |
+| `supabase/checks/affiliates-preflight.sql`, `affiliates-postcheck.sql` | read-only checks before and after the migrations; tested on an in-process Postgres and the post-check run on staging (11 of 11 ok) |
+
+### Staging run (2026-11-12)
+
+The empty "SellOnBay Staging" project was paused and the repo's official staging ("SellOnBay New", `occketfmjwciilzuddkv`) restored
+(Free plan: two active projects). Migrations 0069 to 0087 were applied there with `node scripts/staging-migrate.mjs apply` (dry run first;
+production ref refused). Post-check: 11 of 11 ok. `affiliates-staging.test.ts`: 4 of 4 pass. It found one real bug the memory store hid:
+saving the affiliate, buyer subscription and seller plan settings wrote an `updated_at` column that `app_settings` does not have, so every
+save failed on a real database. Fixed (`changed_at`, `changed_by`) and guarded by `tests/unit/app-settings-columns.test.ts`. The buyer and
+seller fix touches code already on `main`: on the live site the Subscription Management switches cannot be saved until this branch ships.
+Test accounts on staging are `aff-staging-*@example.test` (no email sent); the program and buyer subscriptions were switched off afterwards.
 
 ## Production rollout (only with the owner's written approval)
 
-1. Backup: a read-only `pg_dump` of the live database into `backups/` (git-ignored), checked with `pg_restore --list`; confirm today's
-   automatic backup in Supabase.
-2. Apply 0086, then 0087 (Supabase › SQL editor or `supabase db push`). Both only add; nothing existing changes.
-3. Check: `select count(*) from affiliates;` returns 0;
-   `select has_table_privilege('service_role', 'affiliate_ledger', 'insert');` returns false; the admin page opens.
-4. Merge `feat/affiliates` into `main`, build the zip (`npm run package:hostinger`), deploy.
-5. The program stays off. When the owner decides, a Super Admin turns it on in Program settings.
+Manual steps are kept to the Supabase SQL editor and the usual zip upload. Nothing here changes data that exists today.
+
+1. **Backup** (I run it): `SUPABASE_DB_URL=… BACKUP_PASSPHRASE=… npm run db:backup` (encrypted, `backups/`, git-ignored), checked with
+   `pg_restore --list`; also confirm today's automatic backup in Supabase › Database › Backups.
+2. **Preflight** (read only): run `supabase/checks/affiliates-preflight.sql` in the SQL editor. Every row must say `ok = true`.
+3. **Migrations**: run `0086_affiliates.sql`, then `0087_buyer_sub_refunds.sql` in the SQL editor (or `supabase db push`). Both only add.
+4. **Post-check** (read only): run `supabase/checks/affiliates-postcheck.sql`. Every row must say `ok = true`; otherwise keep the program off
+   and roll back.
+5. **Code**: merge `feat/affiliates` into `main`, build the zip (`npm run package:hostinger`), upload, restart. The first log line names the
+   commit.
+6. **Smoke check on the live site** (program still off): `/affiliates` is a 404; Admin › Affiliate Management opens and says "Program off";
+   Admin › Subscription Management saves its switches again (the bug above), then put them back off.
+7. **Program stays off.** Activation is a separate, written decision of the owner (Program settings, Super Admin). Before it: the first
+   real paid order needs payments out of `beta_free`.
 
 ## Rollback
 
@@ -95,5 +114,5 @@ new status together, or nothing.
 
 - While `PAYMENTS_MODE` is `beta_free`, purchases are free, so they earn no commission. Commissions start with paid orders.
 - A referral is remembered only if the visitor accepted analytics cookies before or on the visit through the link.
-- The money functions are tested on a real Postgres here, but the app's calls to them through Supabase (PostgREST) have not run against a
-  real Supabase project: there is no staging project with keys on this machine. Run `docs/STAGING_CHECK.md` style checks on staging first.
+- Staging and production run in different regions (ap-southeast-2 and ap-northeast-1); the behaviour is the same, only slower in tests.
+- On the Free plan only two projects can be active: staging is now "SellOnBay New"; "SellOnBay Staging" is paused (empty, nothing lost).

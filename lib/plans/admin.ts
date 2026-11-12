@@ -3,6 +3,7 @@ import { audit } from '../admin/audit';
 import { createAdminClient } from '../supabase/server';
 import { isPlanCode, PLANS_V1, FLAT_PLAN, PLAN_CODES, type Plan, type PlanCode } from './rules';
 import { plansPg } from './store';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; // app_settings.changed_by references an account
 
 /*
  * Seller subscriptions in Admin › Subscription Management (owner, 2026-11-12), on top of the existing system (migration 0057, lib/plans):
@@ -60,7 +61,9 @@ export async function sellerSubSettings(): Promise<SellerSubSettings> {
 export async function saveSellerSubSettings(adminId: string | null, raw: { enabled?: unknown; display?: Record<string, unknown> }): Promise<R<SellerSubSettings>> {
   const next: SellerSubSettings = { enabled: raw.enabled === true, display: Object.fromEntries(PLAN_CODES.map((c, i) => [c, cleanDisplay(raw.display?.[c], i)])) as Record<PlanCode, SellerDisplay> };
   if (await plansPg()) {
-    const { error } = await createAdminClient().from('app_settings').upsert({ key: KEY, value: next, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    const { error } = await createAdminClient()
+      .from('app_settings')
+      .upsert({ key: KEY, value: next, changed_at: new Date().toISOString(), changed_by: UUID.test(adminId ?? '') ? adminId : null }, { onConflict: 'key' });
     if (error) return fail(500, 'Could not save the seller settings.');
   } else mem.settings = next;
   await audit(adminId, next.enabled ? 'seller_subs_on' : 'seller_subs_off', 'seller_subs', 'settings');

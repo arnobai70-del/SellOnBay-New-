@@ -166,7 +166,8 @@ end $$;
 drop trigger if exists affiliate_commission_guard on affiliate_commissions;
 create trigger affiliate_commission_guard before insert or update on affiliate_commissions for each row execute function affiliate_commission_guard();
 
--- Approve a pending commission: amount = basis x rate (rounded down), booked once. Returns 'approved', or the status it already had, or 'not_found'.
+-- Approve a pending commission: amount = basis x rate (rounded down), booked once. Returns 'approved' only when this call booked it;
+-- otherwise 'already_approved', 'already_reversed', 'zero' or 'not_found'.
 create or replace function affiliate_approve_commission(p_id uuid, p_at timestamptz default now())
 returns text language plpgsql security definer set search_path = public as $$
 declare
@@ -179,7 +180,7 @@ begin
   if v_aff is null then return 'not_found'; end if;
   perform 1 from affiliates where id = v_aff for update;
   select * into c from affiliate_commissions where id = p_id for update;
-  if c.status <> 'pending' then return c.status; end if;
+  if c.status <> 'pending' then return 'already_' || c.status; end if; -- already_approved or already_reversed: nothing booked
   v_amount := floor(c.basis_cents::numeric * c.rate_bps / 10000)::int;
   if v_amount <= 0 then return 'zero'; end if;
   insert into affiliate_ledger (affiliate_id, entry_key, kind, amount_cents, commission_id, at)

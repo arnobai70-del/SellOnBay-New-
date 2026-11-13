@@ -34,6 +34,9 @@ test.describe('Languages', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'bn');
     await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
     const nav = page.getByRole('navigation', { name: 'প্রধান' }); // the menu's label is translated too ("Main")
+    // A language's longer words may not fit beside search and cart: then the links sit behind the menu button (PublicNav, owner 2026-11-14)
+    const menuButton = nav.locator('.sob-burger');
+    if (await menuButton.isVisible()) await menuButton.click();
     await expect(nav.getByRole('link', { name: 'ওয়েবসাইট' })).toHaveAttribute('href', '/bn/websites');
     await expect(nav.getByRole('link', { name: 'অ্যাফিলিয়েট' })).toHaveAttribute('href', '/bn/affiliates');
     await expect(page.getByText('ওয়েবসাইট কিনুন। ডোমেইন নিন। অথবা নিজেরটা বিক্রি করুন।')).toBeVisible(); // the home page words
@@ -143,6 +146,8 @@ test.describe('Languages', () => {
       await page.goto(`${DEMO}/${code}/help`);
       await expect(page.locator('html'), code).toHaveAttribute('lang', code);
       await expect(page.locator('html'), code).toHaveAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
+      const menuButton = page.locator('nav.nav .sob-burger'); // longer words: the links sit behind the menu button (PublicNav)
+      if (await menuButton.isVisible()) await menuButton.click();
       await expect(page.getByRole('link', { name: home[code], exact: true }).first(), code).toBeVisible(); // the menu's Help link
       expect(await page.locator('link[rel="canonical"]').getAttribute('href'), code).toMatch(new RegExp(`/${code}/help$`));
       expect(await page.locator('link[rel="alternate"][hreflang]').count(), code).toBe(BUILTIN.length + 1); // every language and x-default

@@ -2092,3 +2092,215 @@
 :is(.sob-p,.sob-d) .sob-price-big .sob-price-note {
   font-size: 13px;
 }
+
+/* Language picker (owner, 2026-11-14: the plain browser select did not match the bar). A pill like the bar's ghost buttons, with a globe
+   and its own arrow; still a native <select>. Same height as the Cart button, never wider than its longest language name. */
+:is(.sob-p, .sob-d) .sob-lang {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: #2b4250;
+}
+:is(.sob-p, .sob-d) .sob-lang .sob-lang-globe {
+  position: absolute;
+  left: 10px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.75;
+}
+:is(.sob-p, .sob-d) .sob-lang .sob-lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+  max-width: 150px;
+  padding: 0 26px 0 31px;
+  border: 1px solid #d3e2e9;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%232B4250' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  color: #2b4250;
+  font: 500 14px var(--font-inter), sans-serif;
+  line-height: 1;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+:is(.sob-p, .sob-d) .sob-lang .sob-lang-select:hover {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: #b9d3dd;
+}
+:is(.sob-p, .sob-d) .sob-lang .sob-lang-select:focus-visible {
+  outline: 2px solid #2b3dff;
+  outline-offset: 2px;
+}
+:is(.sob-p, .sob-d) .sob-lang .sob-lang-select option {
+  color: #0f1330;
+  background: #fff;
+}
+
+/* The top bar stays ONE row in every language on wide screens (owner, 2026-11-14: in Bengali the longer menu words pushed search, cart and
+   the language picker onto a second row). Logo and right side keep their size; the menu takes the space between them, tightens its
+   padding on narrower screens and, only if a language is still too long, scrolls sideways like the phone menu instead of wrapping. */
+@media (min-width: 761px) {
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass {
+    flex-wrap: nowrap;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass > .logo,
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass > .sob-navr {
+    flex: 0 0 auto;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass > .navlinks {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    justify-content: safe center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass > .navlinks::-webkit-scrollbar {
+    display: none;
+  }
+}
+@media (min-width: 761px) and (max-width: 1240px) {
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass > .navlinks a {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+@media (max-width: 760px) {
+  /* phones: the picker is a round globe button (the native select stays on top of it, see-through, so a tap opens the phone's own list);
+     long words such as "Warenkorb" then still fit beside it on one row */
+  :is(.sob-p, .sob-d) .sob-lang .sob-lang-globe {
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.9;
+  }
+  :is(.sob-p, .sob-d) .sob-lang .sob-lang-select {
+    width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    padding: 0;
+    color: transparent;
+    background-image: none;
+    text-indent: -999px;
+  }
+  :is(.sob-p, .sob-d) .sob-lang .sob-lang-select option {
+    text-indent: 0;
+  }
+}
+
+/* The bar's compact form on wide screens (PublicNav adds .sob-compact when the links do not fit in the page's language): the same menu
+   button and sheet as on phones, so every link stays reachable. */
+@media (min-width: 761px) {
+  .sob-p[data-sob] .nav.glass.sob-compact {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact > .sob-navr {
+    order: 1;
+    margin-left: auto;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact > .sob-burger {
+    order: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #d3e2e9;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    padding: 0;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger span,
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger span::before,
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger span::after {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #2b4250;
+    position: relative;
+    content: '';
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger span::before {
+    position: absolute;
+    top: -6px;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger span::after {
+    position: absolute;
+    top: 6px;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger[aria-expanded='true'] span {
+    background: transparent;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger[aria-expanded='true'] span::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact .sob-burger[aria-expanded='true'] span::after {
+    top: 0;
+    transform: rotate(-45deg);
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact > .navlinks {
+    display: none;
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+    flex-direction: column;
+    overflow: visible;
+    white-space: normal;
+    gap: 2px;
+    padding-top: 6px;
+    border-top: 1px solid #dce7ec;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact > .navlinks.open {
+    display: flex;
+  }
+  .sob-p[data-sob] .nav.glass.sob-compact > .navlinks a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+  }
+}
+
+/* An open menu sheet makes the bar tall: soft corners instead of the pill (which would draw an ellipse). */
+:is(.sob-p, .sob-d)[data-sob] .nav.glass:has(> .navlinks.open) {
+  border-radius: 24px;
+}
+/* Phones: the same two rows in every language (owner, 2026-11-14): logo and menu button on top, then search-free actions (cart, language,
+   account) on their own row, so a short language never leaves the menu button alone on a second line. */
+@media (max-width: 760px) {
+  .sob-p[data-sob] .nav .sob-burger {
+    order: 1;
+    margin-left: auto;
+  }
+  .sob-p[data-sob] .nav .sob-navr {
+    order: 2;
+    flex: 1 1 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}
+
+/* The tight top bar (PublicNav, .sob-tight): a narrower search box and closer menu links make room for a language's longer words before
+   the menu button is needed. */
+@media (min-width: 761px) {
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass.sob-tight .sob-sx-compact .input {
+    width: 130px;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .nav.glass.sob-tight > .navlinks a {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+}

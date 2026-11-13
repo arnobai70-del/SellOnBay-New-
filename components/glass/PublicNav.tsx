@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { BrandMark } from '@/components/glass/BrandMark';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BRAND_NAME } from '@/lib/brand';
 import { useCart } from '@/lib/glass/cart';
 import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
@@ -45,8 +45,39 @@ export function PublicNav({
     document.addEventListener('keydown', esc);
     return () => document.removeEventListener('keydown', esc);
   }, [menu]);
+  // Fit (owner, 2026-11-14): in a language with longer words the links do not fit beside search, cart and the language choice. Measured in
+  // the full layout (what logo, links and right side need), then on every resize, in two steps: first the search box gets narrower
+  // (.sob-tight); if that is still not enough, the bar uses the menu button and sheet the phones use (.sob-compact). No link is ever cut off
+  // or pushed onto a second row. Without JavaScript the links scroll sideways.
+  const navRef = useRef<HTMLElement>(null);
+  const [fit, setFit] = useState<'full' | 'tight' | 'compact'>('full');
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const measure = () => {
+      if (window.innerWidth <= 760) return setFit('full'); // phones already use the menu button (app/sob-extra.css)
+      // Try each form and keep the first whose links fit their space exactly (the classes are put back before the browser paints).
+      const links = nav.querySelector('.navlinks') as HTMLElement | null;
+      if (!links) return;
+      const before = nav.className;
+      const fits = () => links.scrollWidth <= links.clientWidth + 1;
+      nav.classList.remove('sob-tight', 'sob-compact');
+      let next: 'full' | 'tight' | 'compact' = 'full';
+      if (!fits()) {
+        nav.classList.add('sob-tight');
+        next = fits() ? 'tight' : 'compact';
+      }
+      nav.className = before;
+      setFit(next);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(nav);
+    void document.fonts?.ready.then(measure); // a language's own font changes the words' widths once it has loaded
+    return () => ro.disconnect();
+  }, []);
   return (
-    <nav className="glass nav" aria-label={tx('Main')}>
+    <nav ref={navRef} className={fit === 'full' ? 'glass nav' : `glass nav sob-${fit}`} aria-label={tx('Main')}>
       <Link className="logo" href={home} prefetch={false}>
         <BrandMark />
         {BRAND_NAME}

@@ -16,11 +16,16 @@ export function LanguageSwitcher({ languages, current, label, id = 'lang' }: { l
       <label htmlFor={id} className="hidden-label">
         {label}
       </label>
+      {/* A real <select> (keyboard, screen readers, the phone's own picker), styled as the bar's pill buttons in app/sob-parts.css */}
+      <svg className="sob-lang-globe" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      </svg>
       <select
         id={id}
-        className="input"
+        className="sob-lang-select"
         value={current}
-        style={{ width: 'auto', minWidth: 110, borderRadius: 999 }}
+        title={label}
         onChange={(e) => {
           const code = e.target.value;
           document.cookie = `${COOKIE}=${code}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;

@@ -18,15 +18,17 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Finance and payouts'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['payouts', 'Payouts'],
-  ['ledger', 'Ledger'],
-  ['refunds', 'Refunds'],
-  ['reconciliation', 'Reconciliation'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['payouts', tx('Payouts')],
+    ['ledger', tx('Ledger')],
+    ['refunds', tx('Refunds')],
+    ['reconciliation', tx('Reconciliation')],
+  ] as const;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
 const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
@@ -40,7 +42,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/finance', roles: ['admin'], scope: 'finance' });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'payouts';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'payouts';
   const now = Date.now();
   const to = DAY.test(sp.to ?? '') ? sp.to! : iso(now);
   const from = DAY.test(sp.from ?? '') ? sp.from! : iso(Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1));
@@ -75,14 +77,14 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
   const weeks = [...new Set(toSend.filter((p) => p.status === 'scheduled').map((p) => p.weekStart))];
   const query = (t: string) => `/admin/finance?${new URLSearchParams({ ...(t !== 'payouts' ? { tab: t } : {}), ...(sp.from ? { from } : {}), ...(sp.to ? { to } : {}) })}`;
   const lines: [string, number][] = [
-    ['Buyer money in escrow', escrow],
-    ['Sellers, on the 7-day hold', pending],
-    ['Sellers, available for payout', available],
-    ['Sellers, reserve', reserve],
-    ['Owed by sellers after refunds', debt],
-    ['Reported payments held, not matched to an order yet', held],
-    ['Refunds owed to buyers', refundDue],
-    ['Platform revenue', revenue],
+    [tx('Buyer money in escrow'), escrow],
+    [tx('Sellers, on the 7-day hold'), pending],
+    [tx('Sellers, available for payout'), available],
+    [tx('Sellers, reserve'), reserve],
+    [tx('Owed by sellers after refunds'), debt],
+    [tx('Reported payments held, not matched to an order yet'), held],
+    [tx('Refunds owed to buyers'), refundDue],
+    [tx('Platform revenue'), revenue],
   ];
   return (
     <AdminShell viewer={viewer} active="finance" file="admin-finance" title={tx('Finance & payouts')} head={false}>
@@ -175,7 +177,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
         </div>
       </div>
       <div className="seg" role="tablist" aria-label={tx('Finance section')} style={{ alignSelf: 'flex-start' }}>
-        {TABS.map(([k, l]) => (
+        {TABS(tx).map(([k, l]) => (
           <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={query(k)} prefetch={false}>
             {l}
           </Link>
@@ -268,27 +270,34 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                                 endpoint={`/api/admin/payouts/${p.id}/paypal`}
                                 fixed={{ action: 'send' }}
                                 fields={[]}
-                                openLabel="Pay now"
-                                submit={`Send ${usd(p.amountCents)} to ${p.account}`}
+                                openLabel={tx('Pay now')}
+                                submit={tx('Send {usd} to {account}', { usd: usd(p.amountCents), account: p.account })}
                                 tone="blue"
                               />
                             )}
                             {paypal && p.status === 'exported' && p.reference?.startsWith('paypal:') && (
-                              <AdminForm endpoint={`/api/admin/payouts/${p.id}/paypal`} fixed={{ action: 'check' }} fields={[]} openLabel="Check PayPal" submit="Ask PayPal now" tone="line" />
+                              <AdminForm
+                                endpoint={`/api/admin/payouts/${p.id}/paypal`}
+                                fixed={{ action: 'check' }}
+                                fields={[]}
+                                openLabel={tx('Check PayPal')}
+                                submit={tx('Ask PayPal now')}
+                                tone="line"
+                              />
                             )}
                             {p.status === 'exported' && !p.reference?.startsWith('paypal:') && (
                               <>
                                 <AdminForm
                                   endpoint={`/api/admin/payouts/${p.id}/paid`}
-                                  openLabel="Mark paid"
-                                  submit="I sent it"
+                                  openLabel={tx('Mark paid')}
+                                  submit={tx('I sent it')}
                                   tone="blue"
                                   fields={[{ name: 'reference', label: tx('Transfer reference from Wise, Payoneer or the bank'), kind: 'text', required: true }]}
                                 />
                                 <AdminForm
                                   endpoint={`/api/admin/payouts/${p.id}/fail`}
-                                  openLabel="Failed"
-                                  submit="Mark failed"
+                                  openLabel={tx('Failed')}
+                                  submit={tx('Mark failed')}
                                   tone="line"
                                   fields={[{ name: 'note', label: tx('What went wrong'), kind: 'textarea' }]}
                                 />
@@ -414,7 +423,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
           <div
             style={{ display: 'flex', height: 16, borderRadius: 999, overflow: 'hidden', margin: '10px 0 14px', background: '#E1EAEF' }}
             role="img"
-            aria-label={`Escrow ${share(escrow)}, owed to sellers ${share(owed)}, platform income ${share(revenue)}`}
+            aria-label={tx('Escrow {share}, owed to sellers {share2}, platform income {share22}', { share: share(escrow), share2: share(owed), share22: share(revenue) })}
           >
             <span style={{ width: share(escrow), background: '#9FC9E3' }} />
             <span style={{ width: share(owed), background: '#7FBFA9' }} />
@@ -422,9 +431,9 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
           </div>
           {(
             [
-              ['#9FC9E3', 'Held in escrow', escrow],
-              ['#7FBFA9', 'Owed to sellers', owed],
-              ['#B9B0E0', 'Platform income', revenue],
+              ['#9FC9E3', tx('Held in escrow'), escrow],
+              ['#7FBFA9', tx('Owed to sellers'), owed],
+              ['#B9B0E0', tx('Platform income'), revenue],
             ] as const
           ).map(([c, l, n]) => (
             <div key={l} className="li" style={{ fontSize: 14 }}>

@@ -14,7 +14,7 @@ export default async function ContactSocial() {
   const viewer = await requireViewer({ path: '/admin/settings/contact', roles: ['admin'], scope: 'super' });
   const [routes, social] = await Promise.all([contactRoutes(0), savedSocial(0)]);
   return (
-    <AdminShell viewer={viewer} active="settings" title={tx('Contact & social')} subtitle="Where email goes, and the social links on the site">
+    <AdminShell viewer={viewer} active="settings" title={tx('Contact & social')} subtitle={tx('Where email goes, and the social links on the site')}>
       <ContactSocialEditor routes={routes} social={social} />
     </AdminShell>
   );

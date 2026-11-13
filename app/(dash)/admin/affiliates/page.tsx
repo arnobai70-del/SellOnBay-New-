@@ -10,6 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import { tx } from '@/lib/i18n/tx'; // marks the English of module-level words; translate() shows them in the page's language
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Affiliate Management'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
@@ -17,18 +18,18 @@ const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFracti
 const day = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 10) : '–');
 const API = '/api/admin/affiliates';
 const TABS = [
-  ['overview', 'Overview'],
-  ['accounts', 'Accounts'],
-  ['registration', 'Registration & qualification'],
-  ['commission', 'Commission'],
-  ['tracking', 'Referral tracking'],
-  ['reports', 'Reports'],
-  ['badges', 'Badges'],
-  ['leaderboard', 'Leaderboard'],
-  ['withdrawals', 'Withdrawals'],
-  ['fraud', 'Fraud'],
-  ['notifications', 'Notifications'],
-  ['settings', 'Program settings'],
+  ['overview', tx('Overview')],
+  ['accounts', tx('Accounts')],
+  ['registration', tx('Registration & qualification')],
+  ['commission', tx('Commission')],
+  ['tracking', tx('Referral tracking')],
+  ['reports', tx('Reports')],
+  ['badges', tx('Badges')],
+  ['leaderboard', tx('Leaderboard')],
+  ['withdrawals', tx('Withdrawals')],
+  ['fraud', tx('Fraud')],
+  ['notifications', tx('Notifications')],
+  ['settings', tx('Program settings')],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
@@ -38,7 +39,7 @@ type Tab = (typeof TABS)[number][0];
  * marked paid with their reference, once.
  */
 export default async function AdminAffiliates({ searchParams }: { searchParams: Promise<{ tab?: string; status?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/affiliates', roles: ['admin'], scope: ['finance', 'super'] });
   const sp = await searchParams;
   const tab: Tab = (TABS.find(([k]) => k === sp.tab)?.[0] ?? 'overview') as Tab;
@@ -59,7 +60,13 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
     );
   const now = Date.now();
   return (
-    <AdminShell viewer={viewer} active="affiliates" file="admin-finance" title={tx('Affiliate Management')} subtitle="The affiliate program: accounts, commissions, tracking, payouts and settings.">
+    <AdminShell
+      viewer={viewer}
+      active="affiliates"
+      file="admin-finance"
+      title={tx('Affiliate Management')}
+      subtitle={tx('The affiliate program: accounts, commissions, tracking, payouts and settings.')}
+    >
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
         <span className={`status ${s.enabled ? 'st-ok' : 'st-draft'}`}>{s.enabled ? tx('Program on') : tx('Program off')}</span>
         <Link className="btn sm ghost" href="/affiliates" prefetch={false}>
@@ -69,7 +76,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
       <nav className="seg" aria-label={tx('Affiliate Management')} style={{ flexWrap: 'wrap', alignSelf: 'flex-start' }}>
         {TABS.map(([k, label]) => (
           <Link key={k} aria-current={tab === k ? 'page' : undefined} className={tab === k ? 'on' : ''} href={`/admin/affiliates?tab=${k}`} prefetch={false}>
-            {label}
+            {translate(label)}
           </Link>
         ))}
       </nav>
@@ -80,10 +87,10 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
             ['Affiliates', String(ov.affiliates), `${ov.pending} pending · ${ov.qualified} verified`],
             ['Clicks', String(ov.clicks), `${ov.conversion}% became a purchase`],
             ['Leads', String(ov.signups), 'accounts made'],
-            ['Sales this month', String(ov.monthSales), 'not reversed'],
-            ['Pending commission', usd(ov.commissionsPendingCents), 'in the refund period'],
-            ['Approved commission', usd(ov.commissionsApprovedCents), `${ov.reversed} reversed`],
-            ['Withdrawals waiting', String(ov.withdrawalsWaiting), 'requested or approved'],
+            [tx('Sales this month'), String(ov.monthSales), 'not reversed'],
+            [tx('Pending commission'), usd(ov.commissionsPendingCents), 'in the refund period'],
+            [tx('Approved commission'), usd(ov.commissionsApprovedCents), `${ov.reversed} reversed`],
+            [tx('Withdrawals waiting'), String(ov.withdrawalsWaiting), 'requested or approved'],
           ].map(([l, v, sub]) => (
             <div key={l} className="glass kpi">
               <div className="l">{l}</div>
@@ -136,7 +143,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                     <td>
                       <span className={`status ${STATUS_TONE[a.status]}`}>{STATUS_LABEL[a.status]}</span>
                     </td>
-                    <td>{a.status === 'qualified' ? `Verified ${day(a.verifiedAt)}` : `Ends ${day(a.qualificationEndsAt)}${a.qualificationEndsAt < now ? ' (ended)' : ''}`}</td>
+                    <td>{a.status === 'qualified' ? tx('Verified {day}', { day: day(a.verifiedAt) }) : `Ends ${day(a.qualificationEndsAt)}${a.qualificationEndsAt < now ? ' (ended)' : ''}`}</td>
                     <td>{a.feeWaived ? tx('Waived') : usd(a.feeCents)}</td>
                     <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {ADMIN_MOVES[a.status].map((to) => (
@@ -154,16 +161,16 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'qualification', id: a.id, mode: 'extend' }}
-                            label="Extend"
+                            label={tx('Extend')}
                             tone="line"
                             note={{ label: tx('Days to add (1 to 365)'), required: true }}
                           />
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'qualification', id: a.id, mode: 'restart', days: s.qualificationDays }}
-                            label="Restart"
+                            label={tx('Restart')}
                             tone="line"
-                            confirm={`Restart this affiliate's ${s.qualificationDays}-day qualification window from today?`}
+                            confirm={tx("Restart this affiliate's {qualificationDays}-day qualification window from today?", { qualificationDays: s.qualificationDays })}
                           />
                         </>
                       )}
@@ -255,7 +262,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                       </td>
                       <td>
                         {c.status !== 'reversed' && (
-                          <ActionButton endpoint={API} body={{ action: 'reverse', id: c.id }} label="Reverse" tone="line" note={{ label: tx('Why (kept in the audit log)'), required: true }} />
+                          <ActionButton endpoint={API} body={{ action: 'reverse', id: c.id }} label={tx('Reverse')} tone="line" note={{ label: tx('Why (kept in the audit log)'), required: true }} />
                         )}
                       </td>
                     </tr>
@@ -351,22 +358,22 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                       </span>
                     </td>
                     <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {w.status === 'requested' && <ActionButton endpoint={API} body={{ action: 'withdrawal', id: w.id, decision: 'approve' }} label="Approve" />}
+                      {w.status === 'requested' && <ActionButton endpoint={API} body={{ action: 'withdrawal', id: w.id, decision: 'approve' }} label={tx('Approve')} />}
                       {(w.status === 'requested' || w.status === 'approved') && (
                         <>
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'withdrawal', id: w.id, decision: 'paid' }}
-                            label="Mark paid"
+                            label={tx('Mark paid')}
                             tone="line"
                             note={{ label: tx('Payout reference (after you have paid by hand)'), required: true }}
                           />
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'withdrawal', id: w.id, decision: 'reject' }}
-                            label="Reject"
+                            label={tx('Reject')}
                             tone="line"
-                            confirm="Reject this withdrawal? The amount goes back to the affiliate's available balance."
+                            confirm={tx("Reject this withdrawal? The amount goes back to the affiliate's available balance.")}
                           />
                         </>
                       )}

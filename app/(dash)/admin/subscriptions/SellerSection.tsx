@@ -26,7 +26,7 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
     <>
       <div className="kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 12 }}>
         {[
-          ['Seller subscriptions', settings.enabled ? 'On' : 'Off', settings.enabled ? 'sellers can ask for a plan' : 'no new requests'],
+          [tx('Seller subscriptions'), settings.enabled ? 'On' : 'Off', settings.enabled ? 'sellers can ask for a plan' : 'no new requests'],
           ['Running', String(counts.open), 'keep their plan whatever you change'],
           ['Waiting', String(counts.waiting), 'requests and payments to check'],
         ].map(([l, v, s]) => (

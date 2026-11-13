@@ -11,6 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Maintenance'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
@@ -38,25 +39,25 @@ const ORDER: ModuleKey[] = [
   'visitor',
 ];
 const utc = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') : '');
-const fields = (r: { enabled: boolean; message: string; startAt: number | null; endAt: number | null; bannerMinutes?: number }): Field[] => [
+const fields = (r: { enabled: boolean; message: string; startAt: number | null; endAt: number | null; bannerMinutes?: number }, tx: Tx): Field[] => [
   {
     name: 'enabled',
-    label: 'State',
+    label: tx('State'),
     kind: 'select',
     options: r.enabled
       ? [
-          ['on', 'Closed (or planned)'],
-          ['off', 'Open'],
+          ['on', tx('Closed (or planned)')],
+          ['off', tx('Open')],
         ]
       : [
-          ['off', 'Open'],
-          ['on', 'Closed (or planned)'],
+          ['off', tx('Open')],
+          ['on', tx('Closed (or planned)')],
         ],
   },
-  { name: 'message', label: 'Message for visitors (optional)', kind: 'textarea', value: r.message, max: 300 },
-  { name: 'startAt', label: 'Start, UTC (YYYY-MM-DD HH:MM; empty = now)', kind: 'text', value: utc(r.startAt) },
-  { name: 'endAt', label: 'End, UTC (empty = until opened again)', kind: 'text', value: utc(r.endAt) },
-  { name: 'bannerMinutes', label: 'Show a notice this many minutes before the start (0 = none)', kind: 'text', value: String(r.bannerMinutes ?? 0) },
+  { name: 'message', label: tx('Message for visitors (optional)'), kind: 'textarea', value: r.message, max: 300 },
+  { name: 'startAt', label: tx('Start, UTC (YYYY-MM-DD HH:MM; empty = now)'), kind: 'text', value: utc(r.startAt) },
+  { name: 'endAt', label: tx('End, UTC (empty = until opened again)'), kind: 'text', value: utc(r.endAt) },
+  { name: 'bannerMinutes', label: tx('Show a notice this many minutes before the start (0 = none)'), kind: 'text', value: String(r.bannerMinutes ?? 0) },
 ];
 
 /*
@@ -82,7 +83,7 @@ export default async function MaintenanceSettings() {
       </StatusPill>
     );
   return (
-    <AdminShell viewer={viewer} active="settings" title={tx('Maintenance')} subtitle="Close one area while the rest of the site stays live. Every change is in the audit log.">
+    <AdminShell viewer={viewer} active="settings" title={tx('Maintenance')} subtitle={tx('Close one area while the rest of the site stays live. Every change is in the audit log.')}>
       <GlassCard as="section">
         <h2>
           <T s={'Areas'} />
@@ -101,7 +102,7 @@ export default async function MaintenanceSettings() {
                 </span>
               </span>
               {state(m.active, m.enabled)}
-              <AdminForm endpoint="/api/admin/maintenance/area" openLabel="Change" submit="Save" tone="line" fixed={{ module: k }} fields={fields(m)} />
+              <AdminForm endpoint="/api/admin/maintenance/area" openLabel={tx('Change')} submit={tx('Save')} tone="line" fixed={{ module: k }} fields={fields(m, tx)} />
             </div>
           );
         })}
@@ -117,17 +118,17 @@ export default async function MaintenanceSettings() {
           <div key={p.path} className="li" style={{ flexWrap: 'wrap', gap: 8 }}>
             <code style={{ flex: '1 1 200px' }}>{p.path}</code>
             {state(p.active, p.enabled)}
-            <AdminForm endpoint="/api/admin/maintenance/page" openLabel="Change" submit="Save" tone="line" fixed={{ path: p.path }} fields={fields(p)} />
-            <ActionButton endpoint="/api/admin/maintenance/page" label="Remove" tone="line" body={{ path: p.path, remove: true }} />
+            <AdminForm endpoint="/api/admin/maintenance/page" openLabel={tx('Change')} submit={tx('Save')} tone="line" fixed={{ path: p.path }} fields={fields(p, tx)} />
+            <ActionButton endpoint="/api/admin/maintenance/page" label={tx('Remove')} tone="line" body={{ path: p.path, remove: true }} />
           </div>
         ))}
         <div style={{ marginTop: 10 }}>
           <AdminForm
             endpoint="/api/admin/maintenance/page"
-            openLabel="Close a page"
-            submit="Save"
+            openLabel={tx('Close a page')}
+            submit={tx('Save')}
             tone="line"
-            fields={[{ name: 'path', label: tx('Page address, starting with /'), kind: 'text', required: true }, ...fields({ enabled: true, message: '', startAt: null, endAt: null })]}
+            fields={[{ name: 'path', label: tx('Page address, starting with /'), kind: 'text', required: true }, ...fields({ enabled: true, message: '', startAt: null, endAt: null }, tx)]}
           />
         </div>
       </GlassCard>
@@ -145,8 +146,8 @@ export default async function MaintenanceSettings() {
         <p style={{ marginTop: 8 }}>{rows.allowIps.length ? rows.allowIps.join(', ') : tx('No addresses.')}</p>
         <AdminForm
           endpoint="/api/admin/maintenance/allow"
-          openLabel="Change addresses"
-          submit="Save"
+          openLabel={tx('Change addresses')}
+          submit={tx('Save')}
           tone="line"
           fields={[{ name: 'ips', label: tx('Addresses, one per line'), kind: 'textarea', value: rows.allowIps.join('\n') }]}
         />

@@ -72,8 +72,8 @@ export default async function Categories() {
               endpoint="/api/admin/seo/alloc"
               fixed={{ hub: v.hub.slug }}
               fields={[{ name: 'limit', label: tx('How many listings this category shows'), kind: 'text', value: String(v.limit), hint: `1 to 12. Default ${HUB_LIMIT}.` }]}
-              submit="Save"
-              openLabel="Change how many"
+              submit={tx('Save')}
+              openLabel={tx('Change how many')}
               tone="line"
             />
             <AdminForm
@@ -86,11 +86,11 @@ export default async function Categories() {
                   kind: 'text',
                   value: hubPublicSlug(v.hub, a),
                   max: 61,
-                  hint: `The page is at /templates/<ending>. The built-in ending is ${v.hub.slug}. Changing it sends the old address to the new one with a 301.`,
+                  hint: tx('The page is at /templates/<ending>. The built-in ending is {slug}. Changing it sends the old address to the new one with a 301.', { slug: v.hub.slug }),
                 },
               ]}
-              submit="Save"
-              openLabel="Change the address"
+              submit={tx('Save')}
+              openLabel={tx('Change the address')}
               tone="line"
             />
             <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(hubPath(v.hub))}`} style={{ justifySelf: 'start' }}>
@@ -145,12 +145,12 @@ export default async function Categories() {
                     name: 'to',
                     label: tx('Category'),
                     kind: 'select',
-                    options: [['auto', 'Automatic (by its own category)'], ...HUBS.map((h): [string, string] => [h.slug, h.name]), ['none', 'None']],
+                    options: [['auto', tx('Automatic (by its own category)')], ...HUBS.map((h): [string, string] => [h.slug, h.name]), ['none', 'None']],
                     value: a.assign[p.id] ?? 'auto',
                   },
                 ]}
-                submit="Save"
-                openLabel="Change category"
+                submit={tx('Save')}
+                openLabel={tx('Change category')}
                 tone="line"
               />
             </div>

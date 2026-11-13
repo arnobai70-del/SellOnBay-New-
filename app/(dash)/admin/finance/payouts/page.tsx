@@ -165,16 +165,16 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                   .filter((p) => p.weekStart === w)
                   .map((p) => (
                     <tr key={p.id}>
-                      <td data-label="Seller">
+                      <td data-label={tx('Seller')}>
                         <b>{p.sellerName}</b>
                         {emails.get(p.sellerId) && <small style={{ display: 'block' }}>{emails.get(p.sellerId)}</small>}
                       </td>
-                      <td data-label="Method">{METHOD_NAME[p.method] ?? p.method}</td>
-                      <td data-label="Send to">{p.account}</td>
-                      <td data-label="Amount">
+                      <td data-label={tx('Method')}>{METHOD_NAME[p.method] ?? p.method}</td>
+                      <td data-label={tx('Send to')}>{p.account}</td>
+                      <td data-label={tx('Amount')}>
                         <b>{money(p.amountCents)}</b>
                       </td>
-                      <td data-label="Orders">
+                      <td data-label={tx('Orders')}>
                         {p.orderIds.length}
                         {orders.get(p.id)?.length ? (
                           <details>
@@ -192,40 +192,40 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                           </details>
                         ) : null}
                       </td>
-                      <td data-label="Status">
+                      <td data-label={tx('Status')}>
                         {p.status}
                         {p.reference ? ` (${p.reference})` : ''}
                         <small style={{ display: 'block' }}>
                           <T s={'Made {v0}{v1}{v2}'} v={{ v0: day(p.createdAt), v1: p.exportedAt ? `, sent ${day(p.exportedAt)}` : '', v2: p.paidAt ? `, paid ${day(p.paidAt)}` : '' }} />
                         </small>
                       </td>
-                      <td data-label="Action">
+                      <td data-label={tx('Action')}>
                         {paypal && p.method === 'paypal' && (p.status === 'scheduled' || p.status === 'exported') && !p.reference?.startsWith('paypal:') && (
                           <AdminForm
                             endpoint={`/api/admin/payouts/${p.id}/paypal`}
                             fixed={{ action: 'send' }}
                             fields={[]}
-                            openLabel="Send with PayPal"
-                            submit={`Send ${money(p.amountCents)} to ${p.account}`}
+                            openLabel={tx('Send with PayPal')}
+                            submit={tx('Send {money} to {account}', { money: money(p.amountCents), account: p.account })}
                             tone="blue"
                           />
                         )}
                         {paypal && p.status === 'exported' && p.reference?.startsWith('paypal:') && (
-                          <AdminForm endpoint={`/api/admin/payouts/${p.id}/paypal`} fixed={{ action: 'check' }} fields={[]} openLabel="Check PayPal" submit="Ask PayPal now" tone="line" />
+                          <AdminForm endpoint={`/api/admin/payouts/${p.id}/paypal`} fixed={{ action: 'check' }} fields={[]} openLabel={tx('Check PayPal')} submit={tx('Ask PayPal now')} tone="line" />
                         )}
                         {p.status === 'exported' && !p.reference?.startsWith('paypal:') && (
                           <>
                             <AdminForm
                               endpoint={`/api/admin/payouts/${p.id}/paid`}
-                              openLabel="Mark paid"
-                              submit="I sent it"
+                              openLabel={tx('Mark paid')}
+                              submit={tx('I sent it')}
                               tone="blue"
                               fields={[{ name: 'reference', label: tx('Transfer reference from Wise, Payoneer or the bank'), kind: 'text', required: true }]}
                             />
                             <AdminForm
                               endpoint={`/api/admin/payouts/${p.id}/fail`}
-                              openLabel="Failed"
-                              submit="Mark failed"
+                              openLabel={tx('Failed')}
+                              submit={tx('Mark failed')}
                               tone="line"
                               fields={[{ name: 'note', label: tx('What went wrong'), kind: 'textarea' }]}
                             />
@@ -286,16 +286,16 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
               <tbody>
                 {methods.map((m) => (
                   <tr key={m.sellerId}>
-                    <td data-label="Seller">
+                    <td data-label={tx('Seller')}>
                       <b>{m.name}</b>
                       {m.email && <small style={{ display: 'block' }}>{m.email}</small>}
                     </td>
-                    <td data-label="Method">{METHOD_NAME[m.method] ?? m.method}</td>
-                    <td data-label="Account">{m.account}</td>
-                    <td data-label="Verified">
+                    <td data-label={tx('Method')}>{METHOD_NAME[m.method] ?? m.method}</td>
+                    <td data-label={tx('Account')}>{m.account}</td>
+                    <td data-label={tx('Verified')}>
                       <T s={'Email {v0}, phone {v1}, ID {v2}'} v={{ v0: m.verified.email ? 'yes' : 'no', v1: m.verified.phone ? 'yes' : 'no', v2: m.verified.id ? 'yes' : 'no' }} />
                     </td>
-                    <td data-label="Status">{m.banned ? tx('Banned: payouts held') : tx('Active')}</td>
+                    <td data-label={tx('Status')}>{m.banned ? tx('Banned: payouts held') : tx('Active')}</td>
                   </tr>
                 ))}
               </tbody>

@@ -31,9 +31,9 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
     const data = ((await res?.json().catch(() => null)) ?? {}) as { url?: string; licenseKey?: string; error?: string };
     setBusy(false);
     if (res?.ok && data.url) {
-      setNote(data.licenseKey ? `Your licence key: ${data.licenseKey}` : '');
+      setNote(data.licenseKey ? tx('Your licence key: {licenseKey}', { licenseKey: data.licenseKey }) : '');
       window.location.assign(data.url);
-    } else setNote(data.error ?? 'Could not get your files. Please try again.');
+    } else setNote(data.error ?? tx('Could not get your files. Please try again.'));
   };
   return (
     <>
@@ -95,7 +95,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
               </h2>
               <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {domain
-                  ? `You asked for ${domain}. We check it by hand and register it in your own name, then email you the next step.`
+                  ? tx('You asked for {domain}. We check it by hand and register it in your own name, then email you the next step.', { domain })
                   : tx('Use a domain you already own, or find one on our domains page.')}
               </p>
             </GlassCard>
@@ -120,7 +120,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                       body: JSON.stringify({ rating: Number(f.get('rating')), body: String(f.get('body') ?? '') }),
                     }).catch(() => null);
                     if (res?.ok) setDone(true);
-                    else setNote(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Could not save your review.');
+                    else setNote(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? tx('Could not save your review.'));
                   }}
                 >
                   <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
@@ -135,7 +135,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
                       ))}
                     </div>
                   </fieldset>
-                  <Field as="textarea" label="Your review (optional)" name="body" maxLength={1000} />
+                  <Field as="textarea" label={tx('Your review (optional)')} name="body" maxLength={1000} />
                   <div>
                     <Button type="submit" variant="ghost">
                       <T s={'Post review'} />

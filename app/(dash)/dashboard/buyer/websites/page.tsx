@@ -22,7 +22,7 @@ const RATEABLE = ['accepted', 'payout_pending', 'paid_out'];
  * The top bar's search filters the list (?q=).
  */
 export default async function BuyerWebsites({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer/websites', roles: ['buyer', 'seller', 'admin'] });
   const q = ((await searchParams).q ?? '').trim().toLowerCase().slice(0, 80);
   const [orders, requests] = viewer ? await Promise.all([buyerOrders(viewer.id), listRequests({ buyerId: viewer.id }).catch(() => [])]) : [[], []];
@@ -64,7 +64,7 @@ export default async function BuyerWebsites({ searchParams }: { searchParams: Pr
                       <T s={'by {seller}{v1} · {v2}'} v={{ seller: s.seller, v1: s.stack ? ` · ${s.stack}` : '', v2: s.order.licence ?? 'Standard' }} />
                     </div>
                   </div>
-                  <span className={`status ${TONE[st.tone]}`}>{st.label}</span>
+                  <span className={`status ${TONE[st.tone]}`}>{translate(st.label)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                   <Link className="btn sm" href={`/orders/${s.order.id}`} prefetch={false}>

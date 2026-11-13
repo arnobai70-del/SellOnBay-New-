@@ -26,7 +26,7 @@ export default async function GuidesAdmin() {
       viewer={viewer}
       active="guides"
       title={tx('Guides')}
-      subtitle="Write, schedule and publish guides. Every publish is in the audit log."
+      subtitle={tx('Write, schedule and publish guides. Every publish is in the audit log.')}
       actions={
         <Button href="/admin/content/guides/edit">
           <T s={'New guide'} />
@@ -35,10 +35,10 @@ export default async function GuidesAdmin() {
     >
       <GlassCard as="section" pad={false} style={{ padding: '14px 8px 4px' }}>
         <DataTable<Post>
-          caption="Guides"
+          caption={tx('Guides')}
           rows={posts}
           rowKey={(p) => p.id}
-          empty="No guides yet. Write the first one."
+          empty={tx('No guides yet. Write the first one.')}
           columns={[
             { key: 'title', label: tx('Title'), cell: (p) => <Link href={`/admin/content/guides/edit?id=${p.id}`}>{p.title}</Link> },
             { key: 'cat', label: tx('Category'), cell: (p) => p.category || '-' },

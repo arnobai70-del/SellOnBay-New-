@@ -16,15 +16,17 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Domains'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['all', 'All'],
-  ['expiring', 'Expiring'],
-  ['pending', 'Pending'],
-  ['transfers', 'Transfers'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['all', tx('All')],
+    ['expiring', tx('Expiring')],
+    ['pending', tx('Pending')],
+    ['transfers', tx('Transfers')],
+  ] as const;
 type Row = { name: string; orderId: string | null; expires: number | null; ref: string | null; pending: boolean; asked?: { name: string; country: string; decided: boolean } };
 const month = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
@@ -37,7 +39,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/domains', roles: ['admin'], scope: 'support' });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'all';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'all';
   const q = (sp.q ?? '').trim().toLowerCase();
   const now = Date.now();
   const [requests, held] = await Promise.all([
@@ -119,7 +121,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 8px' }}>
           <div className="seg" role="tablist" aria-label={tx('Domain status')}>
-            {TABS.map(([k, l]) => (
+            {TABS(tx).map(([k, l]) => (
               <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={k === 'all' ? '/admin/domains' : `/admin/domains?tab=${k}`} prefetch={false}>
                 {l}
               </Link>
@@ -206,8 +208,8 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
                         {r.pending ? (
                           <AdminForm
                             endpoint="/api/admin/domains"
-                            openLabel="Record as registered"
-                            submit="Record the domain"
+                            openLabel={tx('Record as registered')}
+                            submit={tx('Record the domain')}
                             tone="line"
                             fixed={{ orderId: r.orderId, name: r.name }}
                             fields={[
@@ -217,7 +219,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
                           />
                         ) : (
                           <span className="tag" style={{ margin: 0 }}>
-                            {r.ref ? `Ref ${r.ref}` : r.orderId ? orderCode(r.orderId) : ''}
+                            {r.ref ? tx('Ref {ref}', { ref: r.ref }) : r.orderId ? orderCode(r.orderId) : ''}
                           </span>
                         )}
                       </td>

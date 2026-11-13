@@ -51,7 +51,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                     {d.userId.slice(0, 8)} · {new Date(d.createdAt).toLocaleDateString('en-US')}
                   </small>
                 </span>
-                <AdminForm endpoint={`/api/admin/privacy/${d.id}/process`} fields={[]} submit="Process deletion" openLabel="Process" tone="dark" />
+                <AdminForm endpoint={`/api/admin/privacy/${d.id}/process`} fields={[]} submit={tx('Process deletion')} openLabel={tx('Process')} tone="dark" />
               </div>
             ))}
           </div>
@@ -95,12 +95,12 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id}>
-                    <td data-label="Name">
+                    <td data-label={tx('Name')}>
                       {u.name}
                       <br />
                       <small className="muted">{u.id.slice(0, 8)}</small>
                     </td>
-                    <td data-label="Role">
+                    <td data-label={tx('Role')}>
                       {u.role}
                       {u.role === 'admin' && scopes?.get(u.id) && (
                         <>
@@ -114,16 +114,16 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                         </>
                       )}
                     </td>
-                    <td data-label="State">
+                    <td data-label={tx('State')}>
                       {u.banned ? 'banned' : u.suspendedUntil && u.suspendedUntil > now ? `suspended until ${new Date(u.suspendedUntil).toISOString().slice(0, 10)}` : 'active'}
                       {u.flagged ? tx(', flagged') : ''}
                     </td>
-                    <td data-label="Strikes">{u.strikes}</td>
-                    <td data-label="Action">
+                    <td data-label={tx('Strikes')}>{u.strikes}</td>
+                    <td data-label={tx('Action')}>
                       <AdminForm
                         endpoint={`/api/admin/users/${u.id}/action`}
-                        openLabel="Act"
-                        submit="Do it"
+                        openLabel={tx('Act')}
+                        submit={tx('Do it')}
                         tone="line"
                         fields={[
                           {
@@ -133,8 +133,8 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                             options: [
                               ['ban', 'Ban'],
                               ['unban', 'Unban'],
-                              ['unsuspend', 'Lift the suspension'],
-                              ['clear_flag', 'Clear the flag'],
+                              ['unsuspend', tx('Lift the suspension')],
+                              ['clear_flag', tx('Clear the flag')],
                             ],
                           },
                           { name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
@@ -143,8 +143,8 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                       {u.role === 'admin' && scopes && u.id !== viewer?.id && (
                         <AdminForm
                           endpoint={`/api/admin/users/${u.id}/scopes`}
-                          openLabel="Permissions"
-                          submit="Save permissions"
+                          openLabel={tx('Permissions')}
+                          submit={tx('Save permissions')}
                           tone="line"
                           fields={[
                             {

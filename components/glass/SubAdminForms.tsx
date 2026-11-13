@@ -6,19 +6,20 @@ import type { Benefit, Plan } from '@/lib/buyerSubs/rules';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 /* Admin › Buyer subscriptions (owner, 2026-11-12): the plan editor and the feature settings. Everything goes to POST /api/admin/subscriptions. */
-async function post(body: Record<string, unknown>) {
+async function post(body: Record<string, unknown>, tx: Tx) {
   const r = await fetch('/api/admin/buyer-subscriptions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const j = (await r?.json().catch(() => ({}))) as { error?: string } | undefined;
-  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : 'No connection.') };
+  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : tx('No connection.')) };
 }
-const FEATURES: [string, string][] = [
-  ['source_code', 'Full source code'],
-  ['support', 'Technical support'],
-  ['bug_fixes', 'Free bug fixes'],
-  ['updates', 'Updates'],
-  ['priority_support', 'Priority support'],
-  ['setup_help', 'Setup help'],
+const FEATURES = (tx: Tx): [string, string][] => [
+  ['source_code', tx('Full source code')],
+  ['support', tx('Technical support')],
+  ['bug_fixes', tx('Free bug fixes')],
+  ['updates', tx('Updates')],
+  ['priority_support', tx('Priority support')],
+  ['setup_help', tx('Setup help')],
 ];
 const csv = (v: string) =>
   v
@@ -51,7 +52,7 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
     include: (plan?.eligibility.include ?? []).join(', '),
     exclude: (plan?.eligibility.exclude ?? []).join(', '),
   });
-  const [benefits, setBenefits] = useState<Benefit[]>(plan?.benefits ?? [{ text: 'Full source code', on: true }]);
+  const [benefits, setBenefits] = useState<Benefit[]>(plan?.benefits ?? [{ text: tx('Full source code'), on: true }]);
   const [features, setFeatures] = useState<Record<string, boolean>>(plan?.features ?? { source_code: true, support: true, bug_fixes: true });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -72,33 +73,36 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
         e.preventDefault();
         setBusy(true);
         setMsg('');
-        const r = await post({
-          action: 'savePlan',
-          id: plan?.id ?? null,
-          plan: {
-            key: f.key,
-            name: f.name,
-            description: f.description,
-            badge: f.badge,
-            color: f.color,
-            sort: Number(f.sort),
-            priceCents: Math.round(Number(f.price) * 100),
-            renewalCents: Math.round(Number(f.renewal) * 100),
-            period: f.period,
-            periodDays: Number(f.periodDays),
-            websiteLimit: Number(f.limit),
-            supportDays: Number(f.support),
-            licenceVersion: f.licence,
-            refundPolicy: f.refund,
-            active: f.active,
-            visible: f.visible,
-            benefits,
-            features,
-            eligibility: { mode: f.mode, categories: f.cats, include: csv(f.include), exclude: csv(f.exclude) },
+        const r = await post(
+          {
+            action: 'savePlan',
+            id: plan?.id ?? null,
+            plan: {
+              key: f.key,
+              name: f.name,
+              description: f.description,
+              badge: f.badge,
+              color: f.color,
+              sort: Number(f.sort),
+              priceCents: Math.round(Number(f.price) * 100),
+              renewalCents: Math.round(Number(f.renewal) * 100),
+              period: f.period,
+              periodDays: Number(f.periodDays),
+              websiteLimit: Number(f.limit),
+              supportDays: Number(f.support),
+              licenceVersion: f.licence,
+              refundPolicy: f.refund,
+              active: f.active,
+              visible: f.visible,
+              benefits,
+              features,
+              eligibility: { mode: f.mode, categories: f.cats, include: csv(f.include), exclude: csv(f.exclude) },
+            },
           },
-        });
+          tx,
+        );
         setBusy(false);
-        if (!r.ok) return setMsg(r.error || 'Could not save.');
+        if (!r.ok) return setMsg(r.error || tx('Could not save.'));
         setMsg('Saved.');
         onDone?.();
         router.refresh();
@@ -106,11 +110,11 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 10 }}>
         {field('name', 'Name', { required: true, maxLength: 60 })}
-        {field('key', 'Key (address-safe)', { required: true, maxLength: 40, pattern: '[a-z0-9-]{2,40}' })}
-        {field('badge', 'Badge (optional)', { maxLength: 30 })}
+        {field('key', tx('Key (address-safe)'), { required: true, maxLength: 40, pattern: '[a-z0-9-]{2,40}' })}
+        {field('badge', tx('Badge (optional)'), { maxLength: 30 })}
         {field('color', 'Colour', { type: 'color' })}
-        {field('price', 'Price (USD)', { inputMode: 'decimal', required: true })}
-        {field('renewal', 'Renewal price (USD)', { inputMode: 'decimal', required: true })}
+        {field('price', tx('Price (USD)'), { inputMode: 'decimal', required: true })}
+        {field('renewal', tx('Renewal price (USD)'), { inputMode: 'decimal', required: true })}
         <div className="field">
           <label htmlFor={`${id}-period`}>
             <T s={'Term'} />
@@ -127,11 +131,11 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
             </option>
           </select>
         </div>
-        {f.period === 'custom' && field('periodDays', 'Days in the term', { type: 'number', min: 1, max: 3650 })}
-        {field('limit', 'Websites included', { type: 'number', min: 0, max: 1000 })}
-        {field('support', 'Support days', { type: 'number', min: 0, max: 3650 })}
-        {field('sort', 'Display order', { type: 'number' })}
-        {field('licence', 'Licence version', { maxLength: 40 })}
+        {f.period === 'custom' && field('periodDays', tx('Days in the term'), { type: 'number', min: 1, max: 3650 })}
+        {field('limit', tx('Websites included'), { type: 'number', min: 0, max: 1000 })}
+        {field('support', tx('Support days'), { type: 'number', min: 0, max: 3650 })}
+        {field('sort', tx('Display order'), { type: 'number' })}
+        {field('licence', tx('Licence version'), { maxLength: 40 })}
       </div>
       <div className="field">
         <label htmlFor={`${id}-description`}>
@@ -147,13 +151,13 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
           <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
             <input aria-label={tx('Shown')} type="checkbox" checked={b.on} onChange={(e) => setBenefits(benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)))} />
             <input
-              aria-label={`Benefit ${i + 1}`}
+              aria-label={tx('Benefit {v0}', { v0: i + 1 })}
               className="input"
               value={b.text}
               maxLength={120}
               onChange={(e) => setBenefits(benefits.map((x, n) => (n === i ? { ...x, text: e.target.value } : x)))}
             />
-            <button type="button" className="btn sm ghost" onClick={() => setBenefits(benefits.filter((_, n) => n !== i))} aria-label={`Remove benefit ${i + 1}`}>
+            <button type="button" className="btn sm ghost" onClick={() => setBenefits(benefits.filter((_, n) => n !== i))} aria-label={tx('Remove benefit {v0}', { v0: i + 1 })}>
               <T s={'Remove'} />
             </button>
           </div>
@@ -166,7 +170,7 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
         <legend className="tag">
           <T s={'Features (comparison table)'} />
         </legend>
-        {FEATURES.map(([k, l]) => (
+        {FEATURES(tx).map(([k, l]) => (
           <label key={k} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
             <input type="checkbox" checked={!!features[k]} onChange={(e) => setFeatures({ ...features, [k]: e.target.checked })} /> {l}
           </label>
@@ -258,8 +262,8 @@ export function SubSettingsForm({
       style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       onSubmit={async (e) => {
         e.preventDefault();
-        const r = await post({ action: 'settings', enabled: on, intro: text, faq: items.filter((x) => x.q.trim() && x.a.trim()), allowedMethods: allowed });
-        setMsg(r.ok ? 'Saved.' : r.error || 'Could not save.');
+        const r = await post({ action: 'settings', enabled: on, intro: text, faq: items.filter((x) => x.q.trim() && x.a.trim()), allowedMethods: allowed }, tx);
+        setMsg(r.ok ? 'Saved.' : r.error || tx('Could not save.'));
         if (r.ok) router.refresh();
       }}
     >
@@ -290,7 +294,7 @@ export function SubSettingsForm({
       {items.map((x, i) => (
         <div key={i} style={{ display: 'grid', gap: 6, gridTemplateColumns: 'minmax(0,1fr)' }}>
           <input
-            aria-label={`Question ${i + 1}`}
+            aria-label={tx('Question {v0}', { v0: i + 1 })}
             className="input"
             value={x.q}
             maxLength={200}
@@ -298,7 +302,7 @@ export function SubSettingsForm({
             onChange={(e) => setItems(items.map((y, n) => (n === i ? { ...y, q: e.target.value } : y)))}
           />
           <textarea
-            aria-label={`Answer ${i + 1}`}
+            aria-label={tx('Answer {v0}', { v0: i + 1 })}
             className="input"
             rows={2}
             value={x.a}

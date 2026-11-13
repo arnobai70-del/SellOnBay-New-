@@ -259,8 +259,8 @@ export default async function SeoAdmin() {
               { name: 'homeTitle', label: tx('Title (about 60 characters)'), kind: 'text', hint: tx('Empty = the built-in title.') },
               { name: 'homeDescription', label: tx('Description (about 150 to 160 characters)'), kind: 'textarea', hint: tx('Empty = the built-in description.') },
             ]}
-            submit="Save"
-            openLabel="Change them"
+            submit={tx('Save')}
+            openLabel={tx('Change them')}
             tone="line"
           />
         </div>
@@ -289,8 +289,8 @@ export default async function SeoAdmin() {
           <AdminForm
             endpoint="/api/admin/seo"
             fields={[{ name: 'googleVerification', label: tx('Tag or code from Google (empty removes it)'), kind: 'text' }]}
-            submit="Save"
-            openLabel="Set the code"
+            submit={tx('Save')}
+            openLabel={tx('Set the code')}
             tone="line"
           />
         </div>
@@ -301,8 +301,8 @@ export default async function SeoAdmin() {
           <AdminForm
             endpoint="/api/admin/seo"
             fields={[{ name: 'bingVerification', label: tx('Tag or code from Bing (empty removes it)'), kind: 'text' }]}
-            submit="Save"
-            openLabel="Set the code"
+            submit={tx('Save')}
+            openLabel={tx('Set the code')}
             tone="line"
           />
         </div>
@@ -319,12 +319,12 @@ export default async function SeoAdmin() {
         <ul className="sob-list">
           {[
             ['Sitemap', `${SITE_URL}/sitemap.xml lists every page, digital topic, live listing, category page and published post.`, '/sitemap.xml'],
-            ['Robots file', 'Search engines are kept out of private pages (dashboard, orders, checkout, sign-in).', '/robots.txt'],
-            ['Blog feed', `${live.length} published post${live.length === 1 ? '' : 's'} in the feed readers and some search tools use.`, '/blog/feed.xml'],
-            ['Structured data', 'Products carry Product data with real reviews; posts carry Article data and a breadcrumb.', null],
-            ['Share cards', 'Every page has a title, description and picture for Google, Facebook, LinkedIn and X.', null],
-            ['Automatic words', 'Pages, digital topics and listings all have their own title, description and canonical address; listings not live are kept out of search.', null],
-            ['Category pages', 'A category gets its own page once it has 3 or more real products, so there are no thin pages.', null],
+            [tx('Robots file'), tx('Search engines are kept out of private pages (dashboard, orders, checkout, sign-in).'), '/robots.txt'],
+            [tx('Blog feed'), `${live.length} published post${live.length === 1 ? '' : 's'} in the feed readers and some search tools use.`, '/blog/feed.xml'],
+            [tx('Structured data'), 'Products carry Product data with real reviews; posts carry Article data and a breadcrumb.', null],
+            [tx('Share cards'), tx('Every page has a title, description and picture for Google, Facebook, LinkedIn and X.'), null],
+            [tx('Automatic words'), 'Pages, digital topics and listings all have their own title, description and canonical address; listings not live are kept out of search.', null],
+            [tx('Category pages'), tx('A category gets its own page once it has 3 or more real products, so there are no thin pages.'), null],
           ].map(([t, d, href]) => (
             <li key={t}>
               <div className="sob-grow">

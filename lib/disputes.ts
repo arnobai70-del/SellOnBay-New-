@@ -1,3 +1,4 @@
+import { tx } from './i18n/tx'; // marks English words; the screen translates them
 import 'server-only';
 import { isBlocked } from './chatFilter';
 import { CONFIG, DAY_MS, HOUR_MS } from './config';
@@ -18,17 +19,17 @@ import { bump } from './metrics';
 export const DISPUTE_REASONS = ['not_as_described', 'not_working', 'malware', 'copyright', 'other'] as const;
 export type DisputeReason = (typeof DISPUTE_REASONS)[number];
 export const REASON_LABEL: Record<DisputeReason, string> = {
-  not_as_described: 'Not as described',
-  not_working: 'Does not work',
-  malware: 'Harmful code',
-  copyright: 'Copyright problem',
-  other: 'Something else',
+  not_as_described: tx('Not as described'),
+  not_working: tx('Does not work'),
+  malware: tx('Harmful code'),
+  copyright: tx('Copyright problem'),
+  other: tx('Something else'),
 };
 export type DisputeStatus = 'open' | 'seller_replied' | 'decided';
 export type Decision = 'refund_full' | 'refund_partial' | 'fix_requested' | 'release';
 /* Whose fault it was, written on every decided dispute: the seller, the buyer (fraud), or neither (us or nobody). */
 export type Liability = 'seller' | 'buyer_fraud' | 'platform';
-export const LIABILITY_LABEL: Record<Liability, string> = { seller: 'The seller', buyer_fraud: 'The buyer (fraud)', platform: 'Us or nobody' };
+export const LIABILITY_LABEL: Record<Liability, string> = { seller: tx('The seller'), buyer_fraud: tx('The buyer (fraud)'), platform: tx('Us or nobody') };
 
 export type Dispute = {
   id: string;

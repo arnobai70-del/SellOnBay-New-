@@ -77,8 +77,8 @@ export default async function AdminRevisions() {
                   <AdminForm
                     endpoint={`/api/admin/revisions/${r.id}`}
                     fixed={{ action: 'triage' }}
-                    openLabel="Decide"
-                    submit="Save the decision"
+                    openLabel={tx('Decide')}
+                    submit={tx('Save the decision')}
                     fields={[
                       {
                         name: 'kind',
@@ -89,7 +89,7 @@ export default async function AdminRevisions() {
                           ['included', KIND_TEXT.included],
                           ['paid', KIND_TEXT.paid],
                           ['feature', KIND_TEXT.feature],
-                          ['decline', 'Decline (outside the accepted terms)'],
+                          ['decline', tx('Decline (outside the accepted terms)')],
                         ],
                       },
                       { name: 'note', label: tx('Note for the buyer'), kind: 'textarea', required: true, max: 2000 },
@@ -154,16 +154,16 @@ export default async function AdminRevisions() {
                   <AdminForm
                     endpoint={`/api/admin/revisions/${r.id}`}
                     fixed={{ action: 'release' }}
-                    openLabel="Release"
-                    submit="Release to the buyer"
+                    openLabel={tx('Release')}
+                    submit={tx('Release to the buyer')}
                     tone="dark"
                     fields={[{ name: 'note', label: tx('What you checked'), kind: 'textarea', max: 1000 }]}
                   />
                   <AdminForm
                     endpoint={`/api/admin/revisions/${r.id}`}
                     fixed={{ action: 'return' }}
-                    openLabel="Return to seller"
-                    submit="Return"
+                    openLabel={tx('Return to seller')}
+                    submit={tx('Return')}
                     tone="line"
                     fields={[{ name: 'reason', label: tx('What the seller must fix'), kind: 'textarea', required: true, max: 1000 }]}
                   />
@@ -208,12 +208,12 @@ export default async function AdminRevisions() {
                   </p>
                 </div>
                 <div className="sob-acts">
-                  <AdminForm endpoint={`/api/admin/revision-policies/${p.id}`} fixed={{ decision: 'approve' }} openLabel="Approve" submit="Approve the terms" fields={[]} />
+                  <AdminForm endpoint={`/api/admin/revision-policies/${p.id}`} fixed={{ decision: 'approve' }} openLabel={tx('Approve')} submit={tx('Approve the terms')} fields={[]} />
                   <AdminForm
                     endpoint={`/api/admin/revision-policies/${p.id}`}
                     fixed={{ decision: 'reject' }}
-                    openLabel="Reject"
-                    submit="Reject"
+                    openLabel={tx('Reject')}
+                    submit={tx('Reject')}
                     tone="line"
                     fields={[{ name: 'reason', label: tx('Why (the seller sees this)'), kind: 'textarea', required: true, max: 500 }]}
                   />

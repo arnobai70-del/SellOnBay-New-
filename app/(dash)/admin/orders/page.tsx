@@ -20,18 +20,19 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Orders and payments'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The design's status tabs, with the order states each one holds. */
-const TABS: [key: string, label: string, states: OrderState[] | null][] = [
-  ['all', 'All', null],
-  ['check', 'Payment check', ['awaiting_payment', 'payment_review', 'beta_requested']],
-  ['escrow', 'In escrow', ['funded', 'release_pending', 'in_delivery', 'delivered', 'disputed', 'fix_requested', 'overdue']],
-  ['done', 'Completed', ['accepted', 'payout_pending', 'paid_out', 'beta_approved']],
-  ['refunded', 'Refunded', ['refunded', 'cancelled', 'beta_declined']],
+const TABS = (tx: Tx): [key: string, label: string, states: OrderState[] | null][] => [
+  ['all', tx('All'), null],
+  ['check', tx('Payment check'), ['awaiting_payment', 'payment_review', 'beta_requested']],
+  ['escrow', tx('In escrow'), ['funded', 'release_pending', 'in_delivery', 'delivered', 'disputed', 'fix_requested', 'overdue']],
+  ['done', tx('Completed'), ['accepted', 'payout_pending', 'paid_out', 'beta_approved']],
+  ['refunded', tx('Refunded'), ['refunded', 'cancelled', 'beta_declined']],
 ];
-const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
 
@@ -40,10 +41,10 @@ const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', dra
  * requests to approve or decline sit with the payments, as they replace them. Refunds and the refund of a paid order (the old payments tool) follow.
  */
 export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/orders', roles: ['admin'], scope: ['delivery', 'support', 'finance'] });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab) ?? TABS[0];
+  const tab = TABS(tx).find(([k]) => k === sp.tab) ?? TABS(tx)[0];
   const q = (sp.q ?? '').trim().toLowerCase().slice(0, 80);
   const now = Date.now();
   const monthFrom = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1);
@@ -126,7 +127,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 8px' }}>
           <div className="seg" role="tablist" aria-label={tx('Order status')}>
-            {TABS.map(([k, l]) => (
+            {TABS(tx).map(([k, l]) => (
               <Link key={k} role="tab" className={k === tab[0] ? 'on' : ''} aria-selected={k === tab[0]} href={k === 'all' ? '/admin/orders' : `/admin/orders?tab=${k}`} prefetch={false}>
                 {l}
               </Link>
@@ -184,14 +185,14 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       </td>
                       <td>
                         {plainWords(o.title)}
-                        <div className="tag">{o.domain ? `Website · ${o.domain.name}` : tx('Website')}</div>
+                        <div className="tag">{o.domain ? tx('Website · {name}', { name: o.domain.name }) : tx('Website')}</div>
                       </td>
                       <td>{names.get(o.buyerId ?? '') ?? '—'}</td>
                       <td>{names.get(o.sellerId ?? '') ?? (o.sellerId ? '—' : 'SellOnBay')}</td>
                       <td>{o.payment?.ref === 'subscription' ? tx('Subscription') : o.state.startsWith('beta_') ? tx('Free beta') : (o.payment?.brand ?? (o.demo ? tx('Test card') : '—'))}</td>
                       <td>{usd(o.priceCents)}</td>
                       <td>
-                        <span className={`status ${TONE[s.tone]}`}>{s.label}</span>
+                        <span className={`status ${TONE[s.tone]}`}>{translate(s.label)}</span>
                       </td>
                       <td style={{ minWidth: 120 }}>
                         {review !== null && review > 0 ? (
@@ -295,10 +296,10 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                          <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Approve" body={{ decision: 'approve' }} />
+                          <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label={tx('Approve')} body={{ decision: 'approve' }} />
                           <ActionButton
                             endpoint={`/api/admin/beta/${r.orderId}`}
-                            label="Decline"
+                            label={tx('Decline')}
                             tone="line"
                             body={{ decision: 'decline' }}
                             note={{ label: tx('Reason for the buyer'), required: true }}
@@ -347,8 +348,8 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                           <AdminForm
                             endpoint={`/api/admin/payments/${a.id}`}
                             fixed={{ action: 'reconcile' }}
-                            openLabel="Verify"
-                            submit="Reconcile"
+                            openLabel={tx('Verify')}
+                            submit={tx('Reconcile')}
                             tone="blue"
                             fields={[
                               { name: 'amountReceived', label: tx('Amount that actually arrived (in the method currency)'), kind: 'text', required: true },
@@ -360,10 +361,10 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                           <AdminForm
                             endpoint={`/api/admin/payments/${a.id}`}
                             fixed={{ action: 'reject' }}
-                            openLabel="Reject"
-                            submit="Reject"
+                            openLabel={tx('Reject')}
+                            submit={tx('Reject')}
                             tone="line"
-                            fields={[{ ...why, label: tx('Why (the buyer sees it)') }]}
+                            fields={[{ ...why(tx), label: tx('Why (the buyer sees it)') }]}
                           />
                         </div>
                       </td>
@@ -441,13 +442,15 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                   <div className="tag">{r.reason}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {r.status === 'requested' && <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'approve' }} fields={[]} openLabel="Approve" submit="Approve refund" tone="blue" />}
+                  {r.status === 'requested' && (
+                    <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'approve' }} fields={[]} openLabel={tx('Approve')} submit={tx('Approve refund')} tone="blue" />
+                  )}
                   {r.status === 'approved' && (
                     <AdminForm
                       endpoint={`/api/admin/refunds/${r.id}`}
                       fixed={{ action: 'paid' }}
-                      openLabel="Record as paid"
-                      submit="Record"
+                      openLabel={tx('Record as paid')}
+                      submit={tx('Record')}
                       tone="blue"
                       fields={[
                         { name: 'method', label: tx('How the money was sent back'), kind: 'text', required: true },
@@ -455,7 +458,9 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       ]}
                     />
                   )}
-                  {r.status === 'requested' && <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'cancel' }} fields={[why]} openLabel="Cancel" submit="Cancel refund" tone="line" />}
+                  {r.status === 'requested' && (
+                    <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'cancel' }} fields={[why(tx)]} openLabel={tx('Cancel')} submit={tx('Cancel refund')} tone="line" />
+                  )}
                 </div>
               </div>
             ))
@@ -474,10 +479,10 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           </div>
           <AdminForm
             endpoint="/api/admin/orders/refund-by-id"
-            openLabel="Refund an order"
-            submit="Refund"
+            openLabel={tx('Refund an order')}
+            submit={tx('Refund')}
             tone="line"
-            fields={[{ name: 'orderId', label: tx('Order id'), kind: 'text', required: true }, why]}
+            fields={[{ name: 'orderId', label: tx('Order id'), kind: 'text', required: true }, why(tx)]}
           />
         </section>
       </div>

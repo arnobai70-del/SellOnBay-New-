@@ -20,17 +20,17 @@ export function PlanButton({ week }: { week: string }) {
           const r = await fetch('/api/admin/payouts/plan', { method: 'POST' });
           const j = await r.json().catch(() => ({}));
           setBusy(false);
-          if (!r.ok) return setMsg([j.error ?? 'Something went wrong.']);
+          if (!r.ok) return setMsg([j.error ?? tx('Something went wrong.')]);
           setMsg([
             `${j.created} payout(s) made for the week starting ${j.weekStart}.`,
-            ...(j.skipped ?? []).map(
-              (s: { sellerId: string; reason: string; amountCents: number }) => `Left out: seller ${s.sellerId.slice(0, 8)}, $${(s.amountCents / 100).toFixed(2)}: ${s.reason}.`,
+            ...(j.skipped ?? []).map((s: { sellerId: string; reason: string; amountCents: number }) =>
+              tx('Left out: seller {v0}, ${v1}: {reason}.', { v0: s.sellerId.slice(0, 8), v1: (s.amountCents / 100).toFixed(2), reason: s.reason }),
             ),
           ]);
           router.refresh();
         }}
       >
-        {busy ? tx('One moment...') : `Make this week's batch (${week})`}
+        {busy ? tx('One moment...') : tx("Make this week's batch ({week})", { week })}
       </button>
       {msg.map((m) => (
         <p key={m} className="muted" role="status" style={{ margin: '6px 0 0' }}>

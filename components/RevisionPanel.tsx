@@ -7,15 +7,16 @@ import { revisionSummary } from '@/lib/revisions/service';
 
 import { getI18n } from '@/lib/i18n/server';
 import { T } from '@/components/i18n/T';
-const STATUS_TEXT: Record<string, string> = {
-  submitted: 'Waiting for SellOnBay to look at it',
-  declined: 'Not possible under your terms',
-  quoted: 'Handled as a paid change: see your requests',
-  assigned: 'Being worked on',
-  release_pending: 'Being checked by SellOnBay',
-  delivered: 'Ready: please check it',
+import type { Tx } from '@/lib/i18n/tx';
+const STATUS_TEXT = (tx: Tx): Record<string, string> => ({
+  submitted: tx('Waiting for SellOnBay to look at it'),
+  declined: tx('Not possible under your terms'),
+  quoted: tx('Handled as a paid change: see your requests'),
+  assigned: tx('Being worked on'),
+  release_pending: tx('Being checked by SellOnBay'),
+  delivered: tx('Ready: please check it'),
   closed: 'Closed',
-};
+});
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
 /*
@@ -54,7 +55,7 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
           {[...revisions].reverse().map((r) => (
             <li key={r.id} data-rev={r.status}>
               <div className="sob-grow">
-                <b>{STATUS_TEXT[r.status]}</b> <T s={'· asked {v0}{v1}'} v={{ v0: day(r.createdAt), v1: r.kind ? ` · ${KIND_TEXT[r.kind]}` : '' }} />
+                <b>{STATUS_TEXT(tx)[r.status]}</b> <T s={'· asked {v0}{v1}'} v={{ v0: day(r.createdAt), v1: r.kind ? ` · ${KIND_TEXT[r.kind]}` : '' }} />
                 <p className="muted">{r.description}</p>
                 {r.decisionNote && (
                   <p>
@@ -74,16 +75,16 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
                     endpoint={`/api/orders/${orderId}/revisions/${r.id}`}
                     fixed={{ action: 'answer', answer: 'done' }}
                     fields={[]}
-                    openLabel="It is done"
-                    submit="Confirm it is done"
+                    openLabel={tx('It is done')}
+                    submit={tx('Confirm it is done')}
                     tone="blue"
                   />
                   <AdminForm
                     endpoint={`/api/orders/${orderId}/revisions/${r.id}`}
                     fixed={{ action: 'answer', answer: 'not_done' }}
                     fields={[{ name: 'note', label: tx('What is still not done'), kind: 'textarea', required: true, max: 2000 }]}
-                    openLabel="It is not done"
-                    submit="Send it back"
+                    openLabel={tx('It is not done')}
+                    submit={tx('Send it back')}
                     tone="line"
                   />
                 </div>
@@ -99,16 +100,16 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
       ) : (
         <AdminForm
           endpoint={`/api/orders/${orderId}/revisions`}
-          openLabel="Ask for a change or report a fault"
-          submit="Send to SellOnBay"
+          openLabel={tx('Ask for a change or report a fault')}
+          submit={tx('Send to SellOnBay')}
           fields={[
             {
               name: 'hint',
               label: tx('What is it?'),
               kind: 'select',
               options: [
-                ['change', 'A change I would like'],
-                ['defect', 'Something that does not work as delivered'],
+                ['change', tx('A change I would like')],
+                ['defect', tx('Something that does not work as delivered')],
               ],
               required: true,
             },

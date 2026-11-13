@@ -8,6 +8,7 @@ import { ACCEPT_TEXT } from '@/lib/consentText';
 
 import { useTx } from '@/components/i18n/TxProvider';
 import { T } from '@/components/i18n/T';
+import type { Tx } from '@/lib/i18n/tx';
 type Kind = 'web' | 'host' | 'store' | 'installer' | 'hire' | 'download' | 'repo';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const day = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -16,13 +17,13 @@ const clock = (ms: number) => {
   return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
 };
 
-const NOTE: Record<string, [string, string]> = {
-  overdue: ['Delivery is late.', 'The delivery time has passed. You can cancel for a full refund.'],
-  disputed: ['A dispute is open.', 'Payment for this order is held while it is decided.'],
-  fix_requested: ['A fix was requested.', 'The seller is fixing the problem and will deliver again.'],
-  cancelled: ['This order was cancelled.', 'Nothing more will be charged.'],
-  refunded: ['This order was refunded.', 'The money goes back to your card.'],
-};
+const NOTE = (tx: Tx): Record<string, [string, string]> => ({
+  overdue: [tx('Delivery is late.'), tx('The delivery time has passed. You can cancel for a full refund.')],
+  disputed: ['A dispute is open.', tx('Payment for this order is held while it is decided.')],
+  fix_requested: ['A fix was requested.', tx('The seller is fixing the problem and will deliver again.')],
+  cancelled: [tx('This order was cancelled.'), tx('Nothing more will be charged.')],
+  refunded: [tx('This order was refunded.'), tx('The money goes back to your card.')],
+});
 
 export function OrderView({ initial, kind, paidNow, files = [], realtime = false }: { initial: View; kind: Kind; paidNow: boolean; files?: [string, string][]; realtime?: boolean }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
@@ -46,20 +47,20 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
     try {
       await fn();
     } catch {
-      setErr('Could not reach SellOnBay. Check your connection and try again.');
+      setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
     } finally {
       running.current = false;
       setBusy('');
     }
   }
-  const errorOf = async (r: Response, fallback = 'Something went wrong. Try again.') => ((await r.json().catch(() => ({}))) as { error?: string }).error ?? fallback;
+  const errorOf = async (r: Response, fallback?: string) => ((await r.json().catch(() => ({}))) as { error?: string }).error ?? fallback ?? tx('Something went wrong. Try again.');
 
   const getFiles = () =>
     run('files', async () => {
       const r = await fetch(`/api/demo/orders/${initial.id}/download`, { method: 'POST' });
       const body = await r.json().catch(() => ({}));
       if (r.ok) setDlink(body);
-      else setErr(body.error ?? 'Could not prepare your files.');
+      else setErr(body.error ?? tx('Could not prepare your files.'));
     });
 
   const load = useCallback(async () => {
@@ -105,7 +106,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
         window.location.assign(j.url); // a real order: the extra work is paid at PayPal
         return;
       }
-      if (!r.ok) setErr(j.error ?? 'Something went wrong. Try again.');
+      if (!r.ok) setErr(j.error ?? tx('Something went wrong. Try again.'));
       await load();
     });
   const [reason, setReason] = useState('not_as_described');
@@ -139,7 +140,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
 
   const p = o.progress,
     hire = kind === 'hire',
-    first = hire ? 'The developer' : 'The seller',
+    first = hire ? tx('The developer') : tx('The seller'),
     dl = kind === 'download',
     repo = kind === 'repo',
     invited = o.events.some((e) => e.event === 'repo_invited');
@@ -150,22 +151,22 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
   const live = domain ? 'https://' + domain.name : null;
 
   type S = { t: string; d: string; state: 'done' | 'now' | 'next'; extra?: React.ReactNode };
-  const steps: S[] = [{ t: 'Payment held safely', d: o.paidAt ? `${day(o.paidAt)}. Released only after you accept.` : '', state: 'done' }];
+  const steps: S[] = [{ t: tx('Payment held safely'), d: o.paidAt ? `${day(o.paidAt)}. Released only after you accept.` : '', state: 'done' }];
   if (domain)
     steps.push(
       domain.source === 'new'
-        ? { t: 'Domain registered in your name', d: `${domain.name}, renews ${domain.expires ?? ''}`, state: 'done' }
-        : { t: `Your domain ${domain.name}`, d: rank >= 3 ? 'Connected' : `${first} connects it while building`, state: rank >= 3 ? 'done' : 'now' },
+        ? { t: tx('Domain registered in your name'), d: `${domain.name}, renews ${domain.expires ?? ''}`, state: 'done' }
+        : { t: tx('Your domain {name}', { name: domain.name }), d: rank >= 3 ? 'Connected' : `${first} connects it while building`, state: rank >= 3 ? 'done' : 'now' },
     );
   if (repo) {
     steps.push({
-      t: invited ? 'Seller sent your GitHub invite' : 'Seller is sending your GitHub invite',
-      d: invited ? `To ${o.github ?? 'your account'}. Check your GitHub notifications.` : 'This usually takes a few hours.',
+      t: invited ? tx('Seller sent your GitHub invite') : tx('Seller is sending your GitHub invite'),
+      d: invited ? tx('To {v0}. Check your GitHub notifications.', { v0: o.github ?? 'your account' }) : tx('This usually takes a few hours.'),
       state: invited || rank >= 3 ? 'done' : 'now',
     });
     steps.push({
-      t: 'You confirm access',
-      d: rank >= 3 ? 'Confirmed' : 'Open the repository, then confirm here.',
+      t: tx('You confirm access'),
+      d: rank >= 3 ? 'Confirmed' : tx('Open the repository, then confirm here.'),
       state: rank >= 3 ? 'done' : invited ? 'now' : 'next',
       extra:
         invited && rank < 3 ? (
@@ -178,11 +179,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
     steps.push({
       t:
         dl && o.instant
-          ? 'Your files are ready'
+          ? tx('Your files are ready')
           : dl
             ? `${first} ${rank >= 3 ? 'finished setting it up' : 'is setting it up'}`
             : `${first} ${rank >= 3 ? 'finished building' : rank === 2 ? 'is building' : 'is starting'}`,
-      d: rank >= 3 ? 'Delivered' : rank === 2 ? `${build}% done` : `Starting in a few seconds. Real orders are due in ${hoursText(promiseHours(o))}.`,
+      d: rank >= 3 ? 'Delivered' : rank === 2 ? `${build}% done` : tx('Starting in a few seconds. Real orders are due in {hoursText}.', { hoursText: hoursText(promiseHours(o)) }),
       state: rank >= 3 ? 'done' : 'now',
       extra:
         rank === 2 || rank === 1 ? (
@@ -192,13 +193,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
         ) : null,
     });
     steps.push({
-      t: hire ? 'Delivery ready' : dl ? 'Check your files' : kind === 'store' ? 'Test build ready' : kind === 'installer' ? 'Installers ready' : 'Your site is live',
-      d: rank >= 3 ? (live ? live : 'Check it and accept, or ask for a fix') : 'Next',
+      t: hire ? tx('Delivery ready') : dl ? tx('Check your files') : kind === 'store' ? tx('Test build ready') : kind === 'installer' ? tx('Installers ready') : tx('Your site is live'),
+      d: rank >= 3 ? (live ? live : tx('Check it and accept, or ask for a fix')) : 'Next',
       state: rank === 3 ? 'now' : rank > 3 ? 'done' : 'next',
     });
   }
   steps.push({
-    t: 'You review',
+    t: tx('You review'),
     d:
       rank === 3
         ? dl
@@ -206,12 +207,16 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           : `${clock(left)} left. Then it is accepted for you.`
         : rank > 3
           ? p.autoAccepted
-            ? 'Accepted automatically after 48 hours'
-            : 'You accepted'
+            ? tx('Accepted automatically after 48 hours')
+            : tx('You accepted')
           : '48 hours after delivery',
     state: rank === 3 ? 'now' : rank > 3 ? 'done' : 'next',
   });
-  steps.push({ t: `${first} is paid`, d: rank === 4 && p.payoutAfter ? `In the weekly payout after ${day(p.payoutAfter)}` : '7 days after you accept', state: rank === 4 ? 'done' : 'next' });
+  steps.push({
+    t: `${first} is paid`,
+    d: rank === 4 && p.payoutAfter ? tx('In the weekly payout after {day}', { day: day(p.payoutAfter) }) : '7 days after you accept',
+    state: rank === 4 ? 'done' : 'next',
+  });
 
   return (
     <div className="wrap sob-ord">
@@ -236,10 +241,10 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             <i />
             {
               {
-                awaiting_payment: 'Waiting for payment',
+                awaiting_payment: tx('Waiting for payment'),
                 queued: 'Starting',
                 building: 'Building',
-                delivered: 'Ready to review',
+                delivered: tx('Ready to review'),
                 accepted: 'Accepted',
                 cancelled: o.state === 'refunded' ? 'Refunded' : 'Cancelled',
               }[stage]
@@ -313,7 +318,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                         ? tx('Your files are ready now. The download link works for 24 hours, and you can get a new one any time. Keep your licence key.')
                         : kind === 'store'
                           ? tx('Install it from the test link in messages. After you accept, the seller sends it to the store.')
-                          : `Download links for ${(o.oses ?? []).join(', ') || 'your computers'} are in messages.`}
+                          : tx('Download links for {v0} are in messages.', { v0: (o.oses ?? []).join(', ') || 'your computers' })}
                   </p>
                   {dl && (
                     <div className="sob-ord-dl">
@@ -372,10 +377,10 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               )}
             </div>
           )}
-          {NOTE[o.state] && (
+          {NOTE(tx)[o.state] && (
             <div className="sob-ord-done" role="status">
-              <b>{NOTE[o.state][0]}</b>
-              <p>{NOTE[o.state][1]}</p>
+              <b>{NOTE(tx)[o.state][0]}</b>
+              <p>{NOTE(tx)[o.state][1]}</p>
               {o.state === 'overdue' && (
                 <button className="btn ghost sm" disabled={busy === 'cancel'} onClick={() => act('cancel')}>
                   {busy === 'cancel' ? tx('Cancelling...') : tx('Cancel and get a full refund')}
@@ -399,7 +404,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <p>
                   {o.repo.expired
                     ? tx('The GitHub invite has run out. Ask the seller to send it again in the order chat.')
-                    : `Accept the GitHub invite before ${day(o.repo.expiresAt!)}. GitHub removes an invite that is not accepted in time. Then confirm here that you can open it.`}
+                    : tx('Accept the GitHub invite before {day}. GitHub removes an invite that is not accepted in time. Then confirm here that you can open it.', { day: day(o.repo.expiresAt!) })}
                 </p>
               )}
               {o.repo.resends > 0 && o.state === 'in_delivery' && (
@@ -451,7 +456,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                   <dt>
                     <T s={'Support'} />
                   </dt>
-                  <dd>{o.info.supportUntil ? `Until ${day(o.info.supportUntil)}, in the order chat${o.info.supportUntil < now ? ' (ended)' : ''}` : tx('None. You got the product as it is.')}</dd>
+                  <dd>
+                    {o.info.supportUntil
+                      ? tx('Until {day}, in the order chat{v1}', { day: day(o.info.supportUntil), v1: o.info.supportUntil < now ? ' (ended)' : '' })
+                      : tx('None. You got the product as it is.')}
+                  </dd>
                 </div>
                 {o.info.versions.isNew && (
                   <div data-new-version>

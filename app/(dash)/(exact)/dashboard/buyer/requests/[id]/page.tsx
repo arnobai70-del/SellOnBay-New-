@@ -20,16 +20,17 @@ const day = (ms: number) => new Date(ms).toUTCString().replace(':00 GMT', ' UTC'
 
 /* One request: what was asked, SellOnBay's questions and answers, and the quotation with its full terms to accept or decline. */
 export default async function BuyerRequest({ params }: { params: Promise<{ id: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/dashboard/buyer/requests/${id}`, roles: ['buyer'] });
   const r = /^[0-9a-f-]{36}$/i.test(id) ? await getRequest(id) : null;
   if (!viewer || !r || r.buyerId !== viewer.id) notFound(); // someone else's request is a 404, never a hint that it exists
   const products = await productNames([r.productId]);
-  const title = requestTitle(r, products);
+  const title = translate(requestTitle(r, products));
   const timeline = buyerTimeline(await requestEvents(r.id));
   const q = buyerQuote(await quotesOf(r.id));
-  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+  const [english, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+  const word = translate(english);
   return (
     <DashShell name={viewer.name} signedIn role="buyer" active="buyer-requests" title={title} viewerRole={viewer.role}>
       <div className="glass card sob-sec" data-request={r.id}>
@@ -41,7 +42,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
                 <i />
                 {word}
               </span>{' '}
-              · {TIER_TEXT[r.licenceTier].label} · {r.package === 'asis' ? tx('As is') : r.package === 'setup' ? tx('With setup help') : tx('With customisation')}
+              · {translate(TIER_TEXT[r.licenceTier].label)} · {r.package === 'asis' ? tx('As is') : r.package === 'setup' ? tx('With setup help') : tx('With customisation')}
             </p>
           </div>
         </div>
@@ -60,7 +61,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
           )}
         </dl>
         {r.status === 'needs_info' && (
-          <ActionButton endpoint={`/api/requests/${r.id}`} body={{ action: 'answer' }} label="Answer SellOnBay" note={{ label: tx('Your answer'), required: true, rows: 4 }} />
+          <ActionButton endpoint={`/api/requests/${r.id}`} body={{ action: 'answer' }} label={tx('Answer SellOnBay')} note={{ label: tx('Your answer'), required: true, rows: 4 }} />
         )}
         {r.kind === 'custom_dev' && r.verifiedRequirements && (
           <div className="glass card sob-sec" style={{ marginTop: 16 }} data-requirements>
@@ -77,8 +78,8 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
                 <ActionButton
                   endpoint={`/api/requests/${r.id}`}
                   body={{ action: 'confirm_requirements' }}
-                  label="These are my requirements"
-                  confirm="Anything not written here is not part of the job. If something is missing, answer below instead of confirming."
+                  label={tx('These are my requirements')}
+                  confirm={tx('Anything not written here is not part of the job. If something is missing, answer below instead of confirming.')}
                 />
               )
             )}
@@ -94,7 +95,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
                 <T s={'Quotation, version {version}'} v={{ version: q.version }} />
               </h2>
               <p className="tag">
-                {QUOTE_WORDS[q.status]}
+                {translate(QUOTE_WORDS[q.status])}
                 {q.status === 'issued' && q.validUntil ? ` · valid until ${day(q.validUntil)}` : ''}
               </p>
             </div>
@@ -132,7 +133,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
               <T s={'Licence'} />
             </dt>
             <dd>
-              {TIER_TEXT[q.terms.licenceTier].label}. {TIER_TEXT[q.terms.licenceTier].terms}{' '}
+              {translate(TIER_TEXT[q.terms.licenceTier].label)}. {translate(TIER_TEXT[q.terms.licenceTier].terms)}{' '}
               <small className="muted">
                 <T s={'(text version {licenceTextVersion})'} v={{ licenceTextVersion: q.terms.licenceTextVersion }} />
               </small>
@@ -153,7 +154,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
               <T
                 s={'{v0}{v1}. Fixing a defect never uses a revision.'}
                 v={{
-                  v0: q.terms.revisions.included ? `${q.terms.revisions.included} included within ${q.terms.revisions.windowDays} days: ${q.terms.revisions.scope}` : 'None included',
+                  v0: q.terms.revisions.included ? `${q.terms.revisions.included} included within ${q.terms.revisions.windowDays} days: ${q.terms.revisions.scope}` : tx('None included'),
                   v1: q.terms.revisions.extraPriceCents !== null ? ` · extra revisions ${usd(q.terms.revisions.extraPriceCents)} each` : '',
                 }}
               />
@@ -178,11 +179,20 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
               <ActionButton
                 endpoint={`/api/quotations/${q.id}`}
                 body={{ action: 'accept' }}
-                label="Accept and continue to payment"
-                confirm={`You accept this exact quotation (${usd(q.totalCents)}) and its terms. An order is created and SellOnBay sends payment instructions. Files are released only after your payment is verified and approved.`}
+                label={tx('Accept and continue to payment')}
+                confirm={tx(
+                  'You accept this exact quotation ({usd}) and its terms. An order is created and SellOnBay sends payment instructions. Files are released only after your payment is verified and approved.',
+                  { usd: usd(q.totalCents) },
+                )}
                 goTo={(j) => (typeof j.order === 'string' ? `/orders/${j.order}` : null)}
               />
-              <ActionButton endpoint={`/api/quotations/${q.id}`} body={{ action: 'reject' }} label="Decline or ask for changes" tone="line" note={{ label: tx('What should change? (optional)') }} />
+              <ActionButton
+                endpoint={`/api/quotations/${q.id}`}
+                body={{ action: 'reject' }}
+                label={tx('Decline or ask for changes')}
+                tone="line"
+                note={{ label: tx('What should change? (optional)') }}
+              />
             </div>
           )}
           {q.status === 'accepted' && q.orderId && (
@@ -208,7 +218,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
         <ul className="sob-tl2">
           {timeline.map((t, i) => (
             <li key={i}>
-              <b>{t.text}</b>
+              <b>{translate(t.text)}</b>
               {t.note && <span style={{ whiteSpace: 'pre-wrap' }}>{t.note}</span>}
               <small>{day(t.at)}</small>
             </li>
@@ -219,9 +229,9 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
             <ActionButton
               endpoint={`/api/requests/${r.id}`}
               body={{ action: 'withdraw' }}
-              label="Withdraw this request"
+              label={tx('Withdraw this request')}
               tone="line"
-              confirm="The request is closed. You can send a new one at any time."
+              confirm={tx('The request is closed. You can send a new one at any time.')}
             />
           </div>
         )}

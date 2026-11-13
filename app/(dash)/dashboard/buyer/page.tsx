@@ -21,7 +21,7 @@ const ago = (t: number, now: number) => {
 
 /* design-reference/buyer.html: what the buyer owns, the order in its review (accepted or reported on its order page), what to do, updates and orders. */
 export default async function BuyerOverview() {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer', roles: ['buyer', 'seller', 'admin'] });
   const v = viewer ? await buyerOverview(viewer.id) : null;
   const first = viewer?.name?.split(' ')[0];
@@ -47,7 +47,8 @@ export default async function BuyerOverview() {
             key: o.id + 'p',
             tone: 'st-wait',
             label: tx('Payment'),
-            text: o.state === 'payment_review' ? `Payment for ${plainWords(o.title)} is being verified` : `Pay for ${plainWords(o.title)}`,
+            text:
+              o.state === 'payment_review' ? tx('Payment for {plainWords} is being verified', { plainWords: plainWords(o.title) }) : tx('Pay for {plainWords}', { plainWords: plainWords(o.title) }),
             href: `/orders/${o.id}`,
             act: 'View',
           })),
@@ -68,7 +69,7 @@ export default async function BuyerOverview() {
     <BuyerShell viewer={viewer} active="overview" file="buyer" title={tx('Overview')} head={false}>
       <div className="row">
         <div>
-          <h1>{first ? `Welcome back, ${first}` : tx('Welcome back')}</h1>
+          <h1>{first ? tx('Welcome back, {first}', { first }) : tx('Welcome back')}</h1>
           <div className="tag">
             <T s={'Your websites, orders and domains in one place'} />
           </div>
@@ -121,7 +122,7 @@ export default async function BuyerOverview() {
                 <div className="muted" style={{ fontSize: 14, marginTop: 8, lineHeight: 1.55 }}>
                   <T
                     s={'{v0}Check the files and the domain setup, then approve to pay the seller. If something is wrong, report it before the time runs out.'}
-                    v={{ v0: review.priceCents ? `Your ${usd(review.priceCents)} is held in escrow. ` : '' }}
+                    v={{ v0: review.priceCents ? tx('Your {usd} is held in escrow. ', { usd: usd(review.priceCents) }) : '' }}
                   />
                 </div>
                 <div className="bar" style={{ marginTop: 14, maxWidth: 420 }}>
@@ -255,7 +256,7 @@ export default async function BuyerOverview() {
                         <td>{usd(o.priceCents)}</td>
                         <td>{o.payment?.ref === 'subscription' ? tx('Subscription') : o.state.startsWith('beta_') ? tx('Free beta') : (o.payment?.brand ?? '—')}</td>
                         <td>
-                          <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{buyerStatus(o.state).label}</span>
+                          <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{translate(buyerStatus(o.state).label)}</span>
                         </td>
                       </tr>
                     ))

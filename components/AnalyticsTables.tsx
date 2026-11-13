@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { type Attraction, type DayLine, type Named, type Top, DAY_FIELDS, LEVEL_LABEL } from '@/lib/analyticsCore';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 /* The tables of the admin Visitors page and its daily report (app/(dash)/admin/visitors/details). */
 const LEVEL_CHIP: Record<Attraction['level'], string> = { strong: 'status st-ok', fair: 'status st-wait', weak: 'status st-bad', few: 'status st-draft' };
 
@@ -15,7 +16,7 @@ function Empty({ cols, text }: { cols: number; text: string }) {
   );
 }
 
-export function DaysTable({ days }: { days: DayLine[] }) {
+export async function DaysTable({ days }: { days: DayLine[] }) {
   const most = Math.max(1, ...days.map((d) => d.visitors));
   return (
     <div className="tbl">
@@ -58,7 +59,7 @@ export function DaysTable({ days }: { days: DayLine[] }) {
   );
 }
 
-export function CompareTable({ today, before }: { today: DayLine; before: DayLine }) {
+export async function CompareTable({ today, before }: { today: DayLine; before: DayLine }) {
   return (
     <div className="tbl">
       <table className="">
@@ -94,7 +95,8 @@ export function CompareTable({ today, before }: { today: DayLine; before: DayLin
   );
 }
 
-export function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: string; link?: (key: string) => string }) {
+export async function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: string; link?: (key: string) => string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   return (
     <div className="tbl">
       <table className="">
@@ -110,7 +112,7 @@ export function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: strin
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && <Empty cols={3} text="Nothing yet for these days." />}
+          {rows.length === 0 && <Empty cols={3} text={tx('Nothing yet for these days.')} />}
           {rows.map((r) => (
             <tr key={r.key}>
               <td>
@@ -132,7 +134,8 @@ export function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: strin
   );
 }
 
-export function AttractionTable({ rows }: { rows: Named<Attraction>[] }) {
+export async function AttractionTable({ rows }: { rows: Named<Attraction>[] }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   return (
     <div className="tbl">
       <table className="">
@@ -156,7 +159,7 @@ export function AttractionTable({ rows }: { rows: Named<Attraction>[] }) {
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && <Empty cols={5} text="Nothing yet for these days." />}
+          {rows.length === 0 && <Empty cols={5} text={tx('Nothing yet for these days.')} />}
           {rows.map((r) => (
             <tr key={r.key}>
               <td>

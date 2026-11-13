@@ -35,7 +35,7 @@ export function TargetForm({ dollars }: { dollars: number }) {
         if (r?.ok) {
           setOpen(false);
           router.refresh();
-        } else setMsg(((await r?.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Could not save. Try again.');
+        } else setMsg(((await r?.json().catch(() => null)) as { error?: string } | null)?.error ?? tx('Could not save. Try again.'));
       }}
     >
       <label className="hidden-label" htmlFor="target-usd">

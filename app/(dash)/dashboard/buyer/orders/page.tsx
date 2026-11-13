@@ -13,20 +13,21 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Orders and payments'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TAB_LABEL: Record<OrderTab, string> = { all: 'All', progress: 'In progress', done: 'Completed', refunded: 'Refunded' };
+const TAB_LABEL = (tx: Tx): Record<OrderTab, string> => ({ all: 'All', progress: tx('In progress'), done: 'Completed', refunded: 'Refunded' });
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
-const method = (o: Order) =>
-  o.payment?.ref === 'subscription' ? 'Subscription' : o.payment?.brand === BETA_METHOD || o.state.startsWith('beta_') ? 'Free (beta)' : o.payment?.brand ? o.payment.brand : '—';
+const method = (o: Order, tx: Tx) =>
+  o.payment?.ref === 'subscription' ? 'Subscription' : o.payment?.brand === BETA_METHOD || o.state.startsWith('beta_') ? tx('Free (beta)') : o.payment?.brand ? o.payment.brand : '—';
 
 /*
  * design-reference/buyer-orders.html: every order with its payment and receipt (/api/orders/[id]/receipt), a payment being checked shown on top
  * (the reference is changed on the order's own page), and the refunds. The top bar's search filters this list (?q=).
  */
 export default async function BuyerOrders({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer/orders', roles: ['buyer', 'seller', 'admin'] });
   const { tab: raw, q: rawQ } = await searchParams;
   const tab: OrderTab = (ORDER_TABS as readonly string[]).includes(String(raw)) ? (raw as OrderTab) : 'all';
@@ -51,7 +52,7 @@ export default async function BuyerOrders({ searchParams }: { searchParams: Prom
         <div className="seg" role="tablist" aria-label={tx('Order filter')}>
           {ORDER_TABS.map((t) => (
             <Link key={t} role="tab" className={t === tab ? 'on' : ''} aria-selected={t === tab} href={t === 'all' ? '/dashboard/buyer/orders' : `/dashboard/buyer/orders?tab=${t}`} prefetch={false}>
-              {TAB_LABEL[t]}
+              {TAB_LABEL(tx)[t]}
             </Link>
           ))}
         </div>
@@ -145,9 +146,9 @@ export default async function BuyerOrders({ searchParams }: { searchParams: Prom
                       </div>
                     </td>
                     <td>{usd(o.priceCents)}</td>
-                    <td>{method(o)}</td>
+                    <td>{method(o, tx)}</td>
                     <td>
-                      <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{buyerStatus(o.state).label}</span>
+                      <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{translate(buyerStatus(o.state).label)}</span>
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {o.fundedAt ? (

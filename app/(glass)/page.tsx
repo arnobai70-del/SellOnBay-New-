@@ -21,6 +21,8 @@ import { pageCopy } from '@/lib/content/copy';
 import { shownSocial } from '@/lib/site/social';
 
 import { T } from '@/components/i18n/T';
+import type { Tx } from '@/lib/i18n/tx';
+import { getI18n } from '@/lib/i18n/server';
 const HOME_DESCRIPTION = `Buy ready-made full-stack websites with escrow protection, get a domain in your own name, or sell your own websites and keep ${PLAN_KEEP_TEXT}.`;
 
 /* An admin can set the title and description Google shows, and the Search Console codes, at Admin > SEO. */
@@ -87,17 +89,18 @@ const PILLAR_ICON = [
     ),
   },
 ];
-const TRUST = [
-  ['Escrow protection', 'Your payment is held safely until you approve the site.'],
-  [`${REVIEW_HOURS}-hour review`, 'Check the files and setup before the seller is paid.'],
-  ['Live demo first', 'Click through every website before you buy.'],
-  ['Domain in your name', 'Your domain is registered to you, not the seller.'],
+const TRUST = (tx: Tx) => [
+  [tx('Escrow protection'), tx('Your payment is held safely until you approve the site.')],
+  [`${REVIEW_HOURS}-hour review`, tx('Check the files and setup before the seller is paid.')],
+  [tx('Live demo first'), tx('Click through every website before you buy.')],
+  [tx('Domain in your name'), tx('Your domain is registered to you, not the seller.')],
 ];
 const DOT = <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7FBFA9', flex: 'none' }} />;
 const ROW = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginBottom: 20 } as const;
 
 /* design-reference/index.html, wired to the live listings, sellers and the words an admin sets at Admin › Content › Pages › Home. */
 export default async function Home() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const draft = (await draftMode()).isEnabled;
   const [sites, sellers, social, c] = await Promise.all([publicWebsites(), publicSellers(), savedSocial(), pageCopy('home', draft)]);
   const sameAs = shownSocial(social).map((l) => l.url);
@@ -157,7 +160,7 @@ export default async function Home() {
           </div>
         </section>
         <section className="reveal" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(230px, 100%), 1fr))', gap: 16, padding: '40px 0 72px' }}>
-          {TRUST.map(([t, d]) => (
+          {TRUST(tx).map(([t, d]) => (
             <div key={t} className="glass" style={{ padding: 22, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
               <span
                 className="ico"

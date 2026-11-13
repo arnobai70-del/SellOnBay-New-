@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 /* A buyer's purchase and custom development requests, newest first. */
 export default async function BuyerRequests() {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer/requests', roles: ['buyer', 'seller', 'admin'] });
   const list = viewer ? await listRequests({ buyerId: viewer.id }) : [];
   const products = await productNames(list.map((r) => r.productId));
@@ -45,12 +45,13 @@ export default async function BuyerRequests() {
         )}
         <ul className="sob-list" data-requests>
           {list.map((r) => {
-            const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+            const [english, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+            const word = translate(english);
             return (
               <li key={r.id}>
                 <div className="sob-grow">
                   <b>
-                    <Link href={`/dashboard/buyer/requests/${r.id}`}>{requestTitle(r, products)}</Link>
+                    <Link href={`/dashboard/buyer/requests/${r.id}`}>{translate(requestTitle(r, products))}</Link>
                   </b>
                   <small>
                     <T s={'Sent {v0}'} v={{ v0: new Date(r.createdAt).toUTCString().slice(0, 16) }} />

@@ -39,7 +39,7 @@ export function FeedbackForm({ orderId, reviewHref }: { orderId: string; reviewH
         }).catch(() => null);
         if (res?.ok) return setState('done');
         setState('idle');
-        setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Could not send. Please try again.');
+        setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? tx('Could not send. Please try again.'));
       }}
     >
       <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
@@ -54,8 +54,8 @@ export function FeedbackForm({ orderId, reviewHref }: { orderId: string; reviewH
           ))}
         </div>
       </fieldset>
-      <Field as="textarea" label="What worked?" name="worked" maxLength={2000} />
-      <Field as="textarea" label="What should we improve?" name="improve" maxLength={2000} error={error || undefined} />
+      <Field as="textarea" label={tx('What worked?')} name="worked" maxLength={2000} />
+      <Field as="textarea" label={tx('What should we improve?')} name="improve" maxLength={2000} error={error || undefined} />
       <div>
         <Button type="submit" disabled={state === 'busy'}>
           {state === 'busy' ? tx('Sending') : tx('Send feedback')}

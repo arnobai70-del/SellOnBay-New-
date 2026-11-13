@@ -11,11 +11,12 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Risk'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
-const why = { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 
 export default async function Risk() {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
@@ -107,7 +108,7 @@ export default async function Risk() {
               fixed={{ key: s.key, state: s.enabled ? 'off' : 'on' }}
               fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
               submit={s.enabled ? tx('Turn it off') : tx('Turn it on')}
-              openLabel={s.enabled ? 'Turn off' : 'Turn on'}
+              openLabel={s.enabled ? tx('Turn off') : tx('Turn on')}
               tone={s.enabled ? 'line' : 'dark'}
             />
           </div>
@@ -150,14 +151,14 @@ export default async function Risk() {
                   label: tx('Decision'),
                   kind: 'select',
                   options: [
-                    ['release', 'Release: work and files go ahead'],
-                    ['cancel', 'Cancel and refund the buyer'],
+                    ['release', tx('Release: work and files go ahead')],
+                    ['cancel', tx('Cancel and refund the buyer')],
                   ],
                 },
-                why,
+                why(tx),
               ]}
-              submit="Decide"
-              openLabel="Decide"
+              submit={tx('Decide')}
+              openLabel={tx('Decide')}
               tone="dark"
             />
           </div>
@@ -192,7 +193,14 @@ export default async function Risk() {
               <T s={'{percent} percent for {days} days'} v={{ percent: r.percent, days: r.days }} />
             </small>
             <p>{r.note}</p>
-            <AdminForm endpoint="/api/admin/risk/reserve" fixed={{ sellerId: r.sellerId, remove: true }} fields={[why]} submit="Back to the default" openLabel="Remove the rule" tone="line" />
+            <AdminForm
+              endpoint="/api/admin/risk/reserve"
+              fixed={{ sellerId: r.sellerId, remove: true }}
+              fields={[why(tx)]}
+              submit={tx('Back to the default')}
+              openLabel={tx('Remove the rule')}
+              tone="line"
+            />
           </div>
         ))}
         <div className="sob-item">
@@ -205,10 +213,10 @@ export default async function Risk() {
               { name: 'sellerId', label: tx('Seller account id (from the Accounts page)'), kind: 'text', required: true },
               { name: 'percent', label: tx('Percent kept back (0 to 100)'), kind: 'text', required: true },
               { name: 'days', label: tx('For how many days (0 to 180)'), kind: 'text', required: true },
-              why,
+              why(tx),
             ]}
-            submit="Save the rule"
-            openLabel="Set a rule"
+            submit={tx('Save the rule')}
+            openLabel={tx('Set a rule')}
             tone="dark"
           />
         </div>
@@ -236,9 +244,9 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'account' }}
-            fields={[{ name: 'id', label: tx('Account id (from the Accounts page)'), kind: 'text', required: true }, why]}
-            submit="Remove the account"
-            openLabel="Remove an account"
+            fields={[{ name: 'id', label: tx('Account id (from the Accounts page)'), kind: 'text', required: true }, why(tx)]}
+            submit={tx('Remove the account')}
+            openLabel={tx('Remove an account')}
             tone="dark"
           />
         </div>
@@ -249,9 +257,9 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'reviews_by' }}
-            fields={[{ name: 'id', label: tx('Account id (from the Accounts page)'), kind: 'text', required: true }, why]}
-            submit="Remove the reviews"
-            openLabel="Remove reviews by an account"
+            fields={[{ name: 'id', label: tx('Account id (from the Accounts page)'), kind: 'text', required: true }, why(tx)]}
+            submit={tx('Remove the reviews')}
+            openLabel={tx('Remove reviews by an account')}
             tone="line"
           />
         </div>
@@ -262,9 +270,9 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'review' }}
-            fields={[{ name: 'id', label: tx('Order id of the review'), kind: 'text', required: true }, why]}
-            submit="Remove the review"
-            openLabel="Remove a review"
+            fields={[{ name: 'id', label: tx('Order id of the review'), kind: 'text', required: true }, why(tx)]}
+            submit={tx('Remove the review')}
+            openLabel={tx('Remove a review')}
             tone="line"
           />
         </div>

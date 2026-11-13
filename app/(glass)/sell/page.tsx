@@ -10,24 +10,26 @@ import { pageWords } from '@/lib/seo/pageWords';
 import { savedSocial } from '@/lib/site/contentStore';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/sell', { alternates: { canonical: '/sell' } });
 
 const MIN = CONFIG.sale.priceMinCents / 100;
-const STEPS = [
-  ['Create an account', 'Free. Switch between buying and selling any time.'],
-  ['Verify your identity', 'A passport, national ID or driver licence, once, before your first payout.'],
-  ['Upload your website', 'Code, database, demo link, screenshots and setup guide.'],
-  ['We review it', 'A person checks it, and tells you exactly what to fix if something is missing.'],
-  ['Sell and get paid', `Money is released after review. ${PAYOUT_TEXT}.`],
+const STEPS = (tx: Tx) => [
+  [tx('Create an account'), tx('Free. Switch between buying and selling any time.')],
+  [tx('Verify your identity'), 'A passport, national ID or driver licence, once, before your first payout.'],
+  [tx('Upload your website'), tx('Code, database, demo link, screenshots and setup guide.')],
+  [tx('We review it'), 'A person checks it, and tells you exactly what to fix if something is missing.'],
+  [tx('Sell and get paid'), tx('Money is released after review. {PAYOUT_TEXT}.', { PAYOUT_TEXT })],
 ];
-const CHECKS = [
+const CHECKS = (tx: Tx) => [
   'A working live demo',
-  'Frontend and backend source files',
-  'Database schema (and seed data if needed)',
+  tx('Frontend and backend source files'),
+  tx('Database schema (and seed data if needed)'),
   'A setup guide a buyer can follow',
-  `Price of at least $${MIN}`,
-  'Your own work, no copied brands or code',
+  tx('Price of at least ${MIN}', { MIN }),
+  tx('Your own work, no copied brands or code'),
 ];
 const NUM: React.CSSProperties = {
   width: 38,
@@ -46,6 +48,7 @@ const NUM: React.CSSProperties = {
  * from lib/config.ts (owner, 2026-11-07: seller 78%, platform 22%, $20 minimum). Payout fee wording: owner, 2026-11-09.
  */
 export default async function Sell() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [words, social, copy] = await Promise.all([pageWords('/sell'), savedSocial(), pageCopy('sell')]);
   const heading = copy.t('head', 'heading', words.heading);
   const intro = copy.t('head', 'intro', words.intro ?? '');
@@ -91,7 +94,7 @@ export default async function Sell() {
           <T s={'From upload to payout'} />
         </h2>
         <div className="grid3">
-          {STEPS.map(([t, d], i) => (
+          {STEPS(tx).map(([t, d], i) => (
             <div key={t} className="glass card">
               <div style={NUM}>{i + 1}</div>
               <div style={{ fontWeight: 500, marginTop: 14 }}>{t}</div>
@@ -107,7 +110,7 @@ export default async function Sell() {
           <h2 style={{ fontSize: 22, marginBottom: 8 }}>
             <T s={'What we check before going live'} />
           </h2>
-          {CHECKS.map((c) => (
+          {CHECKS(tx).map((c) => (
             <div key={c} className="rq">
               <i aria-hidden="true">✓</i> {c}
             </div>
@@ -122,11 +125,11 @@ export default async function Sell() {
               <tbody>
                 {(
                   [
-                    ['Listing a website', 'Free'],
-                    ['Your share of each sale', PLAN_KEEP_TEXT],
+                    [tx('Listing a website'), 'Free'],
+                    [tx('Your share of each sale'), PLAN_KEEP_TEXT],
                     ['SellOnBay share', PLAN_FEE_TEXT],
-                    ['Custom work through SellOnBay', `${PLAN_KEEP_TEXT} to you`],
-                    ['Payout fee', 'None from SellOnBay'],
+                    [tx('Custom work through SellOnBay'), `${PLAN_KEEP_TEXT} to you`],
+                    [tx('Payout fee'), tx('None from SellOnBay')],
                   ] as const
                 ).map(([l, v]) => (
                   <tr key={l}>
@@ -148,9 +151,9 @@ export default async function Sell() {
           <T s={'Seller questions'} />
         </h2>
         {[
-          ['What do I need to start?', 'An account, an identity document for verification, and a payout account (PayPal, Payoneer, Wise or a bank).'],
-          ['How long does review take?', 'A person checks every website. If something is missing, the reviewer tells you exactly what to fix.'],
-          ['What if a buyer reports a problem?', 'You get a message and a deadline to help. Payment is released once it is solved.'],
+          [tx('What do I need to start?'), tx('An account, an identity document for verification, and a payout account (PayPal, Payoneer, Wise or a bank).')],
+          [tx('How long does review take?'), tx('A person checks every website. If something is missing, the reviewer tells you exactly what to fix.')],
+          [tx('What if a buyer reports a problem?'), tx('You get a message and a deadline to help. Payment is released once it is solved.')],
         ].map(([q, a], i) => (
           <details key={q} className="glass" open={i === 0}>
             <summary>{q}</summary>
@@ -167,7 +170,7 @@ export default async function Sell() {
             {copy.t('cta', 'create')}
           </Link>
         </div>
-        <SocialRow links={social} label="Sellers community" />
+        <SocialRow links={social} label={tx('Sellers community')} />
       </section>
       <PageExtras path="/sell" />
     </PublicFrame>

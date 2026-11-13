@@ -16,11 +16,12 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Earnings and payouts'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const shortDay = (iso: string) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
-const DOC: Record<string, string> = { passport: 'Passport', national_id: 'National ID card', driver_licence: 'Driver licence' };
+const DOC = (tx: Tx): Record<string, string> => ({ passport: 'Passport', national_id: tx('National ID card'), driver_licence: tx('Driver licence') });
 const DROP: React.CSSProperties = { border: '2px dashed #BFD8E2', borderRadius: 14, padding: 16, textAlign: 'center', fontSize: 13 };
 
 /*
@@ -136,7 +137,7 @@ export default async function SellerPayouts() {
               {ver.status === 'approved' || ver.status === 'pending' ? (
                 <div className="grid2" style={{ gap: 10 }}>
                   <div style={DROP}>
-                    {ver.docType ? DOC[ver.docType] : tx('Document')}
+                    {ver.docType ? DOC(tx)[ver.docType] : tx('Document')}
                     <div className="tag">
                       <T s={'Uploaded ✓'} />
                     </div>

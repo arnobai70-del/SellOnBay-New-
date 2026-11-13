@@ -43,7 +43,7 @@ type Item = { key: string; title: string; kind: 'Dispute' | 'Refund' | 'Question
  * status is set with /api/tickets/[id]. Abuse reports have their own tool.
  */
 export default async function AdminSupportHub({ searchParams }: { searchParams: Promise<{ tab?: string; d?: string; t?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/support', roles: ['admin'], scope: 'support' });
   const sp = await searchParams;
   const tab: Tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'all';
@@ -54,7 +54,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
     ...(tab === 'all' || tab === 'disputes'
       ? disputes.map((d) => ({
           key: `d:${d.id}`,
-          title: REASON_LABEL[d.reason],
+          title: translate(REASON_LABEL[d.reason]),
           kind: 'Dispute' as const,
           tone: 'st-bad',
           sub: `${orderCode(d.orderId)} · ${ago(d.createdAt, now)}`,
@@ -65,7 +65,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
     ...(tab === 'all' || tab === 'refunds'
       ? refunds.map((r) => ({
           key: `r:${r.id}`,
-          title: `Refund ${usd(r.amountCents)}: ${r.reason}`,
+          title: tx('Refund {usd}: {reason}', { usd: usd(r.amountCents), reason: r.reason }),
           kind: 'Refund' as const,
           tone: 'st-wait',
           sub: `${orderCode(r.orderId)} · ${r.status}`,
@@ -185,7 +185,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
                 </div>
                 <span className={`status ${ticket.openerRole === 'seller' ? 'st-draft' : 'st-info'}`}>{ticket.openerRole === 'seller' ? tx('Seller') : tx('Question')}</span>
               </div>
-              <ConversationPanel type="ticket" id={ticket.id} me="admin" heading="Messages" />
+              <ConversationPanel type="ticket" id={ticket.id} me="admin" heading={tx('Messages')} />
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 {ticket.orderId && (
                   <Link className="btn ghost" href={`/admin/orders/${ticket.orderId}`} prefetch={false}>
@@ -194,8 +194,8 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
                 )}
                 <AdminForm
                   endpoint={`/api/tickets/${ticket.id}`}
-                  openLabel="Change status"
-                  submit="Save"
+                  openLabel={tx('Change status')}
+                  submit={tx('Save')}
                   tone="line"
                   fields={[
                     {
@@ -203,8 +203,8 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
                       label: tx('Status'),
                       kind: 'select',
                       options: [
-                        ['open', 'Waiting for SellOnBay'],
-                        ['waiting_user', 'Waiting for the person'],
+                        ['open', tx('Waiting for SellOnBay')],
+                        ['waiting_user', tx('Waiting for the person')],
                         ['closed', 'Closed'],
                       ],
                     },
@@ -242,7 +242,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
 
 /* The open dispute: the review window, what each side said, the evidence and the decision (the old disputes tool, in the design's pane). */
 async function DisputeView({ d, now }: { d: Dispute; now: number }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const o = await getOrder(d.orderId);
   const [ev, history, people] = await Promise.all([evidenceOf(d.id), o ? orderEvents(o.id) : Promise.resolve([]), profileNames([o?.buyerId, o?.sellerId])]);
   const sellerNet = o ? split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet : 0;
@@ -253,7 +253,7 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
     <>
       <div className="row">
         <div>
-          <h2>{REASON_LABEL[d.reason]}</h2>
+          <h2>{translate(REASON_LABEL[d.reason])}</h2>
           <div className="tag">
             <T
               s={'{v0} · {v1} · buyer {v2} · seller {v3} · opened from {fromState}'}
@@ -318,8 +318,8 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <AdminForm
           endpoint={`/api/admin/disputes/${d.id}/decide`}
-          openLabel="Decide"
-          submit="Save decision"
+          openLabel={tx('Decide')}
+          submit={tx('Save decision')}
           tone="blue"
           fields={[
             {
@@ -327,15 +327,15 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
               label: tx('Decision'),
               kind: 'select',
               options: [
-                ['refund_full', 'Refund the buyer in full'],
-                ['refund_partial', 'Refund part of it'],
-                ['fix_requested', 'Ask the seller to fix it'],
-                ['release', 'Reject the dispute and pay the seller'],
+                ['refund_full', tx('Refund the buyer in full')],
+                ['refund_partial', tx('Refund part of it')],
+                ['fix_requested', tx('Ask the seller to fix it')],
+                ['release', tx('Reject the dispute and pay the seller')],
               ],
             },
             {
               name: 'refundCents',
-              label: `Refund amount in dollars (up to ${money(sellerNet)}, taken from the seller's share)`,
+              label: tx("Refund amount in dollars (up to {money}, taken from the seller's share)", { money: money(sellerNet) }),
               kind: 'dollars',
               showWhen: { field: 'decision', equals: 'refund_partial' },
             },
@@ -344,9 +344,9 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
               label: tx('Whose fault was it? (recorded on the dispute)'),
               kind: 'select',
               options: [
-                ['platform', 'Us or nobody'],
-                ['seller', 'The seller'],
-                ['buyer_fraud', 'The buyer (fraud): the buyer is flagged'],
+                ['platform', tx('Us or nobody')],
+                ['seller', tx('The seller')],
+                ['buyer_fraud', tx('The buyer (fraud): the buyer is flagged')],
               ],
             },
             { name: 'feeCents', label: tx('What the dispute cost, in dollars (empty for none). Taken from the seller only when the seller was at fault.'), kind: 'dollars' },

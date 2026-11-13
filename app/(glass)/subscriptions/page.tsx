@@ -9,19 +9,25 @@ import { getViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = {
-  title: 'Buyer subscriptions',
-  description: 'Yearly plans: choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.',
-  alternates: { canonical: '/subscriptions' },
+import type { Tx } from '@/lib/i18n/tx';
+import { localizeMetadata } from '@/lib/i18n/seo';
+// The page's words in its language; localizeMetadata adds its own address, the other languages and an admin's SEO words for that language.
+export const generateMetadata = async (): Promise<Metadata> => {
+  const { tx } = await getI18n();
+  return localizeMetadata('/subscriptions', {
+    title: tx('Buyer subscriptions'),
+    description: tx('Yearly plans: choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.'),
+    alternates: { canonical: '/subscriptions' },
+  });
 };
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
-const DEFAULT_FAQ = [
-  ['What happens when my subscription ends?', 'The licence to keep using the code and the free support end. Your websites keep running and the files you downloaded stay yours.'],
-  ['What does a renewal include?', 'It extends the licence and support of the websites you already chose. New websites need a new plan.'],
-  ['How do I pay?', 'Choose a plan, pay by one of the listed methods and enter your payment reference. We check it and start your plan.'],
-  ['Can I still buy single websites?', 'Yes. Every website can still be bought on its own, the usual way.'],
+const DEFAULT_FAQ = (tx: Tx) => [
+  [tx('What happens when my subscription ends?'), tx('The licence to keep using the code and the free support end. Your websites keep running and the files you downloaded stay yours.')],
+  [tx('What does a renewal include?'), tx('It extends the licence and support of the websites you already chose. New websites need a new plan.')],
+  [tx('How do I pay?'), tx('Choose a plan, pay by one of the listed methods and enter your payment reference. We check it and start your plan.')],
+  [tx('Can I still buy single websites?'), tx('Yes. Every website can still be bought on its own, the usual way.')],
 ];
 
 /*
@@ -33,7 +39,7 @@ export default async function Subscriptions() {
   const [settings, plans, viewer] = await Promise.all([subSettings(), publicPlans(), getViewer().catch(() => null)]);
   const admin = viewer?.role === 'admin';
   if (!settings.enabled && !admin) notFound();
-  const faq = settings.faq.length ? settings.faq.map((x) => [x.q, x.a] as const) : DEFAULT_FAQ;
+  const faq = settings.faq.length ? settings.faq.map((x) => [x.q, x.a] as const) : DEFAULT_FAQ(tx);
   const featureRows = FEATURE_KEYS.filter((k) => plans.some((p) => p.features[k]));
   return (
     <PublicFrame file="sell">
@@ -89,7 +95,7 @@ export default async function Subscriptions() {
                   ))}
               </ul>
               <div style={{ marginTop: 'auto' }}>
-                <SubscribeButton planId={p.id} label={`Choose ${p.name}`} disabled={!settings.enabled} />
+                <SubscribeButton planId={p.id} label={tx('Choose {name}', { name: p.name })} disabled={!settings.enabled} />
               </div>
             </article>
           ))}

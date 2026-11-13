@@ -28,7 +28,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
   const { path = '' } = await searchParams;
   const viewer = await requireViewer({ path: `/admin/seo/pages/edit?path=${encodeURIComponent(path)}`, roles: ['admin'], scope: 'content' });
   const home = path === '/';
-  const page = home ? { path: '/', name: 'Home page', title: SITE_NAME, description: '', words: undefined } : (seoPage(path) ?? (await listingPage(path)));
+  const page = home ? { path: '/', name: tx('Home page'), title: SITE_NAME, description: '', words: undefined } : (seoPage(path) ?? (await listingPage(path)));
   if (!page) notFound();
   const isListing = 'product' in page;
   const product = 'product' in page ? (page as { product: Product }).product : undefined;
@@ -92,7 +92,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
                 kind: 'text',
                 value: s.title,
                 max: PAGE_SEO_MAX.title,
-                hint: `About ${PAGE_SEO_GOOD.title} characters show in Google. Empty = "${page.title} · ${SITE_NAME}".`,
+                hint: tx('About {title} characters show in Google. Empty = "{title2} · {SITE_NAME}".', { title: PAGE_SEO_GOOD.title, title2: page.title, SITE_NAME }),
               },
               {
                 name: 'description',
@@ -100,10 +100,10 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
                 kind: 'textarea',
                 value: s.description,
                 max: PAGE_SEO_MAX.description,
-                hint: `About ${PAGE_SEO_GOOD.description} characters show. Empty = the built-in words.`,
+                hint: tx('About {description} characters show. Empty = the built-in words.', { description: PAGE_SEO_GOOD.description }),
               },
             ]}
-            submit="Save meta title and description"
+            submit={tx('Save meta title and description')}
           />
         )}
       </div>
@@ -145,8 +145,8 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             endpoint="/api/admin/seo/slug"
             fixed={{ slug: product.id }}
             fields={[{ name: 'newSlug', label: tx('New address ending'), kind: 'text', value: product.id, max: 61, hint: tx('Lowercase letters, numbers and dashes.') }]}
-            submit="Change the address"
-            openLabel="Change the address"
+            submit={tx('Change the address')}
+            openLabel={tx('Change the address')}
             tone="line"
           />
         </div>

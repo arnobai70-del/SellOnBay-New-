@@ -248,10 +248,10 @@ export default async function AdminMarketing() {
         </div>
         {(
           [
-            ['Promotions', 'Seller promotion plans and featured spots', '/admin/marketing/promotions'],
-            ['SEO and guides', 'Titles, descriptions, Search Console', '/admin/seo'],
-            ['Site builder', 'Menu, footer and page blocks', '/admin/content/site'],
-            ['Visitors', 'Who opens what', '/admin/visitors'],
+            ['Promotions', tx('Seller promotion plans and featured spots'), '/admin/marketing/promotions'],
+            ['SEO and guides', tx('Titles, descriptions, Search Console'), '/admin/seo'],
+            [tx('Site builder'), tx('Menu, footer and page blocks'), '/admin/content/site'],
+            ['Visitors', tx('Who opens what'), '/admin/visitors'],
           ] as const
         ).map(([l, t, h]) => (
           <div key={h} className="li" style={{ fontSize: 14 }}>

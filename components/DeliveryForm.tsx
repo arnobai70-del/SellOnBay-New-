@@ -34,7 +34,7 @@ export function DeliveryForm({
   async function upload() {
     if (!file) return;
     setMsg(null);
-    if (!/\.zip$/i.test(file.name)) return setMsg({ ok: false, text: 'Upload one .zip archive.' });
+    if (!/\.zip$/i.test(file.name)) return setMsg({ ok: false, text: tx('Upload one .zip archive.') });
     setBusy('Uploading...');
     const r = await fetch('/api/seller/files', {
       method: 'POST',
@@ -44,18 +44,18 @@ export function DeliveryForm({
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
       setBusy('');
-      return setMsg({ ok: false, text: j.error ?? 'Could not prepare the upload.' });
+      return setMsg({ ok: false, text: j.error ?? tx('Could not prepare the upload.') });
     }
     const { error } = await createClient().storage.from('quarantine').uploadToSignedUrl(j.path, j.token, file, { contentType: 'application/zip' });
     if (error) {
       setBusy('');
-      return setMsg({ ok: false, text: 'The upload did not finish. Try again.' });
+      return setMsg({ ok: false, text: tx('The upload did not finish. Try again.') });
     }
     const c = await fetch(`/api/seller/files/${j.id}/complete`, { method: 'POST' });
     setBusy('');
-    if (!c.ok) return setMsg({ ok: false, text: 'Could not start the checks.' });
+    if (!c.ok) return setMsg({ ok: false, text: tx('Could not start the checks.') });
     setFile(null);
-    setMsg({ ok: true, text: 'Uploaded. When the checks and the reviewer approve it, choose it below and send the delivery.' });
+    setMsg({ ok: true, text: tx('Uploaded. When the checks and the reviewer approve it, choose it below and send the delivery.') });
     router.refresh();
   }
 
@@ -69,8 +69,8 @@ export function DeliveryForm({
     });
     const j = await r.json().catch(() => ({}));
     setBusy('');
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not send the delivery.' });
-    setMsg({ ok: true, text: 'Sent. SellOnBay checks it and releases it to the buyer.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not send the delivery.') });
+    setMsg({ ok: true, text: tx('Sent. SellOnBay checks it and releases it to the buyer.') });
     router.refresh();
   }
 

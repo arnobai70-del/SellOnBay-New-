@@ -4,6 +4,7 @@ import { PLAN_CODES } from '@/lib/plans/rules';
 import { sellerPlan } from '@/lib/plans/service';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
 
 /*
@@ -11,6 +12,7 @@ const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFracti
  * plans they may ask for (the existing request, POST /api/seller/plan; an admin takes it from there). Off: just the current plan.
  */
 export async function SellerPlanCard({ sellerId }: { sellerId: string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [{ plan, subscription }, settings, versions] = await Promise.all([sellerPlan(sellerId), sellerSubSettings(), planVersions()]);
   const now = offeredNow(versions);
   const offers =
@@ -63,15 +65,15 @@ export async function SellerPlanCard({ sellerId }: { sellerId: string }) {
               <ActionButton
                 endpoint="/api/seller/plan"
                 body={{ plan: c, billing: 'monthly' }}
-                label="Ask monthly"
+                label={tx('Ask monthly')}
                 tone="line"
-                confirm={`Ask for ${p.name}, paid monthly? We send payment details; nothing is charged now.`}
+                confirm={tx('Ask for {name}, paid monthly? We send payment details; nothing is charged now.', { name: p.name })}
               />
               <ActionButton
                 endpoint="/api/seller/plan"
                 body={{ plan: c, billing: 'yearly' }}
-                label="Ask yearly"
-                confirm={`Ask for ${p.name}, paid yearly? We send payment details; nothing is charged now.`}
+                label={tx('Ask yearly')}
+                confirm={tx('Ask for {name}, paid yearly? We send payment details; nothing is charged now.', { name: p.name })}
               />
             </div>
           </div>

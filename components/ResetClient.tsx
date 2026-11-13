@@ -16,8 +16,8 @@ export function ResetClient() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (pw.length < 8) return setError('Use at least 8 characters.');
-    if (pw !== again) return setError('The two passwords do not match.');
+    if (pw.length < 8) return setError(tx('Use at least 8 characters.'));
+    if (pw !== again) return setError(tx('The two passwords do not match.'));
     setBusy(true);
     const sb = createClient();
     const { error: err } = await sb.auth.updateUser({ password: pw });
@@ -28,10 +28,10 @@ export function ResetClient() {
       if (/aal2/i.test(err.message)) return window.location.assign('/two-factor?next=' + encodeURIComponent('/reset-password'));
       return setError(
         /weak|leaked|pwned/i.test(err.message)
-          ? 'Choose a stronger password: this one is too common or has appeared in a leak.'
+          ? tx('Choose a stronger password: this one is too common or has appeared in a leak.')
           : /same/i.test(err.message)
-            ? 'Choose a password different from your old one.'
-            : 'Could not save the password. Request a new reset link and try again.',
+            ? tx('Choose a password different from your old one.')
+            : tx('Could not save the password. Request a new reset link and try again.'),
       );
     }
     const {

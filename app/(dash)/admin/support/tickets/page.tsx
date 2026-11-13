@@ -21,9 +21,9 @@ export default async function AdminSupport({ searchParams }: { searchParams: Pro
   const open = tickets.find((x) => x.id === t) ?? null;
   const names = await personNames(tickets.map((x) => x.openedBy));
   const groups: [string, typeof tickets][] = [
-    ['Waiting for SellOnBay', tickets.filter((x) => x.status === 'open')],
-    ['Waiting for the person', tickets.filter((x) => x.status === 'waiting_user')],
-    ['Closed (recent)', tickets.filter((x) => x.status === 'closed').slice(0, 20)],
+    [tx('Waiting for SellOnBay'), tickets.filter((x) => x.status === 'open')],
+    [tx('Waiting for the person'), tickets.filter((x) => x.status === 'waiting_user')],
+    [tx('Closed (recent)'), tickets.filter((x) => x.status === 'closed').slice(0, 20)],
   ];
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-support" title={tx('Support tickets')}>
@@ -40,8 +40,8 @@ export default async function AdminSupport({ searchParams }: { searchParams: Pro
             )}
             <AdminForm
               endpoint={`/api/tickets/${open.id}`}
-              openLabel="Change status"
-              submit="Save"
+              openLabel={tx('Change status')}
+              submit={tx('Save')}
               tone="line"
               fields={[
                 {
@@ -49,8 +49,8 @@ export default async function AdminSupport({ searchParams }: { searchParams: Pro
                   label: tx('Status'),
                   kind: 'select',
                   options: [
-                    ['open', 'Waiting for SellOnBay'],
-                    ['waiting_user', 'Waiting for the person'],
+                    ['open', tx('Waiting for SellOnBay')],
+                    ['waiting_user', tx('Waiting for the person')],
                     ['closed', 'Closed'],
                   ],
                 },

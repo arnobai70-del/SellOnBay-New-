@@ -24,11 +24,11 @@ export function DeleteAccount() {
           r = await fetch('/api/account/delete-request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirm: text }) });
         } catch {
           setBusy(false);
-          return setErr('Could not reach SellOnBay. Check your connection and try again.');
+          return setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
         }
         const j = await r.json().catch(() => ({}));
         setBusy(false);
-        if (!r.ok) return setErr(j.error ?? 'Something went wrong. Try again.');
+        if (!r.ok) return setErr(j.error ?? tx('Something went wrong. Try again.'));
         router.refresh();
       }}
     >

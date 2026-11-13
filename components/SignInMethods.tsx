@@ -18,9 +18,9 @@ export function SignInMethods({ rows, canLink }: { rows: Row[]; canLink: boolean
     const r = await fetch('/api/account/links', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action, provider }) });
     const j = (await r.json().catch(() => ({}))) as { url?: string; error?: string };
     setBusy('');
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
     if (j.url) return window.location.assign(j.url);
-    setMsg({ ok: true, text: 'Removed.' });
+    setMsg({ ok: true, text: tx('Removed.') });
     router.refresh();
   }
   return (

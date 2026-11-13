@@ -5,6 +5,7 @@ import { BLOCK_TYPES, LIMITS, SECTIONS_LOCKED, type Block, type FooterColumn, ty
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 /*
  * Admin > Site builder: the top menu, the footer and the blocks of a page, edited in place. Every list can be added to, removed from and moved up or down.
  * The server checks everything again (lib/site/content.ts). "Show the built-in one again" takes the saved version away.
@@ -40,7 +41,7 @@ function Row({ onUp, onDown, onDelete, children }: { onUp: () => void; onDown: (
   );
 }
 
-function useSave() {
+function useSave(tx: Tx) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
@@ -53,7 +54,7 @@ function useSave() {
     if (r?.ok) {
       setMsg({ ok: true, text: done });
       router.refresh();
-    } else setMsg({ ok: false, text: j?.error ?? 'Could not save. Try again.' });
+    } else setMsg({ ok: false, text: j?.error ?? tx('Could not save. Try again.') });
   };
   return { busy, msg, run };
 }
@@ -69,14 +70,14 @@ const Status = ({ msg }: { msg: Msg }) =>
 export function MenuBuilder({ initial, custom }: { initial: MenuItem[]; custom: boolean }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [items, setItems] = useState<MenuItem[]>(initial);
-  const { busy, msg, run } = useSave();
+  const { busy, msg, run } = useSave(tx);
   const setChild = (i: number, children: Link[]) => setItems(change(items, i, { children }));
   return (
     <div className="sob-form">
       <p className="muted">
         <T
           s={'{v0} Up to {menuItems} items; an item with sub-links opens a panel.'}
-          v={{ v0: custom ? 'This menu is saved by you and replaces the built-in one.' : 'This is the built-in menu. Change it and save to use your own.', menuItems: LIMITS.menuItems }}
+          v={{ v0: custom ? tx('This menu is saved by you and replaces the built-in one.') : tx('This is the built-in menu. Change it and save to use your own.'), menuItems: LIMITS.menuItems }}
         />
       </p>
       {items.map((m, i) => (
@@ -126,11 +127,11 @@ export function MenuBuilder({ initial, custom }: { initial: MenuItem[]; custom: 
             <T s={'Add a menu item'} />
           </button>
         )}
-        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'menu', value: items }, 'Menu saved. It shows on every page.')}>
+        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'menu', value: items }, tx('Menu saved. It shows on every page.'))}>
           <T s={'Save menu'} />
         </button>
         {custom && (
-          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'menu', reset: true }, 'The built-in menu is back.')}>
+          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'menu', reset: true }, tx('The built-in menu is back.'))}>
             <T s={'Show the built-in menu again'} />
           </button>
         )}
@@ -144,7 +145,7 @@ export function MenuBuilder({ initial, custom }: { initial: MenuItem[]; custom: 
 export function FooterBuilder({ initial, custom }: { initial: FooterColumn[]; custom: boolean }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [cols, setCols] = useState<FooterColumn[]>(initial);
-  const { busy, msg, run } = useSave();
+  const { busy, msg, run } = useSave(tx);
   const setLinks = (i: number, links: Link[]) => setCols(change(cols, i, { links }));
   return (
     <div className="sob-form">
@@ -152,7 +153,7 @@ export function FooterBuilder({ initial, custom }: { initial: FooterColumn[]; cu
         <T
           s={'{v0} Up to {footerColumns} columns of {footerLinks} links. The legal line at the bottom always stays.'}
           v={{
-            v0: custom ? 'These columns are saved by you and replace the built-in ones.' : 'These are the built-in columns. Change them and save to use your own.',
+            v0: custom ? tx('These columns are saved by you and replace the built-in ones.') : tx('These are the built-in columns. Change them and save to use your own.'),
             footerColumns: LIMITS.footerColumns,
             footerLinks: LIMITS.footerLinks,
           }}
@@ -194,11 +195,11 @@ export function FooterBuilder({ initial, custom }: { initial: FooterColumn[]; cu
             <T s={'Add a column'} />
           </button>
         )}
-        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'footer', value: cols }, 'Footer saved. It shows on every page.')}>
+        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'footer', value: cols }, tx('Footer saved. It shows on every page.'))}>
           <T s={'Save footer'} />
         </button>
         {custom && (
-          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'footer', reset: true }, 'The built-in footer is back.')}>
+          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'footer', reset: true }, tx('The built-in footer is back.'))}>
             <T s={'Show the built-in footer again'} />
           </button>
         )}
@@ -235,7 +236,7 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
   const [blocks, setBlocks] = useState<Block[]>(initial);
   const [add, setAdd] = useState<Block['type']>('text');
   const [up, setUp] = useState(false);
-  const { busy, msg, run } = useSave();
+  const { busy, msg, run } = useSave(tx);
   const set = (i: number, patch: Record<string, unknown>) => setBlocks(blocks.map((b, k) => (k === i ? ({ ...b, ...patch } as Block) : b)));
   async function upload(i: number, file?: File | null) {
     if (!file) return;
@@ -246,7 +247,7 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
     const j = (await r?.json().catch(() => ({}))) as { url?: string; error?: string } | undefined;
     setUp(false);
     if (j?.url) set(i, { src: j.url });
-    else alert(j?.error ?? 'The picture could not be uploaded.');
+    else alert(j?.error ?? tx('The picture could not be uploaded.'));
   }
   return (
     <div className="sob-form">
@@ -373,11 +374,11 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
             </button>
           </>
         )}
-        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, value: blocks }, 'Saved. The page shows these blocks now.')}>
+        <button className="btn" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, value: blocks }, tx('Saved. The page shows these blocks now.'))}>
           <T s={'Save blocks'} />
         </button>
         {initial.length > 0 && (
-          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, reset: true }, 'All blocks of this page were removed.')}>
+          <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'blocks', path, reset: true }, tx('All blocks of this page were removed.'))}>
             <T s={'Remove all blocks'} />
           </button>
         )}
@@ -396,7 +397,7 @@ export function SectionsBuilder({ keys, initial }: { keys: [string, string][]; i
   });
   const [order, setOrder] = useState<string[]>(start);
   const [hidden, setHidden] = useState<string[]>(initial.hidden);
-  const { busy, msg, run } = useSave();
+  const { busy, msg, run } = useSave(tx);
   const label = (k: string) => keys.find(([x]) => x === k)?.[1] ?? k;
   return (
     <div className="sob-form">
@@ -431,11 +432,11 @@ export function SectionsBuilder({ keys, initial }: { keys: [string, string][]; i
           className="btn"
           type="button"
           disabled={busy}
-          onClick={() => run({ kind: 'sections', value: { order, hidden: hidden.filter((k) => !SECTIONS_LOCKED.includes(k)) } }, 'Saved. The home page uses this order now.')}
+          onClick={() => run({ kind: 'sections', value: { order, hidden: hidden.filter((k) => !SECTIONS_LOCKED.includes(k)) } }, tx('Saved. The home page uses this order now.'))}
         >
           <T s={'Save sections'} />
         </button>
-        <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'sections', reset: true }, 'The built-in order is back.')}>
+        <button className="btn ghost" type="button" disabled={busy} onClick={() => run({ kind: 'sections', reset: true }, tx('The built-in order is back.'))}>
           <T s={'Back to the built-in order'} />
         </button>
       </div>

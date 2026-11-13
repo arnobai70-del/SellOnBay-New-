@@ -50,16 +50,16 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
   const paidYear = v ? v.payouts.filter((p) => p.status === 'paid' && (p.paidAt ?? 0) >= yearFrom).reduce((s, p) => s + p.amountCents, 0) : 0;
   const steps = v
     ? [
-        { done: !!store?.username, label: tx('Store'), text: 'Choose your store name', href: '/dashboard/seller/store', act: 'Set' },
-        { done: !!v.health.payoutLabel, label: tx('Payout'), text: 'Add where we send your earnings', href: '/dashboard/seller/payouts', act: 'Add' },
+        { done: !!store?.username, label: tx('Store'), text: tx('Choose your store name'), href: '/dashboard/seller/store', act: 'Set' },
+        { done: !!v.health.payoutLabel, label: tx('Payout'), text: tx('Add where we send your earnings'), href: '/dashboard/seller/payouts', act: 'Add' },
         {
           done: data!.verification.status === 'approved' || data!.verification.status === 'pending',
           label: tx('Identity'),
-          text: 'Verify your identity',
+          text: tx('Verify your identity'),
           href: '/dashboard/seller/payouts#verify',
           act: 'Verify',
         },
-        { done: v.listings.length > 0, label: tx('Listing'), text: 'Upload your first website', href: '/dashboard/seller/websites/new', act: 'Upload' },
+        { done: v.listings.length > 0, label: tx('Listing'), text: tx('Upload your first website'), href: '/dashboard/seller/websites/new', act: 'Upload' },
       ]
     : [];
   const todo = v
@@ -88,7 +88,7 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
           key: r.id,
           tone: 'st-wait',
           label: tx('Extra'),
-          text: `Extra work on ${plainWords(o.title)} waits for the buyer`,
+          text: tx('Extra work on {plainWords} waits for the buyer', { plainWords: plainWords(o.title) }),
           href: `/orders/${o.id}`,
           act: 'Open',
         })),
@@ -98,7 +98,7 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
     <SellerShell viewer={viewer} active="overview" file="seller-dashboard" title={tx('Seller overview')} head={false} handle={store?.username ? store.handle : undefined}>
       <div className="row">
         <div>
-          <h1>{first ? `Hi ${first}, here's your shop` : tx('Your shop')}</h1>
+          <h1>{first ? tx("Hi {first}, here's your shop", { first }) : tx('Your shop')}</h1>
           <div className="tag">
             <T s={'You keep {PLAN_KEEP_TEXT} of every sale · {PAYOUT_TEXT}'} v={{ PLAN_KEEP_TEXT, PAYOUT_TEXT }} />
           </div>
@@ -228,10 +228,10 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
               {(
                 [
-                  ['1 · Buyer paid', v.escrowCents, 'Held in escrow', BOX],
-                  ['2 · On the 7-day hold', v.pendingCents, `Your ${PLAN_KEEP_TEXT} share`, BOX],
-                  ['3 · Ready to pay', v.availableCents, `Paid on ${shortDay(v.nextPayout)}`, { ...BOX, background: '#E6F5EF', border: '1px solid #CFE9DF' }],
-                  ['4 · Paid out', paidYear, 'This year', BOX],
+                  ['1 · Buyer paid', v.escrowCents, tx('Held in escrow'), BOX],
+                  ['2 · On the 7-day hold', v.pendingCents, tx('Your {PLAN_KEEP_TEXT} share', { PLAN_KEEP_TEXT }), BOX],
+                  ['3 · Ready to pay', v.availableCents, tx('Paid on {shortDay}', { shortDay: shortDay(v.nextPayout) }), { ...BOX, background: '#E6F5EF', border: '1px solid #CFE9DF' }],
+                  ['4 · Paid out', paidYear, tx('This year'), BOX],
                 ] as const
               ).map(([l, c, s, style]) => (
                 <div key={l} style={style}>

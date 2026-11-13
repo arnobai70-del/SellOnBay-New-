@@ -74,14 +74,14 @@ export async function DashboardShell({
     const v = tr.t(`menu.${label}`);
     return v === `menu.${label}` ? label : v;
   };
-  const shown = name || 'Your account';
+  const shown = name || tx('Your account');
   // Only an admin may look at the other dashboards.
   const others = signedIn && viewerRole === 'admin' ? (['admin', 'seller', 'buyer'] as const).filter((r) => r !== role) : [];
   const find = search ?? { ...menu.search, placeholder: tr.t(`menu.search.${role}`) };
   return (
     <GlassPage kind="d" file={file ?? menu.file}>
       <div className="shell">
-        <MobileToggle label="Menu" className="sob-mt-side">
+        <MobileToggle label={tx('Menu')} className="sob-mt-side">
           <aside className="glass side" aria-label={`${menu.label} menu`}>
             <Link className="logo" href="/" prefetch={false}>
               <BrandMark />

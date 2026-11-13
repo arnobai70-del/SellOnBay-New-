@@ -7,10 +7,11 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Feature flags'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 
 /* Optional features a Super Admin may switch on or off. Payment checks, release approval, file scanning, storage, permissions and the audit log have no switch here. */
 export default async function Flags() {
@@ -70,9 +71,9 @@ export default async function Flags() {
                     <AdminForm
                       endpoint="/api/admin/flags"
                       fixed={{ key: f.key, on: !f.on }}
-                      fields={[why]}
+                      fields={[why(tx)]}
                       submit={f.on ? tx('Turn off') : tx('Turn on')}
-                      openLabel={f.on ? 'Turn off' : 'Turn on'}
+                      openLabel={f.on ? tx('Turn off') : tx('Turn on')}
                       tone="line"
                     />
                   )}

@@ -11,19 +11,20 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Seller plans'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const ACTION_LABEL: Record<(typeof ADMIN_SUB_ACTIONS)[number], string> = {
-  await_payment: 'Payment instructions sent, waiting for payment',
-  activate: 'Payment reconciled: start the plan',
-  renewal_due: 'Renewal is due',
-  renew: 'Renewal payment reconciled: extend',
-  renewal_failed: 'Renewal was not paid',
-  cancel: 'Seller cancels (runs to the end of the period)',
-  end: 'End the subscription now',
-  resume: 'Keep it running',
-};
+const ACTION_LABEL = (tx: Tx): Record<(typeof ADMIN_SUB_ACTIONS)[number], string> => ({
+  await_payment: tx('Payment instructions sent, waiting for payment'),
+  activate: tx('Payment reconciled: start the plan'),
+  renewal_due: tx('Renewal is due'),
+  renew: tx('Renewal payment reconciled: extend'),
+  renewal_failed: tx('Renewal was not paid'),
+  cancel: tx('Seller cancels (runs to the end of the period)'),
+  end: tx('End the subscription now'),
+  resume: tx('Keep it running'),
+});
 const TARGET: Record<(typeof ADMIN_SUB_ACTIONS)[number], SubState> = {
   await_payment: 'pending_payment',
   activate: 'active',
@@ -93,12 +94,12 @@ export default async function Sellers() {
                 const p = PLANS_V1[c];
                 return (
                   <tr key={c}>
-                    <td data-label="Plan">{p.name}</td>
-                    <td data-label="Monthly">{money(p.monthlyCents / 100)}</td>
-                    <td data-label="Yearly">{money(p.yearlyCents / 100)}</td>
-                    <td data-label="Commission">{p.commissionBps / 100}%</td>
-                    <td data-label="Published listings">{p.listingLimit}</td>
-                    <td data-label="Featured">{p.featured ? tx('Yes') : tx('No')}</td>
+                    <td data-label={tx('Plan')}>{p.name}</td>
+                    <td data-label={tx('Monthly')}>{money(p.monthlyCents / 100)}</td>
+                    <td data-label={tx('Yearly')}>{money(p.yearlyCents / 100)}</td>
+                    <td data-label={tx('Commission')}>{p.commissionBps / 100}%</td>
+                    <td data-label={tx('Published listings')}>{p.listingLimit}</td>
+                    <td data-label={tx('Featured')}>{p.featured ? tx('Yes') : tx('No')}</td>
                   </tr>
                 );
               })}
@@ -138,11 +139,11 @@ export default async function Sellers() {
                   {actions.length > 0 && (
                     <AdminForm
                       endpoint={`/api/admin/subscriptions/${s.id}`}
-                      openLabel="Decide"
-                      submit="Save"
+                      openLabel={tx('Decide')}
+                      submit={tx('Save')}
                       tone="line"
                       fields={[
-                        { name: 'action', label: tx('Step'), kind: 'select', options: actions.map((a) => [a, ACTION_LABEL[a]] as [string, string]) },
+                        { name: 'action', label: tx('Step'), kind: 'select', options: actions.map((a) => [a, ACTION_LABEL(tx)[a]] as [string, string]) },
                         { name: 'paymentRef', label: tx('Reconciled payment reference (to start or renew)'), kind: 'text' },
                         { name: 'periodDays', label: tx('Paid period in days (to start or renew)'), kind: 'text' },
                         { name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },

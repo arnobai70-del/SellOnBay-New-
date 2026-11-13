@@ -9,13 +9,14 @@ import { pageWords } from '@/lib/seo/pageWords';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = () => pageMetadata('/domains', { alternates: { canonical: '/domains' } });
 
-const FEATURES: [string, string, string[]][] = [
-  ['In your own name', 'You are the registered owner. Sellers never hold your domain.', ['M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', 'M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6']],
-  ['Help connecting it', 'We help you point the domain at your new website.', ['M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1', 'M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1']],
-  ['Checked by a person', 'We check the name with the registrar by hand before anything is registered.', ['M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z']],
-  ['Renewal reminders', `We email you ${CONFIG.domain.reminderDays.join(', ')} days before it expires.`, ['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', 'M12 7v5l3 2']],
+const FEATURES = (tx: Tx): [string, string, string[]][] => [
+  [tx('In your own name'), tx('You are the registered owner. Sellers never hold your domain.'), ['M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', 'M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6']],
+  [tx('Help connecting it'), tx('We help you point the domain at your new website.'), ['M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1', 'M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1']],
+  [tx('Checked by a person'), tx('We check the name with the registrar by hand before anything is registered.'), ['M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z']],
+  [tx('Renewal reminders'), tx('We email you {v0} days before it expires.', { v0: CONFIG.domain.reminderDays.join(', ') }), ['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', 'M12 7v5l3 2']],
 ];
 
 /*
@@ -167,7 +168,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
           <T s={'Why buy your domain here'} />
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
-          {FEATURES.map(([t, d, paths]) => (
+          {FEATURES(tx).map(([t, d, paths]) => (
             <div key={t} className="glass feat">
               <span className="ico" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" strokeLinecap="round">

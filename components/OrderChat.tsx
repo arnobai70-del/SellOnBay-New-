@@ -23,10 +23,10 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
     let j: { messages: Msg[] };
     try {
       const r = await fetch(`${endpoint}?since=${last.current}`, { cache: 'no-store' });
-      if (!r.ok) return setErr('Could not load the messages. They come back when you reload the page.');
+      if (!r.ok) return setErr(tx('Could not load the messages. They come back when you reload the page.'));
       j = await r.json();
     } catch {
-      return setErr('Could not reach SellOnBay to load the messages. Check your connection.');
+      return setErr(tx('Could not reach SellOnBay to load the messages. Check your connection.'));
     }
     setErr('');
     if (!j.messages.length) return;
@@ -71,13 +71,13 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
     } catch {
       setBusy(false);
       setText((cur) => cur || sending);
-      return setErr('Could not reach SellOnBay. Check your connection and try again.');
+      return setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
     }
     const j = await r.json().catch(() => ({}));
     setBusy(false);
     if (!r.ok) {
       setText((cur) => cur || sending); // give the text back so it can be edited
-      return setErr(j.error ?? 'Could not send that.');
+      return setErr(j.error ?? tx('Could not send that.'));
     }
     await load();
   }

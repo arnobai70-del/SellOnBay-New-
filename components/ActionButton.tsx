@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * One button (with an optional short note) that posts a small JSON action and then refreshes or goes to a page the server names.
  * Used for buyer actions on requests and quotations. The server decides everything; this only sends the choice.
@@ -11,7 +12,7 @@ export function ActionButton({
   endpoint,
   body,
   label,
-  busyLabel = 'One moment...',
+  busyLabel: busyLabelGiven,
   tone = 'blue',
   note,
   confirm,
@@ -26,6 +27,8 @@ export function ActionButton({
   confirm?: string;
   goTo?: (json: Record<string, unknown>) => string | null;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const busyLabel = busyLabelGiven ?? tx('One moment...');
   const router = useRouter();
   const [text, setText] = useState('');
   const [open, setOpen] = useState(false);
@@ -42,11 +45,11 @@ export function ActionButton({
       r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, ...(note ? { note: text } : {}) }) });
     } catch {
       setBusy(false);
-      return setMsg('Could not reach SellOnBay. Check your connection and try again.');
+      return setMsg(tx('Could not reach SellOnBay. Check your connection and try again.'));
     }
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg(j.error ?? 'Something went wrong. Try again.');
+    if (!r.ok) return setMsg(j.error ?? tx('Something went wrong. Try again.'));
     const to = goTo?.(j);
     if (to) router.push(to);
     else {

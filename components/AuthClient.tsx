@@ -8,10 +8,12 @@ import type { OAuthProvider } from '@/lib/supabase/oauth';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
-const ROLES = [
-  { key: 'buyer', title: 'I want a website', note: 'Pick one and go live on my domain.' },
-  { key: 'seller', title: 'I sell websites', note: 'List what I built and get paid.' },
-] as const;
+import type { Tx } from '@/lib/i18n/tx';
+const ROLES = (tx: Tx) =>
+  [
+    { key: 'buyer', title: 'I want a website', note: tx('Pick one and go live on my domain.') },
+    { key: 'seller', title: 'I sell websites', note: tx('List what I built and get paid.') },
+  ] as const;
 
 /* Real sign-in when Supabase keys are set, otherwise the old demo redirect. */
 export function AuthClient({
@@ -125,7 +127,7 @@ export function AuthClient({
           <>
             {(signup || !live) && (
               <div className="seg" role="radiogroup" aria-label={tx('What brings you here')}>
-                {ROLES.map((r) => (
+                {ROLES(tx).map((r) => (
                   <button key={r.key} type="button" role="radio" aria-checked={role === r.key} className={role === r.key ? 'on' : ''} onClick={() => setRole(r.key)} title={r.note}>
                     {r.title}
                   </button>

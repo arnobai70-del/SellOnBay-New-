@@ -5,10 +5,11 @@ import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 /* Buyer subscriptions (owner, 2026-11-12): the buyer's three actions, all through POST /api/subscriptions (lib/buyerSubs). */
-async function post(body: Record<string, unknown>): Promise<{ ok: boolean; status: number; error?: string; value?: Record<string, unknown> }> {
+async function post(body: Record<string, unknown>, tx: Tx): Promise<{ ok: boolean; status: number; error?: string; value?: Record<string, unknown> }> {
   const r = await fetch('/api/subscriptions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
-  if (!r) return { ok: false, status: 0, error: 'No connection. Please try again.' };
+  if (!r) return { ok: false, status: 0, error: tx('No connection. Please try again.') };
   const j = (await r.json().catch(() => ({}))) as { error?: string; value?: Record<string, unknown> };
   return { ok: r.ok, status: r.status, error: j.error, value: j.value };
 }
@@ -48,10 +49,10 @@ export function SubscribeButton({ planId, label, disabled }: { planId: string; l
         onClick={async () => {
           setBusy(true);
           setMsg('');
-          const r = await post({ action: 'subscribe', planId, coupon });
+          const r = await post({ action: 'subscribe', planId, coupon }, tx);
           setBusy(false);
           if (r.status === 401) return router.push('/signin?next=' + encodeURIComponent('/subscriptions'));
-          if (!r.ok) return setMsg(r.error ?? 'Could not start the subscription.');
+          if (!r.ok) return setMsg(r.error ?? tx('Could not start the subscription.'));
           router.push('/dashboard/buyer/subscription');
         }}
       >
@@ -79,9 +80,9 @@ export function SubPayForm({ subscriptionId, kind, methods }: { subscriptionId: 
         e.preventDefault();
         setBusy(true);
         setMsg('');
-        const r = await post({ action: 'pay', subscriptionId, kind, method, reference, paidOn: paidOn || null });
+        const r = await post({ action: 'pay', subscriptionId, kind, method, reference, paidOn: paidOn || null }, tx);
         setBusy(false);
-        if (!r.ok) return setMsg(r.error ?? 'Could not save the payment.');
+        if (!r.ok) return setMsg(r.error ?? tx('Could not save the payment.'));
         router.refresh();
       }}
     >
@@ -151,12 +152,12 @@ export function PickForm({ subscriptionId, options }: { subscriptionId: string; 
       style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!window.confirm('Use one of your website choices for this website? A choice cannot be changed later.')) return;
+        if (!window.confirm(tx('Use one of your website choices for this website? A choice cannot be changed later.'))) return;
         setBusy(true);
         setMsg('');
-        const r = await post({ action: 'pick', subscriptionId, productKey: key });
+        const r = await post({ action: 'pick', subscriptionId, productKey: key }, tx);
         setBusy(false);
-        if (!r.ok) return setMsg(r.error ?? 'Could not add this website.');
+        if (!r.ok) return setMsg(r.error ?? tx('Could not add this website.'));
         router.refresh();
       }}
     >

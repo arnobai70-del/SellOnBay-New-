@@ -10,11 +10,12 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Settings'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
-const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 
 export default async function Settings() {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
@@ -48,10 +49,10 @@ export default async function Settings() {
             fields={[
               { name: 'priceMinCents', label: tx('Lowest price in dollars'), kind: 'text', required: true },
               { name: 'priceMaxCents', label: tx('Highest price in dollars (with setup help or customisation)'), kind: 'text', required: true },
-              why,
+              why(tx),
             ]}
-            submit="Save the range"
-            openLabel="Change the range"
+            submit={tx('Save the range')}
+            openLabel={tx('Change the range')}
             tone="dark"
           />
         </div>
@@ -64,9 +65,9 @@ export default async function Settings() {
           </p>
           <AdminForm
             endpoint="/api/admin/settings"
-            fields={[{ name: 'holdNewBuyerMinCents', label: tx('Size in dollars (0 = never)'), kind: 'text', required: true }, why]}
-            submit="Save"
-            openLabel="Change it"
+            fields={[{ name: 'holdNewBuyerMinCents', label: tx('Size in dollars (0 = never)'), kind: 'text', required: true }, why(tx)]}
+            submit={tx('Save')}
+            openLabel={tx('Change it')}
             tone="line"
           />
         </div>
@@ -89,15 +90,15 @@ export default async function Settings() {
                 label: tx('The bar'),
                 kind: 'select',
                 options: [
-                  ['on', 'Show it'],
-                  ['off', 'Hide it'],
+                  ['on', tx('Show it')],
+                  ['off', tx('Hide it')],
                 ],
               },
               { name: 'earlyAccessText', label: tx('Own words (empty = the standard words with the price range)'), kind: 'text' },
-              why,
+              why(tx),
             ]}
-            submit="Save"
-            openLabel="Change the bar"
+            submit={tx('Save')}
+            openLabel={tx('Change the bar')}
             tone="line"
           />
         </div>
@@ -115,7 +116,7 @@ export default async function Settings() {
                 '{v0}, or {minDays} to {maxDays} days. The timer starts when the buyer pays. A listing that already promises hours keeps them when a choice is removed here; an admin can set any time on one listing from its edit page.'
               }
               v={{
-                v0: s.deliveryHoursOn ? `Sellers can promise ${allowedHours(s).map(hoursText).join(', ')}` : 'Sellers promise whole days only',
+                v0: s.deliveryHoursOn ? tx('Sellers can promise {v0}', { v0: allowedHours(s).map(hoursText).join(', ') }) : tx('Sellers promise whole days only'),
                 minDays: CONFIG.delivery.minDays,
                 maxDays: CONFIG.delivery.maxDays,
               }}
@@ -129,21 +130,25 @@ export default async function Settings() {
                 label: tx('Delivery in hours'),
                 kind: 'select',
                 options: [
-                  ['on', 'Sellers may promise hours'],
-                  ['off', 'Whole days only'],
+                  ['on', tx('Sellers may promise hours')],
+                  ['off', tx('Whole days only')],
                 ],
               },
               {
                 name: 'deliveryHourChoices',
-                label: `Hour choices, separated by commas (${CONFIG.deliveryHours.minHours} to ${MAX_HOURS}, at most ${CONFIG.deliveryHours.maxChoices})`,
+                label: tx('Hour choices, separated by commas ({minHours} to {MAX_HOURS}, at most {maxChoices})', {
+                  minHours: CONFIG.deliveryHours.minHours,
+                  MAX_HOURS,
+                  maxChoices: CONFIG.deliveryHours.maxChoices,
+                }),
                 kind: 'text',
                 value: s.deliveryHourChoices,
                 showWhen: { field: 'deliveryHoursOn', equals: 'on' },
               },
-              why,
+              why(tx),
             ]}
-            submit="Save"
-            openLabel="Change the hours"
+            submit={tx('Save')}
+            openLabel={tx('Change the hours')}
             tone="line"
           />
         </div>
@@ -171,14 +176,14 @@ export default async function Settings() {
                   label: tx('Example listings'),
                   kind: 'select',
                   options: [
-                    ['on', 'Show them'],
-                    ['off', 'Hide them'],
+                    ['on', tx('Show them')],
+                    ['off', tx('Hide them')],
                   ],
                 },
-                why,
+                why(tx),
               ]}
-              submit="Save"
-              openLabel="Change it"
+              submit={tx('Save')}
+              openLabel={tx('Change it')}
               tone="line"
             />
           )}

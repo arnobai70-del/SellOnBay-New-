@@ -9,21 +9,23 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Visitors'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const RANGES = [
-  [1, 'Today'],
-  [7, '7 days'],
-  [30, '30 days'],
-] as const;
+const RANGES = (tx: Tx) =>
+  [
+    [1, tx('Today')],
+    [7, '7 days'],
+    [30, '30 days'],
+  ] as const;
 const { strongPct, fairPct, minViewers } = CONFIG.analytics.attraction;
 
 export default async function Visitors({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/visitors/details', roles: ['admin'], scope: ['content', 'finance'] });
   const asked = Number((await searchParams).range);
-  const range = RANGES.find((r) => r[0] === asked)?.[0] ?? 7;
+  const range = RANGES(tx).find((r) => r[0] === asked)?.[0] ?? 7;
   const now = Date.now();
   const [list, top, stored] = await Promise.all([days(14, now), overview(dayOf(now - (range - 1) * DAY_MS), dayOf(now)), reportDays()]);
   const today = list[list.length - 1];
@@ -87,7 +89,7 @@ export default async function Visitors({ searchParams }: { searchParams: Promise
             </p>
           </div>
           <div className="sob-an-range" role="group" aria-label={tx('Days')}>
-            {RANGES.map(([n, label]) => (
+            {RANGES(tx).map(([n, label]) => (
               <Link key={n} href={`/admin/visitors/details?range=${n}`} className={n === range ? 'btn sm' : 'btn ghost sm'} aria-current={n === range ? 'true' : undefined}>
                 {label}
               </Link>

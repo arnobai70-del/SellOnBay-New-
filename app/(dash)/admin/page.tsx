@@ -12,6 +12,7 @@ import { TargetForm } from '@/components/glass/TargetForm';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Admin overview'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,9 @@ const ago = (t: number, now: number) => {
   return m < 60 ? `${m}m ago` : m < 48 * 60 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`;
 };
 const left = (t: number, now: number) => `${Math.max(0, Math.round((t - now) / 3_600_000))}h left`;
-const greeting = (now: number) => {
+const greeting = (now: number, tx: Tx) => {
   const h = new Date(now).getUTCHours();
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  return h < 12 ? tx('Good morning') : h < 18 ? tx('Good afternoon') : tx('Good evening');
 };
 
 /* design-reference/admin.html, wired to the real stores (lib/glass/adminOverview.ts). */
@@ -59,7 +60,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
     {
       tone: 'st-bad',
       label: tx('Dispute'),
-      text: o.disputes ? `${o.disputes} open · oldest ${ageText(o.oldestDispute, now)}` : 'No open disputes',
+      text: o.disputes ? `${o.disputes} open · oldest ${ageText(o.oldestDispute, now)}` : tx('No open disputes'),
       href: '/admin/support',
       act: 'Open',
       n: o.disputes,
@@ -76,7 +77,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
       <div className="row">
         <div>
           <h1>
-            {greeting(now)}, {first}
+            {greeting(now, tx)}, {first}
           </h1>
           <div className="tag">
             <T s={'Here is what needs you today · {v0}'} v={{ v0: PERIODS[period].toLowerCase() }} />
@@ -137,7 +138,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               <T s={'Open disputes'} />
             </div>
             <div className="v">{o.disputes}</div>
-            <div className="s">{o.oldestDispute ? `Oldest ${ageText(o.oldestDispute, now)}` : tx('None open')}</div>
+            <div className="s">{o.oldestDispute ? tx('Oldest {ageText}', { ageText: ageText(o.oldestDispute, now) }) : tx('None open')}</div>
           </div>
           <div className="glass kpi widget">
             <div className="l">
@@ -162,12 +163,12 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(150px, 100%),1fr))', gap: 12 }}>
             {(
               [
-                ['/admin/orders#pos', '#DCF0E7', 'M12 5v14M5 12h14', 'Manual order'],
-                ['/admin/orders', '#FBEFD9', 'M5 12l5 5L20 7', o.paymentsMode === 'beta_free' ? 'Decide requests' : 'Verify payments'],
-                ['/admin/listings', '#DDEAF6', 'M4 6h16M4 12h16M4 18h10', 'Review listings'],
-                ['/admin/finance', '#E6E2F4', 'M3 7h18v10H3zM7 12h.01M17 12h.01', 'Process payouts'],
-                ['/admin/marketing', '#F1E8DD', 'M20 12l-8 8-8-8 8-8zM12 9v.01', 'Create coupon'],
-                ['/admin/reports', '#E8EEF2', 'M12 4v12M7 11l5 5 5-5M5 20h14', 'Export report'],
+                ['/admin/orders#pos', '#DCF0E7', 'M12 5v14M5 12h14', tx('Manual order')],
+                ['/admin/orders', '#FBEFD9', 'M5 12l5 5L20 7', o.paymentsMode === 'beta_free' ? tx('Decide requests') : tx('Verify payments')],
+                ['/admin/listings', '#DDEAF6', 'M4 6h16M4 12h16M4 18h10', tx('Review listings')],
+                ['/admin/finance', '#E6E2F4', 'M3 7h18v10H3zM7 12h.01M17 12h.01', tx('Process payouts')],
+                ['/admin/marketing', '#F1E8DD', 'M20 12l-8 8-8-8 8-8zM12 9v.01', tx('Create coupon')],
+                ['/admin/reports', '#E8EEF2', 'M12 4v12M7 11l5 5 5-5M5 20h14', tx('Export report')],
               ] as const
             ).map(([href, bg, d, label]) => (
               <Link key={label} className="qa" href={href} prefetch={false}>
@@ -192,7 +193,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
                 {PERIODS[period]}
               </span>
             </div>
-            <LineChart values={o.trend} label={`Paid sales per day, ${PERIODS[period].toLowerCase()}: ${money(o.gross)} in all`} />
+            <LineChart values={o.trend} label={tx('Paid sales per day, {v0}: {money} in all', { v0: PERIODS[period].toLowerCase(), money: money(o.gross) })} />
             {o.gross === 0 && (
               <div className="tag" style={{ marginTop: 6 }}>
                 <T s={'No paid sales in this period yet.'} />
@@ -208,7 +209,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               <div className="muted" style={{ fontSize: 14, marginTop: 6, lineHeight: 1.6 }}>
                 <T s={'{v0} this month · {dayOfMonth} days in'} v={{ v0: money(o.monthSales), dayOfMonth: o.dayOfMonth }} />
               </div>
-              <div className="tag">{target > 0 ? `Target ${money(target)} this month` : tx('No monthly target is set yet.')}</div>
+              <div className="tag">{target > 0 ? tx('Target {money} this month', { money: money(target) }) : tx('No monthly target is set yet.')}</div>
               {viewer && hasScope(viewer.scopes ?? [], 'super') && <TargetForm dollars={target / 100} />}
             </div>
           </section>

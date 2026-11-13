@@ -44,7 +44,7 @@ export function PageWordsForm({
       if (!r.ok || !el) throw new Error();
       setW((p) => ({ ...p, body: htmlToMarkdown(el as unknown as MdNode) }));
     } catch {
-      setMsg({ ok: false, text: 'Could not read the page. Try again, or write the text yourself.' });
+      setMsg({ ok: false, text: tx('Could not read the page. Try again, or write the text yourself.') });
     }
   }
 
@@ -55,8 +55,8 @@ export function PageWordsForm({
     const r = await fetch('/api/admin/seo/words', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ path, ...w }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Saved. The page shows the new words within a minute.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Saved. The page shows the new words within a minute.') });
     router.refresh();
   }
 

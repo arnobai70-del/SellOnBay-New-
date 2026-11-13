@@ -42,8 +42,8 @@ function Marked({ text, q }: { text: string; q: string }) {
 
 export function SearchBox({
   action = '/search',
-  label = 'Search websites, sellers, guides',
-  placeholder = 'Search websites, sellers, guides',
+  label: labelGiven,
+  placeholder: placeholderGiven,
   defaultValue = '',
   compact = false,
   track,
@@ -58,6 +58,8 @@ export function SearchBox({
   track?: string;
 }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const label = labelGiven ?? tx('Search websites, sellers, guides');
+  const placeholder = placeholderGiven ?? tx('Search websites, sellers, guides');
   const router = useRouter();
   const id = useId();
   const [q, setQ] = useState(defaultValue);
@@ -106,9 +108,9 @@ export function SearchBox({
   const sections: [string, Result[]][] = shown
     ? shown.total
       ? groups
-      : [['Popular categories', shown.popular]]
+      : [[tx('Popular categories'), shown.popular]]
     : typed.length < 2 && recentResults.length
-      ? [['Recent searches', recentResults]]
+      ? [[tx('Recent searches'), recentResults]]
       : [];
   const seeAll = shown ? [{ href: `/search?q=${encodeURIComponent(typed)}`, title: tx('See all results') }] : [];
   const all = [...sections.flatMap(([, l]) => l), ...seeAll];

@@ -9,14 +9,16 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Support'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['all', 'All'],
-  ['disputes', 'Disputes'],
-  ['questions', 'Questions'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['all', tx('All')],
+    ['disputes', tx('Disputes')],
+    ['questions', tx('Questions')],
+  ] as const;
 
 /*
  * design-reference/seller-support.html: the seller's tickets and disputes with SellOnBay (admin-mediated, D-B). A ticket about an order counts as a
@@ -26,7 +28,7 @@ export default async function SellerSupport({ searchParams }: { searchParams: Pr
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/support', roles: ['seller'] });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'all';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'all';
   const all = viewer ? await ticketsOf({ id: viewer.id, role: 'seller' }) : [];
   const tickets = all.filter((t) => (tab === 'disputes' ? !!t.orderId : tab === 'questions' ? !t.orderId : true));
   const open = all.find((x) => x.id === sp.t) ?? null;
@@ -44,7 +46,7 @@ export default async function SellerSupport({ searchParams }: { searchParams: Pr
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="seg" role="tablist" aria-label={tx('Filter')}>
-            {TABS.map(([k, l]) => (
+            {TABS(tx).map(([k, l]) => (
               <Link
                 key={k}
                 role="tab"

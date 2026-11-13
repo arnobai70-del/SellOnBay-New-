@@ -28,8 +28,8 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
     const r = await fetch('/api/admin/seo/nav', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ hidden: off, order: list.map((x) => x.key) }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Saved. The top bar follows within a minute.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Saved. The top bar follows within a minute.') });
     router.refresh();
   }
   return (

@@ -26,7 +26,7 @@ export default async function MaintenanceManager() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>{closed.length ? `In maintenance now: ${closed.map((m) => MODULES[m.key].label).join(', ')}` : tx('Every part of the site is open')}</h2>
+            <h2>{closed.length ? tx('In maintenance now: {v0}', { v0: closed.map((m) => MODULES[m.key].label).join(', ') }) : tx('Every part of the site is open')}</h2>
             <p className="tag">
               <T
                 s={
@@ -62,7 +62,7 @@ export default async function MaintenanceManager() {
               </div>
               {(m.startAt || m.endAt) && (
                 <small className="muted">
-                  {m.startAt ? `From ${when(m.startAt)}` : tx('From now')}
+                  {m.startAt ? tx('From {when}', { when: when(m.startAt) }) : tx('From now')}
                   {m.endAt ? ` until ${when(m.endAt)}` : tx(' until turned off')}
                 </small>
               )}

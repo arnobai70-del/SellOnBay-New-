@@ -9,16 +9,18 @@ import { HUBS } from '@/lib/seo/hubs';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 type Raw = Record<string, string | string[] | undefined>;
 const many = (v: string | string[] | undefined) =>
   (Array.isArray(v) ? v : v ? [v] : [])
     .flatMap((x) => x.split(','))
     .filter(Boolean)
     .slice(0, 12);
-const INCLUDES = [
-  ['demo', 'Live demo'],
-  ['custom', 'Customization by seller'],
-] as const;
+const INCLUDES = (tx: Tx) =>
+  [
+    ['demo', tx('Live demo')],
+    ['custom', tx('Customization by seller')],
+  ] as const;
 
 /*
  * The browse area of design-reference/websites.html: the filter sidebar (category, technology, price, backend, rating, includes), the count and
@@ -29,7 +31,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const q: BrowseQuery = { ...readQuery(raw, CATEGORY_SLUGS), ...(category ? { category } : {}) };
   const tech = many(raw.tech);
-  const inc = many(raw.inc).filter((x) => INCLUDES.some(([k]) => k === x));
+  const inc = many(raw.inc).filter((x) => INCLUDES(tx).some(([k]) => k === x));
   const [sites, cats] = await Promise.all([publicWebsites(), websiteCategories()]);
   const parts = (s?: string | null) => (s ?? '').split(/\s*[+,/]\s*/).filter(Boolean);
   const count = (pick: (p: string[]) => string[]) => {
@@ -65,7 +67,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
   );
   return (
     <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <MobileToggle label="Filters" className="sob-mt-filters">
+      <MobileToggle label={tx('Filters')} className="sob-mt-filters">
         <aside className="glass sob-filters" style={{ flex: '1 1 240px', maxWidth: 280, padding: '22px 14px', boxSizing: 'border-box' }} aria-label={tx('Filters')}>
           <div style={{ fontSize: 18, padding: '0 12px' }}>
             <T s={'Filters'} />
@@ -125,7 +127,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
             <div className="flabel" style={{ padding: '0 12px' }}>
               <T s={'Includes'} />
             </div>
-            {INCLUDES.map(([k, l]) => check('inc', k, inc.includes(k), l))}
+            {INCLUDES(tx).map(([k, l]) => check('inc', k, inc.includes(k), l))}
             <div style={{ padding: '14px 12px 0' }}>
               <button className="btn ghost" type="submit" style={{ width: '100%' }}>
                 <T s={'Apply filters'} />

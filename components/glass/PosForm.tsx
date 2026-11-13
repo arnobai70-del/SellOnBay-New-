@@ -28,8 +28,8 @@ export function PosForm({ items, keepBps, reviewHours, open }: { items: { key: s
     );
     const j = r ? await r.json().catch(() => ({})) : {};
     setBusy(false);
-    if (!r?.ok) return setMsg({ ok: false, text: j.error ?? 'Could not reach SellOnBay. Try again.' });
-    setMsg({ ok: true, text: 'Cash recorded and the order created.' });
+    if (!r?.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not reach SellOnBay. Try again.') });
+    setMsg({ ok: true, text: tx('Cash recorded and the order created.') });
     setEmail('');
     setReceipt('');
     router.refresh();

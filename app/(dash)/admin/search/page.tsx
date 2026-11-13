@@ -19,7 +19,7 @@ const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', dra
 
 /* Where the admin top bar's search goes: orders (by code, id or title), listings and accounts, each only for the permissions that may see them. Read only. */
 export default async function AdminSearch({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/search', roles: ['admin'] });
   const q = ((await searchParams).q ?? '').trim().slice(0, 80);
   const lq = q.toLowerCase().replace(/^#/, '');
@@ -35,7 +35,7 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
   const o = orders.filter((x) => x.id.toLowerCase().startsWith(lq) || orderCode(x.id).toLowerCase().replace(/^#/, '').includes(lq) || x.title.toLowerCase().includes(lq)).slice(0, 20);
   const l = listings.filter((x) => x.name.toLowerCase().includes(lq) || x.slug.includes(lq) || x.seller.toLowerCase().includes(lq)).slice(0, 20);
   return (
-    <AdminShell viewer={viewer} active="overview" title={q ? `Search: ${q}` : tx('Search')} subtitle="Orders, listings and accounts">
+    <AdminShell viewer={viewer} active="overview" title={q ? `Search: ${q}` : tx('Search')} subtitle={tx('Orders, listings and accounts')}>
       {q.length < 2 ? (
         <section className="glass card">
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
@@ -51,7 +51,7 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
             {o.length ? (
               o.map((x) => (
                 <div key={x.id} className="li" style={{ fontSize: 14 }}>
-                  <span className={`status ${TONE[buyerStatus(x.state).tone]}`}>{buyerStatus(x.state).label}</span>
+                  <span className={`status ${TONE[buyerStatus(x.state).tone]}`}>{translate(buyerStatus(x.state).label)}</span>
                   <span style={{ flex: 1 }}>
                     <Link href={`/admin/orders/${x.id}`} prefetch={false}>
                       {orderCode(x.id)}

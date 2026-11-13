@@ -50,8 +50,8 @@ export default async function BetaRequests() {
               </p>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Approve" body={{ decision: 'approve' }} />
-                <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Decline" tone="line" body={{ decision: 'decline' }} note={{ label: tx('Reason for the buyer'), required: true }} />
+                <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label={tx('Approve')} body={{ decision: 'approve' }} />
+                <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label={tx('Decline')} tone="line" body={{ decision: 'decline' }} note={{ label: tx('Reason for the buyer'), required: true }} />
               </div>
             )}
             {f && (

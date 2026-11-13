@@ -13,18 +13,19 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import { tx } from '@/lib/i18n/tx'; // marks the English of module-level words; translate() shows them in the page's language
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Reports'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const BETA = ['beta_requested', 'beta_approved', 'beta_declined'];
 const DONE = ['accepted', 'payout_pending', 'paid_out', 'beta_approved'];
 const KINDS = [
-  ['sales', 'Sales', 'Orders, methods, totals'],
-  ['earnings', 'Seller earnings', `${PLAN_KEEP_TEXT} share per seller`],
-  ['domains', 'Domain sales', 'Orders with a domain'],
-  ['refunds', 'Refunds & disputes', 'Reasons, outcomes'],
-  ['payouts', 'Payouts', 'Paid, pending, failed'],
-  ['income', 'Platform income', `${PLAN_FEE_TEXT} share + domains`],
+  ['sales', tx('Sales'), tx('Orders, methods, totals')],
+  ['earnings', tx('Seller earnings'), ''], // its line is filled in at render: '{PLAN_KEEP_TEXT} share per seller'
+  ['domains', tx('Domain sales'), tx('Orders with a domain')],
+  ['refunds', tx('Refunds & disputes'), tx('Reasons, outcomes')],
+  ['payouts', tx('Payouts'), tx('Paid, pending, failed')],
+  ['income', tx('Platform income'), ''], // '{PLAN_FEE_TEXT} share + domains'
 ] as const;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
@@ -35,7 +36,7 @@ const nice = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US
  * the sales PDF is the same export as before (/api/admin/reports/sales, Finance). Sales by category use the listing's category.
  */
 export default async function AdminReports({ searchParams }: { searchParams: Promise<{ r?: string; from?: string; to?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/reports', roles: ['admin'], scope: 'finance' });
   const sp = await searchParams;
   const kind = KINDS.find(([k]) => k === sp.r) ?? KINDS[0];
@@ -132,9 +133,9 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(170px, 100%),1fr))', gap: 12 }}>
           {KINDS.map(([k, label, text]) => (
             <Link key={k} className={k === kind[0] ? 'rt on' : 'rt'} href={href(k)} prefetch={false} aria-current={k === kind[0] ? 'true' : undefined}>
-              <b style={{ fontWeight: 500 }}>{label}</b>
+              <b style={{ fontWeight: 500 }}>{translate(label)}</b>
               <span className="tag" style={{ margin: 0 }}>
-                {text}
+                {k === 'earnings' ? tx('{PLAN_KEEP_TEXT} share per seller', { PLAN_KEEP_TEXT }) : k === 'income' ? tx('{PLAN_FEE_TEXT} share + domains', { PLAN_FEE_TEXT }) : translate(text)}
               </span>
             </Link>
           ))}

@@ -16,32 +16,34 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import { tx, type Tx } from '@/lib/i18n/tx'; // tx marks the English of module-level words; translate() shows them in the page's language
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Users and roles'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const DOC: Record<string, string> = { passport: 'Passport', national_id: 'National ID card', driver_licence: 'Driver licence' };
+const DOC = (tx: Tx): Record<string, string> => ({ passport: 'Passport', national_id: tx('National ID card'), driver_licence: tx('Driver licence') });
 type Check = { id: string; seller_id: string; doc_type: string; country: string; back_path: string | null; created_at: string };
 
 /* The design's permission table: which pages each permission opens, and what can be done there (lib/admin/scopes.ts and each page's guard). */
 const PAGES: [page: string, open: AdminScope[], acts: ('edit' | 'approve' | 'pay' | 'export')[]][] = [
-  ['Overview', [...SCOPES], []],
-  ['Orders & payments', ['delivery', 'support', 'finance'], ['edit', 'approve', 'pay']],
-  ['Listing review', ['catalog'], ['edit', 'approve']],
-  ['Disputes & support', ['support'], ['edit', 'approve', 'pay']],
-  ['Domains', ['support'], ['edit']],
-  ['Finance & payouts', ['finance'], ['pay', 'export']],
-  ['Reports', ['finance'], ['export']],
-  ['Users & roles', ['finance'], ['approve']],
-  ['Guides & pages', ['content'], ['edit', 'approve']],
-  ['Settings', [], ['edit']],
+  [tx('Overview'), [...SCOPES], []],
+  [tx('Orders & payments'), ['delivery', 'support', 'finance'], ['edit', 'approve', 'pay']],
+  [tx('Listing review'), ['catalog'], ['edit', 'approve']],
+  [tx('Disputes & support'), ['support'], ['edit', 'approve', 'pay']],
+  [tx('Domains'), ['support'], ['edit']],
+  [tx('Finance & payouts'), ['finance'], ['pay', 'export']],
+  [tx('Reports'), ['finance'], ['export']],
+  [tx('Users & roles'), ['finance'], ['approve']],
+  [tx('Guides & pages'), ['content'], ['edit', 'approve']],
+  [tx('Settings'), [], ['edit']],
 ];
-const COLS = [
-  ['view', 'View'],
-  ['edit', 'Create / edit'],
-  ['approve', 'Approve'],
-  ['pay', 'Refund / pay'],
-  ['export', 'Export'],
-] as const;
+const COLS = (tx: Tx) =>
+  [
+    ['view', tx('View')],
+    ['edit', tx('Create / edit')],
+    ['approve', tx('Approve')],
+    ['pay', tx('Refund / pay')],
+    ['export', tx('Export')],
+  ] as const;
 
 /*
  * design-reference/admin-users.html: staff permissions, sellers' identity checks (Finance only, owner 2026-11-07; each document opens for 5 minutes
@@ -49,7 +51,7 @@ const COLS = [
  * An admin's permissions are changed in the accounts tool (/api/admin/users/[id]/scopes).
  */
 export default async function AdminUsers({ searchParams }: { searchParams: Promise<{ q?: string; b?: string; role?: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/users', roles: ['admin'], scope: ['super', 'finance'] });
   const sp = await searchParams;
   const q = (sp.q ?? '').slice(0, 60);
@@ -195,7 +197,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                   <th>
                     <T s={'Page'} />
                   </th>
-                  {COLS.map(([, l]) => (
+                  {COLS(tx).map(([, l]) => (
                     <th key={l}>{l}</th>
                   ))}
                 </tr>
@@ -203,11 +205,11 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
               <tbody>
                 {PAGES.map((p, i) => (
                   <tr key={p[0]}>
-                    <td style={{ fontWeight: 500 }}>{p[0]}</td>
-                    {COLS.map(([k, l], j) => (
+                    <td style={{ fontWeight: 500 }}>{translate(p[0])}</td>
+                    {COLS(tx).map(([k, l], j) => (
                       <td key={k}>
                         <label className="hidden-label" htmlFor={`p${i}_${j}`}>
-                          {l} {p[0]}
+                          {l} {translate(p[0])}
                         </label>
                         <input id={`p${i}_${j}`} type="checkbox" checked={allowed(p, k)} readOnly disabled />
                       </td>
@@ -224,10 +226,10 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {(
                 [
-                  ['Payout account', role !== 'finance' && role !== 'super'],
-                  ['Identity documents', role !== 'finance' && role !== 'super'],
-                  ['Source file links', role !== 'catalog' && role !== 'delivery' && role !== 'super'],
-                  ['Audit log', role !== 'super'],
+                  [tx('Payout account'), role !== 'finance' && role !== 'super'],
+                  [tx('Identity documents'), role !== 'finance' && role !== 'super'],
+                  [tx('Source file links'), role !== 'catalog' && role !== 'delivery' && role !== 'super'],
+                  [tx('Audit log'), role !== 'super'],
                 ] as const
               ).map(([l, hidden]) => (
                 <label key={l} className="chk" style={{ padding: '0 12px', borderRadius: 999, border: '1px solid #DCE7EC', background: 'rgba(255,255,255,.7)' }}>
@@ -288,7 +290,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                       <td>{shortDate(Date.parse(c.created_at))}</td>
                       <td>{sellerSites.get(c.seller_id) ?? 0}</td>
                       <td>
-                        <span className="status st-wait">{DOC[c.doc_type] ?? c.doc_type}</span>
+                        <span className="status st-wait">{DOC(tx)[c.doc_type] ?? c.doc_type}</span>
                       </td>
                       <td>{COUNTRY_NAME[c.country] ?? c.country}</td>
                       <td style={{ textAlign: 'right' }}>
@@ -301,10 +303,10 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                               <T s={'View back'} />
                             </a>
                           )}
-                          <ActionButton endpoint={`/api/admin/verifications/${c.id}`} label="Approve" body={{ decision: 'approve' }} />
+                          <ActionButton endpoint={`/api/admin/verifications/${c.id}`} label={tx('Approve')} body={{ decision: 'approve' }} />
                           <ActionButton
                             endpoint={`/api/admin/verifications/${c.id}`}
-                            label="Reject"
+                            label={tx('Reject')}
                             tone="line"
                             body={{ decision: 'reject' }}
                             note={{ label: tx('Reason for the seller'), required: true }}
@@ -479,8 +481,8 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                         {u.id === viewer?.id ? null : (
                           <AdminForm
                             endpoint={`/api/admin/users/${u.id}/action`}
-                            openLabel="Act"
-                            submit="Save"
+                            openLabel={tx('Act')}
+                            submit={tx('Save')}
                             tone="line"
                             fields={[
                               {
@@ -489,8 +491,8 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                                 kind: 'select',
                                 options: [
                                   [u.banned ? 'unban' : 'ban', u.banned ? 'Unban' : 'Ban'],
-                                  ['unsuspend', 'Lift a suspension'],
-                                  ['clear_flag', 'Clear the flag'],
+                                  ['unsuspend', tx('Lift a suspension')],
+                                  ['clear_flag', tx('Clear the flag')],
                                 ],
                               },
                               { name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
@@ -534,8 +536,8 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 </p>
                 <AdminForm
                   endpoint={`/api/admin/developers/${d.handle}/decide`}
-                  submit="Save decision"
-                  openLabel="Decide"
+                  submit={tx('Save decision')}
+                  openLabel={tx('Decide')}
                   tone="blue"
                   fields={[
                     {
@@ -543,8 +545,8 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                       label: tx('Decision'),
                       kind: 'select',
                       options: [
-                        ['approve', 'Approve and publish'],
-                        ['changes', 'Send back for changes'],
+                        ['approve', tx('Approve and publish')],
+                        ['changes', tx('Send back for changes')],
                         ['reject', 'Reject'],
                       ],
                     },

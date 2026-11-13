@@ -33,8 +33,8 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
     setMsg(null);
     const r = await fetch('/api/admin/pages', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: def.key, action, ...extra }) }).catch(() => null);
     const j = ((await r?.json().catch(() => null)) ?? {}) as { error?: string };
-    if (!r?.ok) return setMsg({ ok: false, text: j.error ?? 'Could not save.' });
-    setMsg({ ok: true, text: { draft: 'Draft saved. The preview shows it.', publish: 'Published.', discard: 'Draft thrown away.', restore: 'That version is live again.' }[action] });
+    if (!r?.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not save.') });
+    setMsg({ ok: true, text: { draft: tx('Draft saved. The preview shows it.'), publish: 'Published.', discard: tx('Draft thrown away.'), restore: tx('That version is live again.') }[action] });
     if (action === 'draft') setDraft(true);
     if (action === 'publish' || action === 'discard') setDraft(false);
     if (action === 'restore' || action === 'discard') window.location.reload();
@@ -70,15 +70,15 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
                 <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
                   {def.reorder && (
                     <>
-                      <button type="button" className="sob-tool" aria-label={`Move ${s.label} up`} onClick={() => move(s.key, -1)}>
+                      <button type="button" className="sob-tool" aria-label={tx('Move {label} up', { label: s.label })} onClick={() => move(s.key, -1)}>
                         ↑
                       </button>
-                      <button type="button" className="sob-tool" aria-label={`Move ${s.label} down`} onClick={() => move(s.key, 1)}>
+                      <button type="button" className="sob-tool" aria-label={tx('Move {label} down', { label: s.label })} onClick={() => move(s.key, 1)}>
                         ↓
                       </button>
                     </>
                   )}
-                  <Switch label={`Show ${s.label}`} checked={!doc.hidden.includes(s.key)} onChange={(on) => toggle(s.key, on)} />
+                  <Switch label={tx('Show {label}', { label: s.label })} checked={!doc.hidden.includes(s.key)} onChange={(on) => toggle(s.key, on)} />
                 </span>
               )}
             </div>
@@ -110,10 +110,14 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
               value={doc.seo.title}
               onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, title: e.target.value } }))}
               maxLength={70}
-              hint="Empty: the page keeps its current title."
+              hint={tx('Empty: the page keeps its current title.')}
             />
             <Field as="textarea" label="SEO description" value={doc.seo.description} onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, description: e.target.value } }))} maxLength={170} />
-            <Field label="Share picture (https or an uploaded /blog/media address)" value={doc.seo.ogImage} onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, ogImage: e.target.value } }))} />
+            <Field
+              label={tx('Share picture (https or an uploaded /blog/media address)')}
+              value={doc.seo.ogImage}
+              onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, ogImage: e.target.value } }))}
+            />
           </section>
         )}
       </div>
@@ -123,7 +127,7 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
             <T s={'Publish'} />
           </h2>
           <p className="tag">
-            <T s={'{v0} Another admin publishes your draft, or a Super Admin.'} v={{ v0: draft ? 'A draft is waiting.' : 'No draft.' }} />
+            <T s={'{v0} Another admin publishes your draft, or a Super Admin.'} v={{ v0: draft ? tx('A draft is waiting.') : tx('No draft.') }} />
           </p>
           <div className="row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             <Button variant="ghost" size="sm" onClick={() => void call('draft', { doc })}>
@@ -169,7 +173,7 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
                 <span style={{ flex: 1 }}>
                   <T s={'Version {version} · {v1}'} v={{ version: h.version, v1: new Date(h.at).toLocaleString() }} />
                 </span>
-                <button type="button" className="sob-sx-link" onClick={() => window.confirm('Make this version live again?') && void call('restore', { version: h.version })}>
+                <button type="button" className="sob-sx-link" onClick={() => window.confirm(tx('Make this version live again?')) && void call('restore', { version: h.version })}>
                   <T s={'Restore'} />
                 </button>
               </div>

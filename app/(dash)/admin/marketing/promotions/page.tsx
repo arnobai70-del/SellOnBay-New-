@@ -55,12 +55,12 @@ export default async function AdminPromotions() {
                   </small>
                 </div>
                 <div className="sob-acts">
-                  <AdminForm endpoint={`/api/admin/promotions/${p.id}`} fixed={{ decision: 'approve' }} fields={[]} submit="Approve" />
+                  <AdminForm endpoint={`/api/admin/promotions/${p.id}`} fixed={{ decision: 'approve' }} fields={[]} submit={tx('Approve')} />
                   <AdminForm
                     endpoint={`/api/admin/promotions/${p.id}`}
                     fixed={{ decision: 'reject' }}
-                    openLabel="Reject"
-                    submit="Reject"
+                    openLabel={tx('Reject')}
+                    submit={tx('Reject')}
                     tone="line"
                     fields={[{ name: 'note', label: tx('What to change'), kind: 'textarea', required: true, max: 500 }]}
                   />

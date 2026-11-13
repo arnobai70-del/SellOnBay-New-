@@ -4,26 +4,28 @@ import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
-async function post(body: Record<string, unknown>) {
+import type { Tx } from '@/lib/i18n/tx';
+async function post(body: Record<string, unknown>, tx: Tx) {
   const r = await fetch('/api/admin/coupons', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const j = r ? await r.json().catch(() => ({})) : {};
-  return r?.ok ? null : (j.error ?? 'Could not reach SellOnBay. Try again.');
+  return r?.ok ? null : (j.error ?? tx('Could not reach SellOnBay. Try again.'));
 }
 
 /* The design's "On" switch of a coupon row: turns it on or off (/api/admin/coupons, toggle), and a quiet Remove beside it. */
 export function CouponSwitch({ code, on }: { code: string; on: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const run = async (action: 'toggle' | 'remove') => {
     setBusy(true);
-    setError((await post({ action, code })) ?? '');
+    setError((await post({ action, code }, tx)) ?? '');
     setBusy(false);
     router.refresh();
   };
   return (
     <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-      <button type="button" className={on ? 'sw on' : 'sw'} role="switch" aria-checked={on} aria-label={`Coupon ${code} active`} disabled={busy} onClick={() => run('toggle')} />
+      <button type="button" className={on ? 'sw on' : 'sw'} role="switch" aria-checked={on} aria-label={tx('Coupon {code} active', { code })} disabled={busy} onClick={() => run('toggle')} />
       <button type="button" className="btn sm ghost" disabled={busy} onClick={() => run('remove')}>
         <T s={'Remove'} />
       </button>
@@ -106,9 +108,9 @@ export function CouponForm() {
         disabled={busy || !v.code || !v.percentOff}
         onClick={async () => {
           setBusy(true);
-          const error = await post({ action: 'add', ...v });
+          const error = await post({ action: 'add', ...v }, tx);
           setBusy(false);
-          setMsg(error ? { ok: false, text: error } : { ok: true, text: 'Coupon created.' });
+          setMsg(error ? { ok: false, text: error } : { ok: true, text: tx('Coupon created.') });
           if (!error) {
             setV({ code: '', percentOff: '', endsOn: '', maxUses: '' });
             router.refresh();

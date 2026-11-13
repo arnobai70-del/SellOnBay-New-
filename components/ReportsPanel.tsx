@@ -43,8 +43,8 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
       ) : (
         <AdminForm
           endpoint={scope === 'seller' ? '/api/seller/reports/sales' : '/api/admin/reports/sales'}
-          openLabel="Export"
-          submit="Make the PDF"
+          openLabel={tx('Export')}
+          submit={tx('Make the PDF')}
           fields={[
             { name: 'from', label: tx('From (YYYY-MM-DD, by payment date)'), kind: 'text', value: monthAgo, max: 10, required: true },
             { name: 'to', label: tx('To (YYYY-MM-DD)'), kind: 'text', value: today, max: 10, required: true },
@@ -58,8 +58,8 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
                     label: tx('Owner'),
                     kind: 'select' as const,
                     options: [
-                      ['', 'Sellers and SellOnBay'],
-                      ['seller', 'Sellers only'],
+                      ['', tx('Sellers and SellOnBay')],
+                      ['seller', tx('Sellers only')],
                       ['platform', 'SellOnBay-owned only'],
                     ] as [string, string][],
                   },
@@ -75,7 +75,12 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
               <div className="sob-grow">
                 <T
                   s={'{v0} · {rowCount} {v2} · made {v3}'}
-                  v={{ v0: e.scope === 'buyer' ? 'Receipt' : `Part ${e.part} of ${e.parts}`, rowCount: e.rowCount, v2: e.rowCount === 1 ? 'row' : 'rows', v3: when(e.createdAt) }}
+                  v={{
+                    v0: e.scope === 'buyer' ? 'Receipt' : tx('Part {part} of {parts}', { part: e.part, parts: e.parts }),
+                    rowCount: e.rowCount,
+                    v2: e.rowCount === 1 ? 'row' : 'rows',
+                    v3: when(e.createdAt),
+                  }}
                 />
               </div>
               {fileGone(e) ? (

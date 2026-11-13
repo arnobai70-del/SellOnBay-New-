@@ -20,10 +20,10 @@ export function MarkRead() {
           setErr('');
           try {
             const r = await fetch('/api/notifications', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: 'all' }) });
-            if (!r.ok) setErr('Could not mark them as read. Try again.');
+            if (!r.ok) setErr(tx('Could not mark them as read. Try again.'));
             else router.refresh();
           } catch {
-            setErr('Could not reach SellOnBay. Check your connection and try again.');
+            setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
           } finally {
             setBusy(false);
           }

@@ -87,7 +87,7 @@ export default async function SellerStore() {
                 <T s={'Avg. rating'} />
               </div>
               <div className="v">{v.health.rating ?? '—'}</div>
-              <div className="s">{v.health.ratingCount ? `From ${v.health.ratingCount} buyers` : tx('No reviews yet')}</div>
+              <div className="s">{v.health.ratingCount ? tx('From {ratingCount} buyers', { ratingCount: v.health.ratingCount }) : tx('No reviews yet')}</div>
             </div>
           </div>
           <div className="grid2">
@@ -99,7 +99,7 @@ export default async function SellerStore() {
                 [
                   ['Views', total.views, '#A9D4C5'],
                   ['Visitors', total.people, '#A9D4C5'],
-                  ['Buy clicks', total.buys, '#A9D4C5'],
+                  [tx('Buy clicks'), total.buys, '#A9D4C5'],
                   ['Sales', total.sales, '#5FA88F'],
                 ] as const
               ).map(([l, n, bg]) => (

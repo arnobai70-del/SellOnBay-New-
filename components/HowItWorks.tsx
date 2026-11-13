@@ -7,7 +7,7 @@ import { BUILT_IN_STEPS } from '@/lib/howSteps';
 import { imageFor, money } from '@/lib/data';
 
 import { T } from '@/components/i18n/T';
-import { useTx } from '@/components/i18n/TxProvider';
+import { useTx, useWord } from '@/components/i18n/TxProvider';
 type Mode = 'buy' | 'sell';
 
 const BARS = [38, 56, 44, 72, 64, 100, 80];
@@ -143,7 +143,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
 export function HowItWorks({
   initial = 'buy',
   toggle = true,
-  title = 'Live in three steps',
+  title: titleGiven,
   steps = BUILT_IN_STEPS,
 }: {
   initial?: Mode;
@@ -152,6 +152,8 @@ export function HowItWorks({
   steps?: Record<Mode, { t: string; d: string }[]>;
 }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const word = useWord(); // the built-in steps (lib/howSteps.ts) in the page's language
+  const title = titleGiven ?? tx('Live in three steps');
   const [mode, setMode] = useState<Mode>(initial);
   return (
     <div className="sob-hiw">
@@ -176,8 +178,8 @@ export function HowItWorks({
             </div>
             <div className="sob-hiw-txt">
               <span className="sob-hiw-n">{n + 1}</span>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
+              <h3>{word(s.t)}</h3>
+              <p>{word(s.d)}</p>
             </div>
           </div>
         ))}

@@ -16,6 +16,7 @@ export const generateMetadata = async (): Promise<Metadata> => ({ title: (await 
 export const dynamic = 'force-dynamic';
 
 export default async function Pay({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ failed?: string; cancelled?: string; pending?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const q = await searchParams;
   const o = await orderFor(id);
@@ -29,11 +30,11 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
     const received = attempts.filter((a) => a.status === 'reconciled').reduce((s, a) => s + (a.amountReceivedCents ?? 0), 0);
     const due = Math.max(0, o.priceCents - received);
     const words: Record<string, string> = {
-      submitted: 'Being checked by Finance',
+      submitted: tx('Being checked by Finance'),
       reconciled: 'Received',
-      rejected: 'Not confirmed',
+      rejected: tx('Not confirmed'),
       expired: 'Expired',
-      gateway_pending: 'Waiting for the provider',
+      gateway_pending: tx('Waiting for the provider'),
       confirmed: 'Confirmed',
       failed: 'Failed',
     };
@@ -88,11 +89,11 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
   }
   if (!canUseDemoPayment(o) && paypalConfigured()) {
     const notice = q.failed
-      ? 'The payment did not go through. Nothing was kept from you unless PayPal shows a charge. Please try again.'
+      ? tx('The payment did not go through. Nothing was kept from you unless PayPal shows a charge. Please try again.')
       : q.pending
-        ? 'Your payment is being confirmed. Refresh this page in a minute.'
+        ? tx('Your payment is being confirmed. Refresh this page in a minute.')
         : q.cancelled
-          ? 'You cancelled the payment. Nothing was charged.'
+          ? tx('You cancelled the payment. Nothing was charged.')
           : undefined;
     return <PayPalPay id={o.id} title={o.title} lines={o.lines} totalCents={o.priceCents} back={back} notice={notice} />;
   }

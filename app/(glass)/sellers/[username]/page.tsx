@@ -13,9 +13,15 @@ type Props = { params: Promise<{ username: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const s = await sellerByHandle((await params).username);
-  if (!s) return { title: 'Not found', robots: { index: false } };
-  const description = (s.headline || s.about || `Full-stack websites by ${s.name}, with a live demo and escrow protection.`).slice(0, 160);
-  return { title: `${s.name}: seller store`, description, alternates: { canonical: `/sellers/${s.handle}` }, openGraph: { title: s.name, description, url: `/sellers/${s.handle}` } };
+  const { tx } = await getI18n();
+  if (!s) return { title: tx('Not found'), robots: { index: false } };
+  const description = (s.headline || s.about || tx('Full-stack websites by {name}, with a live demo and escrow protection.', { name: s.name })).slice(0, 160);
+  return {
+    title: tx('{name}: seller store', { name: s.name }),
+    description,
+    alternates: { canonical: `/sellers/${s.handle}` },
+    openGraph: { title: s.name, description, url: `/sellers/${s.handle}` },
+  };
 }
 
 const initials = (n: string) =>

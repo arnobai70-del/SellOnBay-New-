@@ -35,7 +35,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
     setNum(group(n));
     setExp('12 / 34');
     setCvc('123');
-    setName('Test Buyer');
+    setName(tx('Test Buyer'));
     setErr('');
     setStep('card');
   };
@@ -44,7 +44,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
     setErr('');
     const digits = num.replace(/\D/g, '');
     // Real card numbers never leave the browser: only the test cards are sent.
-    if (!TEST_CARDS[digits]) return setErr('This is a demo gateway. Use one of the test cards below, never a real card.');
+    if (!TEST_CARDS[digits]) return setErr(tx('This is a demo gateway. Use one of the test cards below, never a real card.'));
     setBusy(true);
     const res = await fetch(`/api/demo/orders/${id}/pay`, {
       method: 'POST',
@@ -57,7 +57,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
       setStep('otp');
       return;
     }
-    if (!res.ok) return setErr(body.error ?? 'Payment failed. Try again.');
+    if (!res.ok) return setErr(body.error ?? tx('Payment failed. Try again.'));
     router.push(`/orders/${id}?paid=1`);
   }
 
@@ -65,7 +65,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
     <div className="pay">
       <div className="sob-pay-bar">
         <Link href={back} className="sob-pay-back">
-          <T s={'&lsaquo; Back'} />
+          <T s={'‹ Back'} />
         </Link>
         <span className="sob-pay-test">
           <T s={'Demo gateway. No real money moves.'} />
@@ -169,7 +169,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
             </p>
           )}
           <button className="btn" type="submit" disabled={busy}>
-            {busy ? tx('Processing…') : step === 'otp' ? 'Confirm and pay ' + money(totalCents) : 'Pay ' + money(totalCents)}
+            {busy ? tx('Processing…') : step === 'otp' ? tx('Confirm and pay {amount}', { amount: money(totalCents) }) : tx('Pay {amount}', { amount: money(totalCents) })}
           </button>
           <p className="sob-pay-fine">
             <T s={'Demo only. We refuse real card numbers.'} />

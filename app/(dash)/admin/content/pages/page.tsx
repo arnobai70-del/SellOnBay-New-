@@ -15,7 +15,7 @@ export default async function PagesAdmin() {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/pages', roles: ['admin'], scope: 'content' });
   return (
-    <AdminShell viewer={viewer} active="pages" title={tx('Pages')} subtitle="Edit the words, buttons and sections of the public pages. Listings, prices and sellers come from the live data.">
+    <AdminShell viewer={viewer} active="pages" title={tx('Pages')} subtitle={tx('Edit the words, buttons and sections of the public pages. Listings, prices and sellers come from the live data.')}>
       <GlassCard as="section">
         {PAGES.map((p) => (
           <div key={p.key} className="li">

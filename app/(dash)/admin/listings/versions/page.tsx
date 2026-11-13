@@ -51,8 +51,8 @@ export default async function Versions() {
             </p>
             <AdminForm
               endpoint={`/api/admin/versions/${v.id}/decide`}
-              openLabel="Decide"
-              submit="Save decision"
+              openLabel={tx('Decide')}
+              submit={tx('Save decision')}
               tone="dark"
               fields={[
                 {
@@ -60,7 +60,7 @@ export default async function Versions() {
                   label: tx('Decision'),
                   kind: 'select',
                   options: [
-                    ['approve', 'Approve and tell the buyers'],
+                    ['approve', tx('Approve and tell the buyers')],
                     ['reject', 'Reject'],
                   ],
                 },

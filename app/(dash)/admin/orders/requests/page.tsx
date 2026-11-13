@@ -19,7 +19,7 @@ const age = (ms: number) => {
 
 /* Support and Catalog work through purchase requests; a Super Admin approves any quotation whose price differs from the listed price (O-8). */
 export default async function Requests() {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/orders/requests', roles: ['admin'], scope: ['support', 'catalog'] });
   const open = await listRequests({ statuses: ['submitted', 'under_review', 'needs_info', 'requirements_verified', 'quoted'] });
   const pendingSuper = await listQuotes(['pending_super']);
@@ -28,8 +28,8 @@ export default async function Requests() {
   const isSuper = hasScope(viewer?.scopes ?? ['super'], 'super');
   const groups: [string, typeof open][] = [
     ['New', open.filter((r) => r.status === 'submitted')],
-    ['Being worked on', open.filter((r) => ['under_review', 'requirements_verified'].includes(r.status))],
-    ['Waiting for the buyer', open.filter((r) => ['needs_info', 'quoted'].includes(r.status))],
+    [tx('Being worked on'), open.filter((r) => ['under_review', 'requirements_verified'].includes(r.status))],
+    [tx('Waiting for the buyer'), open.filter((r) => ['needs_info', 'quoted'].includes(r.status))],
   ];
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-requests" title={tx('Purchase requests')}>
@@ -61,8 +61,8 @@ export default async function Requests() {
                   {isSuper ? (
                     <AdminForm
                       endpoint={`/api/admin/quotations/${q.id}`}
-                      openLabel="Decide"
-                      submit="Save decision"
+                      openLabel={tx('Decide')}
+                      submit={tx('Save decision')}
                       tone="line"
                       fields={[
                         {
@@ -70,8 +70,8 @@ export default async function Requests() {
                           label: tx('Decision'),
                           kind: 'select',
                           options: [
-                            ['approve_override', 'Approve this price and send it to the buyer'],
-                            ['decline_override', 'Send it back as a draft'],
+                            ['approve_override', tx('Approve this price and send it to the buyer')],
+                            ['decline_override', tx('Send it back as a draft')],
                           ],
                         },
                         { name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
@@ -104,12 +104,13 @@ export default async function Requests() {
           )}
           <ul className="sob-list">
             {list.map((r) => {
-              const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+              const [english, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+              const word = translate(english);
               return (
                 <li key={r.id}>
                   <div className="sob-grow">
                     <b>
-                      <Link href={`/admin/orders/requests/${r.id}`}>{requestTitle(r, products)}</Link>
+                      <Link href={`/admin/orders/requests/${r.id}`}>{translate(requestTitle(r, products))}</Link>
                     </b>
                     <small>
                       <T

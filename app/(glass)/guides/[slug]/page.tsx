@@ -33,7 +33,7 @@ async function load({ params, searchParams }: Params): Promise<{ p: Post; previe
 
 export async function generateMetadata(props: Params): Promise<Metadata> {
   const r = await load(props);
-  if (!r) return { title: 'Guide not found', robots: { index: false } };
+  if (!r) return { title: (await getI18n()).tx('Guide not found'), robots: { index: false } };
   const { p, preview } = r;
   const title = p.metaTitle || p.title;
   const description = descriptionOf({ ...p, body: p.body || p.bodyHtml.replace(/<[^>]+>/g, ' ') });

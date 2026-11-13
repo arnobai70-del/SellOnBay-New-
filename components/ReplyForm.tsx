@@ -18,7 +18,7 @@ export function ReplyForm({ id }: { id: string }) {
     const res = await fetch('/api/presale/reply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, reply: text.trim() }) });
     const body = await res.json().catch(() => ({}));
     setBusy(false);
-    if (!res.ok) return setMsg(body.error ?? 'Could not send the reply.');
+    if (!res.ok) return setMsg(body.error ?? tx('Could not send the reply.'));
     setDone(true);
   }
 

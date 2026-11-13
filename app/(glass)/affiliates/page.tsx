@@ -6,21 +6,27 @@ import { affSettings, leaderboard } from '@/lib/affiliates/service';
 import { COMMISSION_KINDS, joinFeeCents, KIND_LABEL } from '@/lib/affiliates/rules';
 
 import { T } from '@/components/i18n/T';
-export const metadata: Metadata = {
-  title: 'Affiliate Program',
-  description: 'Share SellOnBay websites and earn a commission on every verified, paid sale. Free to join during the promotion; clear rules, no guaranteed earnings.',
-  alternates: { canonical: '/affiliates' },
+import type { Tx } from '@/lib/i18n/tx';
+import { localizeMetadata } from '@/lib/i18n/seo';
+// The page's words in its language; localizeMetadata adds its own address, the other languages and an admin's SEO words for that language.
+export const generateMetadata = async (): Promise<Metadata> => {
+  const { tx } = await getI18n();
+  return localizeMetadata('/affiliates', {
+    title: tx('Affiliate Program'),
+    description: tx('Share SellOnBay websites and earn a commission on every verified, paid sale. Free to join during the promotion; clear rules, no guaranteed earnings.'),
+    alternates: { canonical: '/affiliates' },
+  });
 };
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
 const pct = (bps: number) => `${(bps / 100).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
-const DEFAULT_FAQ: [string, string][] = [
-  ['Does it cost anything to join?', 'Not during the promotion. Nothing is ever charged automatically.'],
-  ['When is a commission paid?', 'After the sale is paid, delivered and its refund period has ended. A refunded sale reverses its commission.'],
-  ['Can I refer myself?', 'No. Your own purchases never earn a commission.'],
-  ['Do I earn for bringing in other affiliates?', 'No. Commissions come only from verified sales of websites and subscriptions.'],
-  ['Are earnings guaranteed?', 'No. You earn only when people you refer buy, pay and keep what they bought.'],
+const DEFAULT_FAQ = (tx: Tx): [string, string][] => [
+  [tx('Does it cost anything to join?'), tx('Not during the promotion. Nothing is ever charged automatically.')],
+  [tx('When is a commission paid?'), tx('After the sale is paid, delivered and its refund period has ended. A refunded sale reverses its commission.')],
+  [tx('Can I refer myself?'), tx('No. Your own purchases never earn a commission.')],
+  [tx('Do I earn for bringing in other affiliates?'), tx('No. Commissions come only from verified sales of websites and subscriptions.')],
+  [tx('Are earnings guaranteed?'), tx('No. You earn only when people you refer buy, pay and keep what they bought.')],
 ];
 
 /*
@@ -28,13 +34,14 @@ const DEFAULT_FAQ: [string, string][] = [
  * page is a 404 for visitors; an admin sees it with a note. The Top 5 shows only affiliates who allow it, ranked by verified, non-refunded sales.
  */
 export default async function AffiliatesPage() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   // Public at all times (owner, 2026-11-12): everyone can read about the program. While it is off the page says it opens soon and offers no
   // way to join; registration, link tracking and commissions stay closed on the server either way.
   const [s, i] = await Promise.all([affSettings(), getI18n()]); // words in the page's language (lib/i18n)
   const top = s.enabled && s.leaderboardPublic ? (await leaderboard(undefined, true)).slice(0, 5) : [];
   const fee = joinFeeCents(s);
   const badges = s.badges.filter((b) => b.enabled);
-  const faq = s.faq.length ? s.faq.map((x) => [x.q, x.a] as [string, string]) : DEFAULT_FAQ;
+  const faq = s.faq.length ? s.faq.map((x) => [x.q, x.a] as [string, string]) : DEFAULT_FAQ(tx);
   return (
     <PublicFrame file="sell">
       <section style={{ padding: '72px 0 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
@@ -60,7 +67,7 @@ export default async function AffiliatesPage() {
         <div className="tag">
           <T
             s={'{v0} Earnings are not guaranteed.'}
-            v={{ v0: fee === 0 ? `Free to join during the promotion (normally ${usd(s.feeCents)}).` : `Registration fee ${usd(fee)}, never charged automatically.` }}
+            v={{ v0: fee === 0 ? tx('Free to join during the promotion (normally {usd}).', { usd: usd(s.feeCents) }) : tx('Registration fee {usd}, never charged automatically.', { usd: usd(fee) }) }}
           />
         </div>
       </section>
@@ -126,10 +133,10 @@ export default async function AffiliatesPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
           {[
             ['Join', 'Use your SellOnBay account; no new account is needed.'],
-            ['Share', 'Copy a link for any website, or a general link, from your dashboard.'],
+            ['Share', tx('Copy a link for any website, or a general link, from your dashboard.')],
             ['Track', `A visit through your link is remembered for ${s.cookieDays} days in browsers that accept cookies.`],
-            ['Earn', `Commissions are approved ${s.holdDays} days after the sale is accepted, and refunds reverse them.`],
-            ['Withdraw', `Ask for a payout from ${usd(s.minWithdrawalCents)}; every payout is checked and paid by hand.`],
+            ['Earn', tx('Commissions are approved {holdDays} days after the sale is accepted, and refunds reverse them.', { holdDays: s.holdDays })],
+            ['Withdraw', tx('Ask for a payout from {usd}; every payout is checked and paid by hand.', { usd: usd(s.minWithdrawalCents) })],
           ].map(([t, d], i) => (
             <div key={t} className="glass" style={{ padding: 22 }}>
               <div style={{ fontWeight: 500 }}>

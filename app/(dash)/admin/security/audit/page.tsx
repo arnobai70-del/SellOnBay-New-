@@ -55,13 +55,13 @@ export default async function Audit() {
               <tbody>
                 {log.map((e) => (
                   <tr key={e.id}>
-                    <td data-label="When">{new Date(e.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                    <td data-label="Who">{e.adminId ? e.adminId.slice(0, 8) : 'system'}</td>
-                    <td data-label="What">{e.action.replace(/_/g, ' ')}</td>
-                    <td data-label="On">
+                    <td data-label={tx('When')}>{new Date(e.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td data-label={tx('Who')}>{e.adminId ? e.adminId.slice(0, 8) : 'system'}</td>
+                    <td data-label={tx('What')}>{e.action.replace(/_/g, ' ')}</td>
+                    <td data-label={tx('On')}>
                       {e.targetType} {e.targetRef.slice(0, 16)}
                     </td>
-                    <td data-label="Details">
+                    <td data-label={tx('Details')}>
                       <code style={{ fontSize: '.8rem' }}>{JSON.stringify(e.detail).slice(0, 160)}</code>
                     </td>
                   </tr>

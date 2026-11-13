@@ -9,11 +9,17 @@ import { liveSiteKey } from '@/lib/bot/turnstile';
 import { BRAND_NAME } from '@/lib/brand';
 import { supabaseConfigured } from '@/lib/supabase/env';
 
-export const metadata: Metadata = {
-  title: 'Sign in',
-  description: 'Sign in to SellOnBay, or create a free account to buy and sell full-stack websites.',
-  alternates: { canonical: '/signin' },
-  robots: { index: false },
+import { getI18n } from '@/lib/i18n/server';
+import { localizeMetadata } from '@/lib/i18n/seo';
+// The page's words in its language; localizeMetadata adds its own address, the other languages and an admin's SEO words for that language.
+export const generateMetadata = async (): Promise<Metadata> => {
+  const { tx } = await getI18n();
+  return localizeMetadata('/signin', {
+    title: tx('Sign in'),
+    description: tx('Sign in to SellOnBay, or create a free account to buy and sell full-stack websites.'),
+    alternates: { canonical: '/signin' },
+    robots: { index: false },
+  });
 };
 
 /*

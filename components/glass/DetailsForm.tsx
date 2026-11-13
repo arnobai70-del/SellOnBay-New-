@@ -26,10 +26,10 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
         if (res?.ok) return setState('saved');
         setState('idle');
         const d = ((await res?.json().catch(() => null)) ?? {}) as { error?: string; issues?: { message?: string }[] };
-        setError(d.issues?.[0]?.message ?? d.error ?? 'Could not save. Please try again.');
+        setError(d.issues?.[0]?.message ?? d.error ?? tx('Could not save. Please try again.'));
       }}
     >
-      <Field as="select" label="Country" name="country" defaultValue={country} autoComplete="country">
+      <Field as="select" label={tx('Country')} name="country" defaultValue={country} autoComplete="country">
         <option value="">
           <T s={'Not set'} />
         </option>
@@ -39,8 +39,8 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
           </option>
         ))}
       </Field>
-      <Field label="Phone" name="phone" type="tel" defaultValue={phone} placeholder="+44 20 7946 0958" autoComplete="tel" hint="With your country code. Sellers never see it." />
-      <Field label="Company (for invoices)" name="company" defaultValue={company} maxLength={120} autoComplete="organization" error={error || undefined} />
+      <Field label={tx('Phone')} name="phone" type="tel" defaultValue={phone} placeholder="+44 20 7946 0958" autoComplete="tel" hint={tx('With your country code. Sellers never see it.')} />
+      <Field label={tx('Company (for invoices)')} name="company" defaultValue={company} maxLength={120} autoComplete="organization" error={error || undefined} />
       <div className="row" style={{ justifyContent: 'flex-start' }}>
         <Button type="submit" disabled={state === 'busy'}>
           {state === 'busy' ? tx('Saving') : tx('Save details')}

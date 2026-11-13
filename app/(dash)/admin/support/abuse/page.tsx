@@ -41,8 +41,8 @@ export default async function Abuse() {
             </small>
             <AdminForm
               endpoint={`/api/admin/abuse/${r.id}/decide`}
-              openLabel="Decide"
-              submit="Save decision"
+              openLabel={tx('Decide')}
+              submit={tx('Save decision')}
               tone="gold"
               fields={[
                 {
@@ -50,9 +50,9 @@ export default async function Abuse() {
                   label: tx('Decision'),
                   kind: 'select',
                   options: [
-                    ['suspend', 'Suspend the site'],
-                    ['dismiss', 'Dismiss the report'],
-                    ['reinstate', 'Put the site back (it was paused)'],
+                    ['suspend', tx('Suspend the site')],
+                    ['dismiss', tx('Dismiss the report')],
+                    ['reinstate', tx('Put the site back (it was paused)')],
                   ],
                 },
                 { name: 'note', label: tx('Note'), kind: 'textarea' },

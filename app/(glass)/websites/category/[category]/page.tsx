@@ -18,7 +18,7 @@ type Props = { params: Promise<{ category: string }>; searchParams: Promise<Reco
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const hub = await hubByEnding((await params).category);
-  if (!hub) return { title: 'Not found', robots: { index: false } };
+  if (!hub) return { title: (await getI18n()).tx('Not found'), robots: { index: false } };
   const { alloc } = await websiteCategories();
   return pageMetadata(hubPath(hub), { alternates: { canonical: categoryPath(hubPublicSlug(hub, alloc)) } });
 }

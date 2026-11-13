@@ -5,10 +5,11 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Launch check'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const CHIP = { ok: ['Done', 'status st-ok'], todo: ['To do', 'status st-bad'], warn: ['Known gap', 'status st-wait'] } as const;
+const CHIP = (tx: Tx) => ({ ok: ['Done', 'status st-ok'], todo: [tx('To do'), 'status st-bad'], warn: [tx('Known gap'), 'status st-wait'] }) as const;
 
 /* What the live server still needs, read from its own settings. Keys are never shown, only whether they are set. */
 export default async function LaunchCheck() {
@@ -34,9 +35,9 @@ export default async function LaunchCheck() {
                 <b>{c.name}</b>
                 <small>{c.note}</small>
               </div>
-              <span className={CHIP[c.state][1]}>
+              <span className={CHIP(tx)[c.state][1]}>
                 <i />
-                {CHIP[c.state][0]}
+                {CHIP(tx)[c.state][0]}
               </span>
             </li>
           ))}

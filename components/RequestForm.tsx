@@ -5,7 +5,7 @@ import { BUYER_TIERS, TIER_TEXT, type RequestedTier } from '@/lib/licenceTiers';
 import { REQUEST_CONSENT_TEXT } from '@/lib/requests/rules';
 
 import { T } from '@/components/i18n/T';
-import { useTx } from '@/components/i18n/TxProvider';
+import { useTx, useWord } from '@/components/i18n/TxProvider';
 type Pkg = 'asis' | 'setup' | 'custom';
 export type RequestProduct = {
   slug: string;
@@ -28,11 +28,12 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
  */
 export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: Pkg }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const word = useWord(); // shared labels (lib/) in the page's language
   const router = useRouter();
   const pkgs: [Pkg, string, number | null][] = [
-    ['asis', 'As is', 0],
-    ['setup', 'With setup help', p.setupCents],
-    ['custom', 'With customisation', p.customCents],
+    ['asis', tx('As is'), 0],
+    ['setup', tx('With setup help'), p.setupCents],
+    ['custom', tx('With customisation'), p.customCents],
   ];
   const offered = pkgs.filter(([k, , c]) => k === 'asis' || !!c);
   const [pkg, setPkg] = useState<Pkg>(offered.some(([k]) => k === initialPkg) ? initialPkg : 'asis');
@@ -74,7 +75,7 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
     });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setError(j.error ?? 'Could not send the request.');
+    if (!r.ok) return setError(j.error ?? tx('Could not send the request.'));
     router.push(`/dashboard/buyer/requests/${j.id}`);
   }
 
@@ -105,8 +106,8 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
             <label className="opt" key={t}>
               <input type="radio" name="tier" value={t} checked={tier === t} onChange={() => setTier(t)} />
               <span>
-                {TIER_TEXT[t].label}
-                <small className="muted">{TIER_TEXT[t].terms}</small>
+                {word(TIER_TEXT[t].label)}
+                <small className="muted">{word(TIER_TEXT[t].terms)}</small>
               </span>
             </label>
           ))}

@@ -140,9 +140,9 @@ export default async function BuyerAccount() {
             <T s={'Emails'} />
           </h2>
           {[
-            ['Order and payment updates', 'Always sent'],
-            [`Domain expiry reminders (${CONFIG.domain.reminderDays.join(', ')} days before)`, 'Always sent'],
-            ['Answers to your tickets', 'Always sent'],
+            [tx('Order and payment updates'), tx('Always sent')],
+            [tx('Domain expiry reminders ({v0} days before)', { v0: CONFIG.domain.reminderDays.join(', ') }), tx('Always sent')],
+            [tx('Answers to your tickets'), tx('Always sent')],
           ].map(([l, s]) => (
             <div key={l} className="row" style={{ fontSize: 14, minHeight: 40 }}>
               <span>{l}</span>

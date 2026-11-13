@@ -14,13 +14,14 @@ export const generateMetadata = async (): Promise<Metadata> => ({ title: (await 
 export const dynamic = 'force-dynamic';
 
 export default async function DailyReport({ searchParams }: { searchParams: Promise<{ day?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/visitors/report', roles: ['admin'], scope: ['content', 'finance'] });
   const day = (await searchParams).day ?? dayOf(Date.now());
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day))) notFound();
   const saved = await savedReport(day);
   const r = saved ?? (await buildReport(day));
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-analytics" title={`Daily report ${day}`}>
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-analytics" title={tx('Daily report {day}', { day })}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
@@ -32,7 +33,7 @@ export default async function DailyReport({ searchParams }: { searchParams: Prom
                 s={'{v0} Days run on UTC time.'}
                 v={{
                   v0: saved
-                    ? `Stored by the daily job on ${new Date(saved.madeAt).toISOString().slice(0, 16).replace('T', ' ')} UTC.`
+                    ? tx('Stored by the daily job on {v0} UTC.', { v0: new Date(saved.madeAt).toISOString().slice(0, 16).replace('T', ' ') })
                     : 'Built now from the counts so far; the daily job stores it the day after.',
                 }}
               />

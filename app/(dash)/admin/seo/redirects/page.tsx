@@ -55,7 +55,7 @@ export default async function Redirects() {
                 ],
               },
             ]}
-            submit="Save redirect"
+            submit={tx('Save redirect')}
           />
         </div>
         {list.length === 0 && (
@@ -72,7 +72,7 @@ export default async function Redirects() {
                   <T s={'{code} to {to}'} v={{ code: r.code, to: r.to }} />
                 </span>
               </div>
-              <AdminForm endpoint="/api/admin/seo/redirects" fixed={{ remove: r.from }} fields={[]} submit="Remove" openLabel="Remove" tone="line" />
+              <AdminForm endpoint="/api/admin/seo/redirects" fixed={{ remove: r.from }} fields={[]} submit={tx('Remove')} openLabel={tx('Remove')} tone="line" />
             </div>
           </div>
         ))}

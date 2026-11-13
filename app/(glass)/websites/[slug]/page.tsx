@@ -48,7 +48,7 @@ async function find(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const f = await find(slug);
-  if (!f) return { title: 'Not found', robots: { index: false } };
+  if (!f) return { title: (await getI18n()).tx('Not found'), robots: { index: false } };
   // In another language (lib/i18n): the listing's translated name, description and SEO words, its own address and the other languages.
   const i = await getI18n();
   const id = f.product.id;
@@ -150,7 +150,7 @@ export default async function Website({ params }: Props) {
           <div id="features" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 14, marginTop: 10 }}>
             <div className="glass" style={{ padding: 22 }}>
               <div style={{ fontSize: 17, marginBottom: 10 }}>{copy.t('labels', 'included')}</div>
-              {(p.inc.length ? p.inc : ['Source files', 'Setup guide']).map((x, i, a) => (
+              {(p.inc.length ? p.inc : [tx('Source files'), tx('Setup guide')]).map((x, i, a) => (
                 <div key={x} className="li" style={i < a.length - 1 ? { marginBottom: 8 } : undefined}>
                   <span aria-hidden="true">✓</span> {x}
                 </div>
@@ -160,7 +160,11 @@ export default async function Website({ params }: Props) {
               <div style={{ fontSize: 17, marginBottom: 10 }}>
                 <T s={'To run it you need'} />
               </div>
-              {[p.stack ? `Hosting that runs ${p.stack}` : 'Hosting for the website', 'Or ask the seller for setup help when you order', 'A domain (you can add one below)'].map((x, i, a) => (
+              {[
+                p.stack ? tx('Hosting that runs {stack}', { stack: p.stack }) : tx('Hosting for the website'),
+                tx('Or ask the seller for setup help when you order'),
+                tx('A domain (you can add one below)'),
+              ].map((x, i, a) => (
                 <div key={x} className="li" style={i < a.length - 1 ? { marginBottom: 8 } : undefined}>
                   <span aria-hidden="true">·</span> {x}
                 </div>
@@ -376,7 +380,7 @@ export default async function Website({ params }: Props) {
           ],
         }}
       />
-      <PageExtras path={listingPath(p.id)} urlPath={websitePath(p.id)} name={p.name} description={p.desc} defaultFaqs={productFaqs(p)} />
+      <PageExtras path={listingPath(p.id)} urlPath={websitePath(p.id)} name={p.name} description={p.desc} defaultFaqs={productFaqs(p, i18n)} />
     </PublicFrame>
   );
 }

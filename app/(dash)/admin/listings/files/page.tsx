@@ -95,8 +95,8 @@ export default async function Files() {
                   )}
                   <AdminForm
                     endpoint={`/api/admin/files/${f.id}`}
-                    openLabel="Review"
-                    submit="Save decision"
+                    openLabel={tx('Review')}
+                    submit={tx('Save decision')}
                     tone="line"
                     fields={[
                       {
@@ -104,7 +104,7 @@ export default async function Files() {
                         label: tx('Decision'),
                         kind: 'select',
                         options: [
-                          ['approve', 'Approve this exact file'],
+                          ['approve', tx('Approve this exact file')],
                           ['reject', 'Reject'],
                         ],
                       },
@@ -138,7 +138,7 @@ export default async function Files() {
                 <b>{f.originalName}</b>
                 <Facts f={f} names={names} />
                 {f.scanDetail && <small>{f.scanDetail}</small>}
-                <AdminForm endpoint={`/api/admin/files/${f.id}`} fixed={{ decision: 'retry' }} fields={[]} openLabel="Check again" submit="Run the checks again" tone="line" />
+                <AdminForm endpoint={`/api/admin/files/${f.id}`} fixed={{ decision: 'retry' }} fields={[]} openLabel={tx('Check again')} submit={tx('Run the checks again')} tone="line" />
               </div>
             </li>
           ))}
@@ -170,7 +170,7 @@ export default async function Files() {
                     v={{ host: l.host, downloads: l.downloads, length: l.priorHashes.length, v3: l.openImport ? ' · import being checked' : '' }}
                   />
                 </small>
-                {!l.openImport && <AdminForm endpoint="/api/admin/files/legacy" fixed={{ productId: l.productId }} fields={[]} openLabel="Import" submit="Import and check" tone="line" />}
+                {!l.openImport && <AdminForm endpoint="/api/admin/files/legacy" fixed={{ productId: l.productId }} fields={[]} openLabel={tx('Import')} submit={tx('Import and check')} tone="line" />}
               </div>
             </li>
           ))}

@@ -4,8 +4,9 @@ import type { SystemSnapshot, Tone } from '@/lib/admin/system';
 
 import { useTx } from '@/components/i18n/TxProvider';
 import { T } from '@/components/i18n/T';
-const TONE_LABEL: Record<Tone, string> = { ok: 'Healthy', warn: 'Needs a look', bad: 'Needs attention', off: 'Not set up' };
-const OVERALL: Record<Tone, string> = { ok: 'Server healthy', warn: 'Needs a look', bad: 'Needs attention', off: 'Server healthy' };
+import type { Tx } from '@/lib/i18n/tx';
+const TONE_LABEL = (tx: Tx): Record<Tone, string> => ({ ok: 'Healthy', warn: tx('Needs a look'), bad: tx('Needs attention'), off: tx('Not set up') });
+const OVERALL = (tx: Tx): Record<Tone, string> => ({ ok: tx('Server healthy'), warn: tx('Needs a look'), bad: tx('Needs attention'), off: tx('Server healthy') });
 const when = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'never');
 const ago = (t: number | null, now: number) => {
   if (!t) return 'never';
@@ -49,7 +50,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
       <div className="glass card sob-sec sob-sys-head">
         <span className={`sob-sys-chip ${s.overall}`}>
           <i />
-          {OVERALL[s.overall]}
+          {OVERALL(tx)[s.overall]}
         </span>
         <small role="status">
           <T s={'Updated {v0} UTC{v1} · refreshes every 30 seconds'} v={{ v0: new Date(s.at).toISOString().slice(11, 19), v1: stale ? ' · could not refresh, showing the last reading' : '' }} />
@@ -63,7 +64,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
               <i className={`dot ${v.tone}`} aria-hidden="true" />
               {v.label}
             </span>
-            <b>{TONE_LABEL[v.tone]}</b>
+            <b>{TONE_LABEL(tx)[v.tone]}</b>
             <small>{v.text}</small>
           </div>
         ))}
@@ -171,7 +172,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
                 <b>{s.errors.counts.lastWeek}</b> <T s={'last 7 days'} />
               </span>
             </div>
-            <div className="sob-sys-chart" role="img" aria-label={`Errors per hour over the last 24 hours, ${s.errors.counts.lastDay} in all`}>
+            <div className="sob-sys-chart" role="img" aria-label={tx('Errors per hour over the last 24 hours, {lastDay} in all', { lastDay: s.errors.counts.lastDay })}>
               {s.errors.counts.byHour.map((n, i) => (
                 <span key={i} style={{ height: `${Math.max(2, (n / peak) * 100)}%` }} className={n ? 'on' : ''} title={`${n} errors, ${23 - i} h ago`} />
               ))}
@@ -297,7 +298,7 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           <dt>
             <T s={'Maintenance'} />
           </dt>
-          <dd>{s.safety.closedModules.length ? `Closed now: ${s.safety.closedModules.join(', ')}` : tx('Every module open')}</dd>
+          <dd>{s.safety.closedModules.length ? tx('Closed now: {v0}', { v0: s.safety.closedModules.join(', ') }) : tx('Every module open')}</dd>
         </dl>
       </div>
     </>

@@ -61,7 +61,15 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
           <dt>
             <T s={'Release'} />
           </dt>
-          <dd>{o.releaseApprovedAt ? `Approved ${day(o.releaseApprovedAt)}` : o.releaseDueAt ? <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} /> : tx('Not waiting')}</dd>
+          <dd>
+            {o.releaseApprovedAt ? (
+              tx('Approved {day}', { day: day(o.releaseApprovedAt) })
+            ) : o.releaseDueAt ? (
+              <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} />
+            ) : (
+              tx('Not waiting')
+            )}
+          </dd>
           <dt>
             <T s={'Buyer access'} />
           </dt>
@@ -115,7 +123,7 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
           )}
         </ul>
       </div>
-      <ConversationPanel type="order" id={o.id} me="admin" heading="Messages" />
+      <ConversationPanel type="order" id={o.id} me="admin" heading={tx('Messages')} />
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>

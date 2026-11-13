@@ -56,7 +56,7 @@ export default async function Robots() {
             endpoint="/api/admin/seo/robots"
             open
             fields={[{ name: 'paths', label: tx('Paths, one per line'), kind: 'textarea', value: extra.join('\n'), max: 4000, hint: tx('For example /internal-tools/') }]}
-            submit="Save robots.txt"
+            submit={tx('Save robots.txt')}
           />
         </div>
       </div>

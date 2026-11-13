@@ -13,7 +13,7 @@ import { deliveryChoices, expressHelps, readDelivery } from '@/lib/deliveryTime'
 import { cleanTags } from '@/lib/listingTags';
 
 import { T } from '@/components/i18n/T';
-import { useTx } from '@/components/i18n/TxProvider';
+import { useTx, useWord } from '@/components/i18n/TxProvider';
 const MAX_ZIP = 25 * 1024 * 1024;
 const MAX_SHOT = 4 * 1024 * 1024;
 type Kind = 'web' | 'android' | 'ios' | 'webapp' | 'desktop' | 'digital';
@@ -68,11 +68,12 @@ export function SellForm({
   tagsEnabled?: boolean;
 }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const word = useWord(); // shared labels (lib/) in the page's language
   // Delivery: the admin's hour choices, then 1 to 7 days. A listing being edited keeps hours it already promises, even if no longer offered.
   const [keptHours, setKeptHours] = useState<number | null>(null);
   const [deliveryV, setDeliveryV] = useState('3');
   const choices = deliveryChoices(hourChoices, keptHours);
-  const deliveryLabel = (v: string) => (v.endsWith('h') ? (choices.find(([c]) => c === v)?.[1] ?? v) : Number(v) === 1 ? '1 day' : `Up to ${v} days`);
+  const deliveryLabel = (v: string) => (v.endsWith('h') ? (choices.find(([c]) => c === v)?.[1] ?? v) : Number(v) === 1 ? '1 day' : tx('Up to {v} days', { v }));
   const chosen = readDelivery(deliveryV, hourChoices, keptHours);
   const fastAlready = chosen.ok && !expressHelps(chosen);
   const [price, setPrice] = useState(Math.min(maxPrice, Math.max(minPrice, 39)));
@@ -99,8 +100,8 @@ export function SellForm({
   const checks: [string, boolean][] = dig
     ? [
         ['3 or more pictures', shots.length >= 3],
-        ['A demo or view-only link', /^https:\/\//.test(demoN)],
-        ['A clear description', descN >= 80],
+        [tx('A demo or view-only link'), /^https:\/\//.test(demoN)],
+        [tx('A clear description'), descN >= 80],
         ['4 or more things listed as included', incN >= 4],
       ]
     : [];
@@ -174,11 +175,11 @@ export function SellForm({
     setError('');
     if (f && !/\.zip$/i.test(f.name)) {
       setFile(null);
-      return setError('Choose a .zip file of your site.');
+      return setError(tx('Choose a .zip file of your site.'));
     }
     if (f && f.size > MAX_ZIP) {
       setFile(null);
-      return setError('That zip is larger than 25 MB.');
+      return setError(tx('That zip is larger than 25 MB.'));
     }
     setFile(f);
   };
@@ -192,7 +193,7 @@ export function SellForm({
     fetch(`/api/listings?${isEdit ? 'edit' : 'draft'}=${encodeURIComponent(slug)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!d) return setError(isEdit ? 'That listing could not be opened.' : '');
+        if (!d) return setError(isEdit ? tx('That listing could not be opened.') : '');
         prefill.current = d;
         const h = /^(\d+)h$/.exec(String(d.days ?? ''));
         if (h) setKeptHours(Number(h[1]));
@@ -202,11 +203,13 @@ export function SellForm({
           if (d.keptZip) setHow('zip');
           else if (d.platform === 'web') setHow('link');
           setNote(
-            'Editing your listing. Changes to the text, prices and options are saved at once. If you change a link or a file, it goes back to review and buyers cannot buy it until it is approved again. Leave the files empty to keep the ones you sent.',
+            tx(
+              'Editing your listing. Changes to the text, prices and options are saved at once. If you change a link or a file, it goes back to review and buyers cannot buy it until it is approved again. Leave the files empty to keep the ones you sent.',
+            ),
           );
         } else {
           setDraftSlug(slug);
-          setNote('Draft opened. Add your files again before you submit.');
+          setNote(tx('Draft opened. Add your files again before you submit.'));
         }
         setKind(d.platform as Kind);
         setPrice(Math.min(maxPrice, Math.max(minPrice, Number(d.price) || 39)));
@@ -255,7 +258,7 @@ export function SellForm({
   // Unsaved changes: leaving the page (closing, reloading or following a link on the site) asks first, until the listing is sent.
   useEffect(() => {
     if (!dirty || done) return;
-    const LEAVE = 'You have changes that are not saved. Leave this page?';
+    const LEAVE = tx('You have changes that are not saved. Leave this page?');
     const unload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
@@ -322,14 +325,14 @@ export function SellForm({
       setup: Number(setupShown) || 0,
       custom: Number(customShown) || 0,
       express: Number(str('express')) || 0,
-      licence: isLicenceType(lt) ? LICENCES[lt].label : lt,
+      licence: isLicenceType(lt) ? word(LICENCES[lt].label) : lt,
       support: Number(str('supportDays')) || 0,
       updates: Number(str('updateDays')) || 0,
       requirements: str('requirements'),
       demo: app ? (dig ? str('demo') : '') : how === 'link' ? str('demo') : '',
       docs: str('docsUrl'),
       files: [
-        app ? '' : how === 'zip' ? (file ? `${file.name} (hosted by us)` : 'The site files you sent before') : 'Your live demo link',
+        app ? '' : how === 'zip' ? (file ? `${file.name} (hosted by us)` : tx('The site files you sent before')) : tx('Your live demo link'),
         shots.length ? `${shots.length} new picture${shots.length === 1 ? '' : 's'}` : kept.shots ? `${kept.shots} picture${kept.shots === 1 ? '' : 's'} you sent before` : '',
       ]
         .filter(Boolean)
@@ -349,9 +352,9 @@ export function SellForm({
         setMissing(m);
         return;
       }
-    } else if (String(new FormData(form.current!).get('name') ?? '').trim().length < 3) return setError('Give your draft a name of 3 to 60 characters so you can find it later.');
+    } else if (String(new FormData(form.current!).get('name') ?? '').trim().length < 3) return setError(tx('Give your draft a name of 3 to 60 characters so you can find it later.'));
     if (!live) {
-      if (intent === 'draft') return setNote('Draft saved (demo mode keeps nothing).');
+      if (intent === 'draft') return setNote(tx('Draft saved (demo mode keeps nothing).'));
       setDone({ slug: '', hosted: !app && how === 'zip', files: 0, edited: !!editSlug });
       return;
     } // demo mode: no backend
@@ -391,21 +394,21 @@ export function SellForm({
       }
       if (xhr.status === 200 && body.ok && body.draft) {
         setDraftSlug(body.slug!);
-        setNote('Draft saved. Files are not kept in drafts, so add your screenshots or zip again when you submit.');
+        setNote(tx('Draft saved. Files are not kept in drafts, so add your screenshots or zip again when you submit.'));
       } else if (xhr.status === 200 && body.ok) setDone({ slug: body.slug!, hosted: !!body.hosted, files: body.files ?? 0, edited: body.edited, status: body.status });
       else if (xhr.status === 422 && body.missing) {
         setCheck(null);
         setMissing(body.missing);
       } else if (xhr.status !== 200) setCheck(null);
       if (xhr.status !== 200 && xhr.status !== 422) {
-        if (xhr.status === 401) setError('Please sign in as a seller first.');
-        else setError(body.error ?? 'Something went wrong. Please try again.');
+        if (xhr.status === 401) setError(tx('Please sign in as a seller first.'));
+        else setError(body.error ?? tx('Something went wrong. Please try again.'));
       }
     };
     xhr.onerror = () => {
       setBusy(false);
       setCheck(null);
-      setError('The upload was interrupted. Check your connection and try again.');
+      setError(tx('The upload was interrupted. Check your connection and try again.'));
     };
     xhr.send(data);
   };
@@ -436,7 +439,7 @@ export function SellForm({
                   <p className="muted" style={{ marginTop: 10 }}>
                     <T
                       s={'{v0} No link or file changed, so it did not need a new review.'}
-                      v={{ v0: done.status === 'live' ? 'Buyers see the new version now.' : 'The listing is still paused while we look at the reports about it.' }}
+                      v={{ v0: done.status === 'live' ? tx('Buyers see the new version now.') : tx('The listing is still paused while we look at the reports about it.') }}
                     />
                   </p>
                 </>
@@ -450,7 +453,7 @@ export function SellForm({
                   <p className="muted" style={{ marginTop: 10 }}>
                     <T
                       s={"{v0}We look at your files and the demo. You'll get an email when the listing is live."}
-                      v={{ v0: done.hosted ? `We opened your zip (${done.files || 'all'} files) and it is ready to preview. ` : '' }}
+                      v={{ v0: done.hosted ? tx('We opened your zip ({v0} files) and it is ready to preview. ', { v0: done.files || 'all' }) : '' }}
                     />
                   </p>
                 </>
@@ -603,7 +606,7 @@ export function SellForm({
                 {busy && (
                   <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                     <i style={{ width: pct + '%' }} />
-                    <span>{pct < 100 ? `Uploading ${pct}%` : tx('Opening and checking your files')}</span>
+                    <span>{pct < 100 ? tx('Uploading {pct}%', { pct }) : tx('Opening and checking your files')}</span>
                   </div>
                 )}
                 <div className="sob-acts">
@@ -634,12 +637,12 @@ export function SellForm({
                 <div className="seg" role="group" aria-label={tx('What are you selling')}>
                   {(
                     [
-                      ['web', 'A website'],
-                      ['android', 'An Android app'],
-                      ['ios', 'An iPhone & iPad app'],
-                      ['webapp', 'A web app'],
-                      ['desktop', 'A desktop app'],
-                      ['digital', 'A digital product'],
+                      ['web', tx('A website')],
+                      ['android', tx('An Android app')],
+                      ['ios', tx('An iPhone & iPad app')],
+                      ['webapp', tx('A web app')],
+                      ['desktop', tx('A desktop app')],
+                      ['digital', tx('A digital product')],
                     ] as [Kind, string][]
                   )
                     // New listings are websites only; an older app or digital listing being edited keeps its own button.
@@ -690,7 +693,9 @@ export function SellForm({
                     <T
                       s={'Promise only what you can keep. The time starts when the buyer pays. {v0}'}
                       v={{
-                        v0: hourChoices.length ? 'Pick hours for a quick job, days for a bigger one.' : 'For a faster job, offer 24-hour express below, or agree it with the buyer in the order chat.',
+                        v0: hourChoices.length
+                          ? tx('Pick hours for a quick job, days for a bigger one.')
+                          : tx('For a faster job, offer 24-hour express below, or agree it with the buyer in the order chat.'),
                       }}
                     />
                   </small>
@@ -739,8 +744,8 @@ export function SellForm({
                   <label>{dig ? tx('Pictures of your product') : tx('Screenshots of your app')}</label>
                   {shotsBox(
                     dig
-                      ? 'Show what is inside: the files, the main screens, a sample result. Buyers decide from these before they pay.'
-                      : 'Show the main screens, portrait. After payment you also send the buyer a real test build.',
+                      ? tx('Show what is inside: the files, the main screens, a sample result. Buyers decide from these before they pay.')
+                      : tx('Show the main screens, portrait. After payment you also send the buyer a real test build.'),
                     <>
                       <T s={'Choose'} />{' '}
                       <b>
@@ -804,7 +809,7 @@ export function SellForm({
                     <T s={'Pictures of your site (optional)'} />
                   </label>
                   {shotsBox(
-                    kept.shots ? `You sent ${kept.shots} before. Choose new ones to replace them.` : 'The first one is the cover buyers see on the list. Up to 6.',
+                    kept.shots ? tx('You sent {shots} before. Choose new ones to replace them.', { shots: kept.shots }) : tx('The first one is the cover buyers see on the list. Up to 6.'),
                     <>
                       <T s={'Choose up to'} /> <b>6</b> <T s={'pictures'} />
                     </>,
@@ -845,7 +850,7 @@ export function SellForm({
                   <small>
                     <T
                       s={'{v0}Do not put the real files here.'}
-                      v={{ v0: needDemo ? 'Buyers cannot try this before they accept, so show it working. A 2-minute video is perfect. ' : 'Buyers can look before they pay. ' }}
+                      v={{ v0: needDemo ? tx('Buyers cannot try this before they accept, so show it working. A 2-minute video is perfect. ') : tx('Buyers can look before they pay. ') }}
                     />
                   </small>
                 </div>
@@ -972,7 +977,7 @@ export function SellForm({
                 <select id="s-ltype" name="licenceType" defaultValue="single_project">
                   {LICENCE_TYPES.map((t) => (
                     <option key={t} value={t}>
-                      {LICENCES[t].label}
+                      {word(LICENCES[t].label)}
                     </option>
                   ))}
                 </select>
@@ -1026,8 +1031,10 @@ export function SellForm({
                 </select>
                 <small>
                   {fastAlready
-                    ? `Your delivery time is already within ${CONFIG.delivery.expressHours} hours, so buyers are not offered express.`
-                    : `Buyers can pay this extra to get it within ${CONFIG.delivery.expressHours} hours. You keep it, minus the usual fee. Only choose it if you can really deliver that fast.`}
+                    ? tx('Your delivery time is already within {expressHours} hours, so buyers are not offered express.', { expressHours: CONFIG.delivery.expressHours })
+                    : tx('Buyers can pay this extra to get it within {expressHours} hours. You keep it, minus the usual fee. Only choose it if you can really deliver that fast.', {
+                        expressHours: CONFIG.delivery.expressHours,
+                      })}
                 </small>
               </div>
               <div className="field">
@@ -1140,7 +1147,7 @@ export function SellForm({
               {busy && (
                 <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                   <i style={{ width: pct + '%' }} />
-                  <span>{pct < 100 ? `Uploading ${pct}%` : tx('Opening and checking your site')}</span>
+                  <span>{pct < 100 ? tx('Uploading {pct}%', { pct }) : tx('Opening and checking your site')}</span>
                 </div>
               )}
               {missing.length > 0 && (

@@ -28,9 +28,9 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
         router.push(`/orders/${id}`);
         return;
       }
-      setErr(j.error ?? 'Something went wrong. Nothing was charged.');
+      setErr(j.error ?? tx('Something went wrong. Nothing was charged.'));
     } catch {
-      setErr('Could not reach the payment page. Nothing was charged.');
+      setErr(tx('Could not reach the payment page. Nothing was charged.'));
     }
     setBusy(false);
   };

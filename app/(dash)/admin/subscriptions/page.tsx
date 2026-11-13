@@ -46,7 +46,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
       active="subscriptions"
       file="admin-finance"
       title={tx('Subscription Management')}
-      subtitle="Buyer and seller subscriptions: switches, plans, prices, members and payments."
+      subtitle={tx('Buyer and seller subscriptions: switches, plans, prices, members and payments.')}
     >
       <div className="seg" role="tablist" aria-label={tx('Subscriptions')} style={{ alignSelf: 'flex-start' }}>
         <Link role="tab" aria-selected={tab === 'buyer'} className={tab === 'buyer' ? 'on' : ''} href="/admin/subscriptions" prefetch={false}>
@@ -64,7 +64,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
             {[
               ['Active', String(report.active), 'running now'],
               ['Waiting', String(report.waiting), 'payment or review'],
-              ['Ending in 30 days', String(report.expiringSoon), 'reminders go out 14 days before'],
+              [tx('Ending in 30 days'), String(report.expiringSoon), 'reminders go out 14 days before'],
               ['Revenue', usd(report.revenueCents), `${report.newSales} new · ${report.renewals} renewals`],
               ['Expired', String(report.expired), 'licence and support ended'],
             ].map(([l, v, s]) => (
@@ -169,7 +169,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                           <Link className="btn sm ghost" href={`/admin/subscriptions?edit=${p.id}#plan-editor`} prefetch={false}>
                             <T s={'Edit'} />
                           </Link>
-                          <ActionButton endpoint={API} body={{ action: 'duplicatePlan', id: p.id }} label="Duplicate" tone="line" />
+                          <ActionButton endpoint={API} body={{ action: 'duplicatePlan', id: p.id }} label={tx('Duplicate')} tone="line" />
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'archivePlan', id: p.id, archived: !p.archivedAt }}
@@ -189,7 +189,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
           {superAdmin && sp.edit && (
             <section className="glass card" id="plan-editor">
               <div className="row" style={{ marginBottom: 8 }}>
-                <h2>{editing ? `Edit ${editing.name}` : tx('New plan')}</h2>
+                <h2>{editing ? tx('Edit {name}', { name: editing.name }) : tx('New plan')}</h2>
                 <Link className="btn sm ghost" href="/admin/subscriptions" prefetch={false}>
                   <T s={'Close'} />
                 </Link>
@@ -274,13 +274,13 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                               {p.kind === 'new' ? tx('New') : tx('Renewal')} {usd(p.amountCents)} · {p.methodLabel || 'manual'} · {p.reference}
                               {p.paidOn ? ` · ${p.paidOn}` : ''}
                             </span>
-                            <ActionButton endpoint={API} body={{ action: 'payment', id: p.id, verified: true }} label="Verify" />
+                            <ActionButton endpoint={API} body={{ action: 'payment', id: p.id, verified: true }} label={tx('Verify')} />
                             <ActionButton
                               endpoint={API}
                               body={{ action: 'payment', id: p.id, verified: false }}
-                              label="Reject"
+                              label={tx('Reject')}
                               tone="line"
-                              confirm="Reject this payment? The buyer can send another reference."
+                              confirm={tx('Reject this payment? The buyer can send another reference.')}
                             />
                           </div>
                         ))}
@@ -293,7 +293,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                               <ActionButton
                                 endpoint={API}
                                 body={{ action: 'refund', id: p.id }}
-                                label="Record refund"
+                                label={tx('Record refund')}
                                 tone="line"
                                 note={{ label: tx('Refund reason (after you refunded by hand; kept in the history)'), required: true }}
                               />
@@ -317,13 +317,19 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'cancelRefund', id: sub.id }}
-                            label="Cancel with refund"
+                            label={tx('Cancel with refund')}
                             tone="line"
                             note={{ label: tx('Reason (after you refunded the latest payment by hand)'), required: true }}
                           />
                         )}
                         {sub.expiresAt && (
-                          <ActionButton endpoint={API} body={{ action: 'extend', id: sub.id }} label="Extend" tone="line" note={{ label: tx('Days to add (1 to 3650)'), required: true, rows: 1 }} />
+                          <ActionButton
+                            endpoint={API}
+                            body={{ action: 'extend', id: sub.id }}
+                            label={tx('Extend')}
+                            tone="line"
+                            note={{ label: tx('Days to add (1 to 3650)'), required: true, rows: 1 }}
+                          />
                         )}
                       </td>
                     </tr>

@@ -1,3 +1,4 @@
+import { tx as en, type Tx } from './i18n/tx';
 import { DAY_MS } from './config';
 import type { Product } from './data';
 
@@ -10,7 +11,9 @@ export type ProductInfo = { docsUrl?: string; requirements?: string; supportDays
 export const infoOf = (p: Pick<Product, 'platform' | 'docsUrl' | 'requirements' | 'supportDays' | 'updateDays'>): ProductInfo | null =>
   p.platform === 'digital' ? { docsUrl: p.docsUrl, requirements: p.requirements, supportDays: p.supportDays ?? 0, updateDays: p.updateDays ?? 0 } : null;
 
-export const periodText = (days: number) => (days <= 0 ? 'None' : days % 365 === 0 ? `${days / 365} ${days === 365 ? 'year' : 'years'}` : `${days} days`);
+/* "30 days", "1 year", "None", in the page's language when a translator is given (English by default). */
+export const periodText = (days: number, tx: Tx = en) =>
+  days <= 0 ? tx('None') : days % 365 === 0 ? (days === 365 ? tx('{n} year', { n: 1 }) : tx('{n} years', { n: days / 365 })) : tx('{n} days', { n: days });
 
 /* Until when a period lasts for a buyer who paid at `fundedAt`; null when there is none. */
 export const endsAt = (fundedAt: number | undefined, days: number) => (fundedAt !== undefined && days > 0 ? fundedAt + days * DAY_MS : null);

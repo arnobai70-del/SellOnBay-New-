@@ -6,21 +6,23 @@ import type { Language } from '@/lib/i18n/config';
 
 import { useTx } from '@/components/i18n/TxProvider';
 import { T } from '@/components/i18n/T';
+import { tx } from '@/lib/i18n/tx';
 /* Admin › Language Management forms (owner, 2026-11-12), all through POST /api/admin/languages. */
 async function post(body: Record<string, unknown>) {
   const r = await fetch('/api/admin/languages', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const j = (await r?.json().catch(() => ({}))) as { error?: string } | undefined;
-  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : 'No connection. Please try again.') };
+  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : tx('No connection. Please try again.')) }; // shown through <T>, so it is translated
 }
 const Msg = ({ text, bad }: { text: string; bad?: boolean }) =>
   text ? (
     <p role={bad ? 'alert' : 'status'} className="tag" style={{ margin: 0, color: bad ? '#7A2E24' : undefined }}>
-      {text}
+      <T s={text} />
     </p>
   ) : null;
 
 /* The language list: on/off, published, order, names, direction, default; add a language; remove one an admin added. */
 export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Language[]; defaultLang: string; builtin: string[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [list, setList] = useState<Language[]>(initial);
   const [def, setDef] = useState(defaultLang);
@@ -41,10 +43,10 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
       onSubmit={async (e) => {
         e.preventDefault();
         const turningOn = list.filter((l) => l.published && !initial.find((x) => x.code === l.code)?.published).map((l) => l.name);
-        if (turningOn.length && !window.confirm(`Publish ${turningOn.join(', ')}? Visitors will be able to choose it, and its pages get their own addresses.`)) return;
+        if (turningOn.length && !window.confirm(tx('Publish {v0}? Visitors will be able to choose it, and its pages get their own addresses.', { v0: turningOn.join(', ') }))) return;
         const r = await post({ action: 'languages', settings: { defaultLang: def, languages: list } });
         setBad(!r.ok);
-        setMsg(r.ok ? 'Saved. It applies now.' : r.error || 'Could not save.');
+        setMsg(r.ok ? tx('Saved. It applies now.') : r.error || tx('Could not save.'));
         if (r.ok) router.refresh();
       }}
     >
@@ -83,10 +85,10 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
             {list.map((l, i) => (
               <tr key={l.code}>
                 <td style={{ whiteSpace: 'nowrap' }}>
-                  <button type="button" className="btn sm ghost" aria-label={`Move ${l.name} up`} onClick={() => move(i, -1)} disabled={i === 0}>
+                  <button type="button" className="btn sm ghost" aria-label={tx('Move {name} up', { name: l.name })} onClick={() => move(i, -1)} disabled={i === 0}>
                     <T s={'Up'} />
                   </button>{' '}
-                  <button type="button" className="btn sm ghost" aria-label={`Move ${l.name} down`} onClick={() => move(i, 1)} disabled={i === list.length - 1}>
+                  <button type="button" className="btn sm ghost" aria-label={tx('Move {name} down', { name: l.name })} onClick={() => move(i, 1)} disabled={i === list.length - 1}>
                     <T s={'Down'} />
                   </button>
                 </td>
@@ -192,7 +194,7 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
   const act = async (body: Record<string, unknown>, done: string) => {
     const r = await post(body);
     setBad(!r.ok);
-    setMsg(r.ok ? done : r.error || 'Could not save.');
+    setMsg(r.ok ? done : r.error || tx('Could not save.'));
     if (r.ok) router.refresh();
   };
   return (
@@ -229,7 +231,12 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
           type="button"
           className="btn sm"
           disabled={!changed.length}
-          onClick={() => act({ action: 'draft', lang, words: Object.fromEntries(changed.map((r) => [r.key, vals[r.key] ?? ''])) }, `Saved ${changed.length} as a draft. Publish to show them.`)}
+          onClick={() =>
+            act(
+              { action: 'draft', lang, words: Object.fromEntries(changed.map((r) => [r.key, vals[r.key] ?? ''])) },
+              tx('Saved {length} as a draft. Publish to show them.', { length: changed.length }),
+            )
+          }
         >
           <T s={'Save draft{v0}'} v={{ v0: changed.length ? ` (${changed.length})` : '' }} />
         </button>
@@ -237,7 +244,7 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
           type="button"
           className="btn sm ghost"
           disabled={!hasDraft}
-          onClick={() => window.confirm('Publish the draft words of this language?') && act({ action: 'publish', lang, mode: 'publish' }, 'Published.')}
+          onClick={() => window.confirm(tx('Publish the draft words of this language?')) && act({ action: 'publish', lang, mode: 'publish' }, 'Published.')}
         >
           <T s={'Publish draft'} />
         </button>
@@ -245,7 +252,8 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
           type="button"
           className="btn sm ghost"
           onClick={() =>
-            window.confirm('Take back every published edit of this language? The machine draft and English are shown instead.') && act({ action: 'publish', lang, mode: 'unpublish' }, 'Unpublished.')
+            window.confirm(tx('Take back every published edit of this language? The machine draft and English are shown instead.')) &&
+            act({ action: 'publish', lang, mode: 'unpublish' }, 'Unpublished.')
           }
         >
           <T s={'Unpublish edits'} />

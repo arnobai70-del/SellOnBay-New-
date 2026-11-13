@@ -64,7 +64,7 @@ export function ProductEditForm({
     const r = await fetch('/api/admin/seo/product', { method: 'POST', ...(json ? { headers: { 'content-type': 'application/json' } } : {}), body });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
     setMsg({ ok: true, text: ok });
     router.refresh();
   }
@@ -72,14 +72,14 @@ export function ProductEditForm({
     e.preventDefault();
     const { platform: _platform, ...rest } = f;
     void _platform;
-    return post(JSON.stringify(rest), true, 'Saved. The listing shows the change within a minute.');
+    return post(JSON.stringify(rest), true, tx('Saved. The listing shows the change within a minute.'));
   };
   const upload = (file: File | undefined) => {
     if (!file) return;
     const body = new FormData();
     body.append('slug', v.slug);
     body.append('file', file);
-    return post(body, false, 'Picture added.');
+    return post(body, false, tx('Picture added.'));
   };
   const field = (id: string, label: string, el: React.ReactNode, hint?: string) => (
     <div className="field">
@@ -112,20 +112,20 @@ export function ProductEditForm({
           <textarea id="pe-desc" rows={5} value={f.desc} maxLength={600} onChange={(e) => set('desc', e.target.value)} />,
           `20 to 600 characters. ${f.desc.length} / 600`,
         )}
-        {field('pe-includes', 'What comes with it', <textarea id="pe-includes" rows={5} value={f.includes} onChange={(e) => set('includes', e.target.value)} />, 'One per line, up to 8.')}
-        {dollars('price', 'Price in dollars', 'A whole number within the shop price range (Settings).')}
-        {dollars('days', 'Delivery in days', f.hours ? 'Not used while hours are set.' : '1 to 7.')}
+        {field('pe-includes', tx('What comes with it'), <textarea id="pe-includes" rows={5} value={f.includes} onChange={(e) => set('includes', e.target.value)} />, tx('One per line, up to 8.'))}
+        {dollars('price', tx('Price in dollars'), tx('A whole number within the shop price range (Settings).'))}
+        {dollars('days', tx('Delivery in days'), f.hours ? tx('Not used while hours are set.') : '1 to 7.')}
         {f.hours !== undefined &&
           field(
             'pe-hours',
-            'Delivery in hours',
+            tx('Delivery in hours'),
             <input id="pe-hours" type="number" min={1} max={maxHours} step={1} value={f.hours} placeholder={tx('In days')} onChange={(e) => set('hours', e.target.value)} />,
-            `Empty = the days above. 1 to ${maxHours}; any number, not only the choices sellers get.`,
+            tx('Empty = the days above. 1 to {maxHours}; any number, not only the choices sellers get.', { maxHours }),
           )}
-        {text('express', 'Express delivery price in dollars', 'Empty = not offered. 10 to 20.', 4)}
+        {text('express', tx('Express delivery price in dollars'), 'Empty = not offered. 10 to 20.', 4)}
         {field(
           'pe-setup',
-          'Setup help price',
+          tx('Setup help price'),
           <select id="pe-setup" value={f.setupPrice} onChange={(e) => set('setupPrice', Number(e.target.value))}>
             {setupOptions.map((c) => (
               <option key={c} value={c}>
@@ -136,7 +136,7 @@ export function ProductEditForm({
         )}
         {field(
           'pe-custom',
-          'Customisation price',
+          tx('Customisation price'),
           <select id="pe-custom" value={f.customPrice} onChange={(e) => set('customPrice', Number(e.target.value))}>
             {customOptions.map((c) => (
               <option key={c} value={c}>
@@ -145,10 +145,10 @@ export function ProductEditForm({
             ))}
           </select>,
         )}
-        {text('codeUrl', 'Files link (https, private)', "The seller's private link to the code or files. Buyers get it only after paying. It cannot change once a buyer has paid.", 1000)}
+        {text('codeUrl', tx('Files link (https, private)'), tx("The seller's private link to the code or files. Buyers get it only after paying. It cannot change once a buyer has paid."), 1000)}
         {field(
           'pe-licence',
-          'What the buyer may do with it',
+          tx('What the buyer may do with it'),
           <select id="pe-licence" value={f.licenceType} onChange={(e) => set('licenceType', e.target.value)}>
             {licences.map(([value, label]) => (
               <option key={value} value={value}>
@@ -157,15 +157,15 @@ export function ProductEditForm({
             ))}
           </select>,
         )}
-        {text('demo', 'Demo link (https)', isApp && !dig ? 'Not used for apps.' : 'The live demo buyers look at.', 500)}
+        {text('demo', tx('Demo link (https)'), isApp && !dig ? tx('Not used for apps.') : tx('The live demo buyers look at.'), 500)}
         {dig && (
           <>
-            {text('sample', 'Free sample link (https)', undefined, 1000)}
-            {text('docsUrl', 'Documentation link (https)', undefined, 500)}
-            {field('pe-req', 'What it needs', <textarea id="pe-req" rows={3} value={f.requirements} maxLength={600} onChange={(e) => set('requirements', e.target.value)} />)}
+            {text('sample', tx('Free sample link (https)'), undefined, 1000)}
+            {text('docsUrl', tx('Documentation link (https)'), undefined, 500)}
+            {field('pe-req', tx('What it needs'), <textarea id="pe-req" rows={3} value={f.requirements} maxLength={600} onChange={(e) => set('requirements', e.target.value)} />)}
             {field(
               'pe-support',
-              'Support lasts (days)',
+              tx('Support lasts (days)'),
               <select id="pe-support" value={f.supportDays} onChange={(e) => set('supportDays', Number(e.target.value))}>
                 {periods.map((c) => (
                   <option key={c}>{c}</option>
@@ -174,7 +174,7 @@ export function ProductEditForm({
             )}
             {field(
               'pe-update',
-              'Updates last (days)',
+              tx('Updates last (days)'),
               <select id="pe-update" value={f.updateDays} onChange={(e) => set('updateDays', Number(e.target.value))}>
                 {periods.map((c) => (
                   <option key={c}>{c}</option>
@@ -198,7 +198,7 @@ export function ProductEditForm({
           <small>
             <T
               s={'{v0} ({length} of {maxShots}). PNG, JPEG or WebP up to 4 MB.{v3}'}
-              v={{ v0: isApp ? 'App screenshots' : 'Site pictures', length: shots.length, maxShots, v3: !isApp && ' The first one is the cover on the list.' }}
+              v={{ v0: isApp ? tx('App screenshots') : tx('Site pictures'), length: shots.length, maxShots, v3: !isApp && ' The first one is the cover on the list.' }}
             />
           </small>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -206,7 +206,7 @@ export function ProductEditForm({
               <div key={n} style={{ width: 120 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/demo/${v.slug}/${n}`} alt="" style={{ width: '100%', borderRadius: 8 }} loading="lazy" />
-                <button className="btn ghost sm" type="button" disabled={busy} onClick={() => post(JSON.stringify({ slug: v.slug, removeShot: n }), true, 'Picture removed.')}>
+                <button className="btn ghost sm" type="button" disabled={busy} onClick={() => post(JSON.stringify({ slug: v.slug, removeShot: n }), true, tx('Picture removed.'))}>
                   <T s={'Remove'} />
                 </button>
               </div>

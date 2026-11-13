@@ -42,7 +42,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
     if (!shown) notFound();
     const p = shown.product;
     const rp = supabaseConfigured ? await requestableProduct(p.id) : null;
-    const problem = supabaseConfigured ? requestableProblem(rp) : 'Requests need an account. There are no accounts in demo mode.';
+    const problem = supabaseConfigured ? requestableProblem(rp) : tx('Requests need an account. There are no accounts in demo mode.');
     const dv = deliveryOf(p);
     return (
       <PublicFrame file="checkout">
@@ -171,10 +171,10 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
         email={email}
         summary={summary}
         steps={[
-          'We review your request and email you',
-          'Once approved, you get the files and the domain steps',
+          tx('We review your request and email you'),
+          tx('Once approved, you get the files and the domain steps'),
           `${REVIEW_HOURS} hours to check them and ask for fixes`,
-          'A week later we ask how it went',
+          tx('A week later we ask how it went'),
         ]}
       />
     </PublicFrame>

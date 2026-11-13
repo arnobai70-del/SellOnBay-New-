@@ -30,15 +30,24 @@ function resolveImport(from, spec) {
   for (const c of [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts'), path.join(base, 'index.tsx')]) if (fs.existsSync(c) && fs.statSync(c).isFile()) return path.normalize(c);
   return null;
 }
-function publicReach(files) {
+// type-only imports vanish in the build, and a server-only module never reaches the browser: neither carries words there
+function importGraph(files, { browser = false } = {}) {
   const deps = new Map();
   for (const f of files) {
     const src = fs.readFileSync(f, 'utf8');
-    deps.set(path.normalize(f), [...src.matchAll(IMPORT)].map((m) => resolveImport(f, m[1] ?? m[2] ?? m[3])).filter(Boolean));
+    if (browser && /^\s*import ['"]server-only['"]/m.test(src)) {
+      deps.set(path.normalize(f), []);
+      continue;
+    }
+    const code = src.replace(/^\s*(import|export) type [^;]*;/gm, '');
+    deps.set(path.normalize(f), [...code.matchAll(IMPORT)].map((m) => resolveImport(f, m[1] ?? m[2] ?? m[3])).filter(Boolean));
   }
-  const dash = `app${path.sep}(dash)${path.sep}`;
+  return deps;
+}
+/* every file reachable through imports from the given starting files */
+function reachFrom(deps, starts) {
   const seen = new Set();
-  const stack = files.map((f) => path.normalize(f)).filter((f) => f.startsWith(`app${path.sep}`) && !f.startsWith(dash) && !f.startsWith(`app${path.sep}api${path.sep}`));
+  const stack = [...starts];
   while (stack.length) {
     const f = stack.pop();
     if (seen.has(f)) continue;
@@ -47,11 +56,24 @@ function publicReach(files) {
   }
   return seen;
 }
+function publicReach(deps, files) {
+  const dash = `app${path.sep}(dash)${path.sep}`;
+  return reachFrom(
+    deps,
+    files.map((f) => path.normalize(f)).filter((f) => f.startsWith(`app${path.sep}`) && !f.startsWith(dash) && !f.startsWith(`app${path.sep}api${path.sep}`)),
+  );
+}
 
 export function extract() {
   const strings = {};
   const all = ROOTS.flatMap(walk);
-  const reach = publicReach(all);
+  const deps = importGraph(all);
+  const reach = publicReach(deps, all);
+  // A shared module a client component imports (lib/glass/orderStatus.ts, lib/licences.ts...) is in the browser too: its marked words are
+  // client words, so a client component can show them in the page's language (useWord(), components/i18n/TxProvider.tsx).
+  const clientFiles = all.filter((f) => /^\s*['"]use client['"]/.test(fs.readFileSync(f, 'utf8'))).map((f) => path.normalize(f));
+  const browserDeps = importGraph(all, { browser: true });
+  const inBrowser = new Set([...reachFrom(browserDeps, clientFiles)].filter((f) => !/^\s*import ['"]server-only['"]/m.test(fs.readFileSync(f, 'utf8'))));
   for (const file of all) {
     if (file.includes(`${path.sep}i18n${path.sep}tx.ts`)) continue;
     const src = fs.readFileSync(file, 'utf8');
@@ -60,7 +82,7 @@ export function extract() {
       const text = m[2].replace(/\\(['"\\])/g, '$1').replace(/\\n/g, '\n');
       if (!text.trim()) continue;
       const e = (strings[text] ??= { client: false, pub: false, files: [] });
-      const isClient = client || !!m.t; // <T> is a client component: its words go to the browser
+      const isClient = client || !!m.t || inBrowser.has(path.normalize(file)); // <T> is a client component: its words go to the browser
       e.client ||= isClient;
       e.pub ||= isClient && reach.has(path.normalize(file));
       const rel = file.split(path.sep).join('/');

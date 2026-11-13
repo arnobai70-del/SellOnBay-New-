@@ -16,7 +16,7 @@ const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFr
 const when = (t: number) => new Date(t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default async function Disputes() {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/support/disputes', roles: ['admin'], scope: ['support', 'finance'] });
   const list = await openDisputes();
   const now = Date.now();
@@ -49,7 +49,7 @@ export default async function Disputes() {
           return (
             <div className="sob-item" key={d.id}>
               <h3>
-                {o?.title ?? tx('Order')} · {REASON_LABEL[d.reason]}
+                {o?.title ?? tx('Order')} · {translate(REASON_LABEL[d.reason])}
               </h3>
               <div className="meta">
                 <span>
@@ -120,8 +120,8 @@ export default async function Disputes() {
               )}
               <AdminForm
                 endpoint={`/api/admin/disputes/${d.id}/decide`}
-                openLabel="Decide"
-                submit="Save decision"
+                openLabel={tx('Decide')}
+                submit={tx('Save decision')}
                 tone="gold"
                 fields={[
                   {
@@ -129,15 +129,15 @@ export default async function Disputes() {
                     label: tx('Decision'),
                     kind: 'select',
                     options: [
-                      ['refund_full', 'Refund the buyer in full'],
-                      ['refund_partial', 'Refund part of it'],
-                      ['fix_requested', 'Ask the seller to fix it'],
-                      ['release', 'Reject the dispute and pay the seller'],
+                      ['refund_full', tx('Refund the buyer in full')],
+                      ['refund_partial', tx('Refund part of it')],
+                      ['fix_requested', tx('Ask the seller to fix it')],
+                      ['release', tx('Reject the dispute and pay the seller')],
                     ],
                   },
                   {
                     name: 'refundCents',
-                    label: `Refund amount in dollars (up to ${money(sellerNet)}, taken from the seller's share)`,
+                    label: tx("Refund amount in dollars (up to {money}, taken from the seller's share)", { money: money(sellerNet) }),
                     kind: 'dollars',
                     showWhen: { field: 'decision', equals: 'refund_partial' },
                   },
@@ -146,9 +146,9 @@ export default async function Disputes() {
                     label: tx('Whose fault was it? (recorded on the dispute)'),
                     kind: 'select',
                     options: [
-                      ['platform', 'Us or nobody'],
-                      ['seller', 'The seller'],
-                      ['buyer_fraud', 'The buyer (fraud): the buyer is flagged'],
+                      ['platform', tx('Us or nobody')],
+                      ['seller', tx('The seller')],
+                      ['buyer_fraud', tx('The buyer (fraud): the buyer is flagged')],
                     ],
                   },
                   {

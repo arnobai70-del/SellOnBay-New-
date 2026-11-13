@@ -52,14 +52,14 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
           () => null,
         );
         const j = (await r?.json().catch(() => ({}))) as { error?: string } | undefined;
-        setMsg(r?.ok ? 'Saved. It applies now.' : j?.error || 'Could not save.');
+        setMsg(r?.ok ? tx('Saved. It applies now.') : j?.error || tx('Could not save.'));
         if (r?.ok) router.refresh();
       }}
     >
       {section === 'program' && (
         <>
-          {check('The affiliate program is on (public page, registration, link tracking)', s.enabled, (v) => set({ enabled: v }))}
-          {check('Show the public monthly leaderboard (top 5)', s.leaderboardPublic, (v) => set({ leaderboardPublic: v }))}
+          {check(tx('The affiliate program is on (public page, registration, link tracking)'), s.enabled, (v) => set({ enabled: v }))}
+          {check(tx('Show the public monthly leaderboard (top 5)'), s.leaderboardPublic, (v) => set({ leaderboardPublic: v }))}
           <div className="field">
             <label htmlFor="aff-intro">
               <T s={'Words under the public page heading'} />
@@ -74,7 +74,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input aria-label={tx('Shown')} type="checkbox" checked={b.on} onChange={(e) => set({ benefits: s.benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)) })} />
                 <input
-                  aria-label={`Benefit ${i + 1}`}
+                  aria-label={tx('Benefit {v0}', { v0: i + 1 })}
                   className="input"
                   value={b.text}
                   maxLength={120}
@@ -110,14 +110,14 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             {s.faq.map((x, i) => (
               <div key={i} style={{ display: 'grid', gap: 6 }}>
                 <input
-                  aria-label={`Question ${i + 1}`}
+                  aria-label={tx('Question {v0}', { v0: i + 1 })}
                   className="input"
                   value={x.q}
                   maxLength={200}
                   onChange={(e) => set({ faq: s.faq.map((y, n) => (n === i ? { ...y, q: e.target.value } : y)) })}
                 />
                 <textarea
-                  aria-label={`Answer ${i + 1}`}
+                  aria-label={tx('Answer {v0}', { v0: i + 1 })}
                   className="input"
                   rows={2}
                   value={x.a}
@@ -138,12 +138,12 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
 
       {section === 'registration' && (
         <div style={grid}>
-          {num('Standard registration fee (USD)', Number(dollars(s.feeCents)), (n) => set({ feeCents: toCents(String(n)) }))}
+          {num(tx('Standard registration fee (USD)'), Number(dollars(s.feeCents)), (n) => set({ feeCents: toCents(String(n)) }))}
           {num('Promotion fee (USD, 0 = waived)', Number(dollars(s.promoFeeCents)), (n) => set({ promoFeeCents: toCents(String(n)) }))}
-          {num('Qualification period', s.qualificationDays, (n) => set({ qualificationDays: n }), 'days')}
-          {num('Qualification target', s.targetSales, (n) => set({ targetSales: n }), 'verified sales')}
-          {check('The promotion is running (new affiliates pay the promotion fee)', s.promoActive, (v) => set({ promoActive: v }))}
-          {check('Waive the fee for good when an affiliate qualifies', s.waiveFeeOnQualify, (v) => set({ waiveFeeOnQualify: v }))}
+          {num(tx('Qualification period'), s.qualificationDays, (n) => set({ qualificationDays: n }), 'days')}
+          {num(tx('Qualification target'), s.targetSales, (n) => set({ targetSales: n }), 'verified sales')}
+          {check(tx('The promotion is running (new affiliates pay the promotion fee)'), s.promoActive, (v) => set({ promoActive: v }))}
+          {check(tx('Waive the fee for good when an affiliate qualifies'), s.waiveFeeOnQualify, (v) => set({ waiveFeeOnQualify: v }))}
         </div>
       )}
 
@@ -187,8 +187,8 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             </table>
           </div>
           <div style={grid}>
-            {num('Approve commissions after', s.holdDays, (n) => set({ holdDays: n }), 'days after acceptance')}
-            {num('Minimum withdrawal (USD)', Number(dollars(s.minWithdrawalCents)), (n) => set({ minWithdrawalCents: toCents(String(n)) }))}
+            {num(tx('Approve commissions after'), s.holdDays, (n) => set({ holdDays: n }), 'days after acceptance')}
+            {num(tx('Minimum withdrawal (USD)'), Number(dollars(s.minWithdrawalCents)), (n) => set({ minWithdrawalCents: toCents(String(n)) }))}
           </div>
           <div className="tag" style={{ margin: 0 }}>
             <T s={'A new rate applies to commissions made from now on; every commission keeps the rate it was made with. Nothing is ever paid for recruiting affiliates.'} />
@@ -258,7 +258,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
         </>
       )}
 
-      {section === 'tracking' && <div style={grid}>{num('Referral cookie', s.cookieDays, (n) => set({ cookieDays: n }), 'days')}</div>}
+      {section === 'tracking' && <div style={grid}>{num(tx('Referral cookie'), s.cookieDays, (n) => set({ cookieDays: n }), 'days')}</div>}
 
       {section === 'badges' && (
         <>
@@ -306,7 +306,7 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
                       </select>
                     </label>
                   </div>
-                  {b.kind === 'sales' && num('Verified sales needed', b.threshold, (n) => up({ threshold: n }))}
+                  {b.kind === 'sales' && num(tx('Verified sales needed'), b.threshold, (n) => up({ threshold: n }))}
                   <div className="field">
                     <label>
                       <T s={'Reward (optional)'} />
@@ -327,7 +327,9 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
             type="button"
             className="btn sm ghost"
             style={{ alignSelf: 'flex-start' }}
-            onClick={() => set({ badges: [...s.badges, { key: `badge-${Date.now()}`, name: 'New milestone', icon: '★', color: '#5FA88F', kind: 'sales', threshold: 200, reward: '', enabled: true }] })}
+            onClick={() =>
+              set({ badges: [...s.badges, { key: `badge-${Date.now()}`, name: tx('New milestone'), icon: '★', color: '#5FA88F', kind: 'sales', threshold: 200, reward: '', enabled: true }] })
+            }
           >
             <T s={'+ Add badge'} />
           </button>
@@ -336,17 +338,17 @@ export function AffSettingsForm({ initial, section }: { initial: Settings; secti
 
       {section === 'notifications' && (
         <>
-          {check('Tell an affiliate when they qualify', s.notify.qualified, (v) => set({ notify: { ...s.notify, qualified: v } }))}
-          {check('Tell an affiliate when a commission is approved', s.notify.commissionApproved, (v) => set({ notify: { ...s.notify, commissionApproved: v } }))}
-          {check('Tell an affiliate when a withdrawal is decided or paid', s.notify.withdrawalDecided, (v) => set({ notify: { ...s.notify, withdrawalDecided: v } }))}
+          {check(tx('Tell an affiliate when they qualify'), s.notify.qualified, (v) => set({ notify: { ...s.notify, qualified: v } }))}
+          {check(tx('Tell an affiliate when a commission is approved'), s.notify.commissionApproved, (v) => set({ notify: { ...s.notify, commissionApproved: v } }))}
+          {check(tx('Tell an affiliate when a withdrawal is decided or paid'), s.notify.withdrawalDecided, (v) => set({ notify: { ...s.notify, withdrawalDecided: v } }))}
         </>
       )}
 
       {section === 'fraud' && (
         <div style={grid}>
-          {check('Block self-referrals (an affiliate buying through their own link)', s.fraud.blockSelfReferral, (v) => set({ fraud: { ...s.fraud, blockSelfReferral: v } }))}
-          {num('Most clicks counted per visitor per day', s.fraud.maxClicksPerVisitorPerDay, (n) => set({ fraud: { ...s.fraud, maxClicksPerVisitorPerDay: n } }))}
-          {num('Extra hold for new affiliates', s.fraud.holdNewAffiliateDays, (n) => set({ fraud: { ...s.fraud, holdNewAffiliateDays: n } }), 'days')}
+          {check(tx('Block self-referrals (an affiliate buying through their own link)'), s.fraud.blockSelfReferral, (v) => set({ fraud: { ...s.fraud, blockSelfReferral: v } }))}
+          {num(tx('Most clicks counted per visitor per day'), s.fraud.maxClicksPerVisitorPerDay, (n) => set({ fraud: { ...s.fraud, maxClicksPerVisitorPerDay: n } }))}
+          {num(tx('Extra hold for new affiliates'), s.fraud.holdNewAffiliateDays, (n) => set({ fraud: { ...s.fraud, holdNewAffiliateDays: n } }), 'days')}
         </div>
       )}
 

@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 
 /* One page in the Pages editor: the draft if there is one, else the published words, else the built-in words. */
 export default async function EditPage({ searchParams }: { searchParams: Promise<{ key?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/pages/edit', roles: ['admin'], scope: 'content' });
   const def = pageByKey((await searchParams).key ?? '');
   if (!def || def.legal) notFound();
@@ -23,7 +24,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
   const previewPath =
     def.path.startsWith('/') && !def.path.includes('[') ? def.path : def.key === 'website' ? (first ? `/websites/${first.id}` : null) : def.key === 'not-found' ? '/this-page-does-not-exist' : '/';
   return (
-    <AdminShell viewer={viewer} active="pages" title={`Edit: ${def.label}`} subtitle="Empty a field to go back to the built-in words.">
+    <AdminShell viewer={viewer} active="pages" title={`Edit: ${def.label}`} subtitle={tx('Empty a field to go back to the built-in words.')}>
       <PagesEditor def={def} initial={doc} previewPath={previewPath} hasDraft={!!draft} />
     </AdminShell>
   );

@@ -21,7 +21,7 @@ export function TicketForm({ base, orders }: { base: string; orders: { id: strin
     const r = await fetch('/api/tickets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ subject, body, orderId }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setError(j.error ?? 'Could not open the ticket.');
+    if (!r.ok) return setError(j.error ?? tx('Could not open the ticket.'));
     router.push(`${base}?t=${j.id}`);
     router.refresh();
   }

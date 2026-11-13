@@ -59,9 +59,9 @@ export function PageControlsForm({
     const r = await fetch('/api/admin/posts/image', { method: 'POST', body });
     const j = await r.json().catch(() => ({}));
     setUp(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not upload the picture.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not upload the picture.') });
     set('ogImage', j.url);
-    setMsg({ ok: true, text: 'Picture uploaded. Save to use it.' });
+    setMsg({ ok: true, text: tx('Picture uploaded. Save to use it.') });
   }
 
   async function save(e: React.FormEvent) {
@@ -71,8 +71,8 @@ export function PageControlsForm({
     const r = await fetch('/api/admin/seo/controls', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ path, ...c }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Saved. The page and the sitemap follow within a minute.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Saved. The page and the sitemap follow within a minute.') });
     router.refresh();
   }
 

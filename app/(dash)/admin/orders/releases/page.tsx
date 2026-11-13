@@ -58,19 +58,19 @@ export default async function Releases() {
                   <AdminForm
                     endpoint={`/api/admin/releases/${o.id}`}
                     fixed={{ action: 'approve' }}
-                    openLabel="Approve release"
-                    submit="Release to the buyer"
+                    openLabel={tx('Approve release')}
+                    submit={tx('Release to the buyer')}
                     tone="blue"
-                    fields={[note('What you checked (audit log)', false)]}
+                    fields={[note(tx('What you checked (audit log)'), false)]}
                   />
                   {!readyMade(o) && (
                     <AdminForm
                       endpoint={`/api/admin/releases/${o.id}`}
                       fixed={{ action: 'return' }}
-                      openLabel="Return to seller"
-                      submit="Return"
+                      openLabel={tx('Return to seller')}
+                      submit={tx('Return')}
                       tone="line"
-                      fields={[note('What the seller must fix')]}
+                      fields={[note(tx('What the seller must fix'))]}
                     />
                   )}
                 </div>
@@ -106,7 +106,7 @@ export default async function Releases() {
                 <b>
                   <Link href={`/admin/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {o.pkg}
                 </b>
-                <AdminForm endpoint={`/api/admin/releases/${o.id}`} fixed={{ action: 'authorise' }} fields={[]} openLabel="Authorise work" submit="Let the seller start" tone="blue" />
+                <AdminForm endpoint={`/api/admin/releases/${o.id}`} fixed={{ action: 'authorise' }} fields={[]} openLabel={tx('Authorise work')} submit={tx('Let the seller start')} tone="blue" />
               </div>
             </li>
           ))}
@@ -137,10 +137,10 @@ export default async function Releases() {
                 <AdminForm
                   endpoint={`/api/admin/releases/${o.id}`}
                   fixed={{ action: 'legacy_approve' }}
-                  openLabel="Reviewed: allow release"
-                  submit="Allow release"
+                  openLabel={tx('Reviewed: allow release')}
+                  submit={tx('Allow release')}
                   tone="line"
-                  fields={[note('What you checked (seller, files, payment)')]}
+                  fields={[note(tx('What you checked (seller, files, payment)'))]}
                 />
               </div>
             </li>
@@ -160,10 +160,10 @@ export default async function Releases() {
                   <AdminForm
                     endpoint={`/api/admin/releases/${o.id}`}
                     fixed={{ action: 'legacy_cancel' }}
-                    openLabel="Close"
-                    submit="Close the order"
+                    openLabel={tx('Close')}
+                    submit={tx('Close the order')}
                     tone="line"
-                    fields={[note('Why (the buyer is told nothing was charged)')]}
+                    fields={[note(tx('Why (the buyer is told nothing was charged)'))]}
                   />
                 )}
               </div>
@@ -185,8 +185,8 @@ export default async function Releases() {
         </div>
         <AdminForm
           endpoint="/api/admin/releases/by-order"
-          openLabel="Change access"
-          submit="Save"
+          openLabel={tx('Change access')}
+          submit={tx('Save')}
           tone="line"
           fields={[
             { name: 'orderId', label: tx('Order id'), kind: 'text', required: true },
@@ -197,10 +197,10 @@ export default async function Releases() {
               options: [
                 ['suspend', 'Suspend'],
                 ['resume', 'Resume'],
-                ['revoke', 'Revoke for good'],
+                ['revoke', tx('Revoke for good')],
               ],
             },
-            note('Why (goes in the audit log)'),
+            note(tx('Why (goes in the audit log)')),
           ]}
         />
       </div>

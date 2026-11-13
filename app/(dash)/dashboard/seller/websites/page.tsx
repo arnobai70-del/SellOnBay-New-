@@ -17,19 +17,25 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('My websites'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const STATUS: Record<string, [string, string]> = { live: ['Live', 'st-ok'], in_review: ['In review', 'st-info'], rejected: ['Changes requested', 'st-wait'], paused: ['Paused', 'st-draft'] };
-const FILE_STATE: Record<string, string> = {
-  awaiting_upload: 'Not uploaded yet',
-  checking: 'Being checked',
-  failed_checks: 'Not accepted',
-  awaiting_review: 'Waiting for a reviewer',
+const STATUS = (tx: Tx): Record<string, [string, string]> => ({
+  live: ['Live', 'st-ok'],
+  in_review: [tx('In review'), 'st-info'],
+  rejected: [tx('Changes requested'), 'st-wait'],
+  paused: ['Paused', 'st-draft'],
+});
+const FILE_STATE = (tx: Tx): Record<string, string> => ({
+  awaiting_upload: tx('Not uploaded yet'),
+  checking: tx('Being checked'),
+  failed_checks: tx('Not accepted'),
+  awaiting_review: tx('Waiting for a reviewer'),
   approved: 'Approved',
   rejected: 'Rejected',
   purged: 'Removed',
-};
+});
 
 /*
  * design-reference/seller-websites.html: the seller's listings with their sales, rating, status and the reviewer's note, then "Upload a new
@@ -105,7 +111,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
               </thead>
               <tbody>
                 {listings.map((l) => {
-                  const [label, tone] = STATUS[l.status] ?? [l.status, 'st-draft'];
+                  const [label, tone] = STATUS(tx)[l.status] ?? [l.status, 'st-draft'];
                   return (
                     <tr key={l.slug}>
                       <td style={{ fontWeight: 500 }}>
@@ -140,7 +146,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                             className={l.status === 'rejected' ? 'btn sm' : 'btn sm ghost'}
                             href={`/dashboard/seller/websites/new?edit=${encodeURIComponent(l.slug)}`}
                             prefetch={false}
-                            aria-label={`Edit ${plainWords(l.name)}`}
+                            aria-label={tx('Edit {plainWords}', { plainWords: plainWords(l.name) })}
                           >
                             {l.status === 'rejected' ? tx('Fix & resubmit') : tx('Edit')}
                           </Link>
@@ -152,8 +158,8 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                           {l.digital && l.status === 'live' && (
                             <AdminForm
                               endpoint={`/api/listings/${l.slug}/versions`}
-                              openLabel="New version"
-                              submit="Send for review"
+                              openLabel={tx('New version')}
+                              submit={tx('Send for review')}
                               tone="line"
                               fields={[
                                 { name: 'version', label: tx('Version number, for example 1.1'), kind: 'text', required: true },
@@ -229,7 +235,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                 ))}
               </span>
               <span className="tag" style={{ margin: 0 }}>
-                {FILE_STATE[f.state] ?? f.state}
+                {FILE_STATE(tx)[f.state] ?? f.state}
                 {f.reviewNote ? ` · ${f.reviewNote}` : ''}
               </span>
             </div>

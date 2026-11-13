@@ -8,12 +8,13 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Payments to check'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
-const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 
 /*
  * Finance (F-5, D-I). A buyer's report or screenshot is never proof that money arrived: reconcile only against the bank or wallet statement.
@@ -71,8 +72,8 @@ export default async function PaymentsReview() {
                     <AdminForm
                       endpoint={`/api/admin/payments/${a.id}`}
                       fixed={{ action: 'reconcile' }}
-                      openLabel="Money arrived"
-                      submit="Reconcile"
+                      openLabel={tx('Money arrived')}
+                      submit={tx('Reconcile')}
                       tone="blue"
                       fields={[
                         { name: 'amountReceived', label: tx('Amount that actually arrived (in the method currency)'), kind: 'text', required: true },
@@ -84,10 +85,10 @@ export default async function PaymentsReview() {
                     <AdminForm
                       endpoint={`/api/admin/payments/${a.id}`}
                       fixed={{ action: 'reject' }}
-                      openLabel="Not received"
-                      submit="Reject"
+                      openLabel={tx('Not received')}
+                      submit={tx('Reject')}
                       tone="line"
-                      fields={[{ ...why, label: tx('Why (the buyer sees it)') }]}
+                      fields={[{ ...why(tx), label: tx('Why (the buyer sees it)') }]}
                     />
                   </div>
                 </div>
@@ -124,13 +125,15 @@ export default async function PaymentsReview() {
                   {r.status} · {r.reason}
                 </small>
                 <div className="sob-acts">
-                  {r.status === 'requested' && <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'approve' }} fields={[]} openLabel="Approve" submit="Approve refund" tone="blue" />}
+                  {r.status === 'requested' && (
+                    <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'approve' }} fields={[]} openLabel={tx('Approve')} submit={tx('Approve refund')} tone="blue" />
+                  )}
                   {r.status === 'approved' && (
                     <AdminForm
                       endpoint={`/api/admin/refunds/${r.id}`}
                       fixed={{ action: 'paid' }}
-                      openLabel="Record as paid"
-                      submit="Record"
+                      openLabel={tx('Record as paid')}
+                      submit={tx('Record')}
                       tone="blue"
                       fields={[
                         { name: 'method', label: tx('How the money was sent back'), kind: 'text', required: true },
@@ -138,7 +141,9 @@ export default async function PaymentsReview() {
                       ]}
                     />
                   )}
-                  {r.status === 'requested' && <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'cancel' }} fields={[why]} openLabel="Cancel" submit="Cancel refund" tone="line" />}
+                  {r.status === 'requested' && (
+                    <AdminForm endpoint={`/api/admin/refunds/${r.id}`} fixed={{ action: 'cancel' }} fields={[why(tx)]} openLabel={tx('Cancel')} submit={tx('Cancel refund')} tone="line" />
+                  )}
                 </div>
               </div>
             </li>
@@ -159,10 +164,10 @@ export default async function PaymentsReview() {
         </div>
         <AdminForm
           endpoint="/api/admin/orders/refund-by-id"
-          openLabel="Refund an order"
-          submit="Refund"
+          openLabel={tx('Refund an order')}
+          submit={tx('Refund')}
           tone="line"
-          fields={[{ name: 'orderId', label: tx('Order id'), kind: 'text', required: true }, why]}
+          fields={[{ name: 'orderId', label: tx('Order id'), kind: 'text', required: true }, why(tx)]}
         />
       </div>
 
@@ -188,8 +193,8 @@ export default async function PaymentsReview() {
                 <AdminForm
                   endpoint="/api/admin/payments/methods"
                   fixed={{ id: m.id, kind: m.kind }}
-                  openLabel="Change"
-                  submit="Save"
+                  openLabel={tx('Change')}
+                  submit={tx('Save')}
                   tone="line"
                   fields={[
                     { name: 'label', label: tx('Name'), kind: 'text', value: m.label, required: true },
@@ -204,7 +209,7 @@ export default async function PaymentsReview() {
                         ['on', 'Shown'],
                       ],
                     },
-                    why,
+                    why(tx),
                   ]}
                 />
               </div>
@@ -213,8 +218,8 @@ export default async function PaymentsReview() {
         </ul>
         <AdminForm
           endpoint="/api/admin/payments/methods"
-          openLabel="Add a method"
-          submit="Add"
+          openLabel={tx('Add a method')}
+          submit={tx('Add')}
           tone="blue"
           fields={[
             {
@@ -222,8 +227,8 @@ export default async function PaymentsReview() {
               label: tx('Kind'),
               kind: 'select',
               options: [
-                ['bank_transfer', 'Business bank transfer'],
-                ['local_wallet', 'Local wallet'],
+                ['bank_transfer', tx('Business bank transfer')],
+                ['local_wallet', tx('Local wallet')],
               ],
             },
             { name: 'label', label: tx('Name'), kind: 'text', required: true },
@@ -234,11 +239,11 @@ export default async function PaymentsReview() {
               label: tx('Shown to buyers'),
               kind: 'select',
               options: [
-                ['off', 'Hidden for now'],
+                ['off', tx('Hidden for now')],
                 ['on', 'Shown'],
               ],
             },
-            why,
+            why(tx),
           ]}
         />
       </div>

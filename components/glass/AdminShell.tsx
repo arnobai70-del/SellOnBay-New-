@@ -5,7 +5,10 @@ import { getSettings } from '@/lib/settings';
 import { DashboardShell } from './DashboardShell';
 
 import { T } from '@/components/i18n/T';
-const HEALTH = { ok: ['#3F8F77', 'All systems normal'], warn: ['#C9962E', 'Something needs a look'], bad: ['#C2553F', 'Something is wrong'], off: ['#A9B8C0', 'Not set up'] } as const;
+import type { Tx } from '@/lib/i18n/tx';
+import { getI18n } from '@/lib/i18n/server';
+const HEALTH = (tx: Tx) =>
+  ({ ok: ['#3F8F77', tx('All systems normal')], warn: ['#C9962E', tx('Something needs a look')], bad: ['#C2553F', tx('Something is wrong')], off: ['#A9B8C0', tx('Not set up')] }) as const;
 
 /* The admin pages' shell (design-reference/admin*.html): live counts on the menu and the system health card at the foot of the sidebar. */
 export async function AdminShell({
@@ -27,8 +30,9 @@ export async function AdminShell({
   head?: boolean;
   children: React.ReactNode;
 }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [counts, settings, status] = await Promise.all([adminBadges(), getSettings(), quickStatus().catch(() => 'off' as const)]);
-  const [dot, text] = HEALTH[status];
+  const [dot, text] = HEALTH(tx)[status];
   return (
     <DashboardShell
       role="admin"

@@ -82,7 +82,14 @@ export default async function SiteHistory({ searchParams }: { searchParams: Prom
                   </pre>
                 </div>
                 {r.version !== current && (
-                  <AdminForm endpoint="/api/admin/cms/history" fixed={{ key, version: r.version }} fields={[]} openLabel="Put this back" submit={`Put revision ${r.version} back`} tone="line" />
+                  <AdminForm
+                    endpoint="/api/admin/cms/history"
+                    fixed={{ key, version: r.version }}
+                    fields={[]}
+                    openLabel={tx('Put this back')}
+                    submit={tx('Put revision {version} back', { version: r.version })}
+                    tone="line"
+                  />
                 )}
               </li>
             ))}

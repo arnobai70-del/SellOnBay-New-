@@ -10,20 +10,24 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import { tx } from '@/lib/i18n/tx';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Server health'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TONE: Record<Level, 'ok' | 'wait' | 'bad' | 'draft'> = { ok: 'ok', warn: 'wait', bad: 'bad', off: 'draft' };
-const WORD: Record<Level, string> = { ok: 'Normal', warn: 'Warning', bad: 'Critical', off: 'Not measured' };
+const WORD = (tx: Tx): Record<Level, string> => ({ ok: tx('Normal'), warn: tx('Warning'), bad: tx('Critical'), off: tx('Not measured') });
 
-function Rows({ list }: { list: Metric[] }) {
+async function Rows({ list }: { list: Metric[] }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { translate } = await getI18n();
   return (
     <>
       {list.map((m) => (
         <div key={m.key} className="li" style={{ flexWrap: 'wrap' }}>
           <span style={{ flex: 1, minWidth: 160 }}>{m.label}</span>
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{m.value}</span>
-          <StatusPill tone={TONE[m.level]}>{WORD[m.level]}</StatusPill>
+          <StatusPill tone={TONE[m.level]}>{translate(WORD(tx)[m.level])}</StatusPill>
           {m.note && (
             <span className="tag" style={{ flexBasis: '100%' }}>
               {m.note}

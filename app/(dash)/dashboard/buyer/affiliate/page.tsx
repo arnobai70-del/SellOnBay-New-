@@ -34,7 +34,7 @@ export default async function AffiliateDashboard() {
   const now = Date.now();
   const sites = d ? (await publicWebsites()).filter((w) => productEligible(s, w.id)).map((w) => ({ key: w.id, name: w.name, path: websitePath(w.id) })) : [];
   return (
-    <BuyerShell viewer={shellViewer} active="affiliate" file="buyer-websites" title={tx('Affiliate')} subtitle="Share SellOnBay websites and earn on verified sales.">
+    <BuyerShell viewer={shellViewer} active="affiliate" file="buyer-websites" title={tx('Affiliate')} subtitle={tx('Share SellOnBay websites and earn on verified sales.')}>
       {!d ? (
         <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h2>
@@ -67,8 +67,8 @@ export default async function AffiliateDashboard() {
                 termsVersion={s.termsVersion}
                 feeText={
                   joinFeeCents(s) === 0
-                    ? `Free during the promotion (normally ${usd(s.feeCents)}). Nothing is ever charged automatically.`
-                    : `Registration fee ${usd(joinFeeCents(s))}. Nothing is charged automatically.`
+                    ? tx('Free during the promotion (normally {usd}). Nothing is ever charged automatically.', { usd: usd(s.feeCents) })
+                    : tx('Registration fee {usd}. Nothing is charged automatically.', { usd: usd(joinFeeCents(s)) })
                 }
               />
             </>
@@ -130,11 +130,11 @@ export default async function AffiliateDashboard() {
             {[
               ['Clicks', String(d.clicks), 'on your links'],
               ['Leads', String(d.signups), 'accounts made'],
-              ['Verified sales', String(d.verifiedSales), 'paid and past refunds'],
+              [tx('Verified sales'), String(d.verifiedSales), 'paid and past refunds'],
               ['Pending', usd(d.pendingCents), 'waiting for the refund period'],
               ['Available', usd(d.availableCents), d.openWithdrawalCents ? `${usd(d.openWithdrawalCents)} requested` : 'ready to withdraw'],
-              ['Total earned', usd(d.totalEarnedCents), `${usd(d.paidCents)} paid out`],
-              ['This month', d.rank ? `#${d.rank}` : '–', 'leaderboard place'],
+              [tx('Total earned'), usd(d.totalEarnedCents), `${usd(d.paidCents)} paid out`],
+              [tx('This month'), d.rank ? `#${d.rank}` : '–', 'leaderboard place'],
             ].map(([l, v, sub]) => (
               <div key={l} className="glass kpi">
                 <div className="l">{l}</div>

@@ -14,15 +14,16 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Purchase request'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number) => new Date(ms).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
-const why = { name: 'note', label: 'Message (the buyer sees it)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'note', label: tx('Message (the buyer sees it)'), kind: 'textarea' as const, required: true });
 
 /* One request for Support or Catalog: the facts, the full log, the next steps, and the quotation editor. */
 export default async function AdminRequest({ params }: { params: Promise<{ id: string }> }) {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/admin/orders/requests/${id}`, roles: ['admin'], scope: ['support', 'catalog'] });
   const r = /^[0-9a-f-]{36}$/i.test(id) ? await getRequest(id) : null;
@@ -33,8 +34,9 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
   const open = quotes.find((q) => ['draft', 'pending_super', 'issued'].includes(q.status));
   const canQuote = ['under_review', 'requirements_verified'].includes(r.status) && !open && (r.kind === 'product' || !!r.requirementsConfirmedAt);
   const qEvents = new Map(await Promise.all(quotes.map(async (q) => [q.id, await quoteEvents(q.id)] as const)));
-  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
-  const title = requestTitle(r, products);
+  const [english, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+  const word = translate(english);
+  const title = translate(requestTitle(r, products));
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-requests" title={title}>
       <div className="glass card sob-sec" data-admin-request={r.id}>
@@ -64,7 +66,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
             <T s={'Licence asked for'} />
           </dt>
           <dd>
-            {TIER_TEXT[r.licenceTier].label}
+            {translate(TIER_TEXT[r.licenceTier].label)}
             {r.licenceTier === 'exclusive_review' ? tx(' (needs special admin and legal/IP review, F-10)') : ''}
           </dd>
           <dt>
@@ -123,20 +125,22 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
           )}
         </dl>
         <div className="sob-acts" style={{ marginTop: 12 }}>
-          {r.status === 'submitted' && <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'review' }} fields={[]} openLabel="Start review" submit="Start review" tone="blue" />}
+          {r.status === 'submitted' && (
+            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'review' }} fields={[]} openLabel={tx('Start review')} submit={tx('Start review')} tone="blue" />
+          )}
           {['under_review', 'requirements_verified'].includes(r.status) && (
-            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'ask' }} fields={[why]} openLabel="Ask the buyer" submit="Send question" tone="line" />
+            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'ask' }} fields={[why(tx)]} openLabel={tx('Ask the buyer')} submit={tx('Send question')} tone="line" />
           )}
           {['submitted', 'under_review', 'needs_info', 'requirements_verified'].includes(r.status) && (
-            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'decline' }} fields={[why]} openLabel="Decline" submit="Decline the request" tone="line" />
+            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'decline' }} fields={[why(tx)]} openLabel={tx('Decline')} submit={tx('Decline the request')} tone="line" />
           )}
           {['submitted', 'under_review', 'needs_info', 'requirements_verified', 'quoted'].includes(r.status) && (
             <AdminForm
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'set_expiry' }}
               fields={[{ name: 'expiresInDays', label: tx('Expire this request after how many days (0 = never)'), kind: 'text', required: true }]}
-              openLabel="Set expiry"
-              submit="Save"
+              openLabel={tx('Set expiry')}
+              submit={tx('Save')}
               tone="line"
             />
           )}
@@ -145,8 +149,8 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'propose_requirements' }}
               fields={[{ name: 'requirements', label: tx('Written requirement set for the buyer to confirm'), kind: 'textarea', required: true, value: r.verifiedRequirements ?? '', max: 8000 }]}
-              openLabel="Write requirements"
-              submit="Send to the buyer"
+              openLabel={tx('Write requirements')}
+              submit={tx('Send to the buyer')}
               tone="line"
             />
           )}
@@ -162,8 +166,8 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                 endpoint={`/api/admin/requests/${r.id}`}
                 fixed={{ action: 'assign' }}
                 fields={[{ name: 'sellerId', label: tx('Seller account id (leave empty for SellOnBay)'), kind: 'text', value: r.assignedSellerId ?? '', max: 36 }]}
-                openLabel="Assign a developer"
-                submit="Assign"
+                openLabel={tx('Assign a developer')}
+                submit={tx('Assign')}
                 tone="line"
               />
             </>
@@ -213,7 +217,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                   s={'Version {version}: {v1} · {v2} · fee {v3} ({v4})'}
                   v={{
                     version: q.version,
-                    v1: QUOTE_WORDS[q.status],
+                    v1: translate(QUOTE_WORDS[q.status]),
                     v2: usd(q.totalCents),
                     v3: usd(q.feeCents),
                     v4: q.ownerType === 'platform' ? 'platform-owned' : `${(q.commissionBps ?? 0) / 100}%`,
@@ -233,7 +237,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                     endpoint={`/api/admin/quotations/${q.id}`}
                     fixed={{ action: 'issue' }}
                     fields={[]}
-                    openLabel="Issue"
+                    openLabel={tx('Issue')}
                     submit={q.priceOverride ? tx('Send to Super Admin') : tx('Send to the buyer')}
                     tone="blue"
                   />
@@ -243,8 +247,8 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                     endpoint={`/api/admin/quotations/${q.id}`}
                     fixed={{ action: 'withdraw' }}
                     fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
-                    openLabel="Withdraw"
-                    submit="Withdraw"
+                    openLabel={tx('Withdraw')}
+                    submit={tx('Withdraw')}
                     tone="line"
                   />
                 )}
@@ -259,7 +263,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      <ConversationPanel type="request" id={r.id} me="admin" heading="Messages" />
+      <ConversationPanel type="request" id={r.id} me="admin" heading={tx('Messages')} />
 
       <div className="glass card sob-sec">
         <div className="row sob-hd">

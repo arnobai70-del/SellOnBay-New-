@@ -25,12 +25,12 @@ export function ProfileForm({ name }: { name: string }) {
         try {
           const r = await fetch('/api/account/profile', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: clean }) });
           const j = (await r.json().catch(() => ({}))) as { error?: string; name?: string };
-          if (!r.ok) return setErr(j.error ?? 'Could not save your name. Try again.');
+          if (!r.ok) return setErr(j.error ?? tx('Could not save your name. Try again.'));
           setText(j.name ?? clean);
           setSaved(true);
           router.refresh(); // the menu and the greeting show the new name
         } catch {
-          setErr('Could not reach SellOnBay. Check your connection and try again.');
+          setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
         } finally {
           setBusy(false);
         }

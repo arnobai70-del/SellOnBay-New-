@@ -12,18 +12,20 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Security and logs'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['events', 'Events'],
-  ['sessions', 'Sessions'],
-  ['protection', 'Protection'],
-  ['log', 'Activity log'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['events', tx('Events')],
+    ['sessions', tx('Sessions')],
+    ['protection', tx('Protection')],
+    ['log', tx('Activity log')],
+  ] as const;
 const when = (t: number) => new Date(t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
 const REASON: Record<string, string> = { email: 'email address', phone: 'phone number', contact_channel: 'other contact channel', link: 'link', outside_payment: 'outside payment' };
-const reasonField = [{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true }];
+const reasonField = (tx: Tx) => [{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true }];
 
 /*
  * design-reference/admin-security.html (Super Admin). Addresses are never stored: only a keyed hash, shortened here (lib/guard.ts). Events are
@@ -34,7 +36,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/security', roles: ['admin'], scope: 'super' });
   const { tab: raw } = await searchParams;
-  const tab = TABS.find(([k]) => k === raw)?.[0] ?? 'events';
+  const tab = TABS(tx).find(([k]) => k === raw)?.[0] ?? 'events';
   const now = Date.now();
   const [hits, groups, blocks, log, blocked] = await Promise.all([recentLimitHits(), clusters(), activeBlocks(), auditList(200), blockedList(30)]);
   const names = await profileNames(log.map((a) => a.adminId));
@@ -52,7 +54,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
           </div>
         </div>
         <div className="seg" role="tablist" aria-label={tx('Security section')}>
-          {TABS.map(([k, l]) => (
+          {TABS(tx).map(([k, l]) => (
             <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={k === 'events' ? '/admin/security' : `/admin/security?tab=${k}`} prefetch={false}>
               {l}
             </Link>
@@ -157,7 +159,9 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                         <span className={`status ${h.blocked ? 'st-bad' : 'st-wait'}`}>{h.blocked ? tx('Blocked') : tx('Open')}</span>
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        {!h.blocked && <AdminForm endpoint="/api/admin/security/block" fixed={{ kind: 'ip', key: h.ipHash }} fields={reasonField} submit="Block it" openLabel="Block" tone="line" />}
+                        {!h.blocked && (
+                          <AdminForm endpoint="/api/admin/security/block" fixed={{ kind: 'ip', key: h.ipHash }} fields={reasonField(tx)} submit={tx('Block it')} openLabel={tx('Block')} tone="line" />
+                        )}
                       </td>
                     </tr>
                   ))
@@ -216,7 +220,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                   <span style={{ flex: 1, minWidth: 0 }}>
                     {b.key.slice(0, 12)}… · {b.reason} <span className="muted">· {when(b.createdAt)}</span>
                   </span>
-                  <AdminForm endpoint={`/api/admin/security/blocks/${b.id}/lift`} fields={reasonField} submit="Lift it" openLabel="Lift" tone="line" />
+                  <AdminForm endpoint={`/api/admin/security/blocks/${b.id}/lift`} fields={reasonField(tx)} submit={tx('Lift it')} openLabel={tx('Lift')} tone="line" />
                 </div>
               ))
             ) : (
@@ -244,9 +248,9 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                     <AdminForm
                       endpoint="/api/admin/security/block"
                       fixed={{ kind: g.kind, key: g.key }}
-                      fields={reasonField}
-                      submit="Block it"
-                      openLabel={g.kind === 'ip' ? 'Block connection' : 'Block device'}
+                      fields={reasonField(tx)}
+                      submit={tx('Block it')}
+                      openLabel={g.kind === 'ip' ? tx('Block connection') : tx('Block device')}
                       tone="line"
                     />
                   )}
@@ -275,7 +279,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <b style={{ fontWeight: 500 }}>
-                      {m.sender_name || 'User ' + String(m.sender_id).slice(0, 8)} · {REASON[m.reason] ?? m.reason}
+                      {m.sender_name || tx('User {id}', { id: String(m.sender_id).slice(0, 8) })} · {REASON[m.reason] ?? m.reason}
                     </b>
                     <span className="tag" style={{ display: 'block' }}>
                       {m.context === 'presale' ? tx('Pre-sale question') : m.context === 'presale_reply' ? tx('Seller reply') : tx('Order chat')}

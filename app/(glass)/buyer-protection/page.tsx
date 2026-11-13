@@ -7,15 +7,17 @@ import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/buyer-protection', { alternates: { canonical: '/buyer-protection' } });
 
-const STEPS = [
-  ['Try the live demo', 'Click through every page before you buy.'],
-  ['Pay into escrow', 'SellOnBay holds the money, not the seller. In the beta nothing is charged.'],
-  ['Get files + domain', 'Download code, database and setup guide. Domain in your name.'],
-  [`Review for ${REVIEW_HOURS} hours`, 'Report a problem and the seller gets a deadline to fix it.'],
-  ['Approve', 'The seller is paid and the website is yours.'],
+const STEPS = (tx: Tx) => [
+  [tx('Try the live demo'), tx('Click through every page before you buy.')],
+  [tx('Pay into escrow'), 'SellOnBay holds the money, not the seller. In the beta nothing is charged.'],
+  [tx('Get files + domain'), tx('Download code, database and setup guide. Domain in your name.')],
+  [tx('Review for {REVIEW_HOURS} hours', { REVIEW_HOURS }), tx('Report a problem and the seller gets a deadline to fix it.')],
+  ['Approve', tx('The seller is paid and the website is yours.')],
 ];
 
 /*
@@ -23,6 +25,7 @@ const STEPS = [
  * numbers (review hours, bug-fix days, payout day) from lib/config.ts.
  */
 export default async function BuyerProtection() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [words, copy] = await Promise.all([pageWords('/buyer-protection'), pageCopy('buyer-protection')]);
   const heading = copy.t('head', 'heading', words.heading);
   const intro = copy.t('head', 'intro', words.intro ?? '');
@@ -57,7 +60,7 @@ export default async function BuyerProtection() {
           <T s={'How buying works'} />
         </h2>
         <div className="tl">
-          {STEPS.map(([t, d], i) => (
+          {STEPS(tx).map(([t, d], i) => (
             <div key={t} className="glass st">
               <span className="n">{i + 1}</span>
               <div style={{ fontWeight: 500, marginTop: 14 }}>{t}</div>
@@ -74,10 +77,10 @@ export default async function BuyerProtection() {
             <T s={"What's covered"} />
           </h2>
           {[
-            "The website doesn't match its live demo",
-            'Files, database or setup guide are missing',
-            "It doesn't run after following the setup guide",
-            "The seller doesn't reply to a reported problem",
+            tx("The website doesn't match its live demo"),
+            tx('Files, database or setup guide are missing'),
+            tx("It doesn't run after following the setup guide"),
+            tx("The seller doesn't reply to a reported problem"),
             `A dispute for a serious problem for ${BUGFIX_DAYS} days after you accept, and a ${BUGFIX_DAYS}-day bug-fix guarantee`,
           ].map((t) => (
             <div key={t} className="yes">
@@ -96,10 +99,10 @@ export default async function BuyerProtection() {
             <T s={"What's not covered"} />
           </h2>
           {[
-            'Changing your mind after you approve',
-            'Problems caused by your own code changes',
-            'Your hosting bills or third-party services',
-            'New features the demo never had (ask for a customization instead)',
+            tx('Changing your mind after you approve'),
+            tx('Problems caused by your own code changes'),
+            tx('Your hosting bills or third-party services'),
+            tx('New features the demo never had (ask for a customization instead)'),
           ].map((t) => (
             <div key={t} className="no">
               <i aria-hidden="true">–</i> {t}
@@ -132,10 +135,10 @@ export default async function BuyerProtection() {
           <T s={'Questions'} />
         </h2>
         {[
-          ['When exactly is the seller paid?', `After you approve, or ${REVIEW_HOURS} hours after delivery if no problem was reported. ${PAYOUT_TEXT}.`],
-          ['Do I pay extra for escrow?', 'No. It is included in every website order.'],
-          ['How do I pay by bank or wallet?', 'Enter the reference at checkout when live payments open. We check it against the statement, then the order starts.'],
-          ['Who owns the domain?', "You do. It is registered in your name, never the seller's."],
+          [tx('When exactly is the seller paid?'), tx('After you approve, or {REVIEW_HOURS} hours after delivery if no problem was reported. {PAYOUT_TEXT}.', { REVIEW_HOURS, PAYOUT_TEXT })],
+          [tx('Do I pay extra for escrow?'), tx('No. It is included in every website order.')],
+          [tx('How do I pay by bank or wallet?'), tx('Enter the reference at checkout when live payments open. We check it against the statement, then the order starts.')],
+          [tx('Who owns the domain?'), tx("You do. It is registered in your name, never the seller's.")],
         ].map(([q, a], i) => (
           <details key={q} className="glass" open={i === 0}>
             <summary>{q}</summary>

@@ -44,7 +44,7 @@ export function MaintenanceForm({
     e.preventDefault();
     // A second question before a change that closes a lot at once, or the admin dashboard itself.
     if (on && !enabled) {
-      if (module === 'admin' && !confirm('Close the admin dashboard? Only this Maintenance Manager and the audit log stay open.')) return;
+      if (module === 'admin' && !confirm(tx('Close the admin dashboard? Only this Maintenance Manager and the audit log stay open.'))) return;
       if (othersClosed >= 4 && !confirm(`${othersClosed} other parts are already in maintenance. Close ${label} as well?`)) return;
     }
     setBusy(true);
@@ -56,8 +56,8 @@ export function MaintenanceForm({
     });
     const j = (await res.json().catch(() => ({}))) as { error?: string };
     setBusy(false);
-    if (!res.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: on ? 'Saved. This part is now in maintenance (or will be at the start time).' : 'Saved. This part is open again.' });
+    if (!res.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: on ? tx('Saved. This part is now in maintenance (or will be at the start time).') : tx('Saved. This part is open again.') });
     router.refresh();
   }
 

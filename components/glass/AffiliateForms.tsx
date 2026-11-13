@@ -5,11 +5,12 @@ import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 /* The affiliate dashboard's actions (owner, 2026-11-12), all through POST /api/affiliates (lib/affiliates). */
-async function post(body: Record<string, unknown>) {
+async function post(body: Record<string, unknown>, tx: Tx) {
   const r = await fetch('/api/affiliates', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const j = (await r?.json().catch(() => ({}))) as { error?: string } | undefined;
-  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : 'No connection. Please try again.') };
+  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : tx('No connection. Please try again.')) };
 }
 const Msg = ({ text, bad }: { text: string; bad?: boolean }) =>
   text ? (
@@ -31,9 +32,9 @@ export function AffJoinForm({ termsVersion, feeText }: { termsVersion: string; f
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
-        const r = await post({ action: 'join', displayName: name, acceptTerms: accept });
+        const r = await post({ action: 'join', displayName: name, acceptTerms: accept }, tx);
         setBusy(false);
-        if (!r.ok) return setMsg(r.error || 'Could not join.');
+        if (!r.ok) return setMsg(r.error || tx('Could not join.'));
         router.refresh();
       }}
     >
@@ -97,7 +98,7 @@ export function AffLinkGenerator({ code, base, sites }: { code: string; base: st
               await navigator.clipboard.writeText(link);
               setCopied('Copied.');
             } catch {
-              setCopied('Select the link and copy it.');
+              setCopied(tx('Select the link and copy it.'));
             }
           }}
         >
@@ -127,14 +128,17 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
       style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       onSubmit={async (e) => {
         e.preventDefault();
-        const r = await post({
-          action: 'profile',
-          displayName: f.displayName,
-          publicLeaderboard: f.publicLeaderboard,
-          payoutMethod: f.payoutMethod,
-          ...(f.payoutDetails ? { payoutDetails: f.payoutDetails } : {}),
-        });
-        setMsg(r.ok ? 'Saved.' : r.error || 'Could not save.');
+        const r = await post(
+          {
+            action: 'profile',
+            displayName: f.displayName,
+            publicLeaderboard: f.publicLeaderboard,
+            payoutMethod: f.payoutMethod,
+            ...(f.payoutDetails ? { payoutDetails: f.payoutDetails } : {}),
+          },
+          tx,
+        );
+        setMsg(r.ok ? 'Saved.' : r.error || tx('Could not save.'));
         if (r.ok) router.refresh();
       }}
     >
@@ -155,7 +159,7 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
           <option value="">
             <T s={'Choose…'} />
           </option>
-          {['PayPal', 'Payoneer', 'Wise', 'Bank transfer'].map((m) => (
+          {['PayPal', 'Payoneer', 'Wise', tx('Bank transfer')].map((m) => (
             <option key={m} value={m}>
               {m}
             </option>
@@ -185,6 +189,7 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
 }
 
 export function AffWithdrawForm({ availableCents, minCents }: { availableCents: number; minCents: number }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [amount, setAmount] = useState(availableCents >= minCents ? String(availableCents / 100) : '');
   const [msg, setMsg] = useState('');
@@ -194,10 +199,10 @@ export function AffWithdrawForm({ availableCents, minCents }: { availableCents: 
       style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!window.confirm(`Ask for a withdrawal of $${Number(amount).toFixed(2)}? An admin checks it and pays it by hand.`)) return;
-        const r = await post({ action: 'withdraw', amountCents: Math.round(Number(amount) * 100) });
+        if (!window.confirm(tx('Ask for a withdrawal of ${v0}? An admin checks it and pays it by hand.', { v0: Number(amount).toFixed(2) }))) return;
+        const r = await post({ action: 'withdraw', amountCents: Math.round(Number(amount) * 100) }, tx);
         setBad(!r.ok);
-        setMsg(r.ok ? 'Requested. We will email you when it is decided.' : r.error || 'Could not request.');
+        setMsg(r.ok ? tx('Requested. We will email you when it is decided.') : r.error || tx('Could not request.'));
         if (r.ok) router.refresh();
       }}
     >

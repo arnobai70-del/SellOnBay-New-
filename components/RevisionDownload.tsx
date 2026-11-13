@@ -13,7 +13,7 @@ export function RevisionDownload({ orderId, revisionId }: { orderId: string; rev
     try {
       const res = await fetch(`/api/orders/${orderId}/revisions/${revisionId}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'link' }) });
       const j = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
-      if (!res.ok || !j.url) setErr(j.error ?? 'Could not get the link. Try again.');
+      if (!res.ok || !j.url) setErr(j.error ?? tx('Could not get the link. Try again.'));
       else window.location.assign(j.url);
     } finally {
       setBusy(false);

@@ -137,8 +137,8 @@ export default async function SellerRevisions() {
                 <AdminForm
                   endpoint="/api/seller/revision-policy"
                   fixed={{ product: l.slug }}
-                  openLabel={proposed ? 'Change the proposal' : 'Propose terms'}
-                  submit="Send for approval"
+                  openLabel={proposed ? tx('Change the proposal') : tx('Propose terms')}
+                  submit={tx('Send for approval')}
                   tone="line"
                   fields={[
                     { name: 'included', label: tx('Included revisions (0 to 50)'), kind: 'text', required: true, value: String(proposed?.included ?? approved?.included ?? 1), max: 2 },

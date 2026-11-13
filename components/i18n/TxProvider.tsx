@@ -18,3 +18,11 @@ export function useTx() {
   const dict = useContext(Ctx);
   return useCallback((english: string, vars?: Record<string, string | number>) => txLookup(dict, english, vars), [dict]);
 }
+/*
+ * A word known only at run time, such as a label from a shared list (lib/glass/orderStatus.ts, lib/licences.ts): its translation when this
+ * page's dictionary has it, else the word as it is. Words written in the code itself use useTx() with the text in the call.
+ */
+export function useWord() {
+  const dict = useContext(Ctx);
+  return useCallback((english: string) => txLookup(dict, english), [dict]);
+}

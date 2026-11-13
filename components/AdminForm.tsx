@@ -65,8 +65,8 @@ export function AdminForm({
     const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Done.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Done.') });
     router.refresh();
   }
 

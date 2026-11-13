@@ -1,3 +1,4 @@
+import { tx } from './i18n/tx'; // marks English words; the screen translates them
 /*
  * Licence types a seller picks for each product, in plain words. [LAWYER REVIEW] These texts are shown to buyers and printed on the handover
  * certificate. The certificate is a record of what was delivered; the seller agreement decides which rights actually pass to the buyer.
@@ -6,9 +7,9 @@ export const LICENCE_TYPES = ['single_project', 'multi_project', 'full_transfer'
 export type LicenceType = (typeof LICENCE_TYPES)[number];
 
 export const LICENCES: Record<LicenceType, { label: string; terms: string }> = {
-  single_project: { label: 'Single project', terms: 'Use it for one end website, for yourself or for one client. You may not resell it or give it away.' },
-  multi_project: { label: 'Multi project', terms: 'Use it for as many projects of your own or your clients as you like. You may not resell or give away the product itself.' },
-  full_transfer: { label: 'Full transfer', terms: 'Ownership of the product passes to you and the seller stops selling it.' },
+  single_project: { label: tx('Single project'), terms: tx('Use it for one end website, for yourself or for one client. You may not resell it or give it away.') },
+  multi_project: { label: tx('Multi project'), terms: tx('Use it for as many projects of your own or your clients as you like. You may not resell or give away the product itself.') },
+  full_transfer: { label: tx('Full transfer'), terms: tx('Ownership of the product passes to you and the seller stops selling it.') },
 };
 export const DEFAULT_LICENCE: LicenceType = 'single_project';
 export const isLicenceType = (v: unknown): v is LicenceType => typeof v === 'string' && (LICENCE_TYPES as readonly string[]).includes(v);

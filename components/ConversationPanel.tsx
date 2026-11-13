@@ -3,10 +3,11 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 type Channel = 'buyer_admin' | 'admin_seller' | 'internal';
 type Msg = { id: string; channel: Channel; senderRole: 'buyer' | 'seller' | 'admin'; body: string; at: number };
 
-const TAB: Record<Channel, string> = { buyer_admin: 'Buyer and SellOnBay', admin_seller: 'SellOnBay and seller', internal: 'Internal notes' };
+const TAB = (tx: Tx): Record<Channel, string> => ({ buyer_admin: tx('Buyer and SellOnBay'), admin_seller: 'SellOnBay and seller', internal: tx('Internal notes') });
 const MINE: Record<'buyer' | 'seller' | 'admin', string> = { buyer: 'You', seller: 'You', admin: 'SellOnBay' };
 
 /*
@@ -17,7 +18,7 @@ export function ConversationPanel({
   type,
   id,
   me,
-  heading = 'Messages with SellOnBay',
+  heading: headingGiven,
   bare = false,
   actions,
 }: {
@@ -30,6 +31,7 @@ export function ConversationPanel({
   actions?: React.ReactNode;
 }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const heading = headingGiven ?? tx('Messages with SellOnBay');
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [tab, setTab] = useState<Channel | null>(null);
@@ -69,7 +71,7 @@ export function ConversationPanel({
     try {
       const r = await fetch(`/api/conversations/${type}/${id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ channel: tab, body: text }) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) return setError(j.error ?? 'Could not send the message. Try again.');
+      if (!r.ok) return setError(j.error ?? tx('Could not send the message. Try again.'));
       setText('');
       void load();
     } catch {
@@ -121,7 +123,7 @@ export function ConversationPanel({
         <div className="seg" role="tablist" aria-label={tx('Reply type')} style={{ alignSelf: 'flex-start' }}>
           {channels.map((c) => (
             <button key={c} type="button" role="tab" aria-selected={tab === c} className={tab === c ? 'on' : ''} onClick={() => setTab(c)}>
-              {TAB[c]}
+              {TAB(tx)[c]}
             </button>
           ))}
         </div>

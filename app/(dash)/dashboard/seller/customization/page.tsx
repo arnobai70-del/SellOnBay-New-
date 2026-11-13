@@ -10,15 +10,16 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Customization'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const STATE: Record<string, [string, string]> = {
-  pending: ['Waiting for buyer', 'st-wait'],
-  funded: ['Funded, start work', 'st-ok'],
+const STATE = (tx: Tx): Record<string, [string, string]> => ({
+  pending: [tx('Waiting for buyer'), 'st-wait'],
+  funded: [tx('Funded, start work'), 'st-ok'],
   declined: ['Declined', 'st-bad'],
-  cancelled: ['Taken back', 'st-draft'],
-};
+  cancelled: [tx('Taken back'), 'st-draft'],
+});
 
 /*
  * design-reference/seller-customization.html. Custom work here is extra work on an order: the seller sends it from the order page (title, price,
@@ -55,7 +56,7 @@ export default async function SellerCustomization() {
               className={store.customAvailable ? 'sw on' : 'sw'}
               href="/dashboard/seller/store#profile"
               prefetch={false}
-              aria-label={`Accepting customization requests: ${store.customAvailable ? 'on' : 'off'}. Change it in your store profile`}
+              aria-label={tx('Accepting customization requests: {v0}. Change it in your store profile', { v0: store.customAvailable ? 'on' : 'off' })}
             />
           </div>
         )}
@@ -234,7 +235,7 @@ export default async function SellerCustomization() {
                 <tbody>
                   {extras.length ? (
                     extras.map(({ order, request }) => {
-                      const [label, tone] = STATE[request.state] ?? [request.state, 'st-draft'];
+                      const [label, tone] = STATE(tx)[request.state] ?? [request.state, 'st-draft'];
                       return (
                         <tr key={request.id}>
                           <td style={{ fontWeight: 500 }}>{request.title}</td>

@@ -28,10 +28,10 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
   const o = id ? await getOrder(id).catch(() => null) : null;
   const mine = o && (!o.buyerId || o.buyerId === viewer?.id) ? o : null;
   const steps = [
-    ['Request received', 'No payment was taken.', 'Done', 'st-ok', 'done'],
-    ['We review it', 'We email you with our answer.', 'Waiting', 'st-wait', 'wait'],
-    ['Files and domain steps', 'They unlock once it is approved. A domain is registered by hand, in your name.', 'Next', 'st-draft', 'next'],
-    [`${REVIEW_HOURS}-hour review`, 'Approve, or report a problem before the time ends.', 'Next', 'st-info', 'next'],
+    [tx('Request received'), tx('No payment was taken.'), 'Done', 'st-ok', 'done'],
+    [tx('We review it'), tx('We email you with our answer.'), 'Waiting', 'st-wait', 'wait'],
+    [tx('Files and domain steps'), tx('They unlock once it is approved. A domain is registered by hand, in your name.'), 'Next', 'st-draft', 'next'],
+    [`${REVIEW_HOURS}-hour review`, tx('Approve, or report a problem before the time ends.'), 'Next', 'st-info', 'next'],
   ] as const;
   return (
     <PublicFrame file="order-success">
@@ -45,7 +45,7 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
           <T s={'Thank you, your request is in.'} />
         </h1>
         <p className="muted" style={{ margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
-          <T s={'{v0} with our team. Websites are free for early users during the beta, and nothing was charged.'} v={{ v0: count > 1 ? `${count} requests are` : 'Your request is' }} />
+          <T s={'{v0} with our team. Websites are free for early users during the beta, and nothing was charged.'} v={{ v0: count > 1 ? `${count} requests are` : tx('Your request is') }} />
         </p>
         {id && (
           <div className="tag">

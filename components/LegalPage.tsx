@@ -44,7 +44,11 @@ export async function LegalPage({
   const key = docForPath(path);
   const doc = key ? await publishedLegal(key) : null;
   const shown = doc
-    ? `Version ${doc.version}, published ${new Date(doc.publishedAt ?? doc.updatedAt).toISOString().slice(0, 10)}.${doc.lawyerReviewed ? '' : ' Not yet reviewed by a lawyer.'}`
+    ? tx('Version {version}, published {v1}.{v2}', {
+        version: doc.version,
+        v1: new Date(doc.publishedAt ?? doc.updatedAt).toISOString().slice(0, 10),
+        v2: doc.lawyerReviewed ? '' : ` ${tx('Not yet reviewed by a lawyer.')}`,
+      })
     : stamp;
   return (
     <PublicFrame file="legal">

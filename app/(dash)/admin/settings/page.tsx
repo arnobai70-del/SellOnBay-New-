@@ -15,10 +15,11 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Settings'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? 'G-FEK9C0CM04';
 const DOT = { ok: '#3F8F77', warn: '#C9962E', bad: '#C2553F', off: '#A9B8C0' } as const;
 const RO: React.CSSProperties = { background: 'rgba(255,255,255,.6)' };
@@ -81,8 +82,8 @@ export default async function AdminSettings() {
           </div>
           <AdminForm
             endpoint="/api/admin/settings"
-            openLabel="Change"
-            submit="Save payments mode"
+            openLabel={tx('Change')}
+            submit={tx('Save payments mode')}
             tone="line"
             fields={[
               {
@@ -90,11 +91,11 @@ export default async function AdminSettings() {
                 label: tx('Payments mode'),
                 kind: 'select',
                 options: [
-                  [s.paymentsMode, s.paymentsMode === 'beta_free' ? 'Free beta' : 'Live'],
-                  [s.paymentsMode === 'beta_free' ? 'live' : 'beta_free', s.paymentsMode === 'beta_free' ? 'Live' : 'Free beta'],
+                  [s.paymentsMode, s.paymentsMode === 'beta_free' ? tx('Free beta') : 'Live'],
+                  [s.paymentsMode === 'beta_free' ? 'live' : 'beta_free', s.paymentsMode === 'beta_free' ? 'Live' : tx('Free beta')],
                 ],
               },
-              why,
+              why(tx),
             ]}
           />
         </div>
@@ -130,8 +131,8 @@ export default async function AdminSettings() {
             <AdminForm
               endpoint="/api/admin/payments/methods"
               fixed={{ id: m.id, kind: m.kind }}
-              openLabel="Keys & account"
-              submit="Save"
+              openLabel={tx('Keys & account')}
+              submit={tx('Save')}
               tone="line"
               fields={[
                 { name: 'label', label: tx('Name'), kind: 'text', value: m.label, required: true },
@@ -146,7 +147,7 @@ export default async function AdminSettings() {
                     [m.active ? 'off' : 'on', m.active ? 'Hidden' : 'Shown'],
                   ],
                 },
-                why,
+                why(tx),
               ]}
             />
             <button type="button" className={m.active ? 'sw on' : 'sw'} role="switch" aria-checked={m.active} aria-label={`${m.label} enabled`} disabled />
@@ -172,8 +173,8 @@ export default async function AdminSettings() {
         <div style={{ marginTop: 12 }}>
           <AdminForm
             endpoint="/api/admin/payments/methods"
-            openLabel="Add a bank or wallet"
-            submit="Add"
+            openLabel={tx('Add a bank or wallet')}
+            submit={tx('Add')}
             tone="line"
             fields={[
               {
@@ -181,8 +182,8 @@ export default async function AdminSettings() {
                 label: tx('Kind'),
                 kind: 'select',
                 options: [
-                  ['bank_transfer', 'Business bank transfer'],
-                  ['local_wallet', 'Local wallet'],
+                  ['bank_transfer', tx('Business bank transfer')],
+                  ['local_wallet', tx('Local wallet')],
                 ],
               },
               { name: 'label', label: tx('Name'), kind: 'text', required: true },
@@ -193,11 +194,11 @@ export default async function AdminSettings() {
                 label: tx('Shown to buyers'),
                 kind: 'select',
                 options: [
-                  ['off', 'Hidden for now'],
+                  ['off', tx('Hidden for now')],
                   ['on', 'Shown'],
                 ],
               },
-              why,
+              why(tx),
             ]}
           />
         </div>
@@ -215,12 +216,12 @@ export default async function AdminSettings() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px, 100%),1fr))', gap: 14 }}>
           {(
             [
-              ['cm', 'Seller share', PLAN_KEEP_TEXT],
-              ['mp', 'Minimum website price', `$${CONFIG.sale.priceMinCents / 100}`],
-              ['rw', 'Buyer review window', `${REVIEW_HOURS} hours`],
-              ['pd', 'Payout day', PAYOUT_TEXT],
-              ['cp', 'Coupon discount paid by', 'Platform'],
-              ['mt', 'Monthly sales target', 'Not set'],
+              ['cm', tx('Seller share'), PLAN_KEEP_TEXT],
+              ['mp', tx('Minimum website price'), `$${CONFIG.sale.priceMinCents / 100}`],
+              ['rw', tx('Buyer review window'), `${REVIEW_HOURS} hours`],
+              ['pd', tx('Payout day'), PAYOUT_TEXT],
+              ['cp', tx('Coupon discount paid by'), 'Platform'],
+              ['mt', tx('Monthly sales target'), tx('Not set')],
             ] as const
           ).map(([id, l, v]) => (
             <div key={id} className="field">
@@ -235,10 +236,10 @@ export default async function AdminSettings() {
           </span>
           <AdminForm
             endpoint="/api/admin/settings"
-            openLabel="Change"
-            submit="Save countries"
+            openLabel={tx('Change')}
+            submit={tx('Save countries')}
             tone="line"
-            fields={[{ name: 'allowedCountries', label: tx('Two-letter codes, like US, GB, DE (empty = everywhere)'), kind: 'text', value: s.allowedCountries, max: 800 }, why]}
+            fields={[{ name: 'allowedCountries', label: tx('Two-letter codes, like US, GB, DE (empty = everywhere)'), kind: 'text', value: s.allowedCountries, max: 800 }, why(tx)]}
           />
         </div>
       </section>
@@ -289,8 +290,8 @@ export default async function AdminSettings() {
               ['/admin/seo', 'SEO hub'],
               ['/admin/seo/redirects', 'Redirects'],
               ['/admin/seo/robots', 'robots.txt'],
-              ['/admin/seo/navigation', 'Top bar'],
-              ['/admin/seo/links', 'Link check'],
+              ['/admin/seo/navigation', tx('Top bar')],
+              ['/admin/seo/links', tx('Link check')],
               ['/admin/seo/check', 'SEO check'],
             ] as const
           ).map(([h, l]) => (
@@ -341,13 +342,13 @@ export default async function AdminSettings() {
             <tbody>
               {(
                 [
-                  ['Terms, privacy, refunds, licenses, seller agreement', 'Legal', 'Draft', ['st-wait', 'Needs lawyer review'], '/admin/settings/legal', 'Edit'],
-                  ['Home, Sell, Help, website pages, top bar, footer', 'Pages', '—', ['st-ok', 'Published'], '/admin/content/pages', 'Edit'],
-                  ['Help center questions and emails', 'Help', '—', ['st-ok', 'Published'], '/admin/content/cms', 'Manage'],
-                  [`Guides · ${posts.length} posts`, 'Blog', '—', [drafts ? 'st-info' : 'st-ok', drafts ? `${drafts} drafts` : 'Published'], '/admin/content/guides', 'Manage'],
-                  ['Menu, footer and page blocks', 'Site builder', '—', ['st-ok', 'Published'], '/admin/content/site', 'Edit'],
-                  ['Contact addresses and social links', 'Contact & social', '—', ['st-ok', 'Published'], '/admin/settings/contact', 'Edit'],
-                  ['Maintenance mode', 'System', '—', [closed ? 'st-wait' : 'st-draft', closed ? `${closed} closed now` : 'Off'], '/admin/settings/maintenance', 'Open'],
+                  [tx('Terms, privacy, refunds, licenses, seller agreement'), 'Legal', 'Draft', ['st-wait', tx('Needs lawyer review')], '/admin/settings/legal', 'Edit'],
+                  [tx('Home, Sell, Help, website pages, top bar, footer'), 'Pages', '—', ['st-ok', 'Published'], '/admin/content/pages', 'Edit'],
+                  [tx('Help center questions and emails'), 'Help', '—', ['st-ok', 'Published'], '/admin/content/cms', 'Manage'],
+                  [tx('Guides · {length} posts', { length: posts.length }), 'Blog', '—', [drafts ? 'st-info' : 'st-ok', drafts ? `${drafts} drafts` : 'Published'], '/admin/content/guides', 'Manage'],
+                  [tx('Menu, footer and page blocks'), tx('Site builder'), '—', ['st-ok', 'Published'], '/admin/content/site', 'Edit'],
+                  [tx('Contact addresses and social links'), tx('Contact & social'), '—', ['st-ok', 'Published'], '/admin/settings/contact', 'Edit'],
+                  [tx('Maintenance mode'), 'System', '—', [closed ? 'st-wait' : 'st-draft', closed ? `${closed} closed now` : 'Off'], '/admin/settings/maintenance', 'Open'],
                 ] as const
               ).map(([page, type, edited, [tone, status], href, act]) => (
                 <tr key={page}>
@@ -387,10 +388,10 @@ export default async function AdminSettings() {
           <div style={{ fontSize: 13, fontWeight: 500, marginTop: 6 }}>
             <T s={'Overview widgets'} />
           </div>
-          {['KPI cards', 'Quick access', 'Sales trend', 'Monthly target', 'Needs your attention', 'Escrow timers', 'Seller bulletin'].map((w) => (
+          {['KPI cards', tx('Quick access'), tx('Sales trend'), tx('Monthly target'), tx('Needs your attention'), tx('Escrow timers'), tx('Seller bulletin')].map((w) => (
             <div key={w} className="row" style={{ fontSize: 14, minHeight: 36 }}>
               <span>{w}</span>
-              <button type="button" className="sw on" role="switch" aria-checked="true" aria-label={`Show ${w}`} disabled />
+              <button type="button" className="sw on" role="switch" aria-checked="true" aria-label={tx('Show {w}', { w })} disabled />
             </div>
           ))}
           <div className="tag" style={{ margin: 0 }}>
@@ -434,7 +435,7 @@ export default async function AdminSettings() {
           </div>
           {dev && (
             <div style={{ marginTop: 8 }}>
-              <ActionButton endpoint="/api/admin/test-email" label="Send a test email to dev@" tone="line" body={{}} />
+              <ActionButton endpoint="/api/admin/test-email" label={tx('Send a test email to dev@')} tone="line" body={{}} />
               <div className="tag">
                 <T s={'Development only: the email is written to the terminal.'} />
               </div>
@@ -463,11 +464,11 @@ export default async function AdminSettings() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
           {(
             [
-              ['/admin/settings/platform', 'Prices, delivery hours, safety check'],
-              ['/admin/settings/flags', 'Feature flags'],
-              ['/admin/settings/launch', 'Launch check'],
+              ['/admin/settings/platform', tx('Prices, delivery hours, safety check')],
+              ['/admin/settings/flags', tx('Feature flags')],
+              ['/admin/settings/launch', tx('Launch check')],
               ['/admin/settings/maintenance', 'Maintenance'],
-              ['/admin/settings/contact', 'Contact & social'],
+              ['/admin/settings/contact', tx('Contact & social')],
             ] as const
           ).map(([h, l]) => (
             <Link key={h} className="btn sm ghost" href={h} prefetch={false}>

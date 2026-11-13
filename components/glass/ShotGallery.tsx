@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const BOX: React.CSSProperties = { height: 420, borderRadius: 16, background: '#F7FAFB', border: '1px solid #E1EBF0', overflow: 'hidden' };
 
 /*
@@ -8,6 +9,7 @@ const BOX: React.CSSProperties = { height: 420, borderRadius: 16, background: '#
  * the large frame; without them the design's drawn page is shown. The full live demo opens from the buy box.
  */
 export function ShotGallery({ shots, name, tint }: { shots: string[]; name: string; tint: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [at, setAt] = useState(0);
   if (!shots.length)
     return (
@@ -45,7 +47,7 @@ export function ShotGallery({ shots, name, tint }: { shots: string[]; name: stri
       {shots.length > 1 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12 }}>
           {shots.slice(0, 8).map((s, i) => (
-            <button key={s} className={i === at ? 'shot on' : 'shot'} type="button" aria-label={`Screenshot ${i + 1}`} aria-pressed={i === at} onClick={() => setAt(i)}>
+            <button key={s} className={i === at ? 'shot on' : 'shot'} type="button" aria-label={tx('Screenshot {v0}', { v0: i + 1 })} aria-pressed={i === at} onClick={() => setAt(i)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={s} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
             </button>

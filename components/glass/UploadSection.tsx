@@ -19,12 +19,12 @@ export async function UploadSection({ viewer, editing = false }: { viewer: { id:
   const lim = await getSettings();
   const plan = viewer?.role === 'seller' ? (await sellerPlan(viewer.id)).plan : null;
   const checks = [
-    'Live demo works',
-    'Frontend + backend files',
-    'Database schema included',
-    'Setup guide included',
-    `Price at least ${usd(Math.max(lim.priceMinCents, CONFIG.sale.priceMinCents))}`,
-    'No copied brand assets',
+    tx('Live demo works'),
+    tx('Frontend + backend files'),
+    tx('Database schema included'),
+    tx('Setup guide included'),
+    tx('Price at least {usd}', { usd: usd(Math.max(lim.priceMinCents, CONFIG.sale.priceMinCents)) }),
+    tx('No copied brand assets'),
   ];
   return (
     <section id="upload" className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

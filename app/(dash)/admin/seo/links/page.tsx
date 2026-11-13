@@ -36,7 +36,7 @@ export default async function Links() {
           </Link>
         </div>
         <div className="sob-item">
-          <AdminForm endpoint="/api/admin/seo/links" fields={[]} submit="Run the check" openLabel="Run the check" tone="dark" />
+          <AdminForm endpoint="/api/admin/seo/links" fields={[]} submit={tx('Run the check')} openLabel={tx('Run the check')} tone="dark" />
         </div>
         {!r && (
           <p className="muted">

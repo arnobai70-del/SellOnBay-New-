@@ -13,10 +13,11 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Page titles and descriptions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const LAYOUT_DESCRIPTION = 'The site-wide description';
+const LAYOUT_DESCRIPTION = (tx: Tx) => tx('The site-wide description');
 
 export default async function SeoPages() {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
@@ -100,7 +101,7 @@ export default async function SeoPages() {
                 </p>
                 <div className="sob-pe-serp">
                   <span className="sob-pe-st">{shownTitle}</span>
-                  <span className="sob-pe-sd">{shownDesc || `${LAYOUT_DESCRIPTION} (this page has none of its own yet).`}</span>
+                  <span className="sob-pe-sd">{shownDesc || `${LAYOUT_DESCRIPTION(tx)} (this page has none of its own yet).`}</span>
                 </div>
                 <AdminForm
                   endpoint="/api/admin/seo/pages"
@@ -112,7 +113,7 @@ export default async function SeoPages() {
                       kind: 'text',
                       value: s.title,
                       max: PAGE_SEO_MAX.title,
-                      hint: `About ${PAGE_SEO_GOOD.title} characters show in Google. Empty = "${p.title} · ${SITE_NAME}".`,
+                      hint: tx('About {title} characters show in Google. Empty = "{title2} · {SITE_NAME}".', { title: PAGE_SEO_GOOD.title, title2: p.title, SITE_NAME }),
                     },
                     {
                       name: 'description',
@@ -120,11 +121,11 @@ export default async function SeoPages() {
                       kind: 'textarea',
                       value: s.description,
                       max: PAGE_SEO_MAX.description,
-                      hint: `About ${PAGE_SEO_GOOD.description} characters show. Empty = the built-in words.`,
+                      hint: tx('About {description} characters show. Empty = the built-in words.', { description: PAGE_SEO_GOOD.description }),
                     },
                   ]}
-                  submit="Save"
-                  openLabel="Quick edit: meta"
+                  submit={tx('Save')}
+                  openLabel={tx('Quick edit: meta')}
                   tone="line"
                 />
                 <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(p.path)}`} style={{ justifySelf: 'start' }}>

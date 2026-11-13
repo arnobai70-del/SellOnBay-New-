@@ -142,7 +142,7 @@ export default async function SellerAccount() {
           <h2 style={{ marginBottom: 6 }}>
             <T s={'Emails'} />
           </h2>
-          {['New sale and payout emails', 'Dispute and question alerts', 'Listing decisions'].map((l) => (
+          {[tx('New sale and payout emails'), tx('Dispute and question alerts'), tx('Listing decisions')].map((l) => (
             <div key={l} className="row" style={{ fontSize: 14, minHeight: 40 }}>
               <span>{l}</span>
               <span className="status st-ok">

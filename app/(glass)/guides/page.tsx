@@ -145,7 +145,7 @@ export default async function Guides({ searchParams }: { searchParams: Promise<{
               <T s={'Follow SellOnBay to hear about each new guide.'} />
             </div>
           </div>
-          <SocialRow links={social} label="Follow SellOnBay" />
+          <SocialRow links={social} label={tx('Follow SellOnBay')} />
         </div>
       </section>
       <PageExtras path="/guides" />

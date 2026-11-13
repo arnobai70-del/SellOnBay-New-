@@ -25,7 +25,7 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
   async function send(e: React.FormEvent) {
     e.preventDefault();
     setMsg(null);
-    if (proof && proof.size > 5 * 1024 * 1024) return setMsg({ ok: false, text: 'The proof can be at most 5 MB.' });
+    if (proof && proof.size > 5 * 1024 * 1024) return setMsg({ ok: false, text: tx('The proof can be at most 5 MB.') });
     setBusy(true);
     const body = new FormData();
     body.append('methodId', methodId);
@@ -36,10 +36,10 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
     const r = await fetch(`/api/orders/${orderId}/payments`, { method: 'POST', body });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not send the payment report.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not send the payment report.') });
     setReference('');
     setProof(null);
-    setMsg({ ok: true, text: 'Thank you. SellOnBay will check the payment against the money received and tell you.' });
+    setMsg({ ok: true, text: tx('Thank you. SellOnBay will check the payment against the money received and tell you.') });
     router.refresh();
   }
 

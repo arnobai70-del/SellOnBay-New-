@@ -15,14 +15,166 @@ const targets = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const walk = (p) => (fs.statSync(p).isDirectory() ? fs.readdirSync(p).flatMap((n) => walk(path.join(p, n))) : p.endsWith('.tsx') ? [p] : []);
 const SKIP_FILES = /[\\/]legal[\\/]|opengraph-image|TemplatePage|design-preview|AppPhone|AppWindow|[\\/]i18n[\\/]T\.tsx/;
 const q = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
-const BRANDS = /^(SellOnBay|USD|BDT|OK|ID|URL|API|CSV|PDF|ZIP|SEO|GA4|FAQ|PayPal|GitHub|Google|Meta|Payoneer|Wise|bKash|Stripe|Supabase|Zoho|ZeptoMail|Tawk\.to|Next\.js|React|WordPress|Figma|Node|UTC|DMCA|GDPR|IBAN|SWIFT|TOTP|2FA|POS)$/;
+const BRANDS =
+  /^(SellOnBay|USD|BDT|OK|ID|URL|API|CSV|PDF|ZIP|SEO|GA4|FAQ|PayPal|GitHub|Google|Meta|Payoneer|Wise|bKash|Stripe|Supabase|Zoho|ZeptoMail|Tawk\.to|Next\.js|React|WordPress|Figma|Node|UTC|DMCA|GDPR|IBAN|SWIFT|TOTP|2FA|POS)$/;
 // a sentence or a capitalised label of real words
-const sentence = (t) => /^[A-Z][a-z’']+(\s|[.,:?!…])/.test(t) && /\s/.test(t.trim()) && !/[{}<>=;`]|=>|^https?:/.test(t);
+const sentence = (t) => /^[A-Z][a-z’']*(\s|[.,:?!…])/.test(t) && /\s/.test(t.trim()) && !/[{}<>=;`]|=>|^https?:/.test(t);
 const label = (t) => sentence(t) || (/^[A-Z][a-z’']{1,}[.:?…!]?$/.test(t.trim()) && !BRANDS.test(t.trim()));
-const TEXT_ATTRS = new Set(['label', 'title', 'placeholder', 'aria-label', 'alt', 'submit', 'subtitle', 'heading', 'hint', 'help', 'empty', 'confirm', 'description', 'note', 'cta', 'text', 'caption', 'legend', 'summary', 'tooltip', 'busy', 'done', 'sub', 'lead', 'intro', 'message', 'prompt', 'question', 'emptyText', 'okLabel', 'cancelLabel', 'button', 'busyText', 'doneText', 'unit', 'suffix', 'prefix', 'more', 'less', 'none', 'ok', 'kicker', 'eyebrow']);
-const DATA_KEYS = new Set(['value', 'id', 'key', 'href', 'slug', 'kind', 'type', 'code', 'icon', 'variant', 'tone', 'status', 'state', 'action', 'method', 'url', 'path', 'role', 'scope', 'lang', 'dir', 'className', 'format', 'currency', 'align', 'width', 'name', 'field', 'tab', 'mode', 'endpoint', 'src', 'target', 'rel', 'color', 'background', 'font', 'fontFamily', 'style', 'event', 'module', 'area', 'doc', 'file', 'mime', 'accept', 'pattern', 'autoComplete', 'inputMode', 'when', 'at', 'sort', 'order', 'flag', 'reason']);
-const AWAY = /^(fetch|JSON\.|console\.|localStorage|sessionStorage|window\.location|location\.|router\.|encodeURI|decodeURI|new URL|URLSearchParams|Intl\.|RegExp|track|gtag|navigator|document\.cookie|crypto|Buffer|Date\b|Number|parseInt|parseFloat|String\(|Math\.|setItem|getItem|post|send|append|FormData|redirect|notFound|revalidate|audit|log|captureException|reportError|headers|cookies|sql|from|select|eq|insert|update|upsert|rpc|matchMedia|addEventListener|removeEventListener|setAttribute|querySelector|getElementById|startsWith|endsWith|includes|indexOf|split|replace|match|test|padStart|toLocaleString|toFixed|slice|join|has|get|delete|set$)/;
-const awayCall = (c) => AWAY.test(c) || /\.(startsWith|endsWith|includes|indexOf|split|replace|match|test|has|get|delete|toLocaleString|join|push|setItem|getItem|append|post|send|insert|update|upsert|eq|select|from|rpc|querySelector|addEventListener|setAttribute)$/.test(c);
+const TEXT_ATTRS = new Set([
+  'label',
+  'title',
+  'placeholder',
+  'aria-label',
+  'alt',
+  'submit',
+  'subtitle',
+  'heading',
+  'hint',
+  'help',
+  'empty',
+  'confirm',
+  'description',
+  'note',
+  'cta',
+  'text',
+  'caption',
+  'legend',
+  'summary',
+  'tooltip',
+  'busy',
+  'done',
+  'sub',
+  'lead',
+  'intro',
+  'message',
+  'prompt',
+  'question',
+  'emptyText',
+  'okLabel',
+  'cancelLabel',
+  'button',
+  'busyText',
+  'doneText',
+  'unit',
+  'suffix',
+  'prefix',
+  'more',
+  'less',
+  'none',
+  'ok',
+  'kicker',
+  'eyebrow',
+]);
+const textName = (a) => TEXT_ATTRS.has(a) || a === 't' || a === 'd' || a === 'data-label' || /(Label|Text|Title|Hint|Message|Placeholder|Heading|Note|Caption)$/.test(a);
+const DATA_KEYS = new Set([
+  'value',
+  'id',
+  'key',
+  'href',
+  'slug',
+  'kind',
+  'type',
+  'code',
+  'icon',
+  'variant',
+  'tone',
+  'status',
+  'state',
+  'action',
+  'method',
+  'url',
+  'path',
+  'role',
+  'scope',
+  'lang',
+  'dir',
+  'className',
+  'format',
+  'currency',
+  'align',
+  'width',
+  'name',
+  'field',
+  'tab',
+  'mode',
+  'endpoint',
+  'src',
+  'target',
+  'rel',
+  'color',
+  'background',
+  'font',
+  'fontFamily',
+  'style',
+  'event',
+  'module',
+  'area',
+  'doc',
+  'file',
+  'mime',
+  'accept',
+  'pattern',
+  'autoComplete',
+  'inputMode',
+  'when',
+  'at',
+  'sort',
+  'order',
+  'flag',
+  'reason',
+]);
+// calls whose arguments leave the page or are data: whole names for the global ones, exact method names for the rest
+const AWAY_FULL =
+  /^(fetch|JSON\.|console\.|localStorage|sessionStorage|window\.location|location\.|router\.|encodeURI|decodeURI|URLSearchParams|Intl\.|RegExp|navigator|document\.|crypto|Buffer|Math\.|redirect|notFound|revalidate|audit|gtag|track)/;
+const AWAY_LAST = new Set([
+  'startsWith',
+  'endsWith',
+  'includes',
+  'indexOf',
+  'split',
+  'replace',
+  'replaceAll',
+  'match',
+  'test',
+  'has',
+  'get',
+  'delete',
+  'toLocaleString',
+  'join',
+  'setItem',
+  'getItem',
+  'append',
+  'post',
+  'send',
+  'insert',
+  'update',
+  'upsert',
+  'eq',
+  'neq',
+  'select',
+  'from',
+  'rpc',
+  'querySelector',
+  'addEventListener',
+  'removeEventListener',
+  'setAttribute',
+  'padStart',
+  'toFixed',
+  'slice',
+  'parseInt',
+  'parseFloat',
+  'Number',
+  'String',
+  'Date',
+  'encodeURIComponent',
+  'set',
+  'log',
+  'error',
+  'warn',
+  'info',
+  'stringify',
+]);
+const awayCall = (c) => AWAY_FULL.test(c) || AWAY_LAST.has(c.replace(/^.*\./, ''));
 const COMPARE = new Set([
   ts.SyntaxKind.EqualsEqualsEqualsToken,
   ts.SyntaxKind.ExclamationEqualsEqualsToken,
@@ -52,9 +204,10 @@ function keep(n) {
   if (ts.isPropertyAssignment(p) && DATA_KEYS.has(p.name.getText().replace(/['"]/g, ''))) return true;
   if (ts.isJsxAttribute(p) || (ts.isJsxExpression(p) && ts.isJsxAttribute(p.parent))) {
     const a = (ts.isJsxAttribute(p) ? p : p.parent).name.getText();
-    if (!TEXT_ATTRS.has(a)) return true;
+    if (!textName(a)) return true;
   }
   for (let a = p; a && !ts.isSourceFile(a); a = a.parent) {
+    if (ts.isArrowFunction(a) || ts.isFunctionExpression(a) || ts.isFunctionDeclaration(a) || ts.isMethodDeclaration(a)) break; // a callback's body is not the call's data
     if (ts.isCallExpression(a) && (/^(tx|t|translate|pick|useTx|txLookup)$/.test(a.expression.getText().replace(/^.*\./, '')) || awayCall(a.expression.getText()))) return true;
     if (ts.isNewExpression(a) && /^(Error|URL|URLSearchParams|RegExp|Date|Intl)/.test(a.expression.getText())) return true;
     if (ts.isThrowStatement(a)) return true;
@@ -79,7 +232,8 @@ for (const file of targets.flatMap(walk)) {
   const place = (node, text, kind) => {
     const comp = enclosingComponent(node);
     const isAsync = comp?.modifiers?.some((m) => m.kind === ts.SyntaxKind.AsyncKeyword);
-    if (!comp || !ts.isBlock(comp.body) || !(client || isAsync)) return void report.left.push(`${file}:${sf.getLineAndCharacterOfPosition(node.getStart()).line + 1}: ${JSON.stringify(node.getText().slice(0, 80))}`);
+    if (!comp || !ts.isBlock(comp.body) || !(client || isAsync))
+      return void report.left.push(`${file}:${sf.getLineAndCharacterOfPosition(node.getStart()).line + 1}: ${JSON.stringify(node.getText().slice(0, 80))}`);
     edits.push({ start: node.getStart(sf), end: node.getEnd(), text });
     hooks.set(comp, client ? 'client' : 'server');
     report[kind]++;
@@ -88,9 +242,9 @@ for (const file of targets.flatMap(walk)) {
     if ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) && !ts.isJsxAttribute(node.parent)) {
       const inArrayInAttr = ts.isArrayLiteralExpression(node.parent) && node.parent.parent && ts.isJsxExpression(node.parent.parent);
       const prop = ts.isPropertyAssignment(node.parent) ? node.parent.name.getText().replace(/['"]/g, '') : '';
-      const ok = TEXT_ATTRS.has(prop) || inArrayInAttr ? label(node.text) : sentence(node.text);
+      const ok = textName(prop) || inArrayInAttr ? label(node.text) : sentence(node.text);
       if (ok && !keep(node)) place(node, `tx(${q(node.text)})`, 'literals');
-    } else if (ts.isJsxAttribute(node) && node.initializer && ts.isStringLiteral(node.initializer) && TEXT_ATTRS.has(node.name.getText()) && label(node.initializer.text) && !keep(node.initializer)) {
+    } else if (ts.isJsxAttribute(node) && node.initializer && ts.isStringLiteral(node.initializer) && textName(node.name.getText()) && label(node.initializer.text) && !keep(node.initializer)) {
       place(node.initializer, `{tx(${q(node.initializer.text)})}`, 'literals');
     } else if (ts.isTemplateExpression(node) && /^[A-Z][a-z’']+ /.test(node.head.text) && !keep(node)) {
       // `Review for ${hours} hours` -> tx('Review for {hours} hours', { hours })
@@ -123,7 +277,11 @@ for (const file of targets.flatMap(walk)) {
   for (const [comp, kind] of hooks) {
     if (/\bconst (\{ )?tx\b|\{ tx[ ,}]|\btx = /.test(comp.body.getText())) continue;
     const at = comp.body.getStart(sf) + 1;
-    flat.push({ start: at, end: at, text: kind === 'client' ? "\n  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)" : "\n  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)" });
+    flat.push({
+      start: at,
+      end: at,
+      text: kind === 'client' ? "\n  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)" : "\n  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)",
+    });
   }
   flat.sort((a, b) => b.start - a.start);
   let out = src;

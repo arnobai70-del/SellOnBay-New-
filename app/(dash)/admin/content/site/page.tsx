@@ -16,15 +16,16 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Site builder'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS: [string, string][] = [
-  ['menu', 'Top menu'],
-  ['footer', 'Footer'],
-  ['sections', 'Home sections'],
-  ['blocks', 'Page blocks'],
-  ['social', 'Social links'],
+const TABS = (tx: Tx): [string, string][] => [
+  ['menu', tx('Top menu')],
+  ['footer', tx('Footer')],
+  ['sections', tx('Home sections')],
+  ['blocks', tx('Page blocks')],
+  ['social', tx('Social links')],
 ];
 
 /* Edit the pieces of the site from one place: the top menu, the footer columns, and blocks (headings, text, pictures, buttons, listings, questions) on any page. */
@@ -32,8 +33,8 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/site', roles: ['admin'], scope: 'content' });
   const q = await searchParams;
-  const tab = TABS.some(([k]) => k === q.tab) ? q.tab! : 'menu';
-  const pages: [string, string][] = [['/', 'Home page'], ...SEO_PAGES.filter((p) => p.path !== '/').map((p) => [p.path, p.name] as [string, string])];
+  const tab = TABS(tx).some(([k]) => k === q.tab) ? q.tab! : 'menu';
+  const pages: [string, string][] = [['/', tx('Home page')], ...SEO_PAGES.filter((p) => p.path !== '/').map((p) => [p.path, p.name] as [string, string])];
   const path = pages.some(([p]) => p === q.path) || /^[/]product[/][A-Za-z0-9_-]{1,80}$/.test(q.path ?? '') ? q.path! : '/';
 
   const menu = tab === 'menu' ? await savedMenu(0) : null;
@@ -56,7 +57,7 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
           </div>
         </div>
         <div className="sob-acts" aria-label={tx('Parts of the site')}>
-          {TABS.map(([k, label]) => (
+          {TABS(tx).map(([k, label]) => (
             <Link key={k} className={'btn sm' + (tab === k ? '' : ' ghost')} href={`/admin/content/site?tab=${k}`}>
               {label}
             </Link>
@@ -80,7 +81,7 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
               endpoint="/api/admin/site"
               fixed={{ kind: 'social' }}
               open
-              submit="Save social links"
+              submit={tx('Save social links')}
               fields={[{ name: 'value', label: tx('Social links'), kind: 'textarea', max: 3000, value: (await savedSocial(0)).map((l) => `${l.network} ${l.url}`).join('\n') }]}
             />
           </div>

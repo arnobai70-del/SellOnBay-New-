@@ -10,25 +10,28 @@ import { SocialRow } from './SocialRow';
 import { Switch } from './Switch';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 type Row = { network: Network; url: string; enabled: boolean };
-const LABEL: Record<keyof ContactRoutes, string> = {
+const LABEL = (tx: Tx): Record<keyof ContactRoutes, string> => ({
   support: 'Support',
   sales: 'Sales',
   billing: 'Billing',
   business: 'Business',
-  report: 'Reports and abuse',
-  dev: 'Developers and alerts',
+  report: tx('Reports and abuse'),
+  dev: tx('Developers and alerts'),
   administrator: 'Administrator',
-};
+});
 
-async function post(body: unknown) {
+async function post(body: unknown, tx: Tx) {
   const res = await fetch('/api/admin/contact-social', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const data = ((await res?.json().catch(() => null)) ?? {}) as { error?: string; issues?: { message?: string }[] };
-  return res?.ok ? null : (data.issues?.[0]?.message ?? data.error ?? 'Could not save. Please try again.');
+  return res?.ok ? null : (data.issues?.[0]?.message ?? data.error ?? tx('Could not save. Please try again.'));
 }
 
 /* Admin › Settings › Contact & social (owner, 2026-11-08). The server checks everything again; this only collects and previews. */
 export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes; social: SocialLink[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [mail, setMail] = useState(routes);
   const [rows, setRows] = useState<Row[]>(social.map((s) => ({ network: s.network, url: s.url, enabled: s.enabled !== false })));
@@ -52,9 +55,9 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
       if (bad && !bad.ok) return setMsg({ ok: false, text: bad.error });
     }
     setBusy(true);
-    const error = await post(part === 'contact' ? { contact: mail } : { social: rows });
+    const error = await post(part === 'contact' ? { contact: mail } : { social: rows }, tx);
     setBusy(false);
-    setMsg(error ? { ok: false, text: error } : { ok: true, text: 'Saved. It shows on the site within a minute.' });
+    setMsg(error ? { ok: false, text: error } : { ok: true, text: tx('Saved. It shows on the site within a minute.') });
     if (!error) router.refresh();
   };
   return (
@@ -67,8 +70,8 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
           <T s={'Each must end with @{BRAND_DOMAIN}. Email routing uses them at once.'} v={{ BRAND_DOMAIN }} />
         </p>
         <div className="grid2" style={{ marginTop: 10 }}>
-          {(Object.keys(LABEL) as (keyof ContactRoutes)[]).map((k) => (
-            <Field key={k} label={LABEL[k]} type="email" value={mail[k]} onChange={(e) => setMail({ ...mail, [k]: e.target.value.trim().toLowerCase() })} />
+          {(Object.keys(LABEL(tx)) as (keyof ContactRoutes)[]).map((k) => (
+            <Field key={k} label={LABEL(tx)[k]} type="email" value={mail[k]} onChange={(e) => setMail({ ...mail, [k]: e.target.value.trim().toLowerCase() })} />
           ))}
         </div>
         <div style={{ marginTop: 12 }}>
@@ -111,11 +114,11 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
                 placeholder={`https://${NETWORKS[r.network].hosts[0]}/sellonbay`}
                 onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, url: e.target.value.trim() } : x)))}
               />
-              <Switch label={`Show ${NETWORKS[r.network].label}`} checked={r.enabled} onChange={(on) => setRows(rows.map((x, j) => (j === i ? { ...x, enabled: on } : x)))} />
-              <button type="button" className="btn ghost sm" aria-label={`Move ${NETWORKS[r.network].label} up`} onClick={() => move(i, i - 1)} disabled={i === 0}>
+              <Switch label={tx('Show {label}', { label: NETWORKS[r.network].label })} checked={r.enabled} onChange={(on) => setRows(rows.map((x, j) => (j === i ? { ...x, enabled: on } : x)))} />
+              <button type="button" className="btn ghost sm" aria-label={tx('Move {label} up', { label: NETWORKS[r.network].label })} onClick={() => move(i, i - 1)} disabled={i === 0}>
                 ↑
               </button>
-              <button type="button" className="btn ghost sm" aria-label={`Move ${NETWORKS[r.network].label} down`} onClick={() => move(i, i + 1)} disabled={i === rows.length - 1}>
+              <button type="button" className="btn ghost sm" aria-label={tx('Move {label} down', { label: NETWORKS[r.network].label })} onClick={() => move(i, i + 1)} disabled={i === rows.length - 1}>
                 ↓
               </button>
               <button type="button" className="btn ghost sm" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
@@ -164,7 +167,7 @@ export function ContactSocialEditor({ routes, social }: { routes: ContactRoutes;
           </span>
           <div className="glass" style={{ padding: 12, borderRadius: 12, marginTop: 6 }}>
             {rows.some((r, i) => r.enabled && problems[i].ok) ? (
-              <SocialRow links={rows.filter((r, i) => problems[i].ok).map((r) => ({ network: r.network, url: r.url, ...(r.enabled ? {} : { enabled: false as const }) }))} label="Preview" />
+              <SocialRow links={rows.filter((r, i) => problems[i].ok).map((r) => ({ network: r.network, url: r.url, ...(r.enabled ? {} : { enabled: false as const }) }))} label={tx('Preview')} />
             ) : (
               <span className="tag">
                 <T s={'No links are shown: the row is hidden.'} />

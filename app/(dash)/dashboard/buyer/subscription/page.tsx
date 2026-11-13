@@ -30,7 +30,7 @@ export default async function BuyerSubscription() {
   const payMethods = methods.filter((m) => !settings.allowedMethods.length || settings.allowedMethods.includes(m.id)).map((m) => ({ label: m.label, instructions: m.instructions }));
   const name = (key: string) => sites.find((s) => s.id === key)?.name ?? key;
   return (
-    <BuyerShell viewer={viewer} active="subscription" file="buyer-websites" title={tx('Subscription')} subtitle="Your yearly plans, the websites you chose, and your licence and support dates.">
+    <BuyerShell viewer={viewer} active="subscription" file="buyer-websites" title={tx('Subscription')} subtitle={tx('Your yearly plans, the websites you chose, and your licence and support dates.')}>
       {!subs.length && (
         <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <h2>

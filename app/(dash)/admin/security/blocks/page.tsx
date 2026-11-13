@@ -7,11 +7,12 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Security'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const when = (t: number) => new Date(t).toISOString().slice(0, 16).replace('T', ' ');
-const reasonField = [{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true }];
+const reasonField = (tx: Tx) => [{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true }];
 
 export default async function Security() {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
@@ -58,9 +59,9 @@ export default async function Security() {
               <AdminForm
                 endpoint="/api/admin/security/block"
                 fixed={{ kind: g.kind, key: g.key }}
-                fields={reasonField}
-                submit="Block it"
-                openLabel={g.kind === 'ip' ? 'Block connection' : 'Block device'}
+                fields={reasonField(tx)}
+                submit={tx('Block it')}
+                openLabel={g.kind === 'ip' ? tx('Block connection') : tx('Block device')}
                 tone="dark"
               />
             )}
@@ -103,7 +104,7 @@ export default async function Security() {
                 <T s={'Blocked'} />
               </span>
             ) : (
-              <AdminForm endpoint="/api/admin/security/block" fixed={{ kind: 'ip', key: h.ipHash }} fields={reasonField} submit="Block it" openLabel="Block connection" tone="dark" />
+              <AdminForm endpoint="/api/admin/security/block" fixed={{ kind: 'ip', key: h.ipHash }} fields={reasonField(tx)} submit={tx('Block it')} openLabel={tx('Block connection')} tone="dark" />
             )}
           </div>
         ))}
@@ -123,9 +124,9 @@ export default async function Security() {
         <AdminForm
           endpoint="/api/admin/security/block"
           fixed={{ kind: 'email' }}
-          fields={[{ name: 'email', label: tx('Email address'), kind: 'text', required: true }, ...reasonField]}
-          submit="Block it"
-          openLabel="Block an email"
+          fields={[{ name: 'email', label: tx('Email address'), kind: 'text', required: true }, ...reasonField(tx)]}
+          submit={tx('Block it')}
+          openLabel={tx('Block an email')}
           tone="dark"
         />
       </div>
@@ -158,8 +159,8 @@ export default async function Security() {
             <AdminForm
               endpoint={`/api/admin/security/blocks/${b.id}/lift`}
               fields={[{ name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
-              submit="Lift it"
-              openLabel="Lift the block"
+              submit={tx('Lift it')}
+              openLabel={tx('Lift the block')}
               tone="line"
             />
           </div>

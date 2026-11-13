@@ -57,12 +57,12 @@ export default async function RepoAccess() {
               endpoint={`/api/admin/repo/${c.orderId}`}
               fixed={{ action: 'confirm' }}
               fields={[{ name: 'note', label: tx('How you checked that the access is gone (goes in the audit log)'), kind: 'textarea', required: true }]}
-              submit="Confirm removed"
-              openLabel="Confirm removed"
+              submit={tx('Confirm removed')}
+              openLabel={tx('Confirm removed')}
               tone="dark"
             />
             {c.state === 'pending' && (
-              <AdminForm endpoint={`/api/admin/repo/${c.orderId}`} fixed={{ action: 'remind' }} fields={[]} submit="Remind the seller" openLabel="Remind the seller" tone="line" />
+              <AdminForm endpoint={`/api/admin/repo/${c.orderId}`} fixed={{ action: 'remind' }} fields={[]} submit={tx('Remind the seller')} openLabel={tx('Remind the seller')} tone="line" />
             )}
           </div>
         ))}

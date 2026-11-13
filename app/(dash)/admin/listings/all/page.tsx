@@ -8,22 +8,23 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Listings'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
-const CHIP: Record<string, [string, string]> = {
+const CHIP = (tx: Tx): Record<string, [string, string]> => ({
   live: ['Live', 'status st-ok'],
-  in_review: ['In review', 'status st-wait'],
+  in_review: [tx('In review'), 'status st-wait'],
   rejected: ['Rejected', 'status st-bad'],
   paused: ['Paused', 'status st-bad'],
-};
-const FILTERS: [string, string][] = [
-  ['', 'All'],
-  ['in_review', 'In review'],
-  ['live', 'Live'],
-  ['rejected', 'Rejected'],
-  ['paused', 'Paused'],
+});
+const FILTERS = (tx: Tx): [string, string][] => [
+  ['', tx('All')],
+  ['in_review', tx('In review')],
+  ['live', tx('Live')],
+  ['rejected', tx('Rejected')],
+  ['paused', tx('Paused')],
 ];
 
 /* Where an admin approves new sites and fixes prices: the review queue first, then every listing with its status, price and an Edit link. */
@@ -69,7 +70,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
           </div>
         </div>
         <div className="sob-acts">
-          {FILTERS.map(([v, label]) => (
+          {FILTERS(tx).map(([v, label]) => (
             <Link key={v} className={'btn sm' + (v === status ? '' : ' ghost')} href={v ? `/admin/listings/all?status=${v}` : '/admin/listings/all'}>
               {label}
             </Link>
@@ -82,7 +83,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
         )}
         <ul className="sob-list">
           {rows.map((r) => {
-            const [label, cls] = CHIP[r.status] ?? [r.status, 'status st-draft'];
+            const [label, cls] = CHIP(tx)[r.status] ?? [r.status, 'status st-draft'];
             return (
               <li key={r.slug}>
                 <div className="sob-grow">
@@ -91,7 +92,11 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                     <T s={'by {seller} · {platform} · {v2}'} v={{ seller: r.seller, platform: r.platform, v2: money(r.priceCents) }} />
                   </small>
                   {r.status === 'live' && (
-                    <small>{shownIn(r.slug) ? `Shown in ${shownIn(r.slug)}` : tx('Not shown on the site: its category is full or hidden. Change it under SEO and blog > Categories.')}</small>
+                    <small>
+                      {shownIn(r.slug)
+                        ? tx('Shown in {shownIn}', { shownIn: shownIn(r.slug) ?? '' })
+                        : tx('Not shown on the site: its category is full or hidden. Change it under SEO and blog > Categories.')}
+                    </small>
                   )}
                 </div>
                 <Link className="btn ghost sm" href={`/admin/seo/product?slug=${encodeURIComponent(r.slug)}`}>

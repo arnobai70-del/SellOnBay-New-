@@ -14,7 +14,7 @@ export default async function ResetPassword() {
   const {
     data: { user },
   } = await (await createClient()).auth.getUser();
-  if (!user) redirect('/signin?error=' + encodeURIComponent('That reset link has expired. Request a new one.'));
+  if (!user) redirect('/signin?error=' + encodeURIComponent((await getI18n()).tx('That reset link has expired. Request a new one.')));
   return (
     <PublicFrame file="account-access">
       <ResetClient />

@@ -33,7 +33,7 @@ const groupId = (t: string) => 'g-' + helpAnchor(t).replace(/^q-/, '');
  * Questions come from Admin › CMS, else the built-in ones; the heading from Admin › Content › Pages.
  */
 export default async function Help() {
-  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts); translate() for the built-in questions
   const [words, saved, routes, social, copy] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial(), pageCopy('help')]);
   const { groups } = faqToShow(saved?.groups ?? null);
   const intro = copy.t('head', 'intro', words.intro ?? '');
@@ -83,7 +83,7 @@ export default async function Help() {
                 <path d={TILES[i % TILES.length][1]} />
               </svg>
             </span>
-            <b style={{ fontWeight: 500, marginTop: 6 }}>{g.title}</b>
+            <b style={{ fontWeight: 500, marginTop: 6 }}>{translate(g.title)}</b>
             <span className="muted" style={{ fontSize: 14 }}>
               {g.items.length} {g.items.length === 1 ? 'answer' : 'answers'}
             </span>
@@ -93,14 +93,14 @@ export default async function Help() {
       <section id="articles" className="sec grid2">
         {groups.map((g) => (
           <div key={g.title} id={groupId(g.title)} className="glass card">
-            <h2 style={{ fontSize: 22, marginBottom: 8 }}>{g.title}</h2>
+            <h2 style={{ fontSize: 22, marginBottom: 8 }}>{translate(g.title)}</h2>
             {g.items.map((f) => (
               <details key={f.q} id={helpAnchor(f.q)}>
                 <summary className="art" style={{ listStyle: 'none', cursor: 'pointer' }}>
-                  {f.q} <span aria-hidden="true">›</span>
+                  {translate(f.q)} <span aria-hidden="true">›</span>
                 </summary>
                 <p className="muted" style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.6 }}>
-                  {f.a}
+                  {translate(f.a)}
                 </p>
               </details>
             ))}
@@ -117,9 +117,9 @@ export default async function Help() {
             {(
               [
                 ['Support', routes.support],
-                ['Billing and payouts', routes.billing],
+                [tx('Billing and payouts'), routes.billing],
                 ['Partnerships', routes.business],
-                ['Abuse and copyright', routes.report],
+                [tx('Abuse and copyright'), routes.report],
               ] as const
             ).map(([l, e], i) => (
               <div key={l} className="li" style={{ fontSize: 14, marginTop: i ? 0 : 14 }}>

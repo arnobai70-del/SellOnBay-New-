@@ -60,8 +60,8 @@ export default async function Promote() {
           <AdminForm
             endpoint="/api/seller/promotions"
             fixed={{ action: 'draft' }}
-            openLabel="Draft a promotion"
-            submit="Save the draft"
+            openLabel={tx('Draft a promotion')}
+            submit={tx('Save the draft')}
             fields={[
               {
                 name: 'platform',
@@ -72,8 +72,13 @@ export default async function Promote() {
               { name: 'productSlug', label: tx('Listing'), kind: 'select', options: live.map((l) => [l.slug, l.name] as [string, string]) },
               { name: 'headline', label: tx('Headline'), kind: 'text', required: true, max: CONFIG.ads.headlineMax },
               { name: 'text', label: tx('Text'), kind: 'textarea', required: true, max: CONFIG.ads.textMax },
-              { name: 'dailyBudget', label: `Daily budget in dollars (${usd(CONFIG.ads.minDailyCents)} to ${usd(CONFIG.ads.maxDailyCents)})`, kind: 'dollars', required: true },
-              { name: 'days', label: `Days (1 to ${CONFIG.ads.maxDays})`, kind: 'text', required: true, value: '7', max: 2 },
+              {
+                name: 'dailyBudget',
+                label: tx('Daily budget in dollars ({usd} to {usd2})', { usd: usd(CONFIG.ads.minDailyCents), usd2: usd(CONFIG.ads.maxDailyCents) }),
+                kind: 'dollars',
+                required: true,
+              },
+              { name: 'days', label: tx('Days (1 to {maxDays})', { maxDays: CONFIG.ads.maxDays }), kind: 'text', required: true, value: '7', max: 2 },
             ]}
           />
         )}
@@ -103,10 +108,10 @@ export default async function Promote() {
                   )}
                 </div>
                 <div className="sob-acts">
-                  {p.status === 'draft' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'submit', id: p.id }} fields={[]} submit="Send for review" />}
-                  {p.status === 'rejected' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'edit', id: p.id }} fields={[]} submit="Back to draft" tone="line" />}
-                  {p.status === 'approved' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'start', id: p.id }} fields={[]} submit="Start" />}
-                  {p.status !== 'ended' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'end', id: p.id }} fields={[]} submit="End" tone="line" />}
+                  {p.status === 'draft' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'submit', id: p.id }} fields={[]} submit={tx('Send for review')} />}
+                  {p.status === 'rejected' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'edit', id: p.id }} fields={[]} submit={tx('Back to draft')} tone="line" />}
+                  {p.status === 'approved' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'start', id: p.id }} fields={[]} submit={tx('Start')} />}
+                  {p.status !== 'ended' && <AdminForm endpoint="/api/seller/promotions" fixed={{ action: 'end', id: p.id }} fields={[]} submit={tx('End')} tone="line" />}
                 </div>
               </li>
             ))}

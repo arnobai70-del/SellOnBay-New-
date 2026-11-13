@@ -21,7 +21,7 @@ export function MfaClient({ next }: { next: string }) {
       // A half-finished setup blocks a new one (Supabase refuses a second unverified factor), so clear it first.
       for (const f of list?.all ?? []) if (f.factor_type === 'totp' && f.status === 'unverified') await supabase.auth.mfa.unenroll({ factorId: f.id });
       const { data, error: e } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
-      if (e || !data) return setError(e?.message ?? 'Could not start setup.');
+      if (e || !data) return setError(e?.message ?? tx('Could not start setup.'));
       setFactorId(data.id);
       setQr(data.totp.qr_code);
     })();
@@ -30,9 +30,9 @@ export function MfaClient({ next }: { next: string }) {
   const verify = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: ch, error: ce } = await supabase.auth.mfa.challenge({ factorId });
-    if (ce || !ch) return setError(ce?.message ?? 'Try again.');
+    if (ce || !ch) return setError(ce?.message ?? tx('Try again.'));
     const { error: ve } = await supabase.auth.mfa.verify({ factorId, challengeId: ch.id, code: code.trim() });
-    if (ve) return setError('That code is not right. Check your app and try again.');
+    if (ve) return setError(tx('That code is not right. Check your app and try again.'));
     window.location.assign(next);
   };
 

@@ -13,28 +13,30 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
 export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Language Management'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['languages', 'Languages'],
-  ['translations', 'Translations'],
-  ['products', 'Product words'],
-  ['seo', 'Page SEO'],
-  ['missing', 'Missing translations'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['languages', tx('Languages')],
+    ['translations', tx('Translations')],
+    ['products', tx('Product words')],
+    ['seo', tx('Page SEO')],
+    ['missing', tx('Missing translations')],
+  ] as const;
 const PAGE = 40;
-const AREAS: [string, string][] = [
-  ['', 'Everything'],
-  ['nav.', 'Top bar'],
-  ['footer.', 'Footer'],
-  ['menu.', 'Dashboard menus'],
-  ['page.home.', 'Home page'],
-  ['page.', 'Other pages'],
-  ['aff.', 'Affiliate page'],
-  ['cookie.', 'Cookie notice'],
-  ['lang.', 'Language choice'],
-  ['banner.', 'Banners'],
+const AREAS = (tx: Tx): [string, string][] => [
+  ['', tx('Everything')],
+  ['nav.', tx('Top bar')],
+  ['footer.', tx('Footer')],
+  ['menu.', tx('Dashboard menus')],
+  ['page.home.', tx('Home page')],
+  ['page.', tx('Other pages')],
+  ['aff.', tx('Affiliate page')],
+  ['cookie.', tx('Cookie notice')],
+  ['lang.', tx('Language choice')],
+  ['banner.', tx('Banners')],
 ];
 
 /*
@@ -46,7 +48,7 @@ export default async function LanguagesAdmin({ searchParams }: { searchParams: P
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/languages', roles: ['admin'], scope: ['content', 'super'] });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'languages';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'languages';
   forgetLanguages();
   const s = await languageSettings();
   const superAdmin = !viewer || hasScope(viewer.scopes ?? [], 'super');
@@ -153,7 +155,7 @@ export default async function LanguagesAdmin({ searchParams }: { searchParams: P
           })
         : [];
     } else {
-      const area = AREAS.find(([k]) => k === sp.area)?.[0] ?? '';
+      const area = AREAS(tx).find(([k]) => k === sp.area)?.[0] ?? '';
       const q = (sp.q ?? '').toLowerCase().slice(0, 80);
       rows = Object.keys(en)
         .filter((k) => k.startsWith(area) && (area !== 'page.' || !k.startsWith('page.home.')))
@@ -194,7 +196,7 @@ export default async function LanguagesAdmin({ searchParams }: { searchParams: P
               <label className="field">
                 <T s={'Part of the site'} />
                 <select className="input" name="area" defaultValue={sp.area ?? ''}>
-                  {AREAS.map(([k, n]) => (
+                  {AREAS(tx).map(([k, n]) => (
                     <option key={k} value={k}>
                       {n}
                     </option>
@@ -251,9 +253,15 @@ export default async function LanguagesAdmin({ searchParams }: { searchParams: P
     );
 
   return (
-    <AdminShell viewer={viewer} active="languages" file="admin-settings" title={tx('Language Management')} subtitle="Languages, translations and localized content. Changes apply without a redeploy.">
+    <AdminShell
+      viewer={viewer}
+      active="languages"
+      file="admin-settings"
+      title={tx('Language Management')}
+      subtitle={tx('Languages, translations and localized content. Changes apply without a redeploy.')}
+    >
       <nav className="seg" aria-label={tx('Language Management')} style={{ flexWrap: 'wrap', alignSelf: 'flex-start' }}>
-        {TABS.map(([k, label]) => (
+        {TABS(tx).map(([k, label]) => (
           <Link key={k} aria-current={tab === k ? 'page' : undefined} className={tab === k ? 'on' : ''} href={`/admin/languages?tab=${k}${lang ? `&lang=${lang}` : ''}`} prefetch={false}>
             {label}
           </Link>

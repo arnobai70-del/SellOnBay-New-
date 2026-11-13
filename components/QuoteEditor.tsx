@@ -4,17 +4,18 @@ import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 type Kind = 'product' | 'package' | 'express' | 'extra' | 'revision' | 'custom' | 'domain' | 'hosting';
 type Row = { label: string; dollars: string; kind: Kind; passThroughVerified: boolean };
-const KINDS: [Kind, string][] = [
-  ['product', 'Product'],
-  ['package', 'Setup or customisation'],
-  ['express', 'Express delivery'],
-  ['extra', 'Extra work'],
-  ['revision', 'Paid revision'],
-  ['custom', 'Custom development'],
-  ['domain', 'Domain (pass-through)'],
-  ['hosting', 'Hosting (pass-through)'],
+const KINDS = (tx: Tx): [Kind, string][] => [
+  ['product', tx('Product')],
+  ['package', tx('Setup or customisation')],
+  ['express', tx('Express delivery')],
+  ['extra', tx('Extra work')],
+  ['revision', tx('Paid revision')],
+  ['custom', tx('Custom development')],
+  ['domain', tx('Domain (pass-through)')],
+  ['hosting', tx('Hosting (pass-through)')],
 ];
 
 /*
@@ -80,8 +81,8 @@ export function QuoteEditor({
     });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not save the draft.' });
-    setMsg({ ok: true, text: 'Draft saved. Check it below, then issue it.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not save the draft.') });
+    setMsg({ ok: true, text: tx('Draft saved. Check it below, then issue it.') });
     router.refresh();
   }
 
@@ -109,7 +110,7 @@ export function QuoteEditor({
               </td>
               <td>
                 <select aria-label={tx('Line kind')} value={r.kind} onChange={(e) => set(i, { kind: e.target.value as Kind })}>
-                  {KINDS.map(([k, l]) => (
+                  {KINDS(tx).map(([k, l]) => (
                     <option key={k} value={k}>
                       {l}
                     </option>

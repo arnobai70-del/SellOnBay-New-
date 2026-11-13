@@ -4,13 +4,14 @@ import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
-const HINT: Record<string, [label: string, hint: string]> = {
-  paypal: ['PayPal email', 'The email of your PayPal account'],
-  payoneer: ['Payoneer email', 'The email of your Payoneer account'],
-  wise: ['Wise email', 'The email of your Wise account'],
-  bank: ['Bank details', 'IBAN or account number, bank name and account holder'],
-  bkash: ['bKash number', 'Personal or merchant number'],
-};
+import type { Tx } from '@/lib/i18n/tx';
+const HINT = (tx: Tx): Record<string, [label: string, hint: string]> => ({
+  paypal: ['PayPal email', tx('The email of your PayPal account')],
+  payoneer: [tx('Payoneer email'), tx('The email of your Payoneer account')],
+  wise: [tx('Wise email'), tx('The email of your Wise account')],
+  bank: [tx('Bank details'), 'IBAN or account number, bank name and account holder'],
+  bkash: ['bKash number', tx('Personal or merchant number')],
+});
 
 /*
  * "Payout method" of design-reference/seller-payouts.html: the design's .pm tiles for the methods open to the seller's country (lib/payoutDetails.ts),
@@ -23,7 +24,7 @@ export function PayoutMethodForm({ methods, current }: { methods: [string, strin
   const [account, setAccount] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [label, hint] = HINT[method] ?? ['Account', 'Where to send it'];
+  const [label, hint] = HINT(tx)[method] ?? ['Account', tx('Where to send it')];
   return (
     <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <h2>
@@ -37,7 +38,7 @@ export function PayoutMethodForm({ methods, current }: { methods: [string, strin
           <button key={m} type="button" className={m === method ? 'pm on' : 'pm'} role="radio" aria-checked={m === method} onClick={() => setMethod(m)}>
             <b style={{ fontWeight: 500 }}>{l}</b>
             <span className="tag" style={{ margin: 0 }}>
-              {HINT[m]?.[1] ?? ''}
+              {HINT(tx)[m]?.[1] ?? ''}
             </span>
           </button>
         ))}
@@ -60,8 +61,8 @@ export function PayoutMethodForm({ methods, current }: { methods: [string, strin
           const r = await fetch('/api/seller/payout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ method, account }) }).catch(() => null);
           const j = r ? await r.json().catch(() => ({})) : {};
           setBusy(false);
-          if (!r?.ok) return setMsg({ ok: false, text: j.error ?? 'Could not save. Try again.' });
-          setMsg({ ok: true, text: 'Saved.' });
+          if (!r?.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not save. Try again.') });
+          setMsg({ ok: true, text: tx('Saved.') });
           setAccount('');
           router.refresh();
         }}

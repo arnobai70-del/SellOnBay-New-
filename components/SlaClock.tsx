@@ -2,11 +2,13 @@
 import { useEffect, useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * The release target of one order, counted down live and shown in the admin's own time zone (times are stored in UTC).
  * Overdue only changes the colour: nothing is ever released by the clock.
  */
 export function SlaClock({ dueAt, slaHours }: { dueAt: number; slaHours: number }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     const tick = () => setNow(Date.now());
@@ -26,9 +28,9 @@ export function SlaClock({ dueAt, slaHours }: { dueAt: number; slaHours: number 
   const h = Math.floor(Math.abs(left) / 3_600_000),
     m = Math.floor((Math.abs(left) % 3_600_000) / 60_000);
   return (
-    <span className={state === 'overdue' ? 'status st-bad' : state === 'due_soon' ? 'status st-wait' : 'status st-ok'} data-sla={state} title={`Target ${local}`}>
+    <span className={state === 'overdue' ? 'status st-bad' : state === 'due_soon' ? 'status st-wait' : 'status st-ok'} data-sla={state} title={tx('Target {local}', { local })}>
       <i />
-      <T s={'{v0} · due {local}'} v={{ v0: left <= 0 ? `Overdue by ${h} h ${m} min` : `${h} h ${m} min left`, local }} />
+      <T s={'{v0} · due {local}'} v={{ v0: left <= 0 ? tx('Overdue by {h} h {m} min', { h, m }) : `${h} h ${m} min left`, local }} />
     </span>
   );
 }

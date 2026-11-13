@@ -32,8 +32,8 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v, ...(k === 'title' && !slugTouched ? { slug: slugify(String(v)) } : {}) }));
 
-  const shownTitle = (d.metaTitle || d.title || 'Post title') + ` · ${siteName}`;
-  const shownDesc = descriptionOf(d) || 'The meta description you write appears here.';
+  const shownTitle = (d.metaTitle || d.title || tx('Post title')) + ` · ${siteName}`;
+  const shownDesc = descriptionOf(d) || tx('The meta description you write appears here.');
   const hints = seoHints(d);
   const area = useRef<HTMLTextAreaElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -45,7 +45,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     const el = area.current;
     if (!el) return;
     const r = fn(d.body, el.selectionStart, el.selectionEnd);
-    if (r.text.length > LIMITS.body) return setMsg({ ok: false, text: 'The post is too long.' });
+    if (r.text.length > LIMITS.body) return setMsg({ ok: false, text: tx('The post is too long.') });
     set('body', r.text);
     requestAnimationFrame(() => {
       el.focus();
@@ -77,17 +77,17 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     });
 
   function addLink() {
-    const href = window.prompt('Link address (https://... or a page here, like /browse)');
+    const href = window.prompt(tx('Link address (https://... or a page here, like /browse)'));
     if (!href) return;
-    if (!safeHref(href)) return setMsg({ ok: false, text: 'That link address is not allowed. Use https://... or a path like /browse.' });
+    if (!safeHref(href)) return setMsg({ ok: false, text: tx('That link address is not allowed. Use https://... or a path like /browse.') });
     wrap('[', `](${href.trim()})`, 'link text');
   }
   function addImageLink() {
-    const src = window.prompt('Picture address (https://...)');
+    const src = window.prompt(tx('Picture address (https://...)'));
     if (!src) return;
     const h = safeHref(src);
-    if (!h || (h.external && !h.href.startsWith('https:'))) return setMsg({ ok: false, text: 'Use a picture address that starts with https://' });
-    const alt = window.prompt('What the picture shows (for people who cannot see it)') ?? '';
+    if (!h || (h.external && !h.href.startsWith('https:'))) return setMsg({ ok: false, text: tx('Use a picture address that starts with https://') });
+    const alt = window.prompt(tx('What the picture shows (for people who cannot see it)')) ?? '';
     block(`![${alt.replace(/[[\]]/g, '')}](${h.href})`);
   }
   async function upload(f: File) {
@@ -98,28 +98,28 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     const r = await fetch('/api/admin/posts/image', { method: 'POST', body: fd });
     const j = await r.json().catch(() => ({}));
     setUploading(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not upload the picture.' });
-    const alt = window.prompt('What the picture shows (for people who cannot see it)') ?? '';
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not upload the picture.') });
+    const alt = window.prompt(tx('What the picture shows (for people who cannot see it)')) ?? '';
     block(`![${alt.replace(/[[\]]/g, '')}](${j.url})`);
   }
   function addVideo() {
-    const src = window.prompt('Video address: YouTube, Vimeo, or an https .mp4 / .webm file');
+    const src = window.prompt(tx('Video address: YouTube, Vimeo, or an https .mp4 / .webm file'));
     if (!src) return;
-    if (!videoOf(src)) return setMsg({ ok: false, text: 'Use a YouTube or Vimeo address, or an https link to an .mp4 or .webm file.' });
-    const title = window.prompt('A short title for the video (optional)') ?? '';
+    if (!videoOf(src)) return setMsg({ ok: false, text: tx('Use a YouTube or Vimeo address, or an https link to an .mp4 or .webm file.') });
+    const title = window.prompt(tx('A short title for the video (optional)')) ?? '';
     block(`@[${title.replace(/[[\]]/g, '') || 'video'}](${src.trim()})`);
   }
   const TOOLS: [string, string, () => void][] = [
     ['H2', 'Heading', () => lines('## ')],
-    ['H3', 'Smaller heading', () => lines('### ')],
-    ['P', 'Normal paragraph', () => lines('')],
+    ['H3', tx('Smaller heading'), () => lines('### ')],
+    ['P', tx('Normal paragraph'), () => lines('')],
     ['B', 'Bold', () => wrap('**', '**', 'bold text')],
     ['I', 'Italic', () => wrap('*', '*', 'italic text')],
-    ['Link', 'Add a link', addLink],
-    ['• List', 'Bullet list', () => lines('- ')],
-    ['1. List', 'Numbered list', () => lines('', true)],
+    ['Link', tx('Add a link'), addLink],
+    ['• List', tx('Bullet list'), () => lines('- ')],
+    ['1. List', tx('Numbered list'), () => lines('', true)],
     ['Quote', 'Quote', () => lines('> ')],
-    ['Line', 'Dividing line', () => block('---')],
+    ['Line', tx('Dividing line'), () => block('---')],
   ];
 
   async function save(status: Draft['status']) {
@@ -131,20 +131,20 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'save', id: post?.id ?? null, ...next }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
     setD(next);
-    setMsg({ ok: true, text: status === 'published' ? 'Saved and published.' : 'Saved as a draft.' });
+    setMsg({ ok: true, text: status === 'published' ? tx('Saved and published.') : tx('Saved as a draft.') });
     if (!post) router.replace(`/admin/seo/post?id=${j.id}`);
     else router.refresh();
   }
 
   async function remove() {
-    if (!post || !window.confirm('Delete this post for good?')) return;
+    if (!post || !window.confirm(tx('Delete this post for good?'))) return;
     setBusy(true);
     const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: post.id }) });
     setBusy(false);
     if (r.ok) router.replace('/admin/seo');
-    else setMsg({ ok: false, text: 'Could not delete the post.' });
+    else setMsg({ ok: false, text: tx('Could not delete the post.') });
   }
 
   return (

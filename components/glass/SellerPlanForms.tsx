@@ -3,14 +3,17 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 /* Admin › Subscription Management › Seller (owner, 2026-11-12): POST /api/admin/seller-plans, on the existing seller plan system. */
 type Display = { description: string; badge: string; benefits: { text: string; on: boolean }[]; sort: number; visible: boolean };
 type Version = { code: 'free' | 'pro' | 'business'; name: string; monthlyCents: number; yearlyCents: number; commissionBps: number; listingLimit: number; featured: boolean };
 
-async function post(body: Record<string, unknown>) {
+async function post(body: Record<string, unknown>, tx: Tx) {
   const r = await fetch('/api/admin/seller-plans', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const j = (await r?.json().catch(() => ({}))) as { error?: string } | undefined;
-  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : 'No connection.') };
+  return { ok: !!r?.ok, error: j?.error ?? (r ? '' : tx('No connection.')) };
 }
 const Status = ({ msg }: { msg: string }) =>
   msg ? (
@@ -21,6 +24,7 @@ const Status = ({ msg }: { msg: string }) =>
 
 /* The seller on/off switch, and the words, badge, benefits, order and visibility of each plan as sellers see them. */
 export function SellerSettingsForm({ enabled, display, names }: { enabled: boolean; display: Record<string, Display>; names: Record<string, string> }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [on, setOn] = useState(enabled);
   const [d, setD] = useState(display);
@@ -32,27 +36,27 @@ export function SellerSettingsForm({ enabled, display, names }: { enabled: boole
       onSubmit={async (e) => {
         e.preventDefault();
         if (!on && enabled && !window.confirm('Switch seller subscriptions off? Sellers can no longer ask for a plan; running seller subscriptions keep their benefits.')) return;
-        const r = await post({ action: 'settings', enabled: on, display: d });
-        setMsg(r.ok ? 'Saved.' : r.error || 'Could not save.');
+        const r = await post({ action: 'settings', enabled: on, display: d }, tx);
+        setMsg(r.ok ? 'Saved.' : r.error || tx('Could not save.'));
         if (r.ok) router.refresh();
       }}
     >
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontWeight: 500 }}>
-        <input type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} /> Seller subscriptions are open (sellers can ask for a paid plan)
+        <input type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} /> <T s={'Seller subscriptions are open (sellers can ask for a paid plan)'} />
       </label>
       {Object.keys(d).map((code) => (
         <fieldset key={code} style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <legend className="tag">{names[code] ?? code}</legend>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
             <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
-              <input type="checkbox" checked={d[code].visible} onChange={(e) => set(code, { visible: e.target.checked })} /> Shown to sellers
+              <input type="checkbox" checked={d[code].visible} onChange={(e) => set(code, { visible: e.target.checked })} /> <T s={'Shown to sellers'} />
             </label>
             <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
-              Order
+              <T s={'Order'} />
               <input aria-label={`${code} order`} className="input" type="number" value={d[code].sort} onChange={(e) => set(code, { sort: Number(e.target.value) })} style={{ width: 80 }} />
             </label>
             <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
-              Badge
+              <T s={'Badge'} />
               <input aria-label={`${code} badge`} className="input" value={d[code].badge} maxLength={30} onChange={(e) => set(code, { badge: e.target.value })} style={{ width: 140 }} />
             </label>
           </div>
@@ -61,13 +65,18 @@ export function SellerSettingsForm({ enabled, display, names }: { enabled: boole
             className="input"
             rows={2}
             maxLength={400}
-            placeholder="Description"
+            placeholder={tx('Description')}
             value={d[code].description}
             onChange={(e) => set(code, { description: e.target.value })}
           />
           {d[code].benefits.map((b, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input aria-label="Shown" type="checkbox" checked={b.on} onChange={(e) => set(code, { benefits: d[code].benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)) })} />
+              <input
+                aria-label={tx('Shown')}
+                type="checkbox"
+                checked={b.on}
+                onChange={(e) => set(code, { benefits: d[code].benefits.map((x, n) => (n === i ? { ...x, on: e.target.checked } : x)) })}
+              />
               <input
                 aria-label={`${code} benefit ${i + 1}`}
                 className="input"
@@ -76,18 +85,18 @@ export function SellerSettingsForm({ enabled, display, names }: { enabled: boole
                 onChange={(e) => set(code, { benefits: d[code].benefits.map((x, n) => (n === i ? { ...x, text: e.target.value } : x)) })}
               />
               <button type="button" className="btn sm ghost" onClick={() => set(code, { benefits: d[code].benefits.filter((_, n) => n !== i) })}>
-                Remove
+                <T s={'Remove'} />
               </button>
             </div>
           ))}
           <button type="button" className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => set(code, { benefits: [...d[code].benefits, { text: '', on: true }] })}>
-            + Add benefit
+            <T s={'+ Add benefit'} />
           </button>
         </fieldset>
       ))}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <button className="btn sm" type="submit">
-          Save seller settings
+          <T s={'Save seller settings'} />
         </button>
         <Status msg={msg} />
       </div>
@@ -97,6 +106,7 @@ export function SellerSettingsForm({ enabled, display, names }: { enabled: boole
 
 /* One seller plan: saving makes its next version (running subscriptions and recorded fees keep theirs). */
 export function SellerPlanVersionForm({ plan, offered }: { plan: Version; offered: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState({
     name: plan.name,
@@ -118,47 +128,50 @@ export function SellerPlanVersionForm({ plan, offered }: { plan: Version; offere
       style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!window.confirm(`Save ${f.name} as a new version? New sellers and new requests get it; running seller subscriptions keep theirs.`)) return;
-        const r = await post({
-          action: 'saveVersion',
-          code: plan.code,
-          name: f.name,
-          monthlyCents: Math.round(Number(f.monthly) * 100),
-          yearlyCents: Math.round(Number(f.yearly) * 100),
-          commissionBps: Math.round(Number(f.commission) * 100),
-          listingLimit: Number(f.limit),
-          featured: f.featured,
-        });
-        setMsg(r.ok ? 'Saved as a new version.' : r.error || 'Could not save.');
+        if (!window.confirm(tx('Save {name} as a new version? New sellers and new requests get it; running seller subscriptions keep theirs.', { name: f.name }))) return;
+        const r = await post(
+          {
+            action: 'saveVersion',
+            code: plan.code,
+            name: f.name,
+            monthlyCents: Math.round(Number(f.monthly) * 100),
+            yearlyCents: Math.round(Number(f.yearly) * 100),
+            commissionBps: Math.round(Number(f.commission) * 100),
+            listingLimit: Number(f.limit),
+            featured: f.featured,
+          },
+          tx,
+        );
+        setMsg(r.ok ? tx('Saved as a new version.') : r.error || tx('Could not save.'));
         if (r.ok) router.refresh();
       }}
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 10 }}>
         {field('name', 'Name')}
-        {field('monthly', 'Monthly (USD)')}
-        {field('yearly', 'Yearly (USD)')}
-        {field('commission', 'Commission (%)')}
-        {field('limit', 'Published listings')}
+        {field('monthly', tx('Monthly (USD)'))}
+        {field('yearly', tx('Yearly (USD)'))}
+        {field('commission', tx('Commission (%)'))}
+        {field('limit', tx('Published listings'))}
       </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14 }}>
-          <input type="checkbox" checked={f.featured} onChange={(e) => setF({ ...f, featured: e.target.checked })} /> Featured listings
+          <input type="checkbox" checked={f.featured} onChange={(e) => setF({ ...f, featured: e.target.checked })} /> <T s={'Featured listings'} />
         </label>
         <button className="btn sm" type="submit">
-          Save as new version
+          <T s={'Save as new version'} />
         </button>
         {plan.code !== 'free' && (
           <button
             type="button"
             className="btn sm ghost"
             onClick={async () => {
-              if (offered && !window.confirm(`Withdraw ${plan.name}? No new seller can ask for it; running subscriptions keep it.`)) return;
-              const r = await post({ action: 'offer', code: plan.code, offered: !offered });
-              setMsg(r.ok ? (offered ? 'Withdrawn.' : 'Offered again.') : r.error || 'Could not change it.');
+              if (offered && !window.confirm(tx('Withdraw {name}? No new seller can ask for it; running subscriptions keep it.', { name: plan.name }))) return;
+              const r = await post({ action: 'offer', code: plan.code, offered: !offered }, tx);
+              setMsg(r.ok ? (offered ? 'Withdrawn.' : tx('Offered again.')) : r.error || tx('Could not change it.'));
               if (r.ok) router.refresh();
             }}
           >
-            {offered ? 'Withdraw' : 'Offer again'}
+            {offered ? tx('Withdraw') : tx('Offer again')}
           </button>
         )}
         <Status msg={msg} />

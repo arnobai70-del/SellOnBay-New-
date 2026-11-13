@@ -10,13 +10,16 @@ import { orderStore } from '@/lib/orders/store';
 import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Admin search', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Admin search'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
 
 /* Where the admin top bar's search goes: orders (by code, id or title), listings and accounts, each only for the permissions that may see them. Read only. */
 export default async function AdminSearch({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/search', roles: ['admin'] });
   const q = ((await searchParams).q ?? '').trim().slice(0, 80);
   const lq = q.toLowerCase().replace(/^#/, '');
@@ -32,21 +35,23 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
   const o = orders.filter((x) => x.id.toLowerCase().startsWith(lq) || orderCode(x.id).toLowerCase().replace(/^#/, '').includes(lq) || x.title.toLowerCase().includes(lq)).slice(0, 20);
   const l = listings.filter((x) => x.name.toLowerCase().includes(lq) || x.slug.includes(lq) || x.seller.toLowerCase().includes(lq)).slice(0, 20);
   return (
-    <AdminShell viewer={viewer} active="overview" title={q ? `Search: ${q}` : 'Search'} subtitle="Orders, listings and accounts">
+    <AdminShell viewer={viewer} active="overview" title={q ? `Search: ${q}` : tx('Search')} subtitle={tx('Orders, listings and accounts')}>
       {q.length < 2 ? (
         <section className="glass card">
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-            Type at least two letters in the search box above.
+            <T s={'Type at least two letters in the search box above.'} />
           </p>
         </section>
       ) : (
         <>
           <section className="glass card">
-            <h2>Orders ({o.length})</h2>
+            <h2>
+              <T s={'Orders ({length})'} v={{ length: o.length }} />
+            </h2>
             {o.length ? (
               o.map((x) => (
                 <div key={x.id} className="li" style={{ fontSize: 14 }}>
-                  <span className={`status ${TONE[buyerStatus(x.state).tone]}`}>{buyerStatus(x.state).label}</span>
+                  <span className={`status ${TONE[buyerStatus(x.state).tone]}`}>{translate(buyerStatus(x.state).label)}</span>
                   <span style={{ flex: 1 }}>
                     <Link href={`/admin/orders/${x.id}`} prefetch={false}>
                       {orderCode(x.id)}
@@ -58,12 +63,14 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
               ))
             ) : (
               <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-                No order matches.
+                <T s={'No order matches.'} />
               </p>
             )}
           </section>
           <section className="glass card">
-            <h2>Listings ({l.length})</h2>
+            <h2>
+              <T s={'Listings ({length})'} v={{ length: l.length }} />
+            </h2>
             {l.length ? (
               l.map((x) => (
                 <div key={x.slug} className="li" style={{ fontSize: 14 }}>
@@ -80,12 +87,14 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
               ))
             ) : (
               <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-                No listing matches.
+                <T s={'No listing matches.'} />
               </p>
             )}
           </section>
           <section className="glass card">
-            <h2>Accounts ({users.length})</h2>
+            <h2>
+              <T s={'Accounts ({length})'} v={{ length: users.length }} />
+            </h2>
             {users.length ? (
               users.slice(0, 20).map((x) => (
                 <div key={x.id} className="li" style={{ fontSize: 14 }}>
@@ -94,13 +103,13 @@ export default async function AdminSearch({ searchParams }: { searchParams: Prom
                     {x.role}
                   </span>
                   <Link className="btn sm ghost" href={`/admin/users?q=${encodeURIComponent(x.name)}`} prefetch={false}>
-                    Open
+                    <T s={'Open'} />
                   </Link>
                 </div>
               ))
             ) : (
               <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-                {scopes.includes('super') ? 'No account matches.' : 'Accounts are for Super Admin.'}
+                {scopes.includes('super') ? tx('No account matches.') : tx('Accounts are for Super Admin.')}
               </p>
             )}
           </section>

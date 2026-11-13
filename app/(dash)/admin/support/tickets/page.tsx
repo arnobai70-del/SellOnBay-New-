@@ -7,45 +7,50 @@ import { listTickets } from '@/lib/messaging/store';
 import { personNames } from '@/lib/requests/view';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Support tickets', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Support tickets'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Support answers buyers' and sellers' tickets. Buyers and sellers never see each other's tickets. */
 export default async function AdminSupport({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/support/tickets', roles: ['admin'], scope: 'support' });
   const { t } = await searchParams;
   const tickets = await listTickets();
   const open = tickets.find((x) => x.id === t) ?? null;
   const names = await personNames(tickets.map((x) => x.openedBy));
   const groups: [string, typeof tickets][] = [
-    ['Waiting for SellOnBay', tickets.filter((x) => x.status === 'open')],
-    ['Waiting for the person', tickets.filter((x) => x.status === 'waiting_user')],
-    ['Closed (recent)', tickets.filter((x) => x.status === 'closed').slice(0, 20)],
+    [tx('Waiting for SellOnBay'), tickets.filter((x) => x.status === 'open')],
+    [tx('Waiting for the person'), tickets.filter((x) => x.status === 'waiting_user')],
+    [tx('Closed (recent)'), tickets.filter((x) => x.status === 'closed').slice(0, 20)],
   ];
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-support" title="Support tickets">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-support" title={tx('Support tickets')}>
       {open && (
         <>
           <ConversationPanel type="ticket" id={open.id} me="admin" heading={`${open.subject} (${open.openerRole}: ${names.get(open.openedBy) ?? 'user'})`} />
           <div className="glass card sob-sec">
             {open.orderId && (
               <p>
-                <Link href={`/admin/orders/${open.orderId}`}>Open the order</Link>
+                <Link href={`/admin/orders/${open.orderId}`}>
+                  <T s={'Open the order'} />
+                </Link>
               </p>
             )}
             <AdminForm
               endpoint={`/api/tickets/${open.id}`}
-              openLabel="Change status"
-              submit="Save"
+              openLabel={tx('Change status')}
+              submit={tx('Save')}
               tone="line"
               fields={[
                 {
                   name: 'status',
-                  label: 'Status',
+                  label: tx('Status'),
                   kind: 'select',
                   options: [
-                    ['open', 'Waiting for SellOnBay'],
-                    ['waiting_user', 'Waiting for the person'],
+                    ['open', tx('Waiting for SellOnBay')],
+                    ['waiting_user', tx('Waiting for the person')],
                     ['closed', 'Closed'],
                   ],
                 },
@@ -71,7 +76,7 @@ export default async function AdminSupport({ searchParams }: { searchParams: Pro
                     <Link href={`/admin/support/tickets?t=${x.id}`}>{x.subject}</Link>
                   </b>
                   <small>
-                    {x.openerRole} · {names.get(x.openedBy) ?? 'user'} · updated {new Date(x.updatedAt).toUTCString().slice(0, 22)}
+                    <T s={'{openerRole} · {v1} · updated {v2}'} v={{ openerRole: x.openerRole, v1: names.get(x.openedBy) ?? 'user', v2: new Date(x.updatedAt).toUTCString().slice(0, 22) }} />
                   </small>
                 </div>
               </li>

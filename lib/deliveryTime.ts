@@ -1,3 +1,4 @@
+import { tx } from './i18n/tx';
 import { CONFIG } from './config';
 
 /*
@@ -50,7 +51,7 @@ export function readDelivery(raw: string, allowed: readonly number[], keep?: num
   const h = /^(\d{1,3})\s*h(ours?)?$/.exec(v);
   if (h) {
     const hours = Number(h[1]);
-    if (!validHours(hours) || !(allowed.includes(hours) || hours === keep)) return { ok: false, error: 'Pick a delivery time from the list.' };
+    if (!validHours(hours) || !(allowed.includes(hours) || hours === keep)) return { ok: false, error: tx('Pick a delivery time from the list.') };
     return { ok: true, days: daysFor(hours), hours };
   }
   const n = v.startsWith('1 to ') ? Number(v.slice(5, 6)) : parseInt(v, 10);

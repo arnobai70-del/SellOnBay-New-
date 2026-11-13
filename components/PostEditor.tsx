@@ -5,6 +5,8 @@ import { PostBody } from '@/components/PostBody';
 import { parseMarkdown, safeHref, videoOf } from '@/lib/markdown';
 import { GOOD, LIMITS, descriptionOf, postProblem, seoHints, slugify, type Post } from '@/lib/postRules';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * The post editor in the admin panel: title, address, meta title and meta description with live character counts, a preview of how the post
  * looks in Google, SEO hints, and the text in simple Markdown with a toolbar (headings, bold, italic, links, lists, quote, picture
@@ -22,6 +24,7 @@ function Count({ n, good, max }: { n: number; good: number; max: number }) {
 const LINE_MARK = /^(#{1,4}\s+|[-*]\s+|\d+[.)]\s+|>\s?)/;
 
 export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: string }) | null; siteUrl: string; siteName: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [d, setD] = useState<Draft>(post ?? EMPTY);
   const [slugTouched, setSlugTouched] = useState(!!post);
@@ -29,8 +32,8 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v, ...(k === 'title' && !slugTouched ? { slug: slugify(String(v)) } : {}) }));
 
-  const shownTitle = (d.metaTitle || d.title || 'Post title') + ` · ${siteName}`;
-  const shownDesc = descriptionOf(d) || 'The meta description you write appears here.';
+  const shownTitle = (d.metaTitle || d.title || tx('Post title')) + ` · ${siteName}`;
+  const shownDesc = descriptionOf(d) || tx('The meta description you write appears here.');
   const hints = seoHints(d);
   const area = useRef<HTMLTextAreaElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -42,7 +45,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     const el = area.current;
     if (!el) return;
     const r = fn(d.body, el.selectionStart, el.selectionEnd);
-    if (r.text.length > LIMITS.body) return setMsg({ ok: false, text: 'The post is too long.' });
+    if (r.text.length > LIMITS.body) return setMsg({ ok: false, text: tx('The post is too long.') });
     set('body', r.text);
     requestAnimationFrame(() => {
       el.focus();
@@ -74,17 +77,17 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     });
 
   function addLink() {
-    const href = window.prompt('Link address (https://... or a page here, like /browse)');
+    const href = window.prompt(tx('Link address (https://... or a page here, like /browse)'));
     if (!href) return;
-    if (!safeHref(href)) return setMsg({ ok: false, text: 'That link address is not allowed. Use https://... or a path like /browse.' });
+    if (!safeHref(href)) return setMsg({ ok: false, text: tx('That link address is not allowed. Use https://... or a path like /browse.') });
     wrap('[', `](${href.trim()})`, 'link text');
   }
   function addImageLink() {
-    const src = window.prompt('Picture address (https://...)');
+    const src = window.prompt(tx('Picture address (https://...)'));
     if (!src) return;
     const h = safeHref(src);
-    if (!h || (h.external && !h.href.startsWith('https:'))) return setMsg({ ok: false, text: 'Use a picture address that starts with https://' });
-    const alt = window.prompt('What the picture shows (for people who cannot see it)') ?? '';
+    if (!h || (h.external && !h.href.startsWith('https:'))) return setMsg({ ok: false, text: tx('Use a picture address that starts with https://') });
+    const alt = window.prompt(tx('What the picture shows (for people who cannot see it)')) ?? '';
     block(`![${alt.replace(/[[\]]/g, '')}](${h.href})`);
   }
   async function upload(f: File) {
@@ -95,28 +98,28 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     const r = await fetch('/api/admin/posts/image', { method: 'POST', body: fd });
     const j = await r.json().catch(() => ({}));
     setUploading(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not upload the picture.' });
-    const alt = window.prompt('What the picture shows (for people who cannot see it)') ?? '';
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not upload the picture.') });
+    const alt = window.prompt(tx('What the picture shows (for people who cannot see it)')) ?? '';
     block(`![${alt.replace(/[[\]]/g, '')}](${j.url})`);
   }
   function addVideo() {
-    const src = window.prompt('Video address: YouTube, Vimeo, or an https .mp4 / .webm file');
+    const src = window.prompt(tx('Video address: YouTube, Vimeo, or an https .mp4 / .webm file'));
     if (!src) return;
-    if (!videoOf(src)) return setMsg({ ok: false, text: 'Use a YouTube or Vimeo address, or an https link to an .mp4 or .webm file.' });
-    const title = window.prompt('A short title for the video (optional)') ?? '';
+    if (!videoOf(src)) return setMsg({ ok: false, text: tx('Use a YouTube or Vimeo address, or an https link to an .mp4 or .webm file.') });
+    const title = window.prompt(tx('A short title for the video (optional)')) ?? '';
     block(`@[${title.replace(/[[\]]/g, '') || 'video'}](${src.trim()})`);
   }
   const TOOLS: [string, string, () => void][] = [
     ['H2', 'Heading', () => lines('## ')],
-    ['H3', 'Smaller heading', () => lines('### ')],
-    ['P', 'Normal paragraph', () => lines('')],
+    ['H3', tx('Smaller heading'), () => lines('### ')],
+    ['P', tx('Normal paragraph'), () => lines('')],
     ['B', 'Bold', () => wrap('**', '**', 'bold text')],
     ['I', 'Italic', () => wrap('*', '*', 'italic text')],
-    ['Link', 'Add a link', addLink],
-    ['• List', 'Bullet list', () => lines('- ')],
-    ['1. List', 'Numbered list', () => lines('', true)],
+    ['Link', tx('Add a link'), addLink],
+    ['• List', tx('Bullet list'), () => lines('- ')],
+    ['1. List', tx('Numbered list'), () => lines('', true)],
     ['Quote', 'Quote', () => lines('> ')],
-    ['Line', 'Dividing line', () => block('---')],
+    ['Line', tx('Dividing line'), () => block('---')],
   ];
 
   async function save(status: Draft['status']) {
@@ -128,31 +131,35 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
     const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'save', id: post?.id ?? null, ...next }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
     setD(next);
-    setMsg({ ok: true, text: status === 'published' ? 'Saved and published.' : 'Saved as a draft.' });
+    setMsg({ ok: true, text: status === 'published' ? tx('Saved and published.') : tx('Saved as a draft.') });
     if (!post) router.replace(`/admin/seo/post?id=${j.id}`);
     else router.refresh();
   }
 
   async function remove() {
-    if (!post || !window.confirm('Delete this post for good?')) return;
+    if (!post || !window.confirm(tx('Delete this post for good?'))) return;
     setBusy(true);
     const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: post.id }) });
     setBusy(false);
     if (r.ok) router.replace('/admin/seo');
-    else setMsg({ ok: false, text: 'Could not delete the post.' });
+    else setMsg({ ok: false, text: tx('Could not delete the post.') });
   }
 
   return (
     <div className="sob-pe">
       <div className="sob-pe-main">
         <div className="field">
-          <label htmlFor="pe-title">Title (the heading on the page)</label>
+          <label htmlFor="pe-title">
+            <T s={'Title (the heading on the page)'} />
+          </label>
           <input id="pe-title" value={d.title} maxLength={LIMITS.title} onChange={(e) => set('title', e.target.value)} />
         </div>
         <div className="field">
-          <label htmlFor="pe-slug">Address</label>
+          <label htmlFor="pe-slug">
+            <T s={'Address'} />
+          </label>
           <input
             id="pe-slug"
             value={d.slug}
@@ -162,66 +169,80 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
               set('slug', slugify(e.target.value));
             }}
           />
-          <small className="muted">{`${siteUrl}/blog/${d.slug || '...'}`} Changing it after publishing breaks old links.</small>
+          <small className="muted">
+            <T s={'{v0} Changing it after publishing breaks old links.'} v={{ v0: `${siteUrl}/blog/${d.slug || '...'}` }} />
+          </small>
         </div>
         <div className="field">
-          <label htmlFor="pe-mt">Meta title</label>
-          <input id="pe-mt" value={d.metaTitle} maxLength={LIMITS.metaTitle} onChange={(e) => set('metaTitle', e.target.value)} placeholder="Empty = the title" />
+          <label htmlFor="pe-mt">
+            <T s={'Meta title'} />
+          </label>
+          <input id="pe-mt" value={d.metaTitle} maxLength={LIMITS.metaTitle} onChange={(e) => set('metaTitle', e.target.value)} placeholder={tx('Empty = the title')} />
           <Count n={(d.metaTitle || d.title).length} good={GOOD.metaTitle} max={LIMITS.metaTitle} />
         </div>
         <div className="field">
-          <label htmlFor="pe-md">Meta description</label>
+          <label htmlFor="pe-md">
+            <T s={'Meta description'} />
+          </label>
           <textarea id="pe-md" rows={3} value={d.metaDescription} maxLength={LIMITS.metaDescription} onChange={(e) => set('metaDescription', e.target.value)} />
           <Count n={d.metaDescription.length} good={GOOD.metaDescription} max={LIMITS.metaDescription} />
         </div>
         <div className="field">
-          <label htmlFor="pe-ex">Short summary (shown on the blog page)</label>
+          <label htmlFor="pe-ex">
+            <T s={'Short summary (shown on the blog page)'} />
+          </label>
           <textarea id="pe-ex" rows={2} value={d.excerpt} maxLength={LIMITS.excerpt} onChange={(e) => set('excerpt', e.target.value)} />
         </div>
         <div className="field">
-          <label htmlFor="pe-cover">Cover picture address (https://, optional)</label>
+          <label htmlFor="pe-cover">
+            <T s={'Cover picture address (https://, optional)'} />
+          </label>
           <input id="pe-cover" value={d.coverUrl} maxLength={500} onChange={(e) => set('coverUrl', e.target.value)} />
         </div>
         {d.coverUrl && (
           <div className="field">
-            <label htmlFor="pe-alt">What the picture shows (alt text)</label>
+            <label htmlFor="pe-alt">
+              <T s={'What the picture shows (alt text)'} />
+            </label>
             <input id="pe-alt" value={d.coverAlt} maxLength={LIMITS.coverAlt} onChange={(e) => set('coverAlt', e.target.value)} />
           </div>
         )}
         <div className="field">
           <div className="sob-pe-bodyhead">
-            <label htmlFor="pe-body">Post</label>
-            <div className="sob-pe-tabs" role="group" aria-label="Write or preview">
+            <label htmlFor="pe-body">
+              <T s={'Post'} />
+            </label>
+            <div className="sob-pe-tabs" role="group" aria-label={tx('Write or preview')}>
               <button type="button" aria-pressed={view === 'write'} onClick={() => setView('write')}>
-                Write
+                <T s={'Write'} />
               </button>
               <button type="button" aria-pressed={view === 'preview'} onClick={() => setView('preview')}>
-                Preview
+                <T s={'Preview'} />
               </button>
             </div>
           </div>
           {view === 'write' ? (
             <>
-              <div className="sob-pe-tools" role="toolbar" aria-label="Formatting">
+              <div className="sob-pe-tools" role="toolbar" aria-label={tx('Formatting')}>
                 {TOOLS.map(([label, title, run]) => (
                   <button key={label} type="button" title={title} aria-label={title} onClick={run}>
                     {label}
                   </button>
                 ))}
-                <button type="button" title="Upload a picture" aria-label="Upload a picture" disabled={uploading} onClick={() => file.current?.click()}>
-                  {uploading ? 'Uploading…' : 'Upload picture'}
+                <button type="button" title={tx('Upload a picture')} aria-label={tx('Upload a picture')} disabled={uploading} onClick={() => file.current?.click()}>
+                  {uploading ? tx('Uploading…') : tx('Upload picture')}
                 </button>
-                <button type="button" title="Picture from a link" aria-label="Picture from a link" onClick={addImageLink}>
-                  Picture link
+                <button type="button" title={tx('Picture from a link')} aria-label={tx('Picture from a link')} onClick={addImageLink}>
+                  <T s={'Picture link'} />
                 </button>
-                <button type="button" title="Add a video" aria-label="Add a video" onClick={addVideo}>
-                  Video
+                <button type="button" title={tx('Add a video')} aria-label={tx('Add a video')} onClick={addVideo}>
+                  <T s={'Video'} />
                 </button>
                 <input
                   ref={file}
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif"
-                  aria-label="Upload a picture"
+                  aria-label={tx('Upload a picture')}
                   hidden
                   onChange={(e) => {
                     const f = e.target.files?.[0];
@@ -232,34 +253,44 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
               </div>
               <textarea ref={area} id="pe-body" className="sob-pe-body" rows={22} value={d.body} maxLength={LIMITS.body} onChange={(e) => set('body', e.target.value)} />
               <small className="muted">
-                The title above is the page&apos;s H1, so headings in the post start at H2. Pictures: PNG, JPEG, WebP or GIF up to 5 MB. Videos: YouTube, Vimeo or an .mp4 / .webm link.
+                <T s={"The title above is the page's H1, so headings in the post start at H2. Pictures: PNG, JPEG, WebP or GIF up to 5 MB. Videos: YouTube, Vimeo or an .mp4 / .webm link."} />
               </small>
             </>
           ) : (
             <div className="sob-pe-preview post">
-              <div className="sob-prose">{d.body.trim() ? <PostBody blocks={parseMarkdown(d.body)} /> : <p className="muted">Nothing written yet.</p>}</div>
+              <div className="sob-prose">
+                {d.body.trim() ? (
+                  <PostBody blocks={parseMarkdown(d.body)} />
+                ) : (
+                  <p className="muted">
+                    <T s={'Nothing written yet.'} />
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
         <label className="chk">
           <input type="checkbox" checked={d.noindex} onChange={(e) => set('noindex', e.target.checked)} />
-          <span>Keep this post out of Google (noindex)</span>
+          <span>
+            <T s={'Keep this post out of Google (noindex)'} />
+          </span>
         </label>
         <div className="sob-acts">
           <button className="btn sm" type="button" disabled={busy} onClick={() => save('published')}>
-            {d.status === 'published' ? 'Save changes' : 'Publish'}
+            {d.status === 'published' ? tx('Save changes') : tx('Publish')}
           </button>
           <button className="btn ghost sm" type="button" disabled={busy} onClick={() => save('draft')}>
-            {d.status === 'published' ? 'Unpublish (back to draft)' : 'Save draft'}
+            {d.status === 'published' ? tx('Unpublish (back to draft)') : tx('Save draft')}
           </button>
           {post && d.status === 'published' && (
             <a className="btn ghost sm" href={`/blog/${d.slug}`} target="_blank" rel="noopener">
-              View post
+              <T s={'View post'} />
             </a>
           )}
           {post && (
             <button className="btn ghost sm" type="button" disabled={busy} onClick={remove}>
-              Delete
+              <T s={'Delete'} />
             </button>
           )}
         </div>
@@ -270,13 +301,17 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
         )}
       </div>
       <aside className="sob-pe-side">
-        <b>How it looks in Google</b>
+        <b>
+          <T s={'How it looks in Google'} />
+        </b>
         <div className="sob-pe-serp">
           <span className="sob-pe-url">{`${siteUrl.replace(/^https?:\/\//, '')} › blog › ${d.slug || '...'}`}</span>
           <span className="sob-pe-st">{shownTitle}</span>
           <span className="sob-pe-sd">{shownDesc}</span>
         </div>
-        <b>SEO check</b>
+        <b>
+          <T s={'SEO check'} />
+        </b>
         {hints.length ? (
           <ul className="sob-pe-hints">
             {hints.map((h) => (
@@ -284,7 +319,9 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
             ))}
           </ul>
         ) : (
-          <p className="sob-ok">Looks good.</p>
+          <p className="sob-ok">
+            <T s={'Looks good.'} />
+          </p>
         )}
       </aside>
     </div>

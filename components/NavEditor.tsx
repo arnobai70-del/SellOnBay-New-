@@ -2,10 +2,13 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Row = { key: string; label: string; locked: boolean };
 
 /* Shows, hides and reorders the category-bar entries. Hidden entries keep their pages; the server saves and refreshes every page. */
 export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string[]; order: string[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const start = [...rows].sort((a, b) => (order.indexOf(a.key) < 0 ? 999 : order.indexOf(a.key)) - (order.indexOf(b.key) < 0 ? 999 : order.indexOf(b.key)));
   const [list, setList] = useState(order.length ? start : rows);
@@ -25,8 +28,8 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
     const r = await fetch('/api/admin/seo/nav', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ hidden: off, order: list.map((x) => x.key) }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Saved. The top bar follows within a minute.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Saved. The top bar follows within a minute.') });
     router.refresh();
   }
   return (
@@ -37,22 +40,22 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
             <input type="checkbox" checked={!off.includes(x.key)} disabled={x.locked} onChange={(e) => setOff((p) => (e.target.checked ? p.filter((k) => k !== x.key) : [...p, x.key]))} />
             <span>
               {x.label}
-              {x.locked ? ' (always shown)' : ''}
+              {x.locked ? tx(' (always shown)') : ''}
             </span>
           </label>
           <div className="sob-acts">
             <button className="btn ghost sm" type="button" onClick={() => move(i, -1)} disabled={i === 0}>
-              Move up
+              <T s={'Move up'} />
             </button>
             <button className="btn ghost sm" type="button" onClick={() => move(i, 1)} disabled={i === list.length - 1}>
-              Move down
+              <T s={'Move down'} />
             </button>
           </div>
         </div>
       ))}
       <div className="sob-acts">
         <button className="btn sm" type="button" disabled={busy} onClick={save}>
-          {busy ? 'One moment...' : 'Save the top bar'}
+          {busy ? tx('One moment...') : tx('Save the top bar')}
         </button>
       </div>
       {msg && (

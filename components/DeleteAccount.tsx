@@ -2,8 +2,11 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 /* Asks the person to type DELETE, then sends the request. The server decides whether it can go ahead. */
 export function DeleteAccount() {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -21,20 +24,22 @@ export function DeleteAccount() {
           r = await fetch('/api/account/delete-request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirm: text }) });
         } catch {
           setBusy(false);
-          return setErr('Could not reach SellOnBay. Check your connection and try again.');
+          return setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
         }
         const j = await r.json().catch(() => ({}));
         setBusy(false);
-        if (!r.ok) return setErr(j.error ?? 'Something went wrong. Try again.');
+        if (!r.ok) return setErr(j.error ?? tx('Something went wrong. Try again.'));
         router.refresh();
       }}
     >
       <div className="field">
-        <label htmlFor="del-confirm">Type DELETE to confirm</label>
+        <label htmlFor="del-confirm">
+          <T s={'Type DELETE to confirm'} />
+        </label>
         <input id="del-confirm" value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" />
       </div>
       <button className="btn warn sm" type="submit" disabled={busy || text !== 'DELETE'}>
-        {busy ? 'One moment...' : 'Ask us to delete my account'}
+        {busy ? tx('One moment...') : tx('Ask us to delete my account')}
       </button>
       {err && (
         <p className="sob-err" role="alert">

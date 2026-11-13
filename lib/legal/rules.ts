@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 /*
  * Versioned legal documents (SellOnBay 2.0, placeholder P05). Pure, tested.
  * Content admins write drafts; only a Super Admin publishes. A published version never changes (the database refuses it too); publishing the
@@ -42,16 +43,16 @@ export function checkDraft(i: { title: string; body: string; summary?: string })
   const body = i.body.replace(/\r\n?/g, '\n').trim();
   const summary = (i.summary ?? '').replace(/\s+/g, ' ').trim();
   if (title.length < LIMITS.title[0] || title.length > LIMITS.title[1]) return { ok: false, error: `The title is ${LIMITS.title[0]} to ${LIMITS.title[1]} characters.` };
-  if (body.length < LIMITS.body[0] || body.length > LIMITS.body[1]) return { ok: false, error: 'Write the full text (at least 20 characters).' };
+  if (body.length < LIMITS.body[0] || body.length > LIMITS.body[1]) return { ok: false, error: tx('Write the full text (at least 20 characters).') };
   if (summary.length > LIMITS.summary) return { ok: false, error: `Keep the summary of changes under ${LIMITS.summary} characters.` };
-  if (/<\s*(script|iframe|object|embed|style)\b/i.test(body)) return { ok: false, error: 'Legal texts are Markdown; HTML is not allowed.' };
+  if (/<\s*(script|iframe|object|embed|style)\b/i.test(body)) return { ok: false, error: tx('Legal texts are Markdown; HTML is not allowed.') };
   return { ok: true, title, body, summary };
 }
 
 /* The next version number, and whether a new draft may be started (one open draft per document). */
 export function nextDraft(existing: LegalDoc[], key: DocKey): { ok: true; version: number } | { ok: false; error: string } {
   const mine = existing.filter((d) => d.docKey === key);
-  if (mine.some((d) => d.status === 'draft')) return { ok: false, error: 'This document already has a draft. Edit that one.' };
+  if (mine.some((d) => d.status === 'draft')) return { ok: false, error: tx('This document already has a draft. Edit that one.') };
   return { ok: true, version: mine.reduce((m, d) => Math.max(m, d.version), 0) + 1 };
 }
 

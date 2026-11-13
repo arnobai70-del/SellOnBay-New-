@@ -4,10 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Line } from '@/lib/commerce/types';
 
+import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 
 /* The real payment page: what the buyer pays for, then PayPal. The price shown is the one the server holds; PayPal gets it from the server too. */
 export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: string; title: string; lines: Line[]; totalCents: number; back: string; notice?: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(notice ?? '');
@@ -25,15 +28,17 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
         router.push(`/orders/${id}`);
         return;
       }
-      setErr(j.error ?? 'Something went wrong. Nothing was charged.');
+      setErr(j.error ?? tx('Something went wrong. Nothing was charged.'));
     } catch {
-      setErr('Could not reach the payment page. Nothing was charged.');
+      setErr(tx('Could not reach the payment page. Nothing was charged.'));
     }
     setBusy(false);
   };
   return (
     <div className="wrap" style={{ paddingBlock: 60, maxWidth: 640 }}>
-      <h1>Pay for your order</h1>
+      <h1>
+        <T s={'Pay for your order'} />
+      </h1>
       <p className="muted" style={{ marginTop: 12 }}>
         {title}
       </p>
@@ -46,13 +51,15 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
         ))}
         <li>
           <div className="sob-grow">
-            <b>Total</b>
+            <b>
+              <T s={'Total'} />
+            </b>
           </div>
           <b>{money(totalCents)}</b>
         </li>
       </ul>
       <p className="muted" style={{ marginTop: 12 }}>
-        You pay with PayPal. The money is held until you accept the work, and only then is it released to the seller.
+        <T s={'You pay with PayPal. The money is held until you accept the work, and only then is it released to the seller.'} />
       </p>
       {err && (
         <p className="sob-err" role="alert" style={{ marginTop: 12 }}>
@@ -61,10 +68,10 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
       )}
       <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
         <button className="btn" type="button" onClick={pay} disabled={busy}>
-          {busy ? 'Opening PayPal…' : 'Pay with PayPal'}
+          {busy ? tx('Opening PayPal…') : tx('Pay with PayPal')}
         </button>
         <Link className="btn ghost" href={back}>
-          Back
+          <T s={'Back'} />
         </Link>
       </div>
     </div>

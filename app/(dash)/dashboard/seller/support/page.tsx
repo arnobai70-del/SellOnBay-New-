@@ -7,37 +7,46 @@ import { ticketsOf } from '@/lib/messaging/service';
 import { orderStore } from '@/lib/orders/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Support', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Support'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['all', 'All'],
-  ['disputes', 'Disputes'],
-  ['questions', 'Questions'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['all', tx('All')],
+    ['disputes', tx('Disputes')],
+    ['questions', tx('Questions')],
+  ] as const;
 
 /*
  * design-reference/seller-support.html: the seller's tickets and disputes with SellOnBay (admin-mediated, D-B). A ticket about an order counts as a
  * dispute here; the others are questions. Chats with buyers stay inside each order. ?new=1 opens a new ticket.
  */
 export default async function SellerSupport({ searchParams }: { searchParams: Promise<{ t?: string; tab?: string; new?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/support', roles: ['seller'] });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'all';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'all';
   const all = viewer ? await ticketsOf({ id: viewer.id, role: 'seller' }) : [];
   const tickets = all.filter((t) => (tab === 'disputes' ? !!t.orderId : tab === 'questions' ? !t.orderId : true));
   const open = all.find((x) => x.id === sp.t) ?? null;
   const orders = viewer ? (await (await orderStore()).forUser(viewer.id)).filter((o) => o.sellerId === viewer.id).slice(0, 30) : [];
   return (
-    <SellerShell viewer={viewer} active="support" file="seller-support" title="Disputes & messages" head={false}>
+    <SellerShell viewer={viewer} active="support" file="seller-support" title={tx('Disputes & messages')} head={false}>
       <div className="row">
         <div>
-          <h1>Disputes &amp; messages</h1>
-          <div className="tag">Answer fast. A problem pauses payment until it is solved. Chats with buyers are inside each order.</div>
+          <h1>
+            <T s={'Disputes & messages'} />
+          </h1>
+          <div className="tag">
+            <T s={'Answer fast. A problem pauses payment until it is solved. Chats with buyers are inside each order.'} />
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="seg" role="tablist" aria-label="Filter">
-            {TABS.map(([k, l]) => (
+          <div className="seg" role="tablist" aria-label={tx('Filter')}>
+            {TABS(tx).map(([k, l]) => (
               <Link
                 key={k}
                 role="tab"
@@ -51,7 +60,7 @@ export default async function SellerSupport({ searchParams }: { searchParams: Pr
             ))}
           </div>
           <Link className="btn ghost" href="/dashboard/seller/support?new=1" prefetch={false}>
-            + New ticket
+            <T s={'+ New ticket'} />
           </Link>
         </div>
       </div>

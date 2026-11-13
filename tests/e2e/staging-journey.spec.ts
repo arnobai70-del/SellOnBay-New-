@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { createServerClient } from '@supabase/ssr';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { CONFIG } from '../../lib/config';
 
 /*
  * SellOnBay 2.0 staging journey, against a LOCAL app server running with SITE_STAGE=staging and the staging Supabase project only
@@ -68,7 +69,7 @@ async function signIn(browser: import('@playwright/test').Browser, email: string
   const jar: { name: string; value: string }[] = [];
   const ssr = createServerClient(SUPA, ANON, { cookies: { getAll: () => [], setAll: (c) => void jar.push(...c.map(({ name, value }) => ({ name, value }))) } });
   await ssr.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-  const ctx = await browser.newContext({ httpCredentials: { username: AUTH_USER, password: AUTH_PASS } });
+  const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-sob-e2e': '1' }, httpCredentials: { username: AUTH_USER, password: AUTH_PASS } });
   const host = new URL(BASE).hostname;
   await ctx.addCookies(jar.map((c) => ({ ...c, domain: host, path: '/', httpOnly: false, secure: false, sameSite: 'Lax' as const })));
   const page = await ctx.newPage();
@@ -154,7 +155,13 @@ test.describe('staging journey (custom development)', () => {
     });
     expect(d.status, JSON.stringify(d.body)).toBe(200);
     const q = await admin().from('quotations').select('id, status, seller_id, commission_bps, fee_cents, owner_type').eq('request_id', S.request).single();
-    expect(q.data).toMatchObject({ status: 'draft', seller_id: A.seller.id, owner_type: 'seller', commission_bps: 1500, fee_cents: 3000 }); // Free plan 15%
+    expect(q.data).toMatchObject({
+      status: 'draft',
+      seller_id: A.seller.id,
+      owner_type: 'seller',
+      commission_bps: CONFIG.flatPlan.commissionBps,
+      fee_cents: (20_000 * CONFIG.flatPlan.commissionBps) / 10_000,
+    }); // flat plan (owner, 2026-11-07)
     S.quote = q.data!.id;
     expect((await api(A.support, `/api/admin/quotations/${S.quote}`, { json: { action: 'issue' } })).status).toBe(200);
     expect((await api(A.buyer, `/api/quotations/${S.quote}`, { json: { action: 'accept' } })).status).not.toBe(200); // still waiting for Super

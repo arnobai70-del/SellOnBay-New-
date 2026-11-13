@@ -5,24 +5,34 @@ import { flagStates } from '@/lib/featureFlags';
 import { flagDef } from '@/lib/featureFlagRegistry';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Feature flags', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Feature flags'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea' as const, required: true });
 
 /* Optional features a Super Admin may switch on or off. Payment checks, release approval, file scanning, storage, permissions and the audit log have no switch here. */
 export default async function Flags() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/settings/flags', roles: ['admin'], scope: 'super' });
   const flags = await flagStates();
   const areas = [...new Set(flags.map((f) => f.area))];
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-flags" title="Feature flags">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-flags" title={tx('Feature flags')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Optional features</h2>
+            <h2>
+              <T s={'Optional features'} />
+            </h2>
             <p className="tag">
-              Turn optional features on or off without a new release. Payment checks, release approval, file scanning, private storage, permissions and the audit log are always on and have no switch.
+              <T
+                s={
+                  'Turn optional features on or off without a new release. Payment checks, release approval, file scanning, private storage, permissions and the audit log are always on and have no switch.'
+                }
+              />
             </p>
           </div>
         </div>
@@ -44,23 +54,26 @@ export default async function Flags() {
                     {f.label}{' '}
                     <span className={f.on ? 'status st-ok' : 'status'}>
                       <i />
-                      {f.on ? 'On' : 'Off'}
+                      {f.on ? tx('On') : tx('Off')}
                     </span>
                   </b>
-                  {locked && !f.on && <p className="muted">Cannot be turned on yet. {locked}</p>}
+                  {locked && !f.on && (
+                    <p className="muted">
+                      <T s={'Cannot be turned on yet. {locked}'} v={{ locked }} />
+                    </p>
+                  )}
                   {f.reason && (
                     <p className="muted">
-                      Last change: {f.reason}
-                      {f.changedAt ? ` (${new Date(f.changedAt).toUTCString()})` : ''}
+                      <T s={'Last change: {reason}{v1}'} v={{ reason: f.reason, v1: f.changedAt ? ` (${new Date(f.changedAt).toUTCString()})` : '' }} />
                     </p>
                   )}
                   {!(locked && !f.on) && (
                     <AdminForm
                       endpoint="/api/admin/flags"
                       fixed={{ key: f.key, on: !f.on }}
-                      fields={[why]}
-                      submit={f.on ? 'Turn off' : 'Turn on'}
-                      openLabel={f.on ? 'Turn off' : 'Turn on'}
+                      fields={[why(tx)]}
+                      submit={f.on ? tx('Turn off') : tx('Turn on')}
+                      openLabel={f.on ? tx('Turn off') : tx('Turn on')}
                       tone="line"
                     />
                   )}

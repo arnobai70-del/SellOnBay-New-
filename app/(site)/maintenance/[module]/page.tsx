@@ -4,7 +4,8 @@ import { MaintenanceNotice } from '@/components/MaintenanceNotice';
 import { isModuleKey } from '@/lib/maintenance/config';
 import { closedRow, defaultMessage, shownMessage } from '@/lib/maintenance/state';
 
-export const metadata: Metadata = { title: 'Back soon', robots: { index: false, follow: true } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Back soon'), robots: { index: false, follow: true } });
 export const dynamic = 'force-dynamic';
 
 /* Where requireViewer sends a closed module's page (lib/supabase/viewer.ts); proxy.ts answers its own 503 notice (maintenancePageResponse). */

@@ -14,15 +14,19 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Domains', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Domains'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['all', 'All'],
-  ['expiring', 'Expiring'],
-  ['pending', 'Pending'],
-  ['transfers', 'Transfers'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['all', tx('All')],
+    ['expiring', tx('Expiring')],
+    ['pending', tx('Pending')],
+    ['transfers', tx('Transfers')],
+  ] as const;
 type Row = { name: string; orderId: string | null; expires: number | null; ref: string | null; pending: boolean; asked?: { name: string; country: string; decided: boolean } };
 const month = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
@@ -32,9 +36,10 @@ const month = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 's
  * from lib/domains.ts; reminders from lib/config.ts.
  */
 export default async function AdminDomains({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/domains', roles: ['admin'], scope: 'support' });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'all';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'all';
   const q = (sp.q ?? '').trim().toLowerCase();
   const now = Date.now();
   const [requests, held] = await Promise.all([
@@ -58,47 +63,65 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
   const active = recorded.length;
   const soon = all.filter(expiring);
   return (
-    <AdminShell viewer={viewer} active="domains" file="admin-domains" title="Domains" head={false}>
+    <AdminShell viewer={viewer} active="domains" file="admin-domains" title={tx('Domains')} head={false}>
       <div className="row">
         <div>
-          <h1>Domains</h1>
-          <div className="tag">Registrations, renewals and prices · every domain is registered in the buyer&apos;s name</div>
+          <h1>
+            <T s={'Domains'} />
+          </h1>
+          <div className="tag">
+            <T s={"Registrations, renewals and prices · every domain is registered in the buyer's name"} />
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button className="btn ghost" type="button" disabled title="No registrar is connected yet">
-            Sync with registrar
+          <button className="btn ghost" type="button" disabled title={tx('No registrar is connected yet')}>
+            <T s={'Sync with registrar'} />
           </button>
           <Link className="btn" href="/admin/domains?tab=pending" prefetch={false}>
-            + Register for a buyer
+            <T s={'+ Register for a buyer'} />
           </Link>
         </div>
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Active domains</div>
+          <div className="l">
+            <T s={'Active domains'} />
+          </div>
           <div className="v">{active}</div>
-          <div className="s">{recorded.filter((d) => d.order_id).length} linked to a website</div>
+          <div className="s">
+            {recorded.filter((d) => d.order_id).length} <T s={'linked to a website'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Expiring in 30 days</div>
+          <div className="l">
+            <T s={'Expiring in 30 days'} />
+          </div>
           <div className="v">{soon.length}</div>
-          <div className="s">{soon.filter((r) => r.expires! - now < 7 * DAY_MS).length} this week</div>
+          <div className="s">
+            {soon.filter((r) => r.expires! - now < 7 * DAY_MS).length} <T s={'this week'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Pending registration</div>
+          <div className="l">
+            <T s={'Pending registration'} />
+          </div>
           <div className="v">{asked.length}</div>
-          <div className="s">Register by hand, then record</div>
+          <div className="s">
+            <T s={'Register by hand, then record'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Domain income</div>
+          <div className="l">
+            <T s={'Domain income'} />
+          </div>
           <div className="v">$0</div>
-          <div className="s">{registrarLive() ? 'This month' : 'No registrar yet'}</div>
+          <div className="s">{registrarLive() ? tx('This month') : tx('No registrar yet')}</div>
         </div>
       </div>
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 8px' }}>
-          <div className="seg" role="tablist" aria-label="Domain status">
-            {TABS.map(([k, l]) => (
+          <div className="seg" role="tablist" aria-label={tx('Domain status')}>
+            {TABS(tx).map(([k, l]) => (
               <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={k === 'all' ? '/admin/domains' : `/admin/domains?tab=${k}`} prefetch={false}>
                 {l}
               </Link>
@@ -107,23 +130,37 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
           <form action="/admin/domains" method="get" role="search" style={{ maxWidth: 260, width: '100%' }}>
             {tab !== 'all' && <input type="hidden" name="tab" value={tab} />}
             <label htmlFor="df" className="hidden-label">
-              Search domains
+              <T s={'Search domains'} />
             </label>
-            <input id="df" name="q" defaultValue={sp.q ?? ''} className="input" placeholder="Search domain or owner" style={{ maxWidth: 260, borderRadius: 999 }} />
+            <input id="df" name="q" defaultValue={sp.q ?? ''} className="input" placeholder={tx('Search domain or owner')} style={{ maxWidth: 260, borderRadius: 999 }} />
           </form>
         </div>
         <div className="tbl">
           <table>
             <thead>
               <tr>
-                <th>Domain</th>
-                <th>Owner (registrant)</th>
-                <th>Linked website</th>
-                <th>Expires</th>
-                <th>Auto-renew</th>
-                <th>Status</th>
                 <th>
-                  <span className="hidden-label">Actions</span>
+                  <T s={'Domain'} />
+                </th>
+                <th>
+                  <T s={'Owner (registrant)'} />
+                </th>
+                <th>
+                  <T s={'Linked website'} />
+                </th>
+                <th>
+                  <T s={'Expires'} />
+                </th>
+                <th>
+                  <T s={'Auto-renew'} />
+                </th>
+                <th>
+                  <T s={'Status'} />
+                </th>
+                <th>
+                  <span className="hidden-label">
+                    <T s={'Actions'} />
+                  </span>
                 </th>
               </tr>
             </thead>
@@ -148,37 +185,41 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
                           '—'
                         )}
                       </td>
-                      <td>{r.pending ? '—' : days === null ? 'Not recorded' : days <= 30 ? `in ${days} days` : month(r.expires!)}</td>
+                      <td>{r.pending ? '—' : days === null ? tx('Not recorded') : days <= 30 ? `in ${days} days` : month(r.expires!)}</td>
                       <td>
                         <span className="tag" style={{ margin: 0 }}>
-                          By hand
+                          <T s={'By hand'} />
                         </span>
                       </td>
                       <td>
                         {r.pending ? (
-                          <span className="status st-info">{r.asked?.decided ? 'Pending' : 'Request waiting'}</span>
+                          <span className="status st-info">{r.asked?.decided ? tx('Pending') : tx('Request waiting')}</span>
                         ) : expiring(r) ? (
-                          <span className="status st-wait">Expiring</span>
+                          <span className="status st-wait">
+                            <T s={'Expiring'} />
+                          </span>
                         ) : (
-                          <span className="status st-ok">Active</span>
+                          <span className="status st-ok">
+                            <T s={'Active'} />
+                          </span>
                         )}
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {r.pending ? (
                           <AdminForm
                             endpoint="/api/admin/domains"
-                            openLabel="Record as registered"
-                            submit="Record the domain"
+                            openLabel={tx('Record as registered')}
+                            submit={tx('Record the domain')}
                             tone="line"
                             fixed={{ orderId: r.orderId, name: r.name }}
                             fields={[
-                              { name: 'expiresAt', label: 'Expires on (YYYY-MM-DD)', kind: 'text', required: true },
-                              { name: 'registrarRef', label: 'Registrar reference (optional)', kind: 'text' },
+                              { name: 'expiresAt', label: tx('Expires on (YYYY-MM-DD)'), kind: 'text', required: true },
+                              { name: 'registrarRef', label: tx('Registrar reference (optional)'), kind: 'text' },
                             ]}
                           />
                         ) : (
                           <span className="tag" style={{ margin: 0 }}>
-                            {r.ref ? `Ref ${r.ref}` : r.orderId ? orderCode(r.orderId) : ''}
+                            {r.ref ? tx('Ref {ref}', { ref: r.ref }) : r.orderId ? orderCode(r.orderId) : ''}
                           </span>
                         )}
                       </td>
@@ -188,7 +229,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
               ) : (
                 <tr>
                   <td colSpan={7} className="muted">
-                    {tab === 'transfers' ? 'No transfers: domains are registered by hand.' : 'No domains here.'}
+                    {tab === 'transfers' ? tx('No transfers: domains are registered by hand.') : tx('No domains here.')}
                   </td>
                 </tr>
               )}
@@ -199,20 +240,32 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
       <div className="grid2">
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>Prices per extension</h2>
+            <h2>
+              <T s={'Prices per extension'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              Set in the code (lib/domains.ts)
+              <T s={'Set in the code (lib/domains.ts)'} />
             </span>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Extension</th>
-                  <th>Your cost</th>
-                  <th>Sell price</th>
-                  <th>Renewal</th>
-                  <th>Margin</th>
+                  <th>
+                    <T s={'Extension'} />
+                  </th>
+                  <th>
+                    <T s={'Your cost'} />
+                  </th>
+                  <th>
+                    <T s={'Sell price'} />
+                  </th>
+                  <th>
+                    <T s={'Renewal'} />
+                  </th>
+                  <th>
+                    <T s={'Margin'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -230,23 +283,37 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
           </div>
         </section>
         <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <h2>Renewal reminders</h2>
+          <h2>
+            <T s={'Renewal reminders'} />
+          </h2>
           <div className="row">
-            <span style={{ fontSize: 14 }}>Email buyer {CONFIG.domain.reminderDays.join(', ')} days before expiry</span>
-            <span className="status st-ok">On</span>
+            <span style={{ fontSize: 14 }}>
+              <T s={'Email buyer {v0} days before expiry'} v={{ v0: CONFIG.domain.reminderDays.join(', ') }} />
+            </span>
+            <span className="status st-ok">
+              <T s={'On'} />
+            </span>
           </div>
           <div className="row">
-            <span style={{ fontSize: 14 }}>Privacy protection on by default</span>
-            <span className="status st-draft">At the registrar</span>
+            <span style={{ fontSize: 14 }}>
+              <T s={'Privacy protection on by default'} />
+            </span>
+            <span className="status st-draft">
+              <T s={'At the registrar'} />
+            </span>
           </div>
           <div className="field">
-            <label htmlFor="rg">Registrar account</label>
+            <label htmlFor="rg">
+              <T s={'Registrar account'} />
+            </label>
             <select id="rg" className="input" disabled>
-              <option>Not connected</option>
+              <option>
+                <T s={'Not connected'} />
+              </option>
             </select>
           </div>
           <div className="tag" style={{ margin: 0 }}>
-            {registrarLive() ? 'Registrar connected.' : 'No registrar is connected yet: register at the registrar in the buyer’s name, then record it above.'}
+            {registrarLive() ? tx('Registrar connected.') : tx('No registrar is connected yet: register at the registrar in the buyer’s name, then record it above.')}
           </div>
         </section>
       </div>

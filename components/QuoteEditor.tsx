@@ -2,17 +2,20 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 type Kind = 'product' | 'package' | 'express' | 'extra' | 'revision' | 'custom' | 'domain' | 'hosting';
 type Row = { label: string; dollars: string; kind: Kind; passThroughVerified: boolean };
-const KINDS: [Kind, string][] = [
-  ['product', 'Product'],
-  ['package', 'Setup or customisation'],
-  ['express', 'Express delivery'],
-  ['extra', 'Extra work'],
-  ['revision', 'Paid revision'],
-  ['custom', 'Custom development'],
-  ['domain', 'Domain (pass-through)'],
-  ['hosting', 'Hosting (pass-through)'],
+const KINDS = (tx: Tx): [Kind, string][] => [
+  ['product', tx('Product')],
+  ['package', tx('Setup or customisation')],
+  ['express', tx('Express delivery')],
+  ['extra', tx('Extra work')],
+  ['revision', tx('Paid revision')],
+  ['custom', tx('Custom development')],
+  ['domain', tx('Domain (pass-through)')],
+  ['hosting', tx('Hosting (pass-through)')],
 ];
 
 /*
@@ -32,6 +35,7 @@ export function QuoteEditor({
   defaults: { deliveryDays: number; deliveryHours: number | null; supportDays: number; updateDays: number };
   exclusive: boolean;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>(start.map((l) => ({ label: l.label, dollars: (l.cents / 100).toFixed(2), kind: l.kind, passThroughVerified: false })));
   const [days, setDays] = useState(String(defaults.deliveryDays));
@@ -77,8 +81,8 @@ export function QuoteEditor({
     });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Could not save the draft.' });
-    setMsg({ ok: true, text: 'Draft saved. Check it below, then issue it.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not save the draft.') });
+    setMsg({ ok: true, text: tx('Draft saved. Check it below, then issue it.') });
     router.refresh();
   }
 
@@ -87,20 +91,26 @@ export function QuoteEditor({
       <table className="sob-q-lines">
         <thead>
           <tr>
-            <th>Line</th>
-            <th>Kind</th>
-            <th>Amount (USD)</th>
+            <th>
+              <T s={'Line'} />
+            </th>
+            <th>
+              <T s={'Kind'} />
+            </th>
+            <th>
+              <T s={'Amount (USD)'} />
+            </th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
             <tr key={i}>
               <td>
-                <input aria-label="Line name" value={r.label} maxLength={120} onChange={(e) => set(i, { label: e.target.value })} />
+                <input aria-label={tx('Line name')} value={r.label} maxLength={120} onChange={(e) => set(i, { label: e.target.value })} />
               </td>
               <td>
-                <select aria-label="Line kind" value={r.kind} onChange={(e) => set(i, { kind: e.target.value as Kind })}>
-                  {KINDS.map(([k, l]) => (
+                <select aria-label={tx('Line kind')} value={r.kind} onChange={(e) => set(i, { kind: e.target.value as Kind })}>
+                  {KINDS(tx).map(([k, l]) => (
                     <option key={k} value={k}>
                       {l}
                     </option>
@@ -109,14 +119,16 @@ export function QuoteEditor({
                 {(r.kind === 'domain' || r.kind === 'hosting') && (
                   <label className="opt">
                     <input type="checkbox" checked={r.passThroughVerified} onChange={(e) => set(i, { passThroughVerified: e.target.checked })} />
-                    <small>I checked this is a genuine pass-through cost (no commission)</small>
+                    <small>
+                      <T s={'I checked this is a genuine pass-through cost (no commission)'} />
+                    </small>
                   </label>
                 )}
               </td>
               <td>
-                <input aria-label="Amount" inputMode="decimal" value={r.dollars} onChange={(e) => set(i, { dollars: e.target.value })} />
+                <input aria-label={tx('Amount')} inputMode="decimal" value={r.dollars} onChange={(e) => set(i, { dollars: e.target.value })} />
                 <button type="button" className="btn ghost sm" onClick={() => setRows(rows.filter((_, n) => n !== i))} disabled={rows.length < 2}>
-                  Remove
+                  <T s={'Remove'} />
                 </button>
               </td>
             </tr>
@@ -124,67 +136,96 @@ export function QuoteEditor({
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={2}>Total</td>
+            <td colSpan={2}>
+              <T s={'Total'} />
+            </td>
             <td>${(total / 100).toFixed(2)}</td>
           </tr>
         </tfoot>
       </table>
       <button type="button" className="btn ghost sm" onClick={() => setRows([...rows, { label: '', dollars: '0.00', kind: 'extra', passThroughVerified: false }])} disabled={rows.length >= 20}>
-        Add a line
+        <T s={'Add a line'} />
       </button>
       <p className="muted">
-        Listed seller price: {listedCents === null ? 'none (licence tier, custom work or exclusive request)' : `$${(listedCents / 100).toFixed(2)}`} · quoted seller price: $
-        {(sellerCents / 100).toFixed(2)}
-        {differs ? ' · differs, so a Super Admin must approve it before the buyer sees it' : ''}
+        <T
+          s={'Listed seller price: {v0} · quoted seller price: ${v1}{v2}'}
+          v={{
+            v0: listedCents === null ? 'none (licence tier, custom work or exclusive request)' : `$${(listedCents / 100).toFixed(2)}`,
+            v1: (sellerCents / 100).toFixed(2),
+            v2: differs ? ' · differs, so a Super Admin must approve it before the buyer sees it' : '',
+          }}
+        />
       </p>
       <div className="sob-req-grid">
         <div>
-          <label htmlFor="qe-days">Delivery days</label>
+          <label htmlFor="qe-days">
+            <T s={'Delivery days'} />
+          </label>
           <input id="qe-days" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="qe-hours">or hours (optional)</label>
+          <label htmlFor="qe-hours">
+            <T s={'or hours (optional)'} />
+          </label>
           <input id="qe-hours" inputMode="numeric" value={hours} onChange={(e) => setHours(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="qe-support">Support days</label>
+          <label htmlFor="qe-support">
+            <T s={'Support days'} />
+          </label>
           <input id="qe-support" inputMode="numeric" value={support} onChange={(e) => setSupport(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="qe-updates">Update days</label>
+          <label htmlFor="qe-updates">
+            <T s={'Update days'} />
+          </label>
           <input id="qe-updates" inputMode="numeric" value={updates} onChange={(e) => setUpdates(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="qe-inc">Included revisions</label>
+          <label htmlFor="qe-inc">
+            <T s={'Included revisions'} />
+          </label>
           <input id="qe-inc" inputMode="numeric" value={included} onChange={(e) => setIncluded(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="qe-win">Revision window (days)</label>
+          <label htmlFor="qe-win">
+            <T s={'Revision window (days)'} />
+          </label>
           <input id="qe-win" inputMode="numeric" value={windowDays} onChange={(e) => setWindowDays(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="qe-extra">Extra revision price (USD, optional)</label>
+          <label htmlFor="qe-extra">
+            <T s={'Extra revision price (USD, optional)'} />
+          </label>
           <input id="qe-extra" inputMode="decimal" value={extra} onChange={(e) => setExtra(e.target.value)} />
         </div>
       </div>
-      <label htmlFor="qe-scope">What counts as a revision</label>
+      <label htmlFor="qe-scope">
+        <T s={'What counts as a revision'} />
+      </label>
       <textarea id="qe-scope" rows={2} maxLength={1000} value={scope} onChange={(e) => setScope(e.target.value)} />
-      <label htmlFor="qe-note">Note to the buyer (optional)</label>
+      <label htmlFor="qe-note">
+        <T s={'Note to the buyer (optional)'} />
+      </label>
       <textarea id="qe-note" rows={2} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
       {exclusive && (
         <>
-          <label htmlFor="qe-legal">Legal/IP review (who checked, and what happens to earlier buyers&apos; licences)</label>
+          <label htmlFor="qe-legal">
+            <T s={"Legal/IP review (who checked, and what happens to earlier buyers' licences)"} />
+          </label>
           <textarea id="qe-legal" rows={3} maxLength={500} value={legal} onChange={(e) => setLegal(e.target.value)} />
         </>
       )}
       {differs && (
         <>
-          <label htmlFor="qe-reason">Why this price (read by the Super Admin)</label>
+          <label htmlFor="qe-reason">
+            <T s={'Why this price (read by the Super Admin)'} />
+          </label>
           <textarea id="qe-reason" rows={2} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />
         </>
       )}
       <button type="button" className="btn sm" onClick={save} disabled={busy}>
-        {busy ? 'Saving...' : 'Save draft quotation'}
+        {busy ? tx('Saving...') : tx('Save draft quotation')}
       </button>
       {msg && (
         <p className={msg.ok ? 'sob-note-box' : 'sob-note-box warn'} role={msg.ok ? 'status' : 'alert'}>

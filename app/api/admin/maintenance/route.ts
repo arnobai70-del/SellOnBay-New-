@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { MAINTENANCE_LIMITS, MODULE_KEYS } from '@/lib/maintenance/config';
 import { maintenanceHistory, moduleStates, setModule } from '@/lib/maintenance/service';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,5 +35,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const d = body.data;
   const r = await setModule(a.id, d.module, { enabled: d.enabled, message: d.message, startAt: ms(d.startAt), endAt: ms(d.endAt) });
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

@@ -5,6 +5,8 @@ import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 // Phones in the international (E.164) form; the form takes spaces and dashes and drops them.
@@ -25,12 +27,12 @@ const schema = z.object({
 export async function POST(req: Request) {
   const closed = await maintenanceFor('auth');
   if (closed) return closed;
-  if (!supabaseConfigured) return NextResponse.json({ error: 'This needs an account. There are none in demo mode.' }, { status: 404 });
+  if (!supabaseConfigured) return jsonT({ error: tx('This needs an account. There are none in demo mode.') }, { status: 404 });
   const {
     data: { user },
   } = await (await createClient()).auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
-  if (!(await limit(`details:${user.id}`, 20, 3_600_000))) return NextResponse.json({ error: 'Too many changes. Try again later.' }, { status: 429 });
+  if (!user) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
+  if (!(await limit(`details:${user.id}`, 20, 3_600_000))) return jsonT({ error: tx('Too many changes. Try again later.') }, { status: 429 });
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const d = body.data;
@@ -38,6 +40,6 @@ export async function POST(req: Request) {
     .from('profiles')
     .update({ country: d.country || null, phone: d.phone || null, company: d.company || null })
     .eq('id', user.id);
-  if (error) return NextResponse.json({ error: 'Could not save. Please try again.' }, { status: 500 });
+  if (error) return jsonT({ error: tx('Could not save. Please try again.') }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

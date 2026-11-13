@@ -3,11 +3,13 @@ import { PublicFrame } from '@/components/glass/PublicFrame';
 import { pageCopy } from '@/lib/content/copy';
 import { HUBS } from '@/lib/seo/hubs';
 
+import { getI18n } from '@/lib/i18n/server';
 /*
  * design-reference/404.html: the error card with search and the ways back; beside it the website categories. Its words come from Admin › Content ›
  * Pages ("Page not found"). The maintenance card of the same design file is components/MaintenanceNotice.tsx.
  */
 export default async function NotFound() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const c = await pageCopy('not-found');
   return (
     <PublicFrame file="404">
@@ -27,7 +29,7 @@ export default async function NotFound() {
             <label htmlFor="s4" className="hidden-label">
               Search
             </label>
-            <input id="s4" name="q" className="input" placeholder="Search websites or domains" />
+            <input id="s4" name="q" className="input" placeholder={tx('Search websites or domains')} />
             <button className="btn" type="submit">
               Search
             </button>

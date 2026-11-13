@@ -2,6 +2,9 @@ import 'server-only';
 import { adminOnly } from '../admin/guard';
 import { draftOf, publishedOf } from '../cms/docStore';
 import { arrange, EMPTY_DOC, fill, pageByKey, type PageDoc } from './registry';
+import { bundled } from '../i18n/catalog';
+import { requestLang } from '../i18n/server';
+import { publishedWords } from '../i18n/store';
 
 /*
  * The words of a public page (owner, 2026-11-08): what an admin published at Admin › Content › Pages, else the built-in words in
@@ -34,7 +37,14 @@ export async function pageCopy(key: string, draft = false): Promise<Copy> {
     doc = EMPTY_DOC; // a database problem shows the built-in words
   }
   const field = (s: string, f: string) => def?.sections.find((x) => x.key === s)?.fields.find((x) => x.key === f);
-  const t = (s: string, f: string, fallback = '') => fill(doc.text?.[`${s}.${f}`] || field(s, f)?.default || fallback);
+  // Another language (lib/i18n, owner 2026-11-12): the admin's published translation, then the bundled draft, then these English words.
+  const lang = preview ? 'en' : await requestLang();
+  let translated: ((k: string) => string | undefined) | null = null;
+  if (lang !== 'en') {
+    const [pub, bundle] = await Promise.all([publishedWords(lang).catch(() => ({}) as Record<string, string>), bundled(lang)]);
+    translated = (k) => (pub[k]?.trim() ? pub[k] : bundle[k]?.trim() ? bundle[k] : undefined);
+  }
+  const t = (s: string, f: string, fallback = '') => fill(translated?.(`page.${key}.${s}.${f}`) ?? (doc.text?.[`${s}.${f}`] || field(s, f)?.default || fallback));
   return {
     t,
     lines: (s, f) =>

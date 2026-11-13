@@ -15,19 +15,27 @@ import { plainWords } from '@/lib/glass/words';
 import { orderStore } from '@/lib/orders/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'My websites', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('My websites'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const STATUS: Record<string, [string, string]> = { live: ['Live', 'st-ok'], in_review: ['In review', 'st-info'], rejected: ['Changes requested', 'st-wait'], paused: ['Paused', 'st-draft'] };
-const FILE_STATE: Record<string, string> = {
-  awaiting_upload: 'Not uploaded yet',
-  checking: 'Being checked',
-  failed_checks: 'Not accepted',
-  awaiting_review: 'Waiting for a reviewer',
+const STATUS = (tx: Tx): Record<string, [string, string]> => ({
+  live: ['Live', 'st-ok'],
+  in_review: [tx('In review'), 'st-info'],
+  rejected: [tx('Changes requested'), 'st-wait'],
+  paused: ['Paused', 'st-draft'],
+});
+const FILE_STATE = (tx: Tx): Record<string, string> => ({
+  awaiting_upload: tx('Not uploaded yet'),
+  checking: tx('Being checked'),
+  failed_checks: tx('Not accepted'),
+  awaiting_review: tx('Waiting for a reviewer'),
   approved: 'Approved',
   rejected: 'Rejected',
   purged: 'Removed',
-};
+});
 
 /*
  * design-reference/seller-websites.html: the seller's listings with their sales, rating, status and the reviewer's note, then "Upload a new
@@ -35,6 +43,7 @@ const FILE_STATE: Record<string, string> = {
  * The top bar's search filters the listings (?q=).
  */
 export default async function SellerWebsites({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/websites', roles: ['seller', 'admin'] });
   const q = ((await searchParams).q ?? '').trim().toLowerCase().slice(0, 80);
   const [v, flags, files, store, sales, drafts, orders] = viewer
@@ -52,11 +61,15 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
   const soldOf = (slug: string) => orders.filter((o) => o.productKey === slug && (o.fundedAt || o.state === 'beta_approved')).length;
   const listings = (v?.listings ?? []).filter((l) => !q || l.name.toLowerCase().includes(q) || l.slug.includes(q));
   return (
-    <SellerShell viewer={viewer} active="websites" file="seller-websites" title="My websites" head={false} handle={store?.username ? store.handle : undefined}>
+    <SellerShell viewer={viewer} active="websites" file="seller-websites" title={tx('My websites')} head={false} handle={store?.username ? store.handle : undefined}>
       <div className="row">
         <div>
-          <h1>My websites</h1>
-          <div className="tag">Your listings, reviewer feedback and new uploads. A change to a link or a file sends a listing back for review.</div>
+          <h1>
+            <T s={'My websites'} />
+          </h1>
+          <div className="tag">
+            <T s={'Your listings, reviewer feedback and new uploads. A change to a link or a file sends a listing back for review.'} />
+          </div>
         </div>
       </div>
       {v && (
@@ -65,28 +78,52 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
             <table>
               <thead>
                 <tr>
-                  <th>Website</th>
-                  <th>Price</th>
-                  <th>Sales</th>
-                  <th>Rating</th>
-                  <th>Status</th>
-                  <th>Reviewer note</th>
-                  <th>Sale</th>
-                  <th>Free in beta</th>
                   <th>
-                    <span className="hidden-label">Actions</span>
+                    <T s={'Website'} />
+                  </th>
+                  <th>
+                    <T s={'Price'} />
+                  </th>
+                  <th>
+                    <T s={'Sales'} />
+                  </th>
+                  <th>
+                    <T s={'Rating'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
+                  <th>
+                    <T s={'Reviewer note'} />
+                  </th>
+                  <th>
+                    <T s={'Sale'} />
+                  </th>
+                  <th>
+                    <T s={'Free in beta'} />
+                  </th>
+                  <th>
+                    <span className="hidden-label">
+                      <T s={'Actions'} />
+                    </span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {listings.map((l) => {
-                  const [label, tone] = STATUS[l.status] ?? [l.status, 'st-draft'];
+                  const [label, tone] = STATUS(tx)[l.status] ?? [l.status, 'st-draft'];
                   return (
                     <tr key={l.slug}>
                       <td style={{ fontWeight: 500 }}>
                         {plainWords(l.name)}
-                        <div className="tag">Delivery {l.delivery}</div>
-                        {l.digital && l.versions.length > 0 && <div className="tag">Versions: {l.versions.map((x) => `${x.version} (${x.status.replace('_', ' ')})`).join(', ')}</div>}
+                        <div className="tag">
+                          <T s={'Delivery {delivery}'} v={{ delivery: l.delivery }} />
+                        </div>
+                        {l.digital && l.versions.length > 0 && (
+                          <div className="tag">
+                            <T s={'Versions:'} /> {l.versions.map((x) => `${x.version} (${x.status.replace('_', ' ')})`).join(', ')}
+                          </div>
+                        )}
                       </td>
                       <td>{usd(l.priceCents)}</td>
                       <td>{soldOf(l.slug)}</td>
@@ -109,25 +146,25 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                             className={l.status === 'rejected' ? 'btn sm' : 'btn sm ghost'}
                             href={`/dashboard/seller/websites/new?edit=${encodeURIComponent(l.slug)}`}
                             prefetch={false}
-                            aria-label={`Edit ${plainWords(l.name)}`}
+                            aria-label={tx('Edit {plainWords}', { plainWords: plainWords(l.name) })}
                           >
-                            {l.status === 'rejected' ? 'Fix & resubmit' : 'Edit'}
+                            {l.status === 'rejected' ? tx('Fix & resubmit') : tx('Edit')}
                           </Link>
                           {l.status === 'live' && (
                             <Link className="btn sm ghost" href={`/websites/${encodeURIComponent(l.slug)}`} prefetch={false}>
-                              View
+                              <T s={'View'} />
                             </Link>
                           )}
                           {l.digital && l.status === 'live' && (
                             <AdminForm
                               endpoint={`/api/listings/${l.slug}/versions`}
-                              openLabel="New version"
-                              submit="Send for review"
+                              openLabel={tx('New version')}
+                              submit={tx('Send for review')}
                               tone="line"
                               fields={[
-                                { name: 'version', label: 'Version number, for example 1.1', kind: 'text', required: true },
-                                { name: 'changelog', label: 'What changed (buyers see this)', kind: 'textarea', required: true },
-                                { name: 'fileUrl', label: 'Private link to the new files (https)', kind: 'text', required: true },
+                                { name: 'version', label: tx('Version number, for example 1.1'), kind: 'text', required: true },
+                                { name: 'changelog', label: tx('What changed (buyers see this)'), kind: 'textarea', required: true },
+                                { name: 'fileUrl', label: tx('Private link to the new files (https)'), kind: 'text', required: true },
                               ]}
                             />
                           )}
@@ -143,14 +180,18 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                     <td>0</td>
                     <td>—</td>
                     <td>
-                      <span className="status st-draft">Draft</span>
+                      <span className="status st-draft">
+                        <T s={'Draft'} />
+                      </span>
                     </td>
-                    <td className="muted">Not submitted</td>
+                    <td className="muted">
+                      <T s={'Not submitted'} />
+                    </td>
                     <td />
                     <td />
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <Link className="btn sm ghost" href={`/dashboard/seller/websites/new?draft=${encodeURIComponent(d.slug)}`} prefetch={false}>
-                        Continue
+                        <T s={'Continue'} />
                       </Link>
                     </td>
                   </tr>
@@ -158,7 +199,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                 {!listings.length && !drafts.length && (
                   <tr>
                     <td colSpan={9} className="muted">
-                      {q ? 'No listing matches that search.' : 'No listings yet. Upload your first website below to start selling.'}
+                      {q ? tx('No listing matches that search.') : tx('No listings yet. Upload your first website below to start selling.')}
                     </td>
                   </tr>
                 )}
@@ -170,10 +211,15 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
       <UploadSection viewer={viewer} />
       {v && (
         <section className="glass card" id="files">
-          <h2>Source files</h2>
+          <h2>
+            <T s={'Source files'} />
+          </h2>
           <div className="tag">
-            Buyers get exactly the file SellOnBay approved, from private storage, only after the order is funded or approved. A change is a new upload and a new version; an approved file never
-            changes.
+            <T
+              s={
+                'Buyers get exactly the file SellOnBay approved, from private storage, only after the order is funded or approved. A change is a new upload and a new version; an approved file never changes.'
+              }
+            />
           </div>
           <div style={{ marginTop: 12 }}>
             <SourceUpload listings={v.listings.filter((l) => l.status !== 'rejected').map((l) => ({ slug: l.slug, name: plainWords(l.name) }))} />
@@ -189,7 +235,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                 ))}
               </span>
               <span className="tag" style={{ margin: 0 }}>
-                {FILE_STATE[f.state] ?? f.state}
+                {FILE_STATE(tx)[f.state] ?? f.state}
                 {f.reviewNote ? ` · ${f.reviewNote}` : ''}
               </span>
             </div>

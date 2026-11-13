@@ -4,6 +4,8 @@ import { markRead, unreadCount } from '@/lib/notify';
 import { getViewerId } from '@/lib/supabase/viewer';
 import { parseWith } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({ id: z.union([z.literal('all'), z.string().uuid()]) });
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
   const closed = await maintenanceFor('messaging'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const id = await getViewerId();
-  if (!id) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+  if (!id) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
   const p = parseWith(schema, await req.json().catch(() => null));
   if (!p.ok) return p.res;
   await markRead(id, p.data.id);

@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx'; // marks English words; the screen translates them
 import 'server-only';
 import { supabaseConfigured } from '../supabase/env';
 import { createAdminClient } from '../supabase/server';
@@ -5,43 +6,43 @@ import type { LogEvent, PurchaseRequest, Quotation } from './store';
 
 /* Plain words and small lookups for the request and quotation pages (buyer and admin). */
 export const REQUEST_WORDS: Record<string, [string, string]> = {
-  submitted: ['Sent', 'status st-info'],
-  under_review: ['Being reviewed', 'status st-wait'],
-  needs_info: ['SellOnBay asked a question', 'status st-wait'],
-  requirements_verified: ['Requirements confirmed', 'status st-wait'],
-  quoted: ['Quotation ready', 'status st-ok'],
-  converted: ['Ordered', 'status st-ok'],
-  declined: ['Declined', 'status st-bad'],
-  withdrawn: ['Withdrawn', 'status st-draft'],
-  expired: ['Expired', 'status st-draft'],
+  submitted: [tx('Sent'), 'status st-info'],
+  under_review: [tx('Being reviewed'), 'status st-wait'],
+  needs_info: [tx('SellOnBay asked a question'), 'status st-wait'],
+  requirements_verified: [tx('Requirements confirmed'), 'status st-wait'],
+  quoted: [tx('Quotation ready'), 'status st-ok'],
+  converted: [tx('Ordered'), 'status st-ok'],
+  declined: [tx('Declined'), 'status st-bad'],
+  withdrawn: [tx('Withdrawn'), 'status st-draft'],
+  expired: [tx('Expired'), 'status st-draft'],
 };
 export const QUOTE_WORDS: Record<string, string> = {
-  draft: 'Draft',
-  pending_super: 'Waiting for Super Admin',
-  issued: 'Sent to the buyer',
-  accepted: 'Accepted',
-  rejected: 'Declined by the buyer',
-  superseded: 'Replaced',
-  expired: 'Expired',
-  withdrawn: 'Withdrawn',
-  discarded: 'Discarded',
+  draft: tx('Draft'),
+  pending_super: tx('Waiting for Super Admin'),
+  issued: tx('Sent to the buyer'),
+  accepted: tx('Accepted'),
+  rejected: tx('Declined by the buyer'),
+  superseded: tx('Replaced'),
+  expired: tx('Expired'),
+  withdrawn: tx('Withdrawn'),
+  discarded: tx('Discarded'),
 };
 /* What the buyer may see of the request log: their own steps and SellOnBay's messages to them. Internal admin steps say only what happened. */
 const BUYER_EVENT: Record<string, string> = {
-  submitted: 'You sent the request',
-  review: 'SellOnBay started reviewing it',
-  ask: 'SellOnBay asked',
-  answer: 'You answered',
-  decline: 'SellOnBay declined it',
-  withdraw: 'You withdrew it',
-  requirements_proposed: 'SellOnBay wrote down your requirements',
-  confirm_requirements: 'You confirmed the requirements',
-  quoted: 'A quotation was sent',
-  quotation_rejected: 'You declined the quotation',
-  quotation_withdrawn: 'SellOnBay withdrew the quotation',
-  quotation_expired: 'The quotation expired',
-  converted: 'You accepted the quotation; your order was created',
-  expired: 'The request expired',
+  submitted: tx('You sent the request'),
+  review: tx('SellOnBay started reviewing it'),
+  ask: tx('SellOnBay asked'),
+  answer: tx('You answered'),
+  decline: tx('SellOnBay declined it'),
+  withdraw: tx('You withdrew it'),
+  requirements_proposed: tx('SellOnBay wrote down your requirements'),
+  confirm_requirements: tx('You confirmed the requirements'),
+  quoted: tx('A quotation was sent'),
+  quotation_rejected: tx('You declined the quotation'),
+  quotation_withdrawn: tx('SellOnBay withdrew the quotation'),
+  quotation_expired: tx('The quotation expired'),
+  converted: tx('You accepted the quotation; your order was created'),
+  expired: tx('The request expired'),
 };
 export const buyerTimeline = (events: LogEvent[]) =>
   events
@@ -69,4 +70,5 @@ export async function personNames(ids: string[]): Promise<Map<string, string>> {
   for (const p of data ?? []) out.set(p.id, p.full_name || 'Buyer');
   return out;
 }
-export const requestTitle = (r: PurchaseRequest, products: Map<string, { name: string }>) => (r.kind === 'custom_dev' ? 'Custom development' : (products.get(r.productId ?? '')?.name ?? 'Product'));
+export const requestTitle = (r: PurchaseRequest, products: Map<string, { name: string }>) =>
+  r.kind === 'custom_dev' ? tx('Custom development') : (products.get(r.productId ?? '')?.name ?? 'Product');

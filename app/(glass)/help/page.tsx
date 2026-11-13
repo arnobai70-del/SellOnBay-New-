@@ -11,6 +11,8 @@ import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/help', { alternates: { canonical: '/help' } });
 
@@ -31,6 +33,7 @@ const groupId = (t: string) => 'g-' + helpAnchor(t).replace(/^q-/, '');
  * Questions come from Admin › CMS, else the built-in ones; the heading from Admin › Content › Pages.
  */
 export default async function Help() {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts); translate() for the built-in questions
   const [words, saved, routes, social, copy] = await Promise.all([pageWords('/help'), publishedFaq(), contactRoutes(), savedSocial(), pageCopy('help')]);
   const { groups } = faqToShow(saved?.groups ?? null);
   const intro = copy.t('head', 'intro', words.intro ?? '');
@@ -55,7 +58,7 @@ export default async function Help() {
           style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 640, padding: '8px 8px 8px 20px', borderRadius: 999, boxSizing: 'border-box' }}
         >
           <label htmlFor="hs" className="hidden-label">
-            Search help
+            <T s={'Search help'} />
           </label>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
@@ -64,11 +67,11 @@ export default async function Help() {
           <input
             id="hs"
             name="q"
-            placeholder="e.g. payment, refund, connect domain"
+            placeholder={tx('e.g. payment, refund, connect domain')}
             style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
           />{' '}
           <button className="btn" type="submit">
-            Search
+            <T s={'Search'} />
           </button>
         </form>
       </section>
@@ -80,7 +83,7 @@ export default async function Help() {
                 <path d={TILES[i % TILES.length][1]} />
               </svg>
             </span>
-            <b style={{ fontWeight: 500, marginTop: 6 }}>{g.title}</b>
+            <b style={{ fontWeight: 500, marginTop: 6 }}>{translate(g.title)}</b>
             <span className="muted" style={{ fontSize: 14 }}>
               {g.items.length} {g.items.length === 1 ? 'answer' : 'answers'}
             </span>
@@ -90,14 +93,14 @@ export default async function Help() {
       <section id="articles" className="sec grid2">
         {groups.map((g) => (
           <div key={g.title} id={groupId(g.title)} className="glass card">
-            <h2 style={{ fontSize: 22, marginBottom: 8 }}>{g.title}</h2>
+            <h2 style={{ fontSize: 22, marginBottom: 8 }}>{translate(g.title)}</h2>
             {g.items.map((f) => (
               <details key={f.q} id={helpAnchor(f.q)}>
                 <summary className="art" style={{ listStyle: 'none', cursor: 'pointer' }}>
-                  {f.q} <span aria-hidden="true">›</span>
+                  {translate(f.q)} <span aria-hidden="true">›</span>
                 </summary>
                 <p className="muted" style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.6 }}>
-                  {f.a}
+                  {translate(f.a)}
                 </p>
               </details>
             ))}
@@ -114,9 +117,9 @@ export default async function Help() {
             {(
               [
                 ['Support', routes.support],
-                ['Billing and payouts', routes.billing],
+                [tx('Billing and payouts'), routes.billing],
                 ['Partnerships', routes.business],
-                ['Abuse and copyright', routes.report],
+                [tx('Abuse and copyright'), routes.report],
               ] as const
             ).map(([l, e], i) => (
               <div key={l} className="li" style={{ fontSize: 14, marginTop: i ? 0 : 14 }}>

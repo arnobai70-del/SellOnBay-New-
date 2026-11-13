@@ -5,6 +5,7 @@ import { MODULE_KEYS } from '@/lib/maintenance/config';
 import { maintenanceForm } from '@/lib/maintenance/form';
 import { setModule } from '@/lib/maintenance/service';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = maintenanceForm.extend({ module: z.enum(MODULE_KEYS as [string, ...string[]]) });
@@ -17,5 +18,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const d = body.data;
   const r = await setModule(a.id, d.module, { enabled: d.enabled, message: d.message, startAt: d.startAt, endAt: d.endAt, bannerMinutes: d.bannerMinutes });
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

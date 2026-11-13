@@ -1,25 +1,26 @@
+import { tx } from '../i18n/tx'; // marks English words; the screen translates them
 import type { PillTone } from '@/components/glass/StatusPill';
 
 /* How an order's state reads to its buyer, with the pill colour. Pure, tested, safe in the browser. */
 const BUYER: Record<string, [string, PillTone]> = {
-  draft: ['Draft', 'draft'],
-  awaiting_payment: ['Waiting for payment', 'wait'],
-  payment_review: ['Verifying payment', 'wait'],
-  funded: ['Paid into escrow', 'info'],
-  release_pending: ['Getting your files ready', 'info'],
-  in_delivery: ['Being delivered', 'info'],
-  delivered: ['In review', 'info'],
-  accepted: ['Completed', 'ok'],
-  payout_pending: ['Completed', 'ok'],
-  paid_out: ['Completed', 'ok'],
-  disputed: ['Problem reported', 'bad'],
-  fix_requested: ['Being fixed', 'wait'],
-  overdue: ['Late', 'bad'],
-  refunded: ['Refunded', 'bad'],
-  cancelled: ['Cancelled', 'draft'],
-  beta_requested: ['Waiting for review', 'wait'],
-  beta_approved: ['Approved', 'ok'],
-  beta_declined: ['Declined', 'bad'],
+  draft: [tx('Draft'), 'draft'],
+  awaiting_payment: [tx('Waiting for payment'), 'wait'],
+  payment_review: [tx('Verifying payment'), 'wait'],
+  funded: [tx('Paid into escrow'), 'info'],
+  release_pending: [tx('Getting your files ready'), 'info'],
+  in_delivery: [tx('Being delivered'), 'info'],
+  delivered: [tx('In review'), 'info'],
+  accepted: [tx('Completed'), 'ok'],
+  payout_pending: [tx('Completed'), 'ok'],
+  paid_out: [tx('Completed'), 'ok'],
+  disputed: [tx('Problem reported'), 'bad'],
+  fix_requested: [tx('Being fixed'), 'wait'],
+  overdue: [tx('Late'), 'bad'],
+  refunded: [tx('Refunded'), 'bad'],
+  cancelled: [tx('Cancelled'), 'draft'],
+  beta_requested: [tx('Waiting for review'), 'wait'],
+  beta_approved: [tx('Approved'), 'ok'],
+  beta_declined: [tx('Declined'), 'bad'],
 };
 export const buyerStatus = (state: string): { label: string; tone: PillTone } => {
   const [label, tone] = BUYER[state] ?? [state.replace(/_/g, ' '), 'draft'];

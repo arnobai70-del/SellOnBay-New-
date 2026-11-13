@@ -9,7 +9,10 @@ import { moduleStates, pageStates } from '@/lib/maintenance/service';
 import { readRows } from '@/lib/maintenance/state';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Maintenance', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Maintenance'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The areas the owner listed first (2026-11-08), then the older modules. */
@@ -36,25 +39,25 @@ const ORDER: ModuleKey[] = [
   'visitor',
 ];
 const utc = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') : '');
-const fields = (r: { enabled: boolean; message: string; startAt: number | null; endAt: number | null; bannerMinutes?: number }): Field[] => [
+const fields = (r: { enabled: boolean; message: string; startAt: number | null; endAt: number | null; bannerMinutes?: number }, tx: Tx): Field[] => [
   {
     name: 'enabled',
-    label: 'State',
+    label: tx('State'),
     kind: 'select',
     options: r.enabled
       ? [
-          ['on', 'Closed (or planned)'],
-          ['off', 'Open'],
+          ['on', tx('Closed (or planned)')],
+          ['off', tx('Open')],
         ]
       : [
-          ['off', 'Open'],
-          ['on', 'Closed (or planned)'],
+          ['off', tx('Open')],
+          ['on', tx('Closed (or planned)')],
         ],
   },
-  { name: 'message', label: 'Message for visitors (optional)', kind: 'textarea', value: r.message, max: 300 },
-  { name: 'startAt', label: 'Start, UTC (YYYY-MM-DD HH:MM; empty = now)', kind: 'text', value: utc(r.startAt) },
-  { name: 'endAt', label: 'End, UTC (empty = until opened again)', kind: 'text', value: utc(r.endAt) },
-  { name: 'bannerMinutes', label: 'Show a notice this many minutes before the start (0 = none)', kind: 'text', value: String(r.bannerMinutes ?? 0) },
+  { name: 'message', label: tx('Message for visitors (optional)'), kind: 'textarea', value: r.message, max: 300 },
+  { name: 'startAt', label: tx('Start, UTC (YYYY-MM-DD HH:MM; empty = now)'), kind: 'text', value: utc(r.startAt) },
+  { name: 'endAt', label: tx('End, UTC (empty = until opened again)'), kind: 'text', value: utc(r.endAt) },
+  { name: 'bannerMinutes', label: tx('Show a notice this many minutes before the start (0 = none)'), kind: 'text', value: String(r.bannerMinutes ?? 0) },
 ];
 
 /*
@@ -62,15 +65,32 @@ const fields = (r: { enabled: boolean; message: string; startAt: number | null; 
  * notice before it starts. Admins and allow-listed addresses can still use a closed area to test it. Visitors get a 503 page with Retry-After.
  */
 export default async function MaintenanceSettings() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/settings/maintenance', roles: ['admin'], scope: 'super' });
   const [{ modules }, pages, rows] = await Promise.all([moduleStates(), pageStates(), readRows()]);
   const state = (active: boolean, enabled: boolean) =>
-    active ? <StatusPill tone="bad">Closed now</StatusPill> : enabled ? <StatusPill tone="wait">Planned</StatusPill> : <StatusPill tone="ok">Open</StatusPill>;
+    active ? (
+      <StatusPill tone="bad">
+        <T s={'Closed now'} />
+      </StatusPill>
+    ) : enabled ? (
+      <StatusPill tone="wait">
+        <T s={'Planned'} />
+      </StatusPill>
+    ) : (
+      <StatusPill tone="ok">
+        <T s={'Open'} />
+      </StatusPill>
+    );
   return (
-    <AdminShell viewer={viewer} active="settings" title="Maintenance" subtitle="Close one area while the rest of the site stays live. Every change is in the audit log.">
+    <AdminShell viewer={viewer} active="settings" title={tx('Maintenance')} subtitle={tx('Close one area while the rest of the site stays live. Every change is in the audit log.')}>
       <GlassCard as="section">
-        <h2>Areas</h2>
-        <p className="tag">The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.</p>
+        <h2>
+          <T s={'Areas'} />
+        </h2>
+        <p className="tag">
+          <T s={'The whole site keeps sign-in and the admin dashboard open, so it can always be opened again. Payment webhooks and scheduled jobs never stop.'} />
+        </p>
         {ORDER.map((k) => {
           const m = modules.find((x) => x.key === k)!;
           return (
@@ -78,49 +98,58 @@ export default async function MaintenanceSettings() {
               <span style={{ flex: '1 1 220px' }}>
                 <b>{MODULES[k].label}</b>
                 <span className="tag" style={{ display: 'block' }}>
-                  Still works: {MODULES[k].keeps}
+                  <T s={'Still works: {keeps}'} v={{ keeps: MODULES[k].keeps }} />
                 </span>
               </span>
               {state(m.active, m.enabled)}
-              <AdminForm endpoint="/api/admin/maintenance/area" openLabel="Change" submit="Save" tone="line" fixed={{ module: k }} fields={fields(m)} />
+              <AdminForm endpoint="/api/admin/maintenance/area" openLabel={tx('Change')} submit={tx('Save')} tone="line" fixed={{ module: k }} fields={fields(m, tx)} />
             </div>
           );
         })}
       </GlassCard>
       <GlassCard as="section">
-        <h2>Single pages</h2>
-        <p className="tag">An address closes that page and everything under it, for example /domains or /guides/old-post.</p>
+        <h2>
+          <T s={'Single pages'} />
+        </h2>
+        <p className="tag">
+          <T s={'An address closes that page and everything under it, for example /domains or /guides/old-post.'} />
+        </p>
         {pages.map((p) => (
           <div key={p.path} className="li" style={{ flexWrap: 'wrap', gap: 8 }}>
             <code style={{ flex: '1 1 200px' }}>{p.path}</code>
             {state(p.active, p.enabled)}
-            <AdminForm endpoint="/api/admin/maintenance/page" openLabel="Change" submit="Save" tone="line" fixed={{ path: p.path }} fields={fields(p)} />
-            <ActionButton endpoint="/api/admin/maintenance/page" label="Remove" tone="line" body={{ path: p.path, remove: true }} />
+            <AdminForm endpoint="/api/admin/maintenance/page" openLabel={tx('Change')} submit={tx('Save')} tone="line" fixed={{ path: p.path }} fields={fields(p, tx)} />
+            <ActionButton endpoint="/api/admin/maintenance/page" label={tx('Remove')} tone="line" body={{ path: p.path, remove: true }} />
           </div>
         ))}
         <div style={{ marginTop: 10 }}>
           <AdminForm
             endpoint="/api/admin/maintenance/page"
-            openLabel="Close a page"
-            submit="Save"
+            openLabel={tx('Close a page')}
+            submit={tx('Save')}
             tone="line"
-            fields={[{ name: 'path', label: 'Page address, starting with /', kind: 'text', required: true }, ...fields({ enabled: true, message: '', startAt: null, endAt: null })]}
+            fields={[{ name: 'path', label: tx('Page address, starting with /'), kind: 'text', required: true }, ...fields({ enabled: true, message: '', startAt: null, endAt: null }, tx)]}
           />
         </div>
       </GlassCard>
       <GlassCard as="section">
-        <h2>Testers</h2>
+        <h2>
+          <T s={'Testers'} />
+        </h2>
         <p className="tag">
-          Signed-in Super Admins can always use a closed area. These addresses can too, but only when the host&apos;s address header is trusted (CLIENT_IP_HEADER or TRUSTED_PROXY_HOPS), so nobody can
-          pretend to be one.
+          <T
+            s={
+              "Signed-in Super Admins can always use a closed area. These addresses can too, but only when the host's address header is trusted (CLIENT_IP_HEADER or TRUSTED_PROXY_HOPS), so nobody can pretend to be one."
+            }
+          />
         </p>
-        <p style={{ marginTop: 8 }}>{rows.allowIps.length ? rows.allowIps.join(', ') : 'No addresses.'}</p>
+        <p style={{ marginTop: 8 }}>{rows.allowIps.length ? rows.allowIps.join(', ') : tx('No addresses.')}</p>
         <AdminForm
           endpoint="/api/admin/maintenance/allow"
-          openLabel="Change addresses"
-          submit="Save"
+          openLabel={tx('Change addresses')}
+          submit={tx('Save')}
           tone="line"
-          fields={[{ name: 'ips', label: 'Addresses, one per line', kind: 'textarea', value: rows.allowIps.join('\n') }]}
+          fields={[{ name: 'ips', label: tx('Addresses, one per line'), kind: 'textarea', value: rows.allowIps.join('\n') }]}
         />
       </GlassCard>
     </AdminShell>

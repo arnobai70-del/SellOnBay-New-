@@ -6,7 +6,10 @@ import { signOut } from '@/app/(bare)/login/actions';
 import { BRAND_NAME } from '@/lib/brand';
 import { ROLE_MENUS, type GlassRole } from '@/lib/glass/nav';
 import { GlassPage } from './GlassPage';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
+import { getI18n } from '@/lib/i18n/server';
 
+import { T } from '@/components/i18n/T';
 const initials = (name: string) =>
   name
     .trim()
@@ -23,7 +26,7 @@ const AV: Record<GlassRole, string> = { admin: '#E6E2F4', buyer: '#DDEAF6', sell
  * headings, the side card, and the .topbar with search, the main button, notifications, language and the person. `file` is the design file the page
  * is ported from, so its own rules apply. `title` is the page's only h1.
  */
-export function DashboardShell({
+export async function DashboardShell({
   role,
   file,
   active,
@@ -63,31 +66,38 @@ export function DashboardShell({
   /* Draw the page's heading row (h1, subtitle, actions); a page that ports its own heading row turns it off. */
   head?: boolean;
 }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const menu = ROLE_MENUS[role];
-  const shown = name || 'Your account';
+  // The menus in the visitor's language (lib/i18n, owner 2026-11-12); a word the catalogue does not know stays in English.
+  const tr = await getI18n();
+  const w = (label: string) => {
+    const v = tr.t(`menu.${label}`);
+    return v === `menu.${label}` ? label : v;
+  };
+  const shown = name || tx('Your account');
   // Only an admin may look at the other dashboards.
   const others = signedIn && viewerRole === 'admin' ? (['admin', 'seller', 'buyer'] as const).filter((r) => r !== role) : [];
-  const find = search ?? menu.search;
+  const find = search ?? { ...menu.search, placeholder: tr.t(`menu.search.${role}`) };
   return (
     <GlassPage kind="d" file={file ?? menu.file}>
       <div className="shell">
-        <MobileToggle label="Menu" className="sob-mt-side">
+        <MobileToggle label={tx('Menu')} className="sob-mt-side">
           <aside className="glass side" aria-label={`${menu.label} menu`}>
             <Link className="logo" href="/" prefetch={false}>
               <BrandMark />
               {BRAND_NAME}{' '}
               <span className="tag" style={{ margin: '0 0 0 2px' }}>
-                {menu.label}
+                {w(menu.label)}
               </span>
             </Link>
             {menu.groups.map((g) => (
               <Fragment key={g.name ?? 'main'}>
-                {g.name && <div className="grp">{g.name}</div>}
+                {g.name && <div className="grp">{w(g.name)}</div>}
                 {g.items.map((i) => {
                   const waiting = badges?.[i.key] ?? 0;
                   return (
                     <Link key={i.key} className={i.key === active ? 'mi on' : 'mi'} href={i.href} prefetch={false} aria-current={i.key === active ? 'page' : undefined}>
-                      <span>{i.label}</span>
+                      <span>{w(i.label)}</span>
                       {waiting > 0 && (
                         <span className="cnt" aria-label={`${waiting} waiting`}>
                           {waiting}
@@ -98,10 +108,16 @@ export function DashboardShell({
                 })}
               </Fragment>
             ))}
-            {others.length > 0 && <div className="grp">Switch view</div>}
+            {others.length > 0 && (
+              <div className="grp">
+                <T s={'Switch view'} />
+              </div>
+            )}
             {others.map((r) => (
               <Link key={r} className="mi" href={ROLE_MENUS[r].home} prefetch={false}>
-                <span>{ROLE_MENUS[r].label} view</span>
+                <span>
+                  <T s={'{label} view'} v={{ label: ROLE_MENUS[r].label }} />
+                </span>
               </Link>
             ))}
             <div className="sob-sidecard" style={{ marginTop: 14, padding: 14, borderRadius: 14, background: 'rgba(255,255,255,.6)', border: '1px solid #DCE7EC' }}>
@@ -109,7 +125,7 @@ export function DashboardShell({
               {signedIn && (
                 <form action={signOut} style={{ marginTop: sideCard ? 8 : 0 }}>
                   <button type="submit" className="tag" style={{ display: 'block', margin: 0, padding: 0, border: 0, background: 'none', cursor: 'pointer', color: '#1A5444' }}>
-                    Sign out
+                    <T s={'Sign out'} />
                   </button>
                 </form>
               )}
@@ -120,7 +136,7 @@ export function DashboardShell({
           <header className="glass topbar">
             <form className="gsearch" action={find.action} method="get" role="search">
               <label htmlFor="gs" className="hidden-label">
-                {role === 'admin' ? 'Search everything' : 'Search'}
+                {role === 'admin' ? tx('Search everything') : tx('Search')}
               </label>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
@@ -131,22 +147,17 @@ export function DashboardShell({
             </form>
             {!hideCta && (
               <Link className="btn" href={menu.cta.href} prefetch={false}>
-                {menu.cta.label}
+                {w(menu.cta.label)}
               </Link>
             )}
-            <Link className="iconbtn" href={menu.notifications} prefetch={false} aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}>
+            <Link className="iconbtn" href={menu.notifications} prefetch={false} aria-label={unread > 0 ? `Notifications, ${unread} new` : tx('Notifications')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
                 <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
                 <path d="M10 21a2 2 0 0 0 4 0" />
               </svg>
               {unread > 0 && <span className="b">{unread}</span>}
             </Link>
-            <label htmlFor="lang" className="hidden-label">
-              Language
-            </label>
-            <select id="lang" className="input" style={{ width: 'auto', minWidth: 110, borderRadius: 999 }} defaultValue="en">
-              <option value="en">English</option>
-            </select>
+            <LanguageSwitcher id="lang" languages={tr.languages.map((l) => ({ code: l.code, native: l.native }))} current={tr.lang} label={tr.t('lang.label')} />
             <div className="me">
               <span className="av" style={{ background: AV[role] }} aria-hidden="true">
                 {initials(shown)}
@@ -154,7 +165,7 @@ export function DashboardShell({
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>{shown}</div>
                 <div className="tag" style={{ margin: 0 }}>
-                  {menu.label}
+                  {w(menu.label)}
                 </div>
               </div>
             </div>

@@ -4,8 +4,11 @@ import { COUNTRIES } from '@/lib/countries';
 import { Button } from './Button';
 import { Field } from './Field';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* Country, phone and company for invoices and domain registration (POST /api/account/details). */
 export function DetailsForm({ country, phone, company }: { country: string; phone: string; company: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [state, setState] = useState<'idle' | 'busy' | 'saved'>('idle');
   const [error, setError] = useState('');
   return (
@@ -23,26 +26,28 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
         if (res?.ok) return setState('saved');
         setState('idle');
         const d = ((await res?.json().catch(() => null)) ?? {}) as { error?: string; issues?: { message?: string }[] };
-        setError(d.issues?.[0]?.message ?? d.error ?? 'Could not save. Please try again.');
+        setError(d.issues?.[0]?.message ?? d.error ?? tx('Could not save. Please try again.'));
       }}
     >
-      <Field as="select" label="Country" name="country" defaultValue={country} autoComplete="country">
-        <option value="">Not set</option>
+      <Field as="select" label={tx('Country')} name="country" defaultValue={country} autoComplete="country">
+        <option value="">
+          <T s={'Not set'} />
+        </option>
         {COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
             {c.name}
           </option>
         ))}
       </Field>
-      <Field label="Phone" name="phone" type="tel" defaultValue={phone} placeholder="+44 20 7946 0958" autoComplete="tel" hint="With your country code. Sellers never see it." />
-      <Field label="Company (for invoices)" name="company" defaultValue={company} maxLength={120} autoComplete="organization" error={error || undefined} />
+      <Field label={tx('Phone')} name="phone" type="tel" defaultValue={phone} placeholder="+44 20 7946 0958" autoComplete="tel" hint={tx('With your country code. Sellers never see it.')} />
+      <Field label={tx('Company (for invoices)')} name="company" defaultValue={company} maxLength={120} autoComplete="organization" error={error || undefined} />
       <div className="row" style={{ justifyContent: 'flex-start' }}>
         <Button type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Saving' : 'Save details'}
+          {state === 'busy' ? tx('Saving') : tx('Save details')}
         </Button>
         {state === 'saved' && (
           <span className="tag" role="status">
-            Saved
+            <T s={'Saved'} />
           </span>
         )}
       </div>

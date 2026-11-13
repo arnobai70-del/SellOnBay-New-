@@ -5,6 +5,8 @@ import { maintenanceFor } from '@/lib/maintenance/service';
 import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -15,19 +17,19 @@ export const runtime = 'nodejs';
 export async function POST() {
   const closed = await maintenanceFor('auth');
   if (closed) return closed;
-  if (!supabaseConfigured) return NextResponse.json({ error: 'This needs an account. There are none in demo mode.' }, { status: 404 });
+  if (!supabaseConfigured) return jsonT({ error: tx('This needs an account. There are none in demo mode.') }, { status: 404 });
   const {
     data: { user },
   } = await (await createClient()).auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
-  if (!(await limit(`sell-switch:${user.id}`, 5, 3_600_000))) return NextResponse.json({ error: 'Too many tries. Try again later.' }, { status: 429 });
+  if (!user) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
+  if (!(await limit(`sell-switch:${user.id}`, 5, 3_600_000))) return jsonT({ error: tx('Too many tries. Try again later.') }, { status: 429 });
   const admin = createAdminClient();
   const { data: p } = await admin.from('profiles').select('role, banned, suspended_until, can_sell').eq('id', user.id).single();
-  if (!p || cannotAct(p)) return NextResponse.json({ error: 'This account cannot sell.' }, { status: 403 });
-  if (p.role === 'admin') return NextResponse.json({ error: 'Admin accounts do not sell.' }, { status: 403 });
+  if (!p || cannotAct(p)) return jsonT({ error: tx('This account cannot sell.') }, { status: 403 });
+  if (p.role === 'admin') return jsonT({ error: tx('Admin accounts do not sell.') }, { status: 403 });
   if (p.role === 'seller') return NextResponse.json({ ok: true, next: '/dashboard/seller' });
   const { error } = await admin.from('profiles').update({ role: 'seller', can_sell: true }).eq('id', user.id).eq('role', 'buyer');
-  if (error) return NextResponse.json({ error: 'Could not switch. Please try again.' }, { status: 500 });
+  if (error) return jsonT({ error: tx('Could not switch. Please try again.') }, { status: 500 });
   await audit(user.id, 'selling_enabled', 'profile', user.id, { from: 'buyer', to: 'seller (can still buy)' });
   return NextResponse.json({ ok: true, next: '/dashboard/seller' });
 }

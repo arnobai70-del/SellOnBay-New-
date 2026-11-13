@@ -80,7 +80,7 @@ describe('glass UI', () => {
     expect(PUBLIC_LINKS.map((l) => l.label)).toEqual(['Websites', 'Domains', 'Sellers', 'Sell', 'Affiliate', 'Help']); // Affiliate always shown (owner, 2026-11-12)
     expect(FOOTER_COLUMNS.map((c) => c.title)).toEqual(['Marketplace', 'Sell', 'Help', 'Legal']); // plus the Contact column from lib/emailRouting.ts
     const count = (r: keyof typeof ROLE_MENUS) => ROLE_MENUS[r].groups.flatMap((g) => g.items).length;
-    expect([count('buyer'), count('seller'), count('admin')]).toEqual([9, 10, 17]);
+    expect([count('buyer'), count('seller'), count('admin')]).toEqual([9, 10, 18]);
   });
 
   it('gives every item in a menu its own key and address', () => {

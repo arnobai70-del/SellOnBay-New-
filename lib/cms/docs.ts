@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import type { AdminScope } from '../admin/scopes';
 import { checkPageDoc, pageByKey, type PageDoc } from '../content/registry';
 
@@ -5,7 +6,9 @@ import { checkPageDoc, pageByKey, type PageDoc } from '../content/registry';
  * CMS documents with draft, preview, approval and publish (SellOnBay 2.0 Phase 12). Pure, tested.
  *   faq            the FAQ page groups (question and answer)
  *   how_it_works   the three steps for buyers and the three for sellers (each step has its own picture)
- *   email:<kind>   the subject and text of one notification email, with {{placeholders}} filled from the notification
+ *   email:<kind>   the subject and text of one notification email, with {{placeholders}} filled from the notification (English)
+ *   email:<kind>@<lang>  the same email in another language (bn, ar, hi, es, fr, de, pt): a reader gets the template of their own language,
+ *                  else the built-in text in their language; the English template never stands in for another language
  * A Content admin saves a draft; publishing needs a second person (four eyes): the admin who publishes may not be the one who last edited
  * the draft, unless they are a Super Admin. Email templates are published by a Super Admin only. Nothing saved = the built-in text shows.
  * Text is plain (no HTML); answers and email text may hold simple links written as https addresses.
@@ -16,7 +19,14 @@ export type HowDoc = { buy: Step[]; sell: Step[] };
 export type EmailDoc = { subject: string; text: string };
 export type DocName = 'faq' | 'how_it_works' | `email:${string}` | `page:${string}`;
 
-export const isEmailDoc = (n: string): n is `email:${string}` => /^email:[a-z_]{3,40}$/.test(n);
+export const EMAIL_LANGS = ['bn', 'ar', 'hi', 'es', 'fr', 'de', 'pt'] as const;
+export const isEmailDoc = (n: string): n is `email:${string}` => /^email:[a-z_]{3,40}(@(bn|ar|hi|es|fr|de|pt))?$/.test(n);
+/* The notification kind and the language of an email document ("en" for the plain one). */
+export const emailDocParts = (n: string): { kind: string; lang: string } => {
+  const [kind, lang] = n.slice(6).split('@');
+  return { kind, lang: lang ?? 'en' };
+};
+export const emailDocName = (kind: string, lang: string): `email:${string}` => (lang === 'en' ? `email:${kind}` : `email:${kind}@${lang}`);
 /* One public page's words (owner, 2026-11-08; lib/content/registry.ts), by the page's key. */
 export const isPageDoc = (n: string): n is `page:${string}` => /^page:[a-z-]{2,40}$/.test(n) && !!pageByKey(n.slice(5)) && !pageByKey(n.slice(5))!.legal;
 export const isDocName = (n: string): n is DocName => n === 'faq' || n === 'how_it_works' || isEmailDoc(n) || isPageDoc(n);
@@ -43,19 +53,19 @@ type Check<T> = { ok: true; value: T } | { ok: false; error: string };
 
 export function checkFaq(raw: unknown): Check<FaqDoc> {
   const groups = (raw as { groups?: unknown })?.groups;
-  if (!Array.isArray(groups) || groups.length < 1 || groups.length > 8) return { ok: false, error: 'Give 1 to 8 groups of questions.' };
+  if (!Array.isArray(groups) || groups.length < 1 || groups.length > 8) return { ok: false, error: tx('Give 1 to 8 groups of questions.') };
   const out: FaqDoc['groups'] = [];
   for (const g of groups) {
     const title = line((g as { title?: unknown })?.title, 60);
     const items = (g as { items?: unknown })?.items;
-    if (title.length < 3 || title.length > 60) return { ok: false, error: 'Each group needs a title of 3 to 60 characters.' };
+    if (title.length < 3 || title.length > 60) return { ok: false, error: tx('Each group needs a title of 3 to 60 characters.') };
     if (!Array.isArray(items) || items.length < 1 || items.length > 15) return { ok: false, error: `Group "${title}" needs 1 to 15 questions.` };
     const qs: { q: string; a: string }[] = [];
     for (const it of items) {
       const q = line((it as { q?: unknown })?.q, 200);
       const a = block((it as { a?: unknown })?.a, 1200);
-      if (q.length < 5 || q.length > 200 || a.length < 10 || a.length > 1200) return { ok: false, error: 'Each question is 5 to 200 characters and each answer 10 to 1,200.' };
-      if (NO_HTML.test(q) || NO_HTML.test(a)) return { ok: false, error: 'Plain text only, no HTML.' };
+      if (q.length < 5 || q.length > 200 || a.length < 10 || a.length > 1200) return { ok: false, error: tx('Each question is 5 to 200 characters and each answer 10 to 1,200.') };
+      if (NO_HTML.test(q) || NO_HTML.test(a)) return { ok: false, error: tx('Plain text only, no HTML.') };
       qs.push({ q, a });
     }
     out.push({ title, items: qs });
@@ -71,8 +81,8 @@ export function checkHow(raw: unknown): Check<HowDoc> {
     for (const s of steps) {
       const t = line((s as Step)?.t, 60);
       const d = line((s as Step)?.d, 240);
-      if (t.length < 3 || t.length > 60 || d.length < 10 || d.length > 240) return { ok: false, error: 'Each step has a title of 3 to 60 characters and a line of 10 to 240.' };
-      if (NO_HTML.test(t) || NO_HTML.test(d)) return { ok: false, error: 'Plain text only, no HTML.' };
+      if (t.length < 3 || t.length > 60 || d.length < 10 || d.length > 240) return { ok: false, error: tx('Each step has a title of 3 to 60 characters and a line of 10 to 240.') };
+      if (NO_HTML.test(t) || NO_HTML.test(d)) return { ok: false, error: tx('Plain text only, no HTML.') };
       out[side].push({ t, d });
     }
   }
@@ -83,10 +93,10 @@ export const PLACEHOLDER = /\{\{\s*([a-z_]{1,30})\s*\}\}/g;
 export function checkEmail(raw: unknown): Check<EmailDoc> {
   const subject = line((raw as EmailDoc)?.subject, 150);
   const text = block((raw as EmailDoc)?.text, 4000);
-  if (subject.length < 3 || subject.length > 150) return { ok: false, error: 'The subject is 3 to 150 characters.' };
-  if (text.length < 10 || text.length > 4000) return { ok: false, error: 'The text is 10 to 4,000 characters.' };
-  if (NO_HTML.test(subject) || NO_HTML.test(text)) return { ok: false, error: 'Plain text only, no HTML.' };
-  if (/\{\{(?!\s*[a-z_]{1,30}\s*\}\})/.test(subject + text)) return { ok: false, error: 'Placeholders look like {{title}}: lower-case letters and _ only.' };
+  if (subject.length < 3 || subject.length > 150) return { ok: false, error: tx('The subject is 3 to 150 characters.') };
+  if (text.length < 10 || text.length > 4000) return { ok: false, error: tx('The text is 10 to 4,000 characters.') };
+  if (NO_HTML.test(subject) || NO_HTML.test(text)) return { ok: false, error: tx('Plain text only, no HTML.') };
+  if (/\{\{(?!\s*[a-z_]{1,30}\s*\}\})/.test(subject + text)) return { ok: false, error: tx('Placeholders look like {{title}}: lower-case letters and _ only.') };
   return { ok: true, value: { subject, text } };
 }
 

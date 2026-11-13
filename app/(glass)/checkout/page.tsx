@@ -20,13 +20,16 @@ import { createClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { BetaForm } from './BetaForm';
 
-export const metadata: Metadata = { title: 'Checkout', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Checkout'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 type Search = { ids?: string; id?: string; pkg?: string };
 
 /* In the free beta: the request form. With payments live: the existing request-and-quotation path, kept behind PAYMENTS_MODE (owner, 2026-11-07). */
 export default async function Checkout({ searchParams }: { searchParams: Promise<Search> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { ids, id, pkg } = await searchParams;
   const want = [...new Set(String(ids ?? id ?? '').split(','))].filter(Boolean).slice(0, BETA_CART_LIMIT);
   const query = new URLSearchParams(Object.entries({ ids, id, pkg }).filter(([, v]) => v) as [string, string][]).toString();
@@ -39,18 +42,20 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
     if (!shown) notFound();
     const p = shown.product;
     const rp = supabaseConfigured ? await requestableProduct(p.id) : null;
-    const problem = supabaseConfigured ? requestableProblem(rp) : 'Requests need an account. There are no accounts in demo mode.';
+    const problem = supabaseConfigured ? requestableProblem(rp) : tx('Requests need an account. There are no accounts in demo mode.');
     const dv = deliveryOf(p);
     return (
       <PublicFrame file="checkout">
-        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 8px' }}>Request to buy {publicListing(p).name}</h1>
+        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 8px' }}>
+          <T s={'Request to buy {name}'} v={{ name: publicListing(p).name }} />
+        </h1>
         <p className="muted" style={{ margin: '0 0 24px', lineHeight: 1.6 }}>
-          Tell SellOnBay what you need. We check it and send you a quotation. You pay only after you accept it.
+          <T s={'Tell SellOnBay what you need. We check it and send you a quotation. You pay only after you accept it.'} />
         </p>
         {problem || !rp ? (
           <div className="glass" style={{ padding: 26 }}>
             <p role="note" style={{ margin: 0 }}>
-              {problem ?? 'This product is not available.'}
+              {problem ?? tx('This product is not available.')}
             </p>
           </div>
         ) : (
@@ -88,11 +93,18 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
   if (!items.length)
     return (
       <PublicFrame file="checkout">
-        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>Checkout</h1>
+        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>
+          <T s={'Checkout'} />
+        </h1>
         <div className="glass" style={{ padding: 26 }}>
-          <h2 style={{ fontSize: 20 }}>Nothing to request yet</h2>
+          <h2 style={{ fontSize: 20 }}>
+            <T s={'Nothing to request yet'} />
+          </h2>
           <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-            Add a website that is free during beta to your cart first. <Link href="/websites">Browse websites</Link>
+            <T s={'Add a website that is free during beta to your cart first.'} />{' '}
+            <Link href="/websites">
+              <T s={'Browse websites'} />
+            </Link>
           </p>
         </div>
       </PublicFrame>
@@ -111,45 +123,58 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 500 }}>{i.name}</div>
             <div className="tag">
-              Standard license · by {i.seller}
-              {i.dbId && prices.get(i.dbId)?.note ? ` · ${prices.get(i.dbId)!.note}` : ''}
+              <T s={'Standard license · by {seller}{v1}'} v={{ seller: i.seller, v1: i.dbId && prices.get(i.dbId)?.note ? ` · ${prices.get(i.dbId)!.note}` : '' }} />
             </div>
           </div>
         </div>
       ))}
       <div style={{ borderTop: '1px solid #DEE8ED', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div className="row">
-          <span className="muted">Websites</span>
+          <span className="muted">
+            <T s={'Websites'} />
+          </span>
           <s className="muted">${items.reduce((s, i) => s + i.price, 0)}</s>
         </div>
         <div className="row">
-          <span className="muted">Domain</span>
-          <span>Checked by hand</span>
+          <span className="muted">
+            <T s={'Domain'} />
+          </span>
+          <span>
+            <T s={'Checked by hand'} />
+          </span>
         </div>
         <div className="row">
-          <span className="muted">Escrow protection</span>
-          <span>Included</span>
+          <span className="muted">
+            <T s={'Escrow protection'} />
+          </span>
+          <span>
+            <T s={'Included'} />
+          </span>
         </div>
       </div>
       <div className="row" style={{ borderTop: '1px solid #DEE8ED', paddingTop: 14, fontSize: 18 }}>
-        <span>Total</span>
+        <span>
+          <T s={'Total'} />
+        </span>
         <span style={{ fontWeight: 500 }}>$0.00</span>
       </div>
     </>
   );
   return (
     <PublicFrame file="checkout">
-      <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>Checkout</h1>
+      <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>
+        <T s={'Checkout'} />
+      </h1>
       <BetaForm
         ids={items.map((i) => i.id)}
         name={viewer?.name ?? ''}
         email={email}
         summary={summary}
         steps={[
-          'We review your request and email you',
-          'Once approved, you get the files and the domain steps',
+          tx('We review your request and email you'),
+          tx('Once approved, you get the files and the domain steps'),
           `${REVIEW_HOURS} hours to check them and ask for fixes`,
-          'A week later we ask how it went',
+          tx('A week later we ask how it went'),
         ]}
       />
     </PublicFrame>

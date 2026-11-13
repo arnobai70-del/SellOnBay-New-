@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import type { NextResponse } from 'next/server';
 import { adminOnly } from '../admin/guard';
 import { audit } from '../admin/audit';
@@ -66,11 +67,11 @@ export function inputProblem(v: ModuleInput): string | null {
 
 /* Turn a module's maintenance on or off, or plan it. Admins only (the route checks); audited. */
 export async function setModule(adminId: string | null, key: string, input: ModuleInput, now = Date.now()): Promise<Result> {
-  if (!isModuleKey(key)) return { ok: false, status: 400, error: 'Unknown module.' };
+  if (!isModuleKey(key)) return { ok: false, status: 400, error: tx('Unknown module.') };
   const v = { ...input, message: input.message.trim() };
   const bad = inputProblem(v);
   if (bad) return { ok: false, status: 400, error: bad };
-  if (v.enabled && v.endAt !== null && v.endAt <= now) return { ok: false, status: 400, error: 'The end time has already passed.' };
+  if (v.enabled && v.endAt !== null && v.endAt <= now) return { ok: false, status: 400, error: tx('The end time has already passed.') };
   const by = /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null;
   const before = (await moduleStates(now)).modules.find((m) => m.key === key)!;
   const { source } = await readRows(now);
@@ -87,7 +88,7 @@ export async function setModule(adminId: string | null, key: string, input: Modu
         updated_at: new Date(now).toISOString(),
         ...(v.bannerMinutes !== undefined ? { banner_minutes: v.bannerMinutes } : {}),
       });
-    if (error) return { ok: false, status: 500, error: 'Could not save. Nothing was changed.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save. Nothing was changed.') };
   } else {
     memoryRows.set(key, { key, ...v, updatedBy: by, updatedAt: now });
     memHistory.unshift({ key, ...v, updatedBy: by, updatedAt: now });
@@ -140,7 +141,7 @@ export async function setPage(adminId: string | null, rawPath: string, input: Mo
   if (input === null) {
     if (source === 'db') {
       const { error } = await createAdminClient().from('page_maintenance').delete().eq('path', path);
-      if (error) return { ok: false, status: 500, error: 'Could not remove. Nothing was changed.' };
+      if (error) return { ok: false, status: 500, error: tx('Could not remove. Nothing was changed.') };
     } else memoryPages.delete(path);
     forgetRows();
     await audit(adminId, 'maintenance_page_removed', 'page', path, {});
@@ -149,7 +150,7 @@ export async function setPage(adminId: string | null, rawPath: string, input: Mo
   const v = { ...input, message: input.message.trim(), bannerMinutes: input.bannerMinutes ?? 0 };
   const problem = inputProblem(v);
   if (problem) return { ok: false, status: 400, error: problem };
-  if (v.enabled && v.endAt !== null && v.endAt <= now) return { ok: false, status: 400, error: 'The end time has already passed.' };
+  if (v.enabled && v.endAt !== null && v.endAt <= now) return { ok: false, status: 400, error: tx('The end time has already passed.') };
   if (source === 'db') {
     const { error } = await createAdminClient()
       .from('page_maintenance')
@@ -163,7 +164,7 @@ export async function setPage(adminId: string | null, rawPath: string, input: Mo
         updated_by: by,
         updated_at: new Date(now).toISOString(),
       });
-    if (error) return { ok: false, status: 500, error: 'Could not save. Nothing was changed.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save. Nothing was changed.') };
   } else memoryPages.set(path, { path, ...v, updatedBy: by, updatedAt: now });
   forgetRows();
   await audit(adminId, v.enabled ? 'maintenance_page_on' : 'maintenance_page_off', 'page', path, { startAt: v.startAt, endAt: v.endAt, message: v.message.slice(0, 120) });
@@ -185,7 +186,7 @@ export async function setAllowIps(adminId: string | null, ips: string[]): Promis
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: 'maintenance:allow_ips', value: list, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save. Nothing was changed.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save. Nothing was changed.') };
   } else memoryAllow(list);
   forgetRows();
   await audit(adminId, 'maintenance_allow_list_changed', 'settings', 'maintenance:allow_ips', { count: list.length });

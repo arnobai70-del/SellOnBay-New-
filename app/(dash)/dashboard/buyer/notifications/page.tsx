@@ -4,19 +4,21 @@ import { NotificationsList, GROUPS, type Group } from '@/components/glass/Notifi
 import { notificationsFor } from '@/lib/notify';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Notifications', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Notifications'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const SHOWN: Group[] = ['all', 'orders', 'websites', 'domains', 'support'];
 
 /* design-reference/buyer-notifications.html: every notice for this buyer, by kind, with a way to what it is about. */
 export default async function BuyerNotifications({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer/notifications', roles: ['buyer', 'seller', 'admin'] });
   const raw = (await searchParams).type;
   const group: Group = SHOWN.includes(raw as Group) && Object.hasOwn(GROUPS, raw ?? '') ? (raw as Group) : 'all';
   const list = viewer ? await notificationsFor(viewer.id, 100) : [];
   return (
-    <BuyerShell viewer={viewer} active="notifications" file="buyer-notifications" title="Notifications" head={false}>
+    <BuyerShell viewer={viewer} active="notifications" file="buyer-notifications" title={tx('Notifications')} head={false}>
       <NotificationsList
         list={list}
         group={group}

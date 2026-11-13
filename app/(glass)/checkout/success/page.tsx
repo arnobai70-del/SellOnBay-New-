@@ -8,7 +8,9 @@ import { getOrder } from '@/lib/orders/service';
 import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Request received', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Request received'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const NUM = { done: ['#CDEBDF', '#1A5444'], wait: ['#FBEFD9', '#6E4B12'], next: ['#E8EEF2', '#566C78'] } as const;
@@ -18,6 +20,7 @@ const NUM = { done: ['#CDEBDF', '#1A5444'], wait: ['#FBEFD9', '#6E4B12'], next: 
  * The order shows only to the person who made it.
  */
 export default async function CheckoutSuccess({ searchParams }: { searchParams: Promise<{ order?: string; n?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/checkout/success' });
   const { order, n } = await searchParams;
   const count = Math.max(1, Math.min(5, Number(n) || 1));
@@ -25,10 +28,10 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
   const o = id ? await getOrder(id).catch(() => null) : null;
   const mine = o && (!o.buyerId || o.buyerId === viewer?.id) ? o : null;
   const steps = [
-    ['Request received', 'No payment was taken.', 'Done', 'st-ok', 'done'],
-    ['We review it', 'We email you with our answer.', 'Waiting', 'st-wait', 'wait'],
-    ['Files and domain steps', 'They unlock once it is approved. A domain is registered by hand, in your name.', 'Next', 'st-draft', 'next'],
-    [`${REVIEW_HOURS}-hour review`, 'Approve, or report a problem before the time ends.', 'Next', 'st-info', 'next'],
+    [tx('Request received'), tx('No payment was taken.'), 'Done', 'st-ok', 'done'],
+    [tx('We review it'), tx('We email you with our answer.'), 'Waiting', 'st-wait', 'wait'],
+    [tx('Files and domain steps'), tx('They unlock once it is approved. A domain is registered by hand, in your name.'), 'Next', 'st-draft', 'next'],
+    [`${REVIEW_HOURS}-hour review`, tx('Approve, or report a problem before the time ends.'), 'Next', 'st-info', 'next'],
   ] as const;
   return (
     <PublicFrame file="order-success">
@@ -38,15 +41,23 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
             <path d="M5 12l5 5L20 7" />
           </svg>
         </span>
-        <h1 style={{ fontSize: 'clamp(32px,4.4vw,46px)', fontWeight: 300 }}>Thank you, your request is in.</h1>
+        <h1 style={{ fontSize: 'clamp(32px,4.4vw,46px)', fontWeight: 300 }}>
+          <T s={'Thank you, your request is in.'} />
+        </h1>
         <p className="muted" style={{ margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
-          {count > 1 ? `${count} requests are` : 'Your request is'} with our team. Websites are free for early users during the beta, and nothing was charged.
+          <T s={'{v0} with our team. Websites are free for early users during the beta, and nothing was charged.'} v={{ v0: count > 1 ? `${count} requests are` : tx('Your request is') }} />
         </p>
-        {id && <div className="tag">Order {orderCode(id)} · we email you when it is reviewed</div>}
+        {id && (
+          <div className="tag">
+            <T s={'Order {v0} · we email you when it is reviewed'} v={{ v0: orderCode(id) }} />
+          </div>
+        )}
       </section>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'center' }}>
         <section className="glass card" style={{ flex: '1 1 380px', maxWidth: 560 }}>
-          <h2 style={{ fontSize: 20, marginBottom: 6 }}>What happens next</h2>
+          <h2 style={{ fontSize: 20, marginBottom: 6 }}>
+            <T s={'What happens next'} />
+          </h2>
           {steps.map(([t, d, s, tone, look], i) => (
             <div key={t} className="stp">
               <b style={{ background: NUM[look][0], color: NUM[look][1] }}>{i + 1}</b>
@@ -61,7 +72,9 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
           ))}
         </section>
         <aside className="glass card" style={{ flex: '1 1 280px', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <h2 style={{ fontSize: 20 }}>Order</h2>
+          <h2 style={{ fontSize: 20 }}>
+            <T s={'Order'} />
+          </h2>
           {mine ? (
             <>
               <div className="li" style={{ fontSize: 14 }}>
@@ -71,24 +84,30 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
               {mine.domain && (
                 <div className="li" style={{ fontSize: 14 }}>
                   <span style={{ flex: 1 }}>{mine.domain.name}</span>
-                  <span>Checked by hand</span>
+                  <span>
+                    <T s={'Checked by hand'} />
+                  </span>
                 </div>
               )}
               <div className="li" style={{ fontSize: 16 }}>
-                <span style={{ flex: 1 }}>Paid</span>
+                <span style={{ flex: 1 }}>
+                  <T s={'Paid'} />
+                </span>
                 <b style={{ fontWeight: 500 }}>$0.00</b>
               </div>
             </>
           ) : (
             <div className="li" style={{ fontSize: 14 }}>
-              <span className="muted">Your requests are in your dashboard.</span>
+              <span className="muted">
+                <T s={'Your requests are in your dashboard.'} />
+              </span>
             </div>
           )}
           <Link className="btn" href={id ? `/orders/${id}` : '/dashboard/buyer'} style={{ width: '100%' }} prefetch={false}>
-            {id ? 'Open the order' : 'Go to my dashboard'}
+            {id ? tx('Open the order') : tx('Go to my dashboard')}
           </Link>{' '}
           <Link className="btn ghost" href="/dashboard/buyer/orders" style={{ width: '100%' }} prefetch={false}>
-            All my orders
+            <T s={'All my orders'} />
           </Link>
         </aside>
       </div>

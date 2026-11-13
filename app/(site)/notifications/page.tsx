@@ -4,7 +4,9 @@ import { MarkRead } from '@/components/MarkRead';
 import { notificationsFor } from '@/lib/notify';
 import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Notifications', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Notifications'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Notifications() {
@@ -14,13 +16,20 @@ export default async function Notifications() {
   return (
     <div className="wrap sob-page-body">
       <div className="sob-page-head">
-        <h1>Notifications</h1>
+        <h1>
+          <T s={'Notifications'} />
+        </h1>
       </div>
       {list.length === 0 ? (
         <div className="sob-empty-note">
-          <b>Nothing yet.</b>
+          <b>
+            <T s={'Nothing yet.'} />
+          </b>
           <span>
-            Order updates, reminders and messages from us show up here. <Link href="/">Browse templates</Link>
+            <T s={'Order updates, reminders and messages from us show up here.'} />{' '}
+            <Link href="/">
+              <T s={'Browse templates'} />
+            </Link>
           </span>
         </div>
       ) : (

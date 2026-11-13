@@ -6,6 +6,8 @@ import { CONFIG, pct, planNetCents } from '@/lib/config';
 import { BUILT_IN_STEPS } from '@/lib/howSteps';
 import { imageFor, money } from '@/lib/data';
 
+import { T } from '@/components/i18n/T';
+import { useTx, useWord } from '@/components/i18n/TxProvider';
 type Mode = 'buy' | 'sell';
 
 const BARS = [38, 56, 44, 72, 64, 100, 80];
@@ -28,7 +30,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
         )}
         <span className="chip mint sob-hv-chip">
           <i />
-          12 sites ready
+          <T s={'12 sites ready'} />
         </span>
       </div>
     );
@@ -37,11 +39,13 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
     return (
       <div className="sob-hv sob-hv-domain" aria-hidden="true">
         <div className="sob-hv-url">
-          <span className="sob-hv-type">yourbusiness.com</span>
+          <span className="sob-hv-type">
+            <T s={'yourbusiness.com'} />
+          </span>
         </div>
         <span className="chip mint sob-hv-live">
           <i />
-          Live on your domain
+          <T s={'Live on your domain'} />
         </span>
       </div>
     );
@@ -51,15 +55,21 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
       <div className="sob-hv" aria-hidden="true">
         <div className="sob-hv-card">
           <div className="sob-hv-row">
-            <b>Saffron Table</b>
+            <b>
+              <T s={'Saffron Table'} />
+            </b>
             <span className="status st-wait">
               <i />
-              Ready to review
+              <T s={'Ready to review'} />
             </span>
           </div>
           <div className="sob-hv-timer">47:59:12</div>
-          <small className="muted">left to check it</small>
-          <span className="btn sm">Accept site</span>
+          <small className="muted">
+            <T s={'left to check it'} />
+          </small>
+          <span className="btn sm">
+            <T s={'Accept site'} />
+          </span>
         </div>
       </div>
     );
@@ -69,14 +79,18 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
       <div className="sob-hv" aria-hidden="true">
         <div className="sob-hv-card">
           <div className="sob-hv-row">
-            <b>Your price</b>
+            <b>
+              <T s={'Your price'} />
+            </b>
             <b>{money(39)}</b>
           </div>
           <div className="sob-hv-slider">
             <i />
           </div>
           <div className="sob-hv-row">
-            <span className="muted">You keep {pct(10_000 - CONFIG.plans.free.commissionBps)} (free plan)</span>
+            <span className="muted">
+              <T s={'You keep {v0} (free plan)'} v={{ v0: pct(10_000 - CONFIG.plans.free.commissionBps) }} />
+            </span>
             <b className="sob-hv-green">{money(planNetCents(3900) / 100)}</b>
           </div>
         </div>
@@ -88,19 +102,19 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
       <div className="sob-hv sob-hv-checks" aria-hidden="true">
         <span className="status st-ok">
           <i />
-          Checked
+          <T s={'Checked'} />
         </span>
         <span className="status st-ok">
           <i />
-          Original: 97%
+          <T s={'Original: 97%'} />
         </span>
         <span className="status st-ok">
           <i />
-          Demo works
+          <T s={'Demo works'} />
         </span>
         <span className="status st-info">
           <i />
-          Approved in 24 hours
+          <T s={'Approved in 24 hours'} />
         </span>
       </div>
     );
@@ -108,7 +122,9 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
   return (
     <div className="sob-hv" aria-hidden="true">
       <div className="sob-hv-card">
-        <small className="muted">Available to withdraw</small>
+        <small className="muted">
+          <T s={'Available to withdraw'} />
+        </small>
         <div className="sob-hv-timer">{money(642)}</div>
         <div className="sob-hv-bars">
           {BARS.map((h, i) => (
@@ -117,7 +133,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
         </div>
         <span className="status st-info">
           <i />
-          Paid every Thursday
+          <T s={'Paid every Thursday'} />
         </span>
       </div>
     </div>
@@ -127,7 +143,7 @@ function Visual({ mode, n }: { mode: Mode; n: number }) {
 export function HowItWorks({
   initial = 'buy',
   toggle = true,
-  title = 'Live in three steps',
+  title: titleGiven,
   steps = BUILT_IN_STEPS,
 }: {
   initial?: Mode;
@@ -135,18 +151,21 @@ export function HowItWorks({
   title?: string;
   steps?: Record<Mode, { t: string; d: string }[]>;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const word = useWord(); // the built-in steps (lib/howSteps.ts) in the page's language
+  const title = titleGiven ?? tx('Live in three steps');
   const [mode, setMode] = useState<Mode>(initial);
   return (
     <div className="sob-hiw">
       <div className="sob-hiw-head">
         <h2>{title}</h2>
         {toggle && (
-          <div className="seg sob-hiw-seg" role="group" aria-label="Who is this for">
+          <div className="seg sob-hiw-seg" role="group" aria-label={tx('Who is this for')}>
             <button type="button" aria-pressed={mode === 'buy'} onClick={() => setMode('buy')}>
-              I&apos;m buying
+              <T s={"I'm buying"} />
             </button>
             <button type="button" aria-pressed={mode === 'sell'} onClick={() => setMode('sell')}>
-              I&apos;m selling
+              <T s={"I'm selling"} />
             </button>
           </div>
         )}
@@ -159,8 +178,8 @@ export function HowItWorks({
             </div>
             <div className="sob-hiw-txt">
               <span className="sob-hiw-n">{n + 1}</span>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
+              <h3>{word(s.t)}</h3>
+              <p>{word(s.d)}</p>
             </div>
           </div>
         ))}
@@ -168,11 +187,11 @@ export function HowItWorks({
       <div className="sob-hiw-cta">
         {mode === 'buy' ? (
           <Link className="btn" href="/">
-            Find a template
+            <T s={'Find a template'} />
           </Link>
         ) : (
           <Link className="btn" href="/sell/new">
-            List your first site
+            <T s={'List your first site'} />
           </Link>
         )}
       </div>

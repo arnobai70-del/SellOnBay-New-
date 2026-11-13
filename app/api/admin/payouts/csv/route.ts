@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { adminOnly } from '@/lib/admin/guard';
 import { exportPayouts, payoutsCsv, weekStartOf } from '@/lib/payouts';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -15,9 +17,9 @@ export async function POST(req: Request) {
   const a = await adminOnly('finance');
   if (!a.ok) return a.res;
   const week = new URL(req.url).searchParams.get('week') ?? weekStartOf(Date.now());
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(week)) return NextResponse.json({ error: 'Use a date like 2026-10-04.' }, { status: 400 });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(week)) return jsonT({ error: tx('Use a date like 2026-10-04.') }, { status: 400 });
   const rows = await exportPayouts(week, a.id);
-  if (!rows.length) return NextResponse.json({ error: 'No payouts to export for that week.' }, { status: 404 });
+  if (!rows.length) return jsonT({ error: tx('No payouts to export for that week.') }, { status: 404 });
   return new NextResponse(payoutsCsv(rows), {
     headers: {
       'content-type': 'text/csv; charset=utf-8',

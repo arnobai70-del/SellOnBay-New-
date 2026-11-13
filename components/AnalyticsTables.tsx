@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { type Attraction, type DayLine, type Named, type Top, DAY_FIELDS, LEVEL_LABEL } from '@/lib/analyticsCore';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 /* The tables of the admin Visitors page and its daily report (app/(dash)/admin/visitors/details). */
 const LEVEL_CHIP: Record<Attraction['level'], string> = { strong: 'status st-ok', fair: 'status st-wait', weak: 'status st-bad', few: 'status st-draft' };
 
@@ -14,14 +16,16 @@ function Empty({ cols, text }: { cols: number; text: string }) {
   );
 }
 
-export function DaysTable({ days }: { days: DayLine[] }) {
+export async function DaysTable({ days }: { days: DayLine[] }) {
   const most = Math.max(1, ...days.map((d) => d.visitors));
   return (
     <div className="tbl">
       <table className="">
         <thead>
           <tr>
-            <th>Day</th>
+            <th>
+              <T s={'Day'} />
+            </th>
             {DAY_FIELDS.map(([k, label]) => (
               <th key={k}>{label}</th>
             ))}
@@ -55,16 +59,20 @@ export function DaysTable({ days }: { days: DayLine[] }) {
   );
 }
 
-export function CompareTable({ today, before }: { today: DayLine; before: DayLine }) {
+export async function CompareTable({ today, before }: { today: DayLine; before: DayLine }) {
   return (
     <div className="tbl">
       <table className="">
         <thead>
           <tr>
-            <th>Number</th>
+            <th>
+              <T s={'Number'} />
+            </th>
             <th>{today.day}</th>
             <th>{before.day}</th>
-            <th>Change</th>
+            <th>
+              <T s={'Change'} />
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -87,19 +95,24 @@ export function CompareTable({ today, before }: { today: DayLine; before: DayLin
   );
 }
 
-export function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: string; link?: (key: string) => string }) {
+export async function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: string; link?: (key: string) => string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   return (
     <div className="tbl">
       <table className="">
         <thead>
           <tr>
             <th>{what}</th>
-            <th>Opens</th>
-            <th>Different visitors</th>
+            <th>
+              <T s={'Opens'} />
+            </th>
+            <th>
+              <T s={'Different visitors'} />
+            </th>
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && <Empty cols={3} text="Nothing yet for these days." />}
+          {rows.length === 0 && <Empty cols={3} text={tx('Nothing yet for these days.')} />}
           {rows.map((r) => (
             <tr key={r.key}>
               <td>
@@ -121,21 +134,32 @@ export function TopTable({ rows, what, link }: { rows: Named<Top>[]; what: strin
   );
 }
 
-export function AttractionTable({ rows }: { rows: Named<Attraction>[] }) {
+export async function AttractionTable({ rows }: { rows: Named<Attraction>[] }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   return (
     <div className="tbl">
       <table className="">
         <thead>
           <tr>
-            <th>Product</th>
-            <th>People who opened it</th>
-            <th>People who clicked Buy</th>
-            <th>Share who clicked Buy</th>
-            <th>Attraction</th>
+            <th>
+              <T s={'Product'} />
+            </th>
+            <th>
+              <T s={'People who opened it'} />
+            </th>
+            <th>
+              <T s={'People who clicked Buy'} />
+            </th>
+            <th>
+              <T s={'Share who clicked Buy'} />
+            </th>
+            <th>
+              <T s={'Attraction'} />
+            </th>
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && <Empty cols={5} text="Nothing yet for these days." />}
+          {rows.length === 0 && <Empty cols={5} text={tx('Nothing yet for these days.')} />}
           {rows.map((r) => (
             <tr key={r.key}>
               <td>

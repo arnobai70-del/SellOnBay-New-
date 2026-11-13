@@ -5,6 +5,7 @@ import { PAGE_WORDS_MAX } from '@/lib/seo/pageList';
 import { setPageWords } from '@/lib/seo/pageWords';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -23,5 +24,5 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await setPageWords(a.id, body.data.path, { heading: body.data.heading, intro: body.data.intro, body: body.data.body });
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

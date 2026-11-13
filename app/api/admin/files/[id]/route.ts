@@ -5,6 +5,7 @@ import { AuditError } from '@/lib/admin/audit';
 import { REVIEW_CHECKLIST, retryChecks, reviewFile, type ChecklistKey } from '@/lib/files/service';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -37,9 +38,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             changelog: d.changelog,
             checklist: Object.fromEntries((Object.keys(REVIEW_CHECKLIST) as ChecklistKey[]).map((k) => [k, d[k] === true])),
           });
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

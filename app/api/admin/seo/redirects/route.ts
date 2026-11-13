@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { addRedirect, removeRedirect } from '@/lib/seo/redirectStore';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.union([z.object({ from: z.string().max(300), to: z.string().max(300), code: z.coerce.number().int() }), z.object({ remove: z.string().max(300) })]);
@@ -18,5 +19,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const d = body.data;
   const r = 'remove' in d ? await removeRedirect(a.id, d.remove) : await addRedirect(a.id, { from: d.from, to: d.to, code: d.code === 302 ? 302 : 301 });
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

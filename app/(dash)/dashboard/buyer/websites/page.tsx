@@ -7,7 +7,9 @@ import { buyerStatus } from '@/lib/glass/orderStatus';
 import { listRequests } from '@/lib/requests/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'My websites', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('My websites'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
@@ -20,20 +22,25 @@ const RATEABLE = ['accepted', 'payout_pending', 'paid_out'];
  * The top bar's search filters the list (?q=).
  */
 export default async function BuyerWebsites({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/buyer/websites', roles: ['buyer', 'seller', 'admin'] });
   const q = ((await searchParams).q ?? '').trim().toLowerCase().slice(0, 80);
   const [orders, requests] = viewer ? await Promise.all([buyerOrders(viewer.id), listRequests({ buyerId: viewer.id }).catch(() => [])]) : [[], []];
   const sites = (await buyerWebsites(orders)).filter((s) => !q || s.title.toLowerCase().includes(q));
   const offers = requests.filter((r) => r.status === 'quoted');
   return (
-    <BuyerShell viewer={viewer} active="websites" file="buyer-websites" title="My websites" head={false}>
+    <BuyerShell viewer={viewer} active="websites" file="buyer-websites" title={tx('My websites')} head={false}>
       <div className="row">
         <div>
-          <h1>My websites</h1>
-          <div className="tag">Download files, follow the setup guide, rate and ask for changes</div>
+          <h1>
+            <T s={'My websites'} />
+          </h1>
+          <div className="tag">
+            <T s={'Download files, follow the setup guide, rate and ask for changes'} />
+          </div>
         </div>
         <Link className="btn ghost" href="/websites" prefetch={false}>
-          Browse more websites
+          <T s={'Browse more websites'} />
         </Link>
       </div>
       {sites.length ? (
@@ -54,26 +61,25 @@ export default async function BuyerWebsites({ searchParams }: { searchParams: Pr
                   <div>
                     <h2>{s.title}</h2>
                     <div className="tag">
-                      by {s.seller}
-                      {s.stack ? ` · ${s.stack}` : ''} · {s.order.licence ?? 'Standard'}
+                      <T s={'by {seller}{v1} · {v2}'} v={{ seller: s.seller, v1: s.stack ? ` · ${s.stack}` : '', v2: s.order.licence ?? 'Standard' }} />
                     </div>
                   </div>
-                  <span className={`status ${TONE[st.tone]}`}>{st.label}</span>
+                  <span className={`status ${TONE[st.tone]}`}>{translate(st.label)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                   <Link className="btn sm" href={`/orders/${s.order.id}`} prefetch={false}>
-                    Download files
+                    <T s={'Download files'} />
                   </Link>{' '}
                   {s.docsUrl && (
                     <a className="btn sm ghost" href={s.docsUrl} target="_blank" rel="noopener noreferrer nofollow">
-                      Setup guide
+                      <T s={'Setup guide'} />
                     </a>
                   )}{' '}
                   <Link className="btn sm ghost" href="/dashboard/buyer/domains" prefetch={false}>
-                    Connect domain
+                    <T s={'Connect domain'} />
                   </Link>{' '}
                   <Link className="btn sm ghost" href="/dashboard/buyer/support" prefetch={false}>
-                    Get help
+                    <T s={'Get help'} />
                   </Link>
                 </div>
                 <StarRating orderId={s.order.id} canRate={RATEABLE.includes(s.order.state)} />
@@ -84,11 +90,13 @@ export default async function BuyerWebsites({ searchParams }: { searchParams: Pr
       ) : (
         <section className="glass card" style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ flex: '1 1 280px' }}>
-            <h2>{q ? 'No website matches that search' : 'No websites yet'}</h2>
-            <div className="tag">Websites you get show up here, ready to download.</div>
+            <h2>{q ? tx('No website matches that search') : tx('No websites yet')}</h2>
+            <div className="tag">
+              <T s={'Websites you get show up here, ready to download.'} />
+            </div>
           </div>
           <Link className="btn" href="/websites" prefetch={false}>
-            Browse websites
+            <T s={'Browse websites'} />
           </Link>
         </section>
       )}
@@ -96,19 +104,23 @@ export default async function BuyerWebsites({ searchParams }: { searchParams: Pr
         <section key={r.id} className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12, borderColor: '#CFE9DF' }}>
           <div className="row">
             <div>
-              <h2>{r.kind === 'custom_dev' ? 'Customization offer' : 'Your quotation'}</h2>
-              <div className="tag">Pay into escrow; the money is released only when you approve the work</div>
+              <h2>{r.kind === 'custom_dev' ? tx('Customization offer') : tx('Your quotation')}</h2>
+              <div className="tag">
+                <T s={'Pay into escrow; the money is released only when you approve the work'} />
+              </div>
             </div>
-            <span className="status st-ok">New offer</span>
+            <span className="status st-ok">
+              <T s={'New offer'} />
+            </span>
           </div>
           <div className="row">
             <span style={{ fontSize: 15 }}>{r.intendedUse.slice(0, 120)}</span>
             <div style={{ display: 'flex', gap: 8 }}>
               <Link className="btn ghost" href="/dashboard/buyer/support" prefetch={false}>
-                Ask a question
+                <T s={'Ask a question'} />
               </Link>
               <Link className="btn" href={`/dashboard/buyer/requests/${r.id}`} prefetch={false}>
-                See the offer
+                <T s={'See the offer'} />
               </Link>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
@@ -31,12 +32,12 @@ export async function setRobotsExtra(adminId: string | null, paths: string[]): P
   }
   const next = cleanRobotsExtra(list);
   const before = await robotsExtra();
-  if (JSON.stringify(before) === JSON.stringify(next)) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (JSON.stringify(before) === JSON.stringify(next)) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY, value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else mem.saved = next;
   await audit(adminId, 'seo_robots_changed', 'settings', KEY, { from: before, to: next });
   await recordRevision(adminId, KEY, next, before); // CMS history (lib/cms)

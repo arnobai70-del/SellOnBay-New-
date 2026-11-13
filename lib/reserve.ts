@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from './i18n/tx';
 import { audit } from './admin/audit';
 import { CONFIG, DAY_MS } from './config';
 import { acct, reserveReleased, sellerKey } from './ledger';
@@ -43,17 +44,17 @@ export async function reserveRule(sellerId: string | null): Promise<Rule> {
 
 export async function setSellerReserve(adminId: string | null, sellerId: string, percent: number, days: number, note: string): Promise<Result> {
   const why = note.trim();
-  if (!Number.isInteger(percent) || percent < 0 || percent > 100) return { ok: false, status: 400, error: 'The percent must be a whole number from 0 to 100.' };
-  if (!Number.isInteger(days) || days < 0 || days > 180) return { ok: false, status: 400, error: 'The days must be a whole number from 0 to 180.' };
-  if (why.length < 5) return { ok: false, status: 400, error: 'Write why (at least 5 characters). It goes in the audit log.' };
-  if (why.length > 500) return { ok: false, status: 400, error: 'Keep the reason under 500 characters.' };
+  if (!Number.isInteger(percent) || percent < 0 || percent > 100) return { ok: false, status: 400, error: tx('The percent must be a whole number from 0 to 100.') };
+  if (!Number.isInteger(days) || days < 0 || days > 180) return { ok: false, status: 400, error: tx('The days must be a whole number from 0 to 180.') };
+  if (why.length < 5) return { ok: false, status: 400, error: tx('Write why (at least 5 characters). It goes in the audit log.') };
+  if (why.length > 500) return { ok: false, status: 400, error: tx('Keep the reason under 500 characters.') };
   if (await pg()) {
-    if (!UUID.test(sellerId)) return { ok: false, status: 400, error: 'That is not an account id.' };
+    if (!UUID.test(sellerId)) return { ok: false, status: 400, error: tx('That is not an account id.') };
     const db = createAdminClient();
     const { data: p } = await db.from('profiles').select('id, role').eq('id', sellerId).maybeSingle();
-    if (!p) return { ok: false, status: 404, error: 'Account not found.' };
+    if (!p) return { ok: false, status: 404, error: tx('Account not found.') };
     const { error } = await db.from('seller_risk').upsert({ seller_id: sellerId, reserve_percent: percent, reserve_days: days, note: why, set_by: adminId, set_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save the rule.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save the rule.') };
   } else memRules.set(sellerId, { percent, days, note: why });
   await audit(adminId, 'seller_reserve_set', 'profile', sellerId, { percent, days, note: why });
   return { ok: true };
@@ -61,7 +62,7 @@ export async function setSellerReserve(adminId: string | null, sellerId: string,
 
 export async function removeSellerReserve(adminId: string | null, sellerId: string, note: string): Promise<Result> {
   const why = note.trim();
-  if (why.length < 5) return { ok: false, status: 400, error: 'Write why (at least 5 characters). It goes in the audit log.' };
+  if (why.length < 5) return { ok: false, status: 400, error: tx('Write why (at least 5 characters). It goes in the audit log.') };
   if (await pg()) await createAdminClient().from('seller_risk').delete().eq('seller_id', sellerId);
   else memRules.delete(sellerId);
   await audit(adminId, 'seller_reserve_removed', 'profile', sellerId, { note: why });

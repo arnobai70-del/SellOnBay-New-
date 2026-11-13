@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { checkMessage, BLOCKED_MESSAGE } from '../chatFilter';
 import { hasScope, type AdminScope } from '../admin/scopes';
 
@@ -32,7 +33,7 @@ export const mayUse = (v: Viewer, s: SubjectFacts, c: Channel) => channelsFor(v,
 export const MESSAGE_MAX = 4000;
 export function checkBody(role: Viewer['role'], raw: string): { ok: true; body: string } | { ok: false; error: string; blocked?: boolean } {
   const body = raw.trim();
-  if (!body) return { ok: false, error: 'Write a message first.' };
+  if (!body) return { ok: false, error: tx('Write a message first.') };
   if (body.length > MESSAGE_MAX) return { ok: false, error: `Keep a message under ${MESSAGE_MAX} characters.` };
   if (role !== 'admin' && !checkMessage(body).ok) return { ok: false, error: BLOCKED_MESSAGE, blocked: true };
   return { ok: true, body };

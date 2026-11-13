@@ -35,17 +35,22 @@ With Supabase: run the files in `supabase/migrations/` in order (0001 to the new
 | `npm run lint` / `typecheck` / `format:check` | Code checks. `npm run format` fixes style.                             |
 | `npm test`                                    | Unit tests (`tests/unit`, Vitest). Money, orders, ledger, filters.     |
 | `npm run test:e2e`                            | Browser and API tests (`tests/e2e`, Playwright). Needs the app running |
-| `node tests/e2e/delivery.e2e.cjs`             | File-release checks against the real database.                         |
+| `node tests/e2e/delivery.e2e.cjs`             | Retired with SellOnBay 2.0 (see its header); covered by other tests.   |
 
-End-to-end tests run against a built app: `npm run build`, then in two terminals
+**Browser tests never touch the production database** (owner, 2026-11-13). `.env.local` holds the production keys, and Next reads it at
+build time (`NEXT_PUBLIC_*` are baked in) and at start-up, so a demo server needs fake keys at both steps:
 
 ```
-PAYMENT_WEBHOOK_SECRET=e2e-hook-secret LAUNCHBAY_DEMO=1 npx next start -p 3002   # demo mode, orders in memory
-PAYMENT_WEBHOOK_SECRET=e2e-hook-secret EXAMPLE_ORDERS=1 npx next start -p 3000   # real Supabase from .env.local; EXAMPLE_ORDERS only on a test server
+export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:9 NEXT_PUBLIC_SUPABASE_ANON_KEY=fake SUPABASE_SERVICE_ROLE_KEY=fake SUPABASE_DB_URL=
+export NEXT_DIST_DIR=.next-demo LAUNCHBAY_DEMO=1 PAYMENT_WEBHOOK_SECRET=e2e-hook-secret
+npx next build && npx next start -p 3002          # demo mode, no database
+# REAL_URL: a staging server only, built and started with the staging keys from ~/.sob-staging (never .env.local)
 npm run test:e2e
 ```
 
-Tests that need the real database skip themselves when `.env.local` is missing or a migration is not applied. In CI (`.github/workflows/ci.yml`) lint, types, unit tests, the migration check, the production build, the no-secret bundle check and a demo-mode smoke test run on every push and pull request. The Playwright browser tests are run by hand (see above).
+Three guards enforce it: `tests/e2e/preflight.ts` stops the run if any target server uses the production database; `lib/testGuard.ts` (first
+check in `proxy.ts`) makes such a server refuse every request marked `x-sob-e2e` (403), and makes a `LAUNCHBAY_DEMO=1` server on the
+production database answer 503; the database specs read staging keys from the environment only (`tests/e2e/realEnv.ts`) and skip without them. In CI (`.github/workflows/ci.yml`) lint, types, unit tests, the migration check, the production build, the no-secret bundle check and a demo-mode smoke test run on every push and pull request. The Playwright browser tests are run by hand (see above).
 
 ## Layout
 

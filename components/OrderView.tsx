@@ -6,6 +6,9 @@ import { DEMO, type OrderView as View } from '@/lib/commerce/types';
 import { hoursText, promiseHours } from '@/lib/deliveryTime';
 import { ACCEPT_TEXT } from '@/lib/consentText';
 
+import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
+import type { Tx } from '@/lib/i18n/tx';
 type Kind = 'web' | 'host' | 'store' | 'installer' | 'hire' | 'download' | 'repo';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const day = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -14,15 +17,16 @@ const clock = (ms: number) => {
   return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
 };
 
-const NOTE: Record<string, [string, string]> = {
-  overdue: ['Delivery is late.', 'The delivery time has passed. You can cancel for a full refund.'],
-  disputed: ['A dispute is open.', 'Payment for this order is held while it is decided.'],
-  fix_requested: ['A fix was requested.', 'The seller is fixing the problem and will deliver again.'],
-  cancelled: ['This order was cancelled.', 'Nothing more will be charged.'],
-  refunded: ['This order was refunded.', 'The money goes back to your card.'],
-};
+const NOTE = (tx: Tx): Record<string, [string, string]> => ({
+  overdue: [tx('Delivery is late.'), tx('The delivery time has passed. You can cancel for a full refund.')],
+  disputed: ['A dispute is open.', tx('Payment for this order is held while it is decided.')],
+  fix_requested: ['A fix was requested.', tx('The seller is fixing the problem and will deliver again.')],
+  cancelled: [tx('This order was cancelled.'), tx('Nothing more will be charged.')],
+  refunded: [tx('This order was refunded.'), tx('The money goes back to your card.')],
+});
 
 export function OrderView({ initial, kind, paidNow, files = [], realtime = false }: { initial: View; kind: Kind; paidNow: boolean; files?: [string, string][]; realtime?: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [o, setO] = useState(initial);
   const [skew, setSkew] = useState(() => initial.now - Date.now());
   const [now, setNow] = useState(initial.now);
@@ -43,20 +47,20 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
     try {
       await fn();
     } catch {
-      setErr('Could not reach SellOnBay. Check your connection and try again.');
+      setErr(tx('Could not reach SellOnBay. Check your connection and try again.'));
     } finally {
       running.current = false;
       setBusy('');
     }
   }
-  const errorOf = async (r: Response, fallback = 'Something went wrong. Try again.') => ((await r.json().catch(() => ({}))) as { error?: string }).error ?? fallback;
+  const errorOf = async (r: Response, fallback?: string) => ((await r.json().catch(() => ({}))) as { error?: string }).error ?? fallback ?? tx('Something went wrong. Try again.');
 
   const getFiles = () =>
     run('files', async () => {
       const r = await fetch(`/api/demo/orders/${initial.id}/download`, { method: 'POST' });
       const body = await r.json().catch(() => ({}));
       if (r.ok) setDlink(body);
-      else setErr(body.error ?? 'Could not prepare your files.');
+      else setErr(body.error ?? tx('Could not prepare your files.'));
     });
 
   const load = useCallback(async () => {
@@ -102,7 +106,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
         window.location.assign(j.url); // a real order: the extra work is paid at PayPal
         return;
       }
-      if (!r.ok) setErr(j.error ?? 'Something went wrong. Try again.');
+      if (!r.ok) setErr(j.error ?? tx('Something went wrong. Try again.'));
       await load();
     });
   const [reason, setReason] = useState('not_as_described');
@@ -136,7 +140,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
 
   const p = o.progress,
     hire = kind === 'hire',
-    first = hire ? 'The developer' : 'The seller',
+    first = hire ? tx('The developer') : tx('The seller'),
     dl = kind === 'download',
     repo = kind === 'repo',
     invited = o.events.some((e) => e.event === 'repo_invited');
@@ -147,27 +151,27 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
   const live = domain ? 'https://' + domain.name : null;
 
   type S = { t: string; d: string; state: 'done' | 'now' | 'next'; extra?: React.ReactNode };
-  const steps: S[] = [{ t: 'Payment held safely', d: o.paidAt ? `${day(o.paidAt)}. Released only after you accept.` : '', state: 'done' }];
+  const steps: S[] = [{ t: tx('Payment held safely'), d: o.paidAt ? `${day(o.paidAt)}. Released only after you accept.` : '', state: 'done' }];
   if (domain)
     steps.push(
       domain.source === 'new'
-        ? { t: 'Domain registered in your name', d: `${domain.name}, renews ${domain.expires ?? ''}`, state: 'done' }
-        : { t: `Your domain ${domain.name}`, d: rank >= 3 ? 'Connected' : `${first} connects it while building`, state: rank >= 3 ? 'done' : 'now' },
+        ? { t: tx('Domain registered in your name'), d: `${domain.name}, renews ${domain.expires ?? ''}`, state: 'done' }
+        : { t: tx('Your domain {name}', { name: domain.name }), d: rank >= 3 ? 'Connected' : `${first} connects it while building`, state: rank >= 3 ? 'done' : 'now' },
     );
   if (repo) {
     steps.push({
-      t: invited ? 'Seller sent your GitHub invite' : 'Seller is sending your GitHub invite',
-      d: invited ? `To ${o.github ?? 'your account'}. Check your GitHub notifications.` : 'This usually takes a few hours.',
+      t: invited ? tx('Seller sent your GitHub invite') : tx('Seller is sending your GitHub invite'),
+      d: invited ? tx('To {v0}. Check your GitHub notifications.', { v0: o.github ?? 'your account' }) : tx('This usually takes a few hours.'),
       state: invited || rank >= 3 ? 'done' : 'now',
     });
     steps.push({
-      t: 'You confirm access',
-      d: rank >= 3 ? 'Confirmed' : 'Open the repository, then confirm here.',
+      t: tx('You confirm access'),
+      d: rank >= 3 ? 'Confirmed' : tx('Open the repository, then confirm here.'),
       state: rank >= 3 ? 'done' : invited ? 'now' : 'next',
       extra:
         invited && rank < 3 ? (
           <button className="btn sm" disabled={busy === 'confirm-access'} onClick={() => act('confirm-access')}>
-            {busy === 'confirm-access' ? 'One moment...' : 'I can open the repository'}
+            {busy === 'confirm-access' ? tx('One moment...') : tx('I can open the repository')}
           </button>
         ) : null,
     });
@@ -175,11 +179,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
     steps.push({
       t:
         dl && o.instant
-          ? 'Your files are ready'
+          ? tx('Your files are ready')
           : dl
             ? `${first} ${rank >= 3 ? 'finished setting it up' : 'is setting it up'}`
             : `${first} ${rank >= 3 ? 'finished building' : rank === 2 ? 'is building' : 'is starting'}`,
-      d: rank >= 3 ? 'Delivered' : rank === 2 ? `${build}% done` : `Starting in a few seconds. Real orders are due in ${hoursText(promiseHours(o))}.`,
+      d: rank >= 3 ? 'Delivered' : rank === 2 ? `${build}% done` : tx('Starting in a few seconds. Real orders are due in {hoursText}.', { hoursText: hoursText(promiseHours(o)) }),
       state: rank >= 3 ? 'done' : 'now',
       extra:
         rank === 2 || rank === 1 ? (
@@ -189,13 +193,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
         ) : null,
     });
     steps.push({
-      t: hire ? 'Delivery ready' : dl ? 'Check your files' : kind === 'store' ? 'Test build ready' : kind === 'installer' ? 'Installers ready' : 'Your site is live',
-      d: rank >= 3 ? (live ? live : 'Check it and accept, or ask for a fix') : 'Next',
+      t: hire ? tx('Delivery ready') : dl ? tx('Check your files') : kind === 'store' ? tx('Test build ready') : kind === 'installer' ? tx('Installers ready') : tx('Your site is live'),
+      d: rank >= 3 ? (live ? live : tx('Check it and accept, or ask for a fix')) : 'Next',
       state: rank === 3 ? 'now' : rank > 3 ? 'done' : 'next',
     });
   }
   steps.push({
-    t: 'You review',
+    t: tx('You review'),
     d:
       rank === 3
         ? dl
@@ -203,12 +207,16 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           : `${clock(left)} left. Then it is accepted for you.`
         : rank > 3
           ? p.autoAccepted
-            ? 'Accepted automatically after 48 hours'
-            : 'You accepted'
+            ? tx('Accepted automatically after 48 hours')
+            : tx('You accepted')
           : '48 hours after delivery',
     state: rank === 3 ? 'now' : rank > 3 ? 'done' : 'next',
   });
-  steps.push({ t: `${first} is paid`, d: rank === 4 && p.payoutAfter ? `In the weekly payout after ${day(p.payoutAfter)}` : '7 days after you accept', state: rank === 4 ? 'done' : 'next' });
+  steps.push({
+    t: `${first} is paid`,
+    d: rank === 4 && p.payoutAfter ? tx('In the weekly payout after {day}', { day: day(p.payoutAfter) }) : '7 days after you accept',
+    state: rank === 4 ? 'done' : 'next',
+  });
 
   return (
     <div className="wrap sob-ord">
@@ -218,8 +226,12 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             <path d="M5 12l5 5 9-10" />
           </svg>
           <div>
-            <b>Payment received</b>
-            <span>{money(o.totalCents)} is held safely until you accept.</span>
+            <b>
+              <T s={'Payment received'} />
+            </b>
+            <span>
+              <T s={'{v0} is held safely until you accept.'} v={{ v0: money(o.totalCents) }} />
+            </span>
           </div>
         </div>
       )}
@@ -229,10 +241,10 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             <i />
             {
               {
-                awaiting_payment: 'Waiting for payment',
+                awaiting_payment: tx('Waiting for payment'),
                 queued: 'Starting',
                 building: 'Building',
-                delivered: 'Ready to review',
+                delivered: tx('Ready to review'),
                 accepted: 'Accepted',
                 cancelled: o.state === 'refunded' ? 'Refunded' : 'Cancelled',
               }[stage]
@@ -240,8 +252,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           </span>
           <h1>{o.title}</h1>
           <p className="muted">
-            Order {o.id.slice(0, 8).toUpperCase()}
-            {domain ? ` · ${domain.name}` : ''}
+            <T s={'Order {v0}{v1}'} v={{ v0: o.id.slice(0, 8).toUpperCase(), v1: domain ? ` · ${domain.name}` : '' }} />
           </p>
         </div>
       </div>
@@ -277,16 +288,18 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                     <span>{live}</span>
                   </div>
                   <div className="sob-ord-live-b">
-                    <b>{kind === 'host' ? 'Your app is live' : 'Your site is live'}</b>
-                    <p>Open it, click around, and make sure it is what you paid for.</p>
+                    <b>{kind === 'host' ? tx('Your app is live') : tx('Your site is live')}</b>
+                    <p>
+                      <T s={'Open it, click around, and make sure it is what you paid for.'} />
+                    </p>
                     <Link className="btn sm" href={`/preview/${o.productId}`} target="_blank">
-                      Open the site
+                      <T s={'Open the site'} />
                     </Link>
                   </div>
                 </>
               ) : (
                 <div className="sob-ord-live-b">
-                  <b>{hire ? 'Your delivery' : dl ? 'Your files' : kind === 'store' ? 'Your test build' : 'Your installers'}</b>
+                  <b>{hire ? tx('Your delivery') : dl ? tx('Your files') : kind === 'store' ? tx('Your test build') : tx('Your installers')}</b>
                   {dl && files.length > 0 && (
                     <ul className="sob-ord-files">
                       {files.map(([n, sz]) => (
@@ -300,33 +313,35 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                   )}
                   <p>
                     {hire
-                      ? 'Files and notes are shared in messages.'
+                      ? tx('Files and notes are shared in messages.')
                       : dl
-                        ? 'Your files are ready now. The download link works for 24 hours, and you can get a new one any time. Keep your licence key.'
+                        ? tx('Your files are ready now. The download link works for 24 hours, and you can get a new one any time. Keep your licence key.')
                         : kind === 'store'
-                          ? 'Install it from the test link in messages. After you accept, the seller sends it to the store.'
-                          : `Download links for ${(o.oses ?? []).join(', ') || 'your computers'} are in messages.`}
+                          ? tx('Install it from the test link in messages. After you accept, the seller sends it to the store.')
+                          : tx('Download links for {v0} are in messages.', { v0: (o.oses ?? []).join(', ') || 'your computers' })}
                   </p>
                   {dl && (
                     <div className="sob-ord-dl">
                       {dlink ? (
                         <>
                           <a className="btn sm" href={dlink.url}>
-                            Download
+                            <T s={'Download'} />
                           </a>
-                          <code className="sob-ord-key" aria-label="Licence key">
+                          <code className="sob-ord-key" aria-label={tx('Licence key')}>
                             {dlink.licenseKey}
                           </code>
-                          <small>Link expires {new Date(dlink.expiresAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.</small>
+                          <small>
+                            <T s={'Link expires {v0}.'} v={{ v0: new Date(dlink.expiresAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) }} />
+                          </small>
                         </>
                       ) : null}
                       <button className="btn ghost sm" type="button" disabled={busy === 'files'} onClick={getFiles}>
-                        {busy === 'files' ? 'One moment…' : dlink ? 'Get a new link' : 'Get my files'}
+                        {busy === 'files' ? tx('One moment…') : dlink ? tx('Get a new link') : tx('Get my files')}
                       </button>
                     </div>
                   )}
                   <Link className={dl ? 'sob-link' : 'btn sm'} href="/messages">
-                    {dl ? 'Ask the seller a question' : 'Open messages'}
+                    {dl ? tx('Ask the seller a question') : tx('Open messages')}
                   </Link>
                 </div>
               )}
@@ -340,31 +355,35 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <span className="muted">{ACCEPT_TEXT}</span>
               </label>
               <button className="btn" disabled={busy === 'accept' || !agreed} onClick={() => act('accept')}>
-                {busy === 'accept' ? 'Accepting…' : 'Accept and release payment'}
+                {busy === 'accept' ? tx('Accepting…') : tx('Accept and release payment')}
               </button>
               <Link className="btn ghost" href="/help#refunds">
-                Something is wrong
+                <T s={'Something is wrong'} />
               </Link>
             </div>
           )}
           {stage === 'accepted' && (
             <div className="sob-ord-done">
-              <b>All done.</b>
-              <p>Your source files are released and you have a 7-day bug-fix guarantee{p.bugfixUntil ? ` until ${day(p.bugfixUntil)}` : ''}.</p>
+              <b>
+                <T s={'All done.'} />
+              </b>
+              <p>
+                <T s={'Your source files are released and you have a 7-day bug-fix guarantee{v0}.'} v={{ v0: p.bugfixUntil ? ` until ${day(p.bugfixUntil)}` : '' }} />
+              </p>
               {o.certificate && (
                 <a className="btn ghost sm" href={`/api/demo/orders/${o.id}/certificate`} download>
-                  Download your handover certificate
+                  <T s={'Download your handover certificate'} />
                 </a>
               )}
             </div>
           )}
-          {NOTE[o.state] && (
+          {NOTE(tx)[o.state] && (
             <div className="sob-ord-done" role="status">
-              <b>{NOTE[o.state][0]}</b>
-              <p>{NOTE[o.state][1]}</p>
+              <b>{NOTE(tx)[o.state][0]}</b>
+              <p>{NOTE(tx)[o.state][1]}</p>
               {o.state === 'overdue' && (
                 <button className="btn ghost sm" disabled={busy === 'cancel'} onClick={() => act('cancel')}>
-                  {busy === 'cancel' ? 'Cancelling...' : 'Cancel and get a full refund'}
+                  {busy === 'cancel' ? tx('Cancelling...') : tx('Cancel and get a full refund')}
                 </button>
               )}
             </div>
@@ -372,74 +391,102 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           {o.paidAt && (
             <p className="muted">
               <a className="sob-link" href={`/api/demo/orders/${o.id}/evidence`} download>
-                Download the full record of this order (PDF)
+                <T s={'Download the full record of this order (PDF)'} />
               </a>
             </p>
           )}
           {o.repo && (o.repo.revoke || (o.repo.invitedAt && o.state === 'in_delivery')) && (
             <div className="glass card" data-repo>
-              <h2 style={{ fontSize: '1.2rem' }}>Repository access</h2>
+              <h2 style={{ fontSize: '1.2rem' }}>
+                <T s={'Repository access'} />
+              </h2>
               {o.repo.invitedAt && o.state === 'in_delivery' && (
                 <p>
                   {o.repo.expired
-                    ? 'The GitHub invite has run out. Ask the seller to send it again in the order chat.'
-                    : `Accept the GitHub invite before ${day(o.repo.expiresAt!)}. GitHub removes an invite that is not accepted in time. Then confirm here that you can open it.`}
+                    ? tx('The GitHub invite has run out. Ask the seller to send it again in the order chat.')
+                    : tx('Accept the GitHub invite before {day}. GitHub removes an invite that is not accepted in time. Then confirm here that you can open it.', { day: day(o.repo.expiresAt!) })}
                 </p>
               )}
-              {o.repo.resends > 0 && o.state === 'in_delivery' && <p className="muted">The seller sent the invite again {o.repo.resends === 1 ? 'once' : `${o.repo.resends} times`}.</p>}
+              {o.repo.resends > 0 && o.state === 'in_delivery' && (
+                <p className="muted">
+                  <T s={'The seller sent the invite again {v0}.'} v={{ v0: o.repo.resends === 1 ? 'once' : `${o.repo.resends} times` }} />
+                </p>
+              )}
               {o.repo.revoke && (
                 <p data-revoke={o.repo.revoke}>
-                  <b>Access removal:</b>{' '}
+                  <b>
+                    <T s={'Access removal:'} />
+                  </b>{' '}
                   {o.repo.revoke === 'pending'
-                    ? 'This order ended, so the seller was asked to remove your access to the repository.'
+                    ? tx('This order ended, so the seller was asked to remove your access to the repository.')
                     : o.repo.revoke === 'seller_done'
-                      ? 'The seller says your access was removed. Our team is checking it.'
-                      : 'Confirmed by our team: you no longer have access to the repository.'}
+                      ? tx('The seller says your access was removed. Our team is checking it.')
+                      : tx('Confirmed by our team: you no longer have access to the repository.')}
                 </p>
               )}
             </div>
           )}
           {o.info && (
             <div className="glass card" data-info>
-              <h2 style={{ fontSize: '1.2rem' }}>About this product</h2>
+              <h2 style={{ fontSize: '1.2rem' }}>
+                <T s={'About this product'} />
+              </h2>
               <dl className="sob-list">
                 <div>
-                  <dt>What it needs</dt>
-                  <dd>{o.info.requirements ?? 'No special requirements listed.'}</dd>
+                  <dt>
+                    <T s={'What it needs'} />
+                  </dt>
+                  <dd>{o.info.requirements ?? tx('No special requirements listed.')}</dd>
                 </div>
                 <div>
-                  <dt>Documentation</dt>
+                  <dt>
+                    <T s={'Documentation'} />
+                  </dt>
                   <dd>
                     {o.info.docsUrl ? (
                       <a className="sob-link" href={o.info.docsUrl} target="_blank" rel="noopener noreferrer nofollow">
-                        Read the guide
+                        <T s={'Read the guide'} />
                       </a>
                     ) : (
-                      'No separate guide.'
+                      tx('No separate guide.')
                     )}
                   </dd>
                 </div>
                 <div>
-                  <dt>Support</dt>
-                  <dd>{o.info.supportUntil ? `Until ${day(o.info.supportUntil)}, in the order chat${o.info.supportUntil < now ? ' (ended)' : ''}` : 'None. You got the product as it is.'}</dd>
+                  <dt>
+                    <T s={'Support'} />
+                  </dt>
+                  <dd>
+                    {o.info.supportUntil
+                      ? tx('Until {day}, in the order chat{v1}', { day: day(o.info.supportUntil), v1: o.info.supportUntil < now ? ' (ended)' : '' })
+                      : tx('None. You got the product as it is.')}
+                  </dd>
                 </div>
                 {o.info.versions.isNew && (
                   <div data-new-version>
-                    <dt>New version</dt>
+                    <dt>
+                      <T s={'New version'} />
+                    </dt>
                     <dd>
-                      Version {o.info.versions.current} is ready. Use &quot;Get my files&quot; above to download it.
-                      {o.info.versions.list[0] ? ` What changed: ${o.info.versions.list[0].changelog}` : ''}
+                      <T
+                        s={'Version {current} is ready. Use "Get my files" above to download it.{v1}'}
+                        v={{ current: o.info.versions.current, v1: o.info.versions.list[0] ? ` What changed: ${o.info.versions.list[0].changelog}` : '' }}
+                      />
                     </dd>
                   </div>
                 )}
                 <div>
-                  <dt>Updates</dt>
-                  <dd>{o.info.updateUntil ? `New versions until ${day(o.info.updateUntil)}${o.info.updateUntil < now ? ' (ended)' : ''}` : 'None. You got the version you bought.'}</dd>
+                  <dt>
+                    <T s={'Updates'} />
+                  </dt>
+                  <dd>{o.info.updateUntil ? `New versions until ${day(o.info.updateUntil)}${o.info.updateUntil < now ? ' (ended)' : ''}` : tx('None. You got the version you bought.')}</dd>
                 </div>
               </dl>
               {o.info.versions.list.length > 0 && (
                 <details className="muted" style={{ marginTop: 12 }}>
-                  <summary>Version history</summary>
+                  <summary>
+                    <T s={'Version history'} />
+                  </summary>
                   <ul>
                     {o.info.versions.list.map((v) => (
                       <li key={v.version}>
@@ -453,8 +500,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
           {o.held && (
             <p className="glass card" role="status">
-              This order is waiting for a short safety check by our team. Your money is safe in escrow. The seller starts, and your files are released, as soon as it is cleared. The delivery timer is
-              paused until then.
+              <T
+                s={
+                  'This order is waiting for a short safety check by our team. Your money is safe in escrow. The seller starts, and your files are released, as soon as it is cleared. The delivery timer is paused until then.'
+                }
+              />
             </p>
           )}
           {err && (
@@ -464,16 +514,22 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
           {stale && (
             <p className="muted" role="status">
-              Could not refresh this order just now, so what you see may be a moment old. It updates again by itself.
+              <T s={'Could not refresh this order just now, so what you see may be a moment old. It updates again by itself.'} />
             </p>
           )}
 
           {o.canReview && (
             <div className="glass card sob-ord-dispute">
-              <h2 style={{ fontSize: '1.2rem' }}>Leave a review</h2>
-              <p className="muted">Only buyers can review, so other people can trust it. Keep contact details and links out.</p>
+              <h2 style={{ fontSize: '1.2rem' }}>
+                <T s={'Leave a review'} />
+              </h2>
+              <p className="muted">
+                <T s={'Only buyers can review, so other people can trust it. Keep contact details and links out.'} />
+              </p>
               <div className="field">
-                <label htmlFor="rv-stars">Stars</label>
+                <label htmlFor="rv-stars">
+                  <T s={'Stars'} />
+                </label>
                 <select id="rv-stars" value={stars} onChange={(e) => setStars(+e.target.value)}>
                   {[5, 4, 3, 2, 1].map((n) => (
                     <option key={n} value={n}>
@@ -483,17 +539,21 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="rv-note">What was it like? (optional)</label>
+                <label htmlFor="rv-note">
+                  <T s={'What was it like? (optional)'} />
+                </label>
                 <textarea id="rv-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} />
               </div>
               <button className="btn sm" type="button" disabled={busy === 'review'} onClick={sendReview}>
-                {busy === 'review' ? 'Sending...' : 'Post review'}
+                {busy === 'review' ? tx('Sending...') : tx('Post review')}
               </button>
             </div>
           )}
           {o.review && (
             <div className="sob-ord-done" role="status">
-              <b>Thanks for your review.</b>
+              <b>
+                <T s={'Thanks for your review.'} />
+              </b>
               <p>
                 {'★'.repeat(o.review.rating)} {o.review.body}
               </p>
@@ -501,74 +561,103 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
           {o.dispute && (
             <div className="sob-ord-done" role="status">
-              <b>{o.dispute.status === 'decided' ? 'Problem decided' : 'Problem reported'}</b>
+              <b>{o.dispute.status === 'decided' ? tx('Problem decided') : tx('Problem reported')}</b>
               <p>
                 {o.dispute.status === 'decided'
                   ? `Decision: ${(o.dispute.decision ?? '').replace(/_/g, ' ')}.`
                   : o.dispute.status === 'seller_replied'
-                    ? 'The seller replied. An admin is looking at it and decides within 5 days. Payment is held.'
-                    : 'The seller has 48 hours to reply, then an admin decides within 5 days. Payment is held.'}
+                    ? tx('The seller replied. An admin is looking at it and decides within 5 days. Payment is held.')
+                    : tx('The seller has 48 hours to reply, then an admin decides within 5 days. Payment is held.')}
               </p>
             </div>
           )}
           {o.canDispute && !showDispute && (
             <button className="btn ghost sm" type="button" onClick={() => setShowDispute(true)}>
-              Report a problem
+              <T s={'Report a problem'} />
             </button>
           )}
           {showDispute && (
             <div className="glass card sob-ord-dispute">
-              <h2 style={{ fontSize: '1.2rem' }}>Report a problem</h2>
-              <p className="muted">Payment stays held while we look. Say what is wrong in your own words. Keep contact details out, we decide here.</p>
+              <h2 style={{ fontSize: '1.2rem' }}>
+                <T s={'Report a problem'} />
+              </h2>
+              <p className="muted">
+                <T s={'Payment stays held while we look. Say what is wrong in your own words. Keep contact details out, we decide here.'} />
+              </p>
               <div className="field">
-                <label htmlFor="d-reason">What is wrong</label>
+                <label htmlFor="d-reason">
+                  <T s={'What is wrong'} />
+                </label>
                 <select id="d-reason" value={reason} onChange={(e) => setReason(e.target.value)}>
-                  <option value="not_as_described">It is not as described</option>
-                  <option value="not_working">It does not work</option>
-                  <option value="malware">It has harmful code</option>
-                  <option value="copyright">It copies someone else&apos;s work</option>
-                  <option value="other">Something else</option>
+                  <option value="not_as_described">
+                    <T s={'It is not as described'} />
+                  </option>
+                  <option value="not_working">
+                    <T s={'It does not work'} />
+                  </option>
+                  <option value="malware">
+                    <T s={'It has harmful code'} />
+                  </option>
+                  <option value="copyright">
+                    <T s={"It copies someone else's work"} />
+                  </option>
+                  <option value="other">
+                    <T s={'Something else'} />
+                  </option>
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="d-detail">What happened (at least 20 characters)</label>
+                <label htmlFor="d-detail">
+                  <T s={'What happened (at least 20 characters)'} />
+                </label>
                 <textarea id="d-detail" rows={4} value={detail} onChange={(e) => setDetail(e.target.value)} maxLength={2000} />
               </div>
               <div className="sob-ord-extra-btns">
                 <button className="btn sm" type="button" disabled={busy === 'dispute' || detail.trim().length < 20} onClick={openDispute}>
-                  {busy === 'dispute' ? 'Sending...' : 'Send report'}
+                  {busy === 'dispute' ? tx('Sending...') : tx('Send report')}
                 </button>
                 <button className="btn ghost sm" type="button" onClick={() => setShowDispute(false)}>
-                  Cancel
+                  <T s={'Cancel'} />
                 </button>
               </div>
             </div>
           )}
           {o.extras.length > 0 && (
-            <div className="sob-ord-extras" id="extra" aria-label="Extra work">
-              <b>Extra work</b>
+            <div className="sob-ord-extras" id="extra" aria-label={tx('Extra work')}>
+              <b>
+                <T s={'Extra work'} />
+              </b>
               {o.extras.map((x) => (
                 <div className="sob-ord-extra" key={x.id}>
                   <div>
                     <span>{x.title}</span>
                     <small>
-                      {money(x.priceCents)} and {x.addDays} more {x.addDays === 1 ? 'day' : 'days'} ·{' '}
-                      {{ pending: 'waiting for you', funded: 'paid into escrow', declined: 'declined', cancelled: 'taken back' }[x.state] ?? x.state}
+                      <T
+                        s={'{v0} and {addDays} more {v2} · {v3}'}
+                        v={{
+                          v0: money(x.priceCents),
+                          addDays: x.addDays,
+                          v2: x.addDays === 1 ? 'day' : 'days',
+                          v3: { pending: 'waiting for you', funded: 'paid into escrow', declined: 'declined', cancelled: 'taken back' }[x.state] ?? x.state,
+                        }}
+                      />
                     </small>
                   </div>
                   {x.state === 'pending' && (
                     <div className="sob-ord-extra-btns">
                       <button className="btn sm" disabled={busy === 'extra:' + x.id} onClick={() => extraAct(x.id, 'approve')}>
-                        Approve and pay {money(x.priceCents)}
+                        <T s={'Approve and pay {v0}'} v={{ v0: money(x.priceCents) }} />
                       </button>
                       <button className="btn ghost sm" disabled={busy === 'extra:' + x.id} onClick={() => extraAct(x.id, 'decline')}>
-                        Decline
+                        <T s={'Decline'} />
                       </button>
                     </div>
                   )}
                 </div>
               ))}
-              <small className="muted">The seller starts extra work only after it shows as paid into escrow.</small>
+              <small className="muted">
+                <T s={'The seller starts extra work only after it shows as paid into escrow.'} />
+              </small>
             </div>
           )}
 
@@ -578,7 +667,9 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
 
           {o.events.length > 0 && (
             <details className="sob-ord-log">
-              <summary>Order history</summary>
+              <summary>
+                <T s={'Order history'} />
+              </summary>
               <ul>
                 {o.events.map((e, i) => (
                   <li key={i}>
@@ -592,23 +683,29 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           {!o.real && stage !== 'accepted' && stage !== 'awaiting_payment' && stage !== 'cancelled' && (
             <div className="sob-ord-demo">
               <div>
-                <b>Demo controls</b>
-                <span>Real {hire ? 'developers' : 'sellers'} take 1 to 7 days and you get 48 hours to review. Here you can jump ahead.</span>
+                <b>
+                  <T s={'Demo controls'} />
+                </b>
+                <span>
+                  <T s={'Real {v0} take 1 to 7 days and you get 48 hours to review. Here you can jump ahead.'} v={{ v0: hire ? 'developers' : 'sellers' }} />
+                </span>
               </div>
               {['funded', 'in_delivery', 'overdue'].includes(o.state) && o.kind === 'site' && (
                 <button className="btn ghost sm" disabled={busy === 'demo-extra'} onClick={demoExtra}>
-                  Pretend the seller asks for extra work
+                  <T s={'Pretend the seller asks for extra work'} />
                 </button>
               )}
               <button className="btn ghost sm" disabled={busy === 'skip'} onClick={() => act('skip')}>
-                {stage === 'delivered' ? 'Skip the 48 hours' : 'Skip to delivery'}
+                {stage === 'delivered' ? tx('Skip the 48 hours') : tx('Skip to delivery')}
               </button>
             </div>
           )}
         </div>
 
-        <aside className="glass card sum sob-ord-rcpt" aria-label="Receipt">
-          <h2>Receipt</h2>
+        <aside className="glass card sum sob-ord-rcpt" aria-label={tx('Receipt')}>
+          <h2>
+            <T s={'Receipt'} />
+          </h2>
           {o.lines.map(([l, c]) => (
             <div className="line" key={l}>
               <span>{l}</span>
@@ -616,12 +713,14 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
             </div>
           ))}
           <div className="sob-tot">
-            <span>Total</span>
+            <span>
+              <T s={'Total'} />
+            </span>
             <b>{money(o.totalCents)}</b>
           </div>
           {o.payment && (
             <p className="sob-ord-pay">
-              Paid with {o.payment.brand} ending {o.payment.last4}
+              <T s={'Paid with {brand} ending {last4}'} v={{ brand: o.payment.brand, last4: o.payment.last4 }} />
               <br />
               <small>{o.payment.ref}</small>
             </p>

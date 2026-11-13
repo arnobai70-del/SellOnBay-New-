@@ -1,24 +1,12 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { expect, test } from '@playwright/test';
-import fs from 'node:fs';
-import path from 'node:path';
+import { realEnv as env } from './realEnv';
 
 /*
  * Row Level Security and grants, tried as the wrong person. Each forbidden action is attempted with a real signed-in client (anon key, no service role)
- * and must be refused: an error, or no rows. Runs against the real database from .env.local; skipped until migrations 0015 to 0017 are applied.
+ * and must be refused: an error, or no rows. Runs only against the staging project, whose keys the staging run passes in the process
+ * environment (realEnv.ts; never .env.local, which is production); skipped until migrations 0015 to 0017 are applied.
  */
-const envFile = path.join(__dirname, '..', '..', '.env.local');
-const env: Record<string, string> = fs.existsSync(envFile)
-  ? Object.fromEntries(
-      fs
-        .readFileSync(envFile, 'utf8')
-        .split(/\r?\n/)
-        .filter((l) => l.includes('='))
-        .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-    )
-  : {};
-// The staging run passes the isolated project's keys in the process environment instead of a file in the repository (docs/STAGING_PREFLIGHT_2_0.md).
-for (const k of ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']) if (process.env[k]) env[k] = process.env[k] as string;
 const PASS = 'Qa-test-pass-123';
 const strictStaging = process.env.CI_STAGING_STRICT === '1';
 if (strictStaging && (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY || !env.SUPABASE_SERVICE_ROLE_KEY)) {
@@ -29,7 +17,7 @@ if (strictStaging && (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE
 const refused = (r: { data: unknown; error: unknown }) => !!r.error || r.data == null || (Array.isArray(r.data) && r.data.length === 0);
 
 test.describe('RLS: the wrong person is always refused', () => {
-  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
+  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs the staging keys (never .env.local, which is production)');
   const url = env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
   const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'unset';
   const admin = createClient(url, env.SUPABASE_SERVICE_ROLE_KEY || 'unset', { auth: { persistSession: false } });

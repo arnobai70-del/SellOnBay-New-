@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { COOKIE_EVENT, COOKIE_KEY } from './GoogleAnalytics';
 
+import type { Tx } from '@/lib/i18n/tx';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * Cookie notice with a real choice. The site needs only a few cookies to work (the sign-in session and choices kept in the browser). Google Analytics is
  * extra: it loads only after "Accept analytics" (lb-cookies = "all", components/GoogleAnalytics.tsx). "Only what is needed" (lb-cookies = "1") loads nothing more.
@@ -10,7 +12,20 @@ import { COOKIE_EVENT, COOKIE_KEY } from './GoogleAnalytics';
  */
 const KEY = COOKIE_KEY;
 
-export function CookieNotice() {
+export type CookieWords = { region: string; text: string; more: string; needed: string; all: string; link: string };
+const ENGLISH = (tx: Tx): CookieWords => ({
+  region: tx('Cookies'),
+  text: tx(
+    'We use the cookies the site needs to work, like keeping you signed in. With your OK we also use Google Analytics to see which pages help, and never for advertising. The live chat (Tawk.to) sets its own cookies so a conversation carries on.',
+  ),
+  more: tx('What we store'),
+  needed: tx('Only what is needed'),
+  all: tx('Accept analytics'),
+  link: '/legal/privacy#cookies',
+});
+export function CookieNotice({ words: given }: { words?: CookieWords }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const words = given ?? ENGLISH(tx);
   const [show, setShow] = useState(false);
   useEffect(() => {
     try {
@@ -30,17 +45,16 @@ export function CookieNotice() {
   };
   if (!show) return null;
   return (
-    <div className="glass sob-cookie" role="region" aria-label="Cookies">
+    <div className="glass sob-cookie" role="region" aria-label={words.region}>
       <p>
-        We use the cookies the site needs to work, like keeping you signed in. With your OK we also use Google Analytics to see which pages help, and never for advertising. The live chat (Tawk.to)
-        sets its own cookies so a conversation carries on. <Link href="/legal/privacy#cookies">What we store</Link>
+        {words.text} <Link href={words.link}>{words.more}</Link>
       </p>
       <div className="sob-cookie-actions">
         <button className="btn ghost sm" type="button" onClick={() => answer('1')}>
-          Only what is needed
+          {words.needed}
         </button>
         <button className="btn sm" type="button" onClick={() => answer('all')}>
-          Accept analytics
+          {words.all}
         </button>
       </div>
     </div>

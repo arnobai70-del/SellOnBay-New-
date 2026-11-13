@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { ALL_PRODUCTS } from '../apps';
@@ -27,15 +28,15 @@ const MOVED = ['seo:page:', 'seo:ctl:'];
 export async function renameListingSlug(adminId: string | null, oldSlug: string, newSlug: string): Promise<Result> {
   const bad = slugProblem(newSlug);
   if (bad) return { ok: false, status: 400, error: bad };
-  if (newSlug === oldSlug) return { ok: false, status: 409, error: 'Nothing changed.' };
-  if (!supabaseConfigured || ALL_PRODUCTS.some((p) => p.id === oldSlug)) return { ok: false, status: 400, error: 'Only a seller listing can be renamed.' };
+  if (newSlug === oldSlug) return { ok: false, status: 409, error: tx('Nothing changed.') };
+  if (!supabaseConfigured || ALL_PRODUCTS.some((p) => p.id === oldSlug)) return { ok: false, status: 400, error: tx('Only a seller listing can be renamed.') };
   const db = createAdminClient();
   const { data: row } = await db.from('products').select('id, slug').eq('slug', oldSlug).maybeSingle();
-  if (!row) return { ok: false, status: 404, error: 'No such listing.' };
+  if (!row) return { ok: false, status: 404, error: tx('No such listing.') };
   const { data: clash } = await db.from('products').select('id').eq('slug', newSlug).maybeSingle();
-  if (clash || ALL_PRODUCTS.some((p) => p.id === newSlug)) return { ok: false, status: 409, error: 'That address is already used by another listing.' };
+  if (clash || ALL_PRODUCTS.some((p) => p.id === newSlug)) return { ok: false, status: 409, error: tx('That address is already used by another listing.') };
   const { error } = await db.from('products').update({ slug: newSlug }).eq('id', row.id);
-  if (error) return { ok: false, status: 500, error: 'Could not change the address.' };
+  if (error) return { ok: false, status: 500, error: tx('Could not change the address.') };
   // The admin's words and settings for the old address move to the new one.
   for (const prefix of MOVED) {
     const { data } = await db.from('app_settings').select('value').eq('key', `${prefix}/product/${oldSlug}`).maybeSingle();

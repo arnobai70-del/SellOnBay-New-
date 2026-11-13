@@ -1,8 +1,17 @@
 /*
+ * RETIRED (2026-11-14): SellOnBay 2.0 closed the instant checkout this script starts with (/api/demo/orders answers 410; purchases begin
+ * with a request and a quotation). File release is covered by tests/unit/{delivery,delivery-chain,release}.test.ts, buy-real.spec.ts
+ * ("fake cards cannot … unlock its files") and staging-journey.spec.ts (step 6-7, release by Delivery). Kept for reference only.
+ */
+if (!process.env.RUN_RETIRED_DELIVERY_CHECK) {
+  console.log('delivery.e2e.cjs is retired (see the note at the top). File release is covered by the unit, buy-real and staging journey tests.');
+  process.exit(0);
+}
+/*
  * End-to-end check of file delivery. Run it with the app built (npm run build) and two servers up:
  *   LAUNCHBAY_DEMO=1 npx next start -p 3002     (demo mode, no database)
- *   EXAMPLE_ORDERS=1 npx next start -p 3000      (real Supabase from .env.local)
- * Then:  node tests/e2e/delivery.e2e.cjs
+ *   EXAMPLE_ORDERS=1 npx next start -p 3000      (the STAGING project: keys in the environment, never .env.local, which is production)
+ * Then:  node tests/e2e/delivery.e2e.cjs   (with the staging NEXT_PUBLIC_SUPABASE_URL, anon and service-role keys in the environment)
  * It starts a third short-lived server on port 3003 to prove that an expired link fails.
  * Test downloads are written to download_events, which is append-only on purpose, so a few rows with user agent "sellonbay-e2e" stay behind.
  */
@@ -13,13 +22,12 @@ const { spawn } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
 const puppeteer = require('puppeteer-core');
 const { createClient } = require(path.join(ROOT, 'node_modules/@supabase/supabase-js'));
-const env = Object.fromEntries(
-  fs
-    .readFileSync(path.join(ROOT, '.env.local'), 'utf8')
-    .split(/\r?\n/)
-    .filter((l) => l.includes('='))
-    .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
-);
+// Staging only (owner, 2026-11-13: tests never touch the production database). .env.local holds the production keys and is never read.
+const env = { ...process.env };
+if (!String(env.NEXT_PUBLIC_SUPABASE_URL || '').includes('occketfmjwciilzuddkv')) {
+  console.error('delivery.e2e.cjs runs only against the staging project: pass its keys in the environment.');
+  process.exit(1);
+}
 const EDGE = process.env.EDGE || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const DEMO = 'http://localhost:3002',
   REAL = 'http://localhost:3000',

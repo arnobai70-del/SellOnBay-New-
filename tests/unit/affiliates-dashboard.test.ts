@@ -121,7 +121,7 @@ describe('affiliate dashboard, signed in (server render)', () => {
     const page = readFileSync('app/(dash)/dashboard/buyer/affiliate/page.tsx', 'utf8');
     const api = readFileSync('app/api/affiliates/route.ts', 'utf8');
     expect(page).toMatch(/!supabaseConfigured && mayUseDemoAdmin\(process\.env\)/);
-    expect(api).toMatch(/!supabaseConfigured && !mayUseDemoAdmin\(process\.env\)\) return NextResponse\.json\(\{ error: 'Sign in first\.' \}, \{ status: 401 \}\)/);
+    expect(api).toMatch(/!supabaseConfigured && !mayUseDemoAdmin\(process\.env\)\) return jsonT\(\{ error: tx\('Sign in first\.'\) \}, \{ status: 401 \}\)/);
     // the buyer's own quotation acceptance records the referral (the old instant checkout is closed)
     expect(readFileSync('lib/requests/service.ts', 'utf8')).toMatch(/attributeFromRequest\('order', orderId, buyerId/);
   });

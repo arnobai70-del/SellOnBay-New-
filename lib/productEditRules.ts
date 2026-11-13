@@ -1,3 +1,4 @@
+import { tx } from './i18n/tx';
 import { catsFor } from './apps';
 import { type ThemeKey } from './data';
 import { isLicenceType } from './licences';
@@ -81,9 +82,9 @@ export function checkProductEdit(i: ProductEditInput, ctx: { platform: string; p
   const dig = ctx.platform === 'digital';
   const name = i.name.trim();
   const desc = i.desc.trim();
-  if (name.length < 3 || name.length > 60) return { ok: false, error: 'The name must be 3 to 60 characters.' };
+  if (name.length < 3 || name.length > 60) return { ok: false, error: tx('The name must be 3 to 60 characters.') };
   if (desc.length < CONFIG.listing.minDescChars || desc.length > 600) return { ok: false, error: `The description must be ${CONFIG.listing.minDescChars} to 600 characters.` };
-  if (isApp ? !catsFor(ctx.platform as never).includes(i.category) : !isWebCat(i.category)) return { ok: false, error: 'Pick one of the categories of this kind of product.' };
+  if (isApp ? !catsFor(ctx.platform as never).includes(i.category) : !isWebCat(i.category)) return { ok: false, error: tx('Pick one of the categories of this kind of product.') };
   const includes = i.includes
     .split('\n')
     .map((l) => l.trim())
@@ -99,12 +100,12 @@ export function checkProductEdit(i: ProductEditInput, ctx: { platform: string; p
     return { ok: false, error: `Delivery in hours is a whole number from ${CONFIG.deliveryHours.minHours} to ${MAX_HOURS}, or empty for days.` };
   const hours = i.hours ?? null;
   const demo = i.demo.trim();
-  if (demo && !isHttps(demo)) return { ok: false, error: 'The demo link must start with https.' };
-  if (!isApp && !demo && !ctx.hasHostedDemo) return { ok: false, error: 'A website needs a demo link, or the hosted demo the seller uploaded.' };
+  if (demo && !isHttps(demo)) return { ok: false, error: tx('The demo link must start with https.') };
+  if (!isApp && !demo && !ctx.hasHostedDemo) return { ok: false, error: tx('A website needs a demo link, or the hosted demo the seller uploaded.') };
   const sample = i.sample.trim();
-  if (sample && !isHttps(sample)) return { ok: false, error: 'The free sample link must start with https.' };
+  if (sample && !isHttps(sample)) return { ok: false, error: tx('The free sample link must start with https.') };
   const docs = i.docsUrl.trim();
-  if (docs && !isHttps(docs)) return { ok: false, error: 'The documentation link must start with https.' };
+  if (docs && !isHttps(docs)) return { ok: false, error: tx('The documentation link must start with https.') };
   const requirements = i.requirements.trim();
   if (requirements.length > CONFIG.listing.requirementsMax) return { ok: false, error: `What it needs can have up to ${CONFIG.listing.requirementsMax} characters.` };
   let express: number | null = null;
@@ -115,15 +116,15 @@ export function checkProductEdit(i: ProductEditInput, ctx: { platform: string; p
     express = d * 100;
   }
   if (!expressHelps({ days: i.days, hours })) express = null; // already within the express time
-  if (!CONFIG.packages.setupCents.includes(i.setupPrice * 100)) return { ok: false, error: 'Pick one of the allowed prices for setup help.' };
-  if (!CONFIG.packages.customCents.includes(i.customPrice * 100)) return { ok: false, error: 'Pick one of the allowed prices for customisation.' };
+  if (!CONFIG.packages.setupCents.includes(i.setupPrice * 100)) return { ok: false, error: tx('Pick one of the allowed prices for setup help.') };
+  if (!CONFIG.packages.customCents.includes(i.customPrice * 100)) return { ok: false, error: tx('Pick one of the allowed prices for customisation.') };
   if (i.price * 100 + i.setupPrice * 100 > ctx.priceMaxCents || i.price * 100 + i.customPrice * 100 > ctx.priceMaxCents)
     return { ok: false, error: `The price plus setup help or customisation must stay under $${ctx.priceMaxCents / 100}.` };
-  for (const d of [i.supportDays, i.updateDays]) if (!CONFIG.listing.periodDays.includes(d)) return { ok: false, error: 'Support and updates last 0, 30, 90, 180 or 365 days.' };
+  for (const d of [i.supportDays, i.updateDays]) if (!CONFIG.listing.periodDays.includes(d)) return { ok: false, error: tx('Support and updates last 0, 30, 90, 180 or 365 days.') };
   const codeUrl = (i.codeUrl ?? '').trim();
-  if (i.codeUrl !== undefined && (!codeUrl || !isHttps(codeUrl))) return { ok: false, error: 'The files link must start with https.' };
-  if (i.licenceType !== undefined && !isLicenceType(i.licenceType)) return { ok: false, error: 'Pick one of the licence types.' };
-  if (/[<>]/.test(name + desc + includes.join('') + requirements)) return { ok: false, error: 'Leave out < and > in the words.' };
+  if (i.codeUrl !== undefined && (!codeUrl || !isHttps(codeUrl))) return { ok: false, error: tx('The files link must start with https.') };
+  if (i.licenceType !== undefined && !isLicenceType(i.licenceType)) return { ok: false, error: tx('Pick one of the licence types.') };
+  if (/[<>]/.test(name + desc + includes.join('') + requirements)) return { ok: false, error: tx('Leave out < and > in the words.') };
   return {
     ok: true,
     row: {

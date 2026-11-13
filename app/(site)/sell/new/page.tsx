@@ -8,7 +8,8 @@ import { hasTags } from '@/lib/listingTagsStore';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { sellerPlan } from '@/lib/plans/service';
 
-export const metadata: Metadata = { title: 'List a site' };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('List a site') });
 
 export default async function Sell() {
   const viewer = await requireViewer({ path: '/sell/new' });

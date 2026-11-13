@@ -15,6 +15,9 @@ import { Button } from './Button';
 import { Field } from './Field';
 import { Switch } from './Switch';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 /*
  * Admin › Content › Guides (owner, 2026-11-08). A block editor (Tiptap): headings 1 to 4, text styles, colour, alignment, lists, check lists,
  * quote, code, link, divider, table, callout, button, pictures with alt text and caption, gallery, YouTube, website cards; "/" opens the block
@@ -42,45 +45,45 @@ export type GuideFields = {
 };
 type Revision = { id: number; title: string; autosave: boolean; at: number; words: number };
 
-async function upload(file: File): Promise<string> {
+async function upload(file: File, failed: string): Promise<string> {
   const form = new FormData();
   form.set('file', file);
   const r = await fetch('/api/admin/posts/image', { method: 'POST', body: form });
   const j = (await r.json().catch(() => ({}))) as { url?: string; error?: string };
-  if (!r.ok || !j.url) throw new Error(j.error ?? 'Could not upload the picture.');
+  if (!r.ok || !j.url) throw new Error(j.error ?? failed);
   return j.url;
 }
 const ask = (q: string, d = '') => (window.prompt(q, d) ?? '').trim();
 
 type Block = { key: string; label: string; run: (e: Editor) => void | Promise<void> };
-const BLOCKS: Block[] = [
-  { key: 'h1', label: 'Heading 1', run: (e) => e.chain().focus().setHeading({ level: 1 }).run() },
-  { key: 'h2', label: 'Heading 2', run: (e) => e.chain().focus().setHeading({ level: 2 }).run() },
-  { key: 'h3', label: 'Heading 3', run: (e) => e.chain().focus().setHeading({ level: 3 }).run() },
-  { key: 'h4', label: 'Heading 4', run: (e) => e.chain().focus().setHeading({ level: 4 }).run() },
-  { key: 'p', label: 'Text', run: (e) => e.chain().focus().setParagraph().run() },
-  { key: 'ul', label: 'Bullet list', run: (e) => e.chain().focus().toggleBulletList().run() },
-  { key: 'ol', label: 'Numbered list', run: (e) => e.chain().focus().toggleOrderedList().run() },
-  { key: 'todo', label: 'Check list', run: (e) => e.chain().focus().toggleTaskList().run() },
-  { key: 'quote', label: 'Quote', run: (e) => e.chain().focus().toggleBlockquote().run() },
-  { key: 'code', label: 'Code block', run: (e) => e.chain().focus().toggleCodeBlock().run() },
-  { key: 'hr', label: 'Divider', run: (e) => e.chain().focus().setHorizontalRule().run() },
-  { key: 'table', label: 'Table', run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
-  { key: 'callout', label: 'Callout box', run: (e) => e.chain().focus().setCallout('info').run() },
+const BLOCKS = (tx: Tx): Block[] => [
+  { key: 'h1', label: tx('Heading 1'), run: (e) => e.chain().focus().setHeading({ level: 1 }).run() },
+  { key: 'h2', label: tx('Heading 2'), run: (e) => e.chain().focus().setHeading({ level: 2 }).run() },
+  { key: 'h3', label: tx('Heading 3'), run: (e) => e.chain().focus().setHeading({ level: 3 }).run() },
+  { key: 'h4', label: tx('Heading 4'), run: (e) => e.chain().focus().setHeading({ level: 4 }).run() },
+  { key: 'p', label: tx('Text'), run: (e) => e.chain().focus().setParagraph().run() },
+  { key: 'ul', label: tx('Bullet list'), run: (e) => e.chain().focus().toggleBulletList().run() },
+  { key: 'ol', label: tx('Numbered list'), run: (e) => e.chain().focus().toggleOrderedList().run() },
+  { key: 'todo', label: tx('Check list'), run: (e) => e.chain().focus().toggleTaskList().run() },
+  { key: 'quote', label: tx('Quote'), run: (e) => e.chain().focus().toggleBlockquote().run() },
+  { key: 'code', label: tx('Code block'), run: (e) => e.chain().focus().toggleCodeBlock().run() },
+  { key: 'hr', label: tx('Divider'), run: (e) => e.chain().focus().setHorizontalRule().run() },
+  { key: 'table', label: tx('Table'), run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+  { key: 'callout', label: tx('Callout box'), run: (e) => e.chain().focus().setCallout('info').run() },
   {
     key: 'button',
-    label: 'Button',
+    label: tx('Button'),
     run: (e) => {
-      const href = ask('Where does the button go? (/websites or https://...)', '/websites');
-      const label = ask('Button text', 'Browse websites');
+      const href = ask(tx('Where does the button go? (/websites or https://...)'), '/websites');
+      const label = ask(tx('Button text'), tx('Browse websites'));
       if (href && label) e.chain().focus().insertCta(href, label).run();
     },
   },
   {
     key: 'website',
-    label: 'Website card',
+    label: tx('Website card'),
     run: (e) => {
-      const v = ask('The website address name (the end of /websites/...)');
+      const v = ask(tx('The website address name (the end of /websites/...)'));
       const slug = v.replace(/^.*\/websites\//, '').replace(/[^a-z0-9-]/gi, '');
       if (slug) e.chain().focus().insertWebsite(slug).run();
     },
@@ -96,6 +99,7 @@ const BLOCKS: Block[] = [
 ];
 
 export function GuideEditor({ initial, categories }: { initial: GuideFields; categories: string[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState(initial);
   const [dirty, setDirty] = useState(false);
@@ -123,7 +127,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
       Figure,
       Youtube.configure({ nocookie: true, width: 640, height: 360 }),
       CharacterCount,
-      Placeholder.configure({ placeholder: 'Write, or type / for a block' }),
+      Placeholder.configure({ placeholder: tx('Write, or type / for a block') }),
       Callout,
       Cta,
       Gallery,
@@ -132,11 +136,11 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
     ],
     content: (initial.bodyJson as object | null) ?? initial.bodyHtml ?? '',
     editorProps: {
-      attributes: { class: 'g-prose g-editor-area', 'aria-label': 'Guide text', role: 'textbox', 'aria-multiline': 'true' },
+      attributes: { class: 'g-prose g-editor-area', 'aria-label': tx('Guide text'), role: 'textbox', 'aria-multiline': 'true' },
       handleKeyDown: (_view, event) => {
         const s = slashRef.current;
         if (!s) return false;
-        const list = BLOCKS.filter((b) => b.label.toLowerCase().includes(s.q.toLowerCase()));
+        const list = BLOCKS(tx).filter((b) => b.label.toLowerCase().includes(s.q.toLowerCase()));
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
           setSlash({ ...s, i: (s.i + (event.key === 'ArrowDown' ? 1 : list.length - 1)) % Math.max(1, list.length) });
           return true;
@@ -181,7 +185,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
     async (action: 'draft' | 'publish' | 'schedule' | 'unpublish', autosave = false) => {
       if (!editor) return;
       if (!f.title.trim()) {
-        if (!autosave) setMsg({ ok: false, text: 'Give the guide a title first.' });
+        if (!autosave) setMsg({ ok: false, text: tx('Give the guide a title first.') });
         return;
       }
       const res = await fetch('/api/admin/guides', {
@@ -198,13 +202,13 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
       }).catch(() => null);
       const j = ((await res?.json().catch(() => null)) ?? {}) as { id?: string; slug?: string; status?: string; error?: string; issues?: { message?: string }[] };
       if (!res?.ok) {
-        if (!autosave) setMsg({ ok: false, text: j.issues?.[0]?.message ?? j.error ?? 'Could not save.' });
+        if (!autosave) setMsg({ ok: false, text: j.issues?.[0]?.message ?? j.error ?? tx('Could not save.') });
         return;
       }
       setDirty(false);
       setSavedAt(Date.now());
       setF((x) => ({ ...x, id: j.id ?? x.id, slug: j.slug ?? x.slug, status: j.status ?? x.status }));
-      if (!autosave) setMsg({ ok: true, text: { draft: 'Draft saved.', publish: 'Published.', schedule: 'Scheduled.', unpublish: 'Unpublished.' }[action] });
+      if (!autosave) setMsg({ ok: true, text: { draft: tx('Draft saved.'), publish: 'Published.', schedule: 'Scheduled.', unpublish: 'Unpublished.' }[action] });
       if (!f.id && j.id) router.replace(`/admin/content/guides/edit?id=${j.id}`, { scroll: false });
     },
     [editor, f, router],
@@ -227,10 +231,10 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
   const addImage = async (file: File | undefined) => {
     if (!file || !editor) return;
     try {
-      const src = await upload(file);
-      const alt = ask('Describe the picture (alt text, needed)');
-      if (!alt) return setMsg({ ok: false, text: 'A picture needs alt text. It was not added.' });
-      const caption = ask('Caption (optional)');
+      const src = await upload(file, tx('Could not upload the picture.'));
+      const alt = ask(tx('Describe the picture (alt text, needed)'));
+      if (!alt) return setMsg({ ok: false, text: tx('A picture needs alt text. It was not added.') });
+      const caption = ask(tx('Caption (optional)'));
       editor
         .chain()
         .focus()
@@ -245,8 +249,8 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
     try {
       const images: { src: string; alt: string }[] = [];
       for (const file of [...files].slice(0, 12)) {
-        const src = await upload(file);
-        const alt = ask(`Alt text for ${file.name} (needed)`);
+        const src = await upload(file, tx('Could not upload the picture.'));
+        const alt = ask(tx('Alt text for {name} (needed)', { name: file.name }));
         if (alt) images.push({ src, alt });
       }
       if (images.length) editor.chain().focus().insertGallery(images).run();
@@ -260,7 +264,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
     setRevs((((await r?.json().catch(() => null)) ?? {}) as { revisions?: Revision[] }).revisions ?? []);
   };
   const restore = async (id: number) => {
-    if (!f.id || !window.confirm('Put this version back? The current words are kept as a version too.')) return;
+    if (!f.id || !window.confirm(tx('Put this version back? The current words are kept as a version too.'))) return;
     const r = await fetch(`/api/admin/guides/${f.id}/revisions`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ revisionId: id }) });
     if (r.ok) window.location.reload();
   };
@@ -270,20 +274,20 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
       {text}
     </button>
   );
-  const slashList = slash ? BLOCKS.filter((b) => b.label.toLowerCase().includes(slash.q.toLowerCase())) : [];
+  const slashList = slash ? BLOCKS(tx).filter((b) => b.label.toLowerCase().includes(slash.q.toLowerCase())) : [];
   const words = counts?.words ?? 0;
 
   return (
     <div className="sob-editor">
       <div className="sob-editor-main">
-        <Field label="Title" value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={120} />
+        <Field label={tx('Title')} value={f.title} onChange={(e) => set('title', e.target.value)} maxLength={120} />
         {editor && (
-          <div className="sob-toolbar" role="toolbar" aria-label="Formatting">
+          <div className="sob-toolbar" role="toolbar" aria-label={tx('Formatting')}>
             {tool('Undo', () => editor.chain().focus().undo().run(), false, '↶')}
             {tool('Redo', () => editor.chain().focus().redo().run(), false, '↷')}
             {[1, 2, 3, 4].map((l) =>
               tool(
-                `Heading ${l}`,
+                tx('Heading {l}', { l }),
                 () =>
                   editor
                     .chain()
@@ -299,16 +303,19 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             {tool('Underline', () => editor.chain().focus().toggleUnderline().run(), editor.isActive('underline'), 'U')}
             {tool('Strike', () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike'), 'S')}
             {tool('Highlight', () => editor.chain().focus().toggleHighlight({ color: '#fbefd9' }).run(), editor.isActive('highlight'), 'Mark')}
-            <label className="sob-tool" title="Text colour">
-              <span className="hidden-label">Text colour</span>A
+            <label className="sob-tool" title={tx('Text colour')}>
+              <span className="hidden-label">
+                <T s={'Text colour'} />
+              </span>
+              A
               <input type="color" onChange={(e) => editor.chain().focus().setColor(e.target.value).run()} style={{ width: 18, height: 18, border: 0, padding: 0, marginLeft: 4 }} />
             </label>
-            {(['left', 'center', 'right'] as const).map((a) => tool(`Align ${a}`, () => editor.chain().focus().setTextAlign(a).run(), editor.isActive({ textAlign: a }), a[0].toUpperCase()))}
-            {tool('Inline code', () => editor.chain().focus().toggleCode().run(), editor.isActive('code'), '</>')}
+            {(['left', 'center', 'right'] as const).map((a) => tool(tx('Align {a}', { a }), () => editor.chain().focus().setTextAlign(a).run(), editor.isActive({ textAlign: a }), a[0].toUpperCase()))}
+            {tool(tx('Inline code'), () => editor.chain().focus().toggleCode().run(), editor.isActive('code'), '</>')}
             {tool(
               'Link',
               () => {
-                const href = ask('Link address (https://... or /websites)', editor.getAttributes('link').href ?? '');
+                const href = ask(tx('Link address (https://... or /websites)'), editor.getAttributes('link').href ?? '');
                 if (!href) editor.chain().focus().unsetLink().run();
                 else editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
               },
@@ -317,18 +324,18 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             )}
             {tool('Picture', () => fileRef.current?.click(), false, 'Picture')}
             {tool('Gallery', () => galleryRef.current?.click(), false, 'Gallery')}
-            {tool('Move block up (Alt+Up)', () => editor.chain().focus().moveBlock(-1).run(), false, '↑')}
-            {tool('Move block down (Alt+Down)', () => editor.chain().focus().moveBlock(1).run(), false, '↓')}
+            {tool(tx('Move block up (Alt+Up)'), () => editor.chain().focus().moveBlock(-1).run(), false, '↑')}
+            {tool(tx('Move block down (Alt+Down)'), () => editor.chain().focus().moveBlock(1).run(), false, '↓')}
             {editor.isActive('table') && (
               <>
-                {tool('Add row', () => editor.chain().focus().addRowAfter().run(), false, '+Row')}
-                {tool('Add column', () => editor.chain().focus().addColumnAfter().run(), false, '+Col')}
-                {tool('Delete table', () => editor.chain().focus().deleteTable().run(), false, '−Table')}
+                {tool(tx('Add row'), () => editor.chain().focus().addRowAfter().run(), false, '+Row')}
+                {tool(tx('Add column'), () => editor.chain().focus().addColumnAfter().run(), false, '+Col')}
+                {tool(tx('Delete table'), () => editor.chain().focus().deleteTable().run(), false, '−Table')}
               </>
             )}
             {editor.isActive('image') &&
               (['100', '50', '25'] as const).map((w) =>
-                tool(`Picture width ${w}%`, () => editor.chain().focus().updateAttributes('image', { width: w }).run(), editor.getAttributes('image').width === w, `${w}%`),
+                tool(tx('Picture width {w}%', { w }), () => editor.chain().focus().updateAttributes('image', { width: w }).run(), editor.getAttributes('image').width === w, `${w}%`),
               )}
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={(e) => void addImage(e.target.files?.[0])} />
             <input ref={galleryRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden onChange={(e) => void addGallery(e.target.files)} />
@@ -337,7 +344,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
         <div className="sob-editor-wrap">
           <EditorContent editor={editor} />
           {slash && slashList.length > 0 && (
-            <ul className="sob-sx-pop glass sob-slash" role="listbox" aria-label="Blocks">
+            <ul className="sob-sx-pop glass sob-slash" role="listbox" aria-label={tx('Blocks')}>
               {slashList.map((b, i) => (
                 <li key={b.key} role="option" aria-selected={i === slash.i} className={i === slash.i ? 'on' : undefined}>
                   <a
@@ -355,34 +362,41 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           )}
         </div>
         <p className="tag">
-          {words} words · {Math.max(1, Math.round(words / 220))} min read · {dirty ? 'Unsaved changes' : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : 'Saved'}
+          <T
+            s={'{words} words · {v1} min read · {v2}'}
+            v={{ words, v1: Math.max(1, Math.round(words / 220)), v2: dirty ? tx('Unsaved changes') : savedAt ? tx('Saved {v0}', { v0: new Date(savedAt).toLocaleTimeString() }) : 'Saved' }}
+          />
         </p>
       </div>
 
       <aside className="sob-editor-side sob-stack">
         <div className="glass card sob-stack">
-          <h2>Publish</h2>
-          <p className="tag">State: {f.status}</p>
+          <h2>
+            <T s={'Publish'} />
+          </h2>
+          <p className="tag">
+            <T s={'State: {status}'} v={{ status: f.status }} />
+          </p>
           <div className="row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             <Button variant="ghost" size="sm" onClick={() => void save('draft')}>
-              Save draft
+              <T s={'Save draft'} />
             </Button>
             <Button size="sm" onClick={() => void save('publish')}>
-              Publish
+              <T s={'Publish'} />
             </Button>
             {(f.status === 'published' || f.status === 'scheduled') && (
               <Button variant="ghost" size="sm" onClick={() => void save('unpublish')}>
-                Unpublish
+                <T s={'Unpublish'} />
               </Button>
             )}
           </div>
-          <Field label="Publish later (UTC, YYYY-MM-DDTHH:MM)" type="datetime-local" value={f.publishAt} onChange={(e) => set('publishAt', e.target.value)} />
+          <Field label={tx('Publish later (UTC, YYYY-MM-DDTHH:MM)')} type="datetime-local" value={f.publishAt} onChange={(e) => set('publishAt', e.target.value)} />
           <Button variant="ghost" size="sm" onClick={() => void save('schedule')} disabled={!f.publishAt}>
-            Schedule
+            <T s={'Schedule'} />
           </Button>
           {f.id && f.slug && (
             <a href={`/guides/${f.slug}?preview=1`} target="_blank" rel="noopener">
-              Preview
+              <T s={'Preview'} />
             </a>
           )}
           {msg && (
@@ -392,16 +406,20 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
           )}
         </div>
         <div className="glass card sob-stack">
-          <h2>Details</h2>
-          <Field label="Address (slug)" value={f.slug} onChange={(e) => set('slug', e.target.value.toLowerCase())} hint="Small letters, numbers and dashes. Empty: made from the title." />
-          <Field as="select" label="Category" value={f.category} onChange={(e) => set('category', e.target.value)}>
-            <option value="">None</option>
+          <h2>
+            <T s={'Details'} />
+          </h2>
+          <Field label={tx('Address (slug)')} value={f.slug} onChange={(e) => set('slug', e.target.value.toLowerCase())} hint={tx('Small letters, numbers and dashes. Empty: made from the title.')} />
+          <Field as="select" label={tx('Category')} value={f.category} onChange={(e) => set('category', e.target.value)}>
+            <option value="">
+              <T s={'None'} />
+            </option>
             {categories.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </Field>
           <Field
-            label="Tags (comma separated)"
+            label={tx('Tags (comma separated)')}
             value={f.tags.join(', ')}
             onChange={(e) =>
               set(
@@ -414,24 +432,26 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
               )
             }
           />
-          <Field label="Author" value={f.author} onChange={(e) => set('author', e.target.value)} maxLength={80} />
-          <Field as="textarea" label="Summary" value={f.excerpt} onChange={(e) => set('excerpt', e.target.value)} maxLength={300} />
+          <Field label={tx('Author')} value={f.author} onChange={(e) => set('author', e.target.value)} maxLength={80} />
+          <Field as="textarea" label={tx('Summary')} value={f.excerpt} onChange={(e) => set('excerpt', e.target.value)} maxLength={300} />
           <div>
-            <Field label="Cover picture" value={f.coverUrl} onChange={(e) => set('coverUrl', e.target.value)} hint="Upload, or paste an https address." />
+            <Field label={tx('Cover picture')} value={f.coverUrl} onChange={(e) => set('coverUrl', e.target.value)} hint={tx('Upload, or paste an https address.')} />
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              aria-label="Upload a cover picture"
+              aria-label={tx('Upload a cover picture')}
               onChange={async (e) => {
                 const file = e.target.files?.[0];
-                if (file) set('coverUrl', await upload(file).catch(() => f.coverUrl));
+                if (file) set('coverUrl', await upload(file, tx('Could not upload the picture.')).catch(() => f.coverUrl));
               }}
             />
           </div>
-          <Field label="Cover alt text" value={f.coverAlt} onChange={(e) => set('coverAlt', e.target.value)} maxLength={150} />
+          <Field label={tx('Cover alt text')} value={f.coverAlt} onChange={(e) => set('coverAlt', e.target.value)} maxLength={150} />
         </div>
         <div className="glass card sob-stack">
-          <h2>Search and sharing</h2>
+          <h2>
+            <T s={'Search and sharing'} />
+          </h2>
           <Field label="SEO title" value={f.metaTitle} onChange={(e) => set('metaTitle', e.target.value)} maxLength={70} hint={`${f.metaTitle.length} of about 60 shown`} />
           <Field
             as="textarea"
@@ -441,33 +461,39 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
             maxLength={170}
             hint={`${f.metaDescription.length} of about 160 shown`}
           />
-          <Field label="Share picture (OG image)" value={f.ogImage} onChange={(e) => set('ogImage', e.target.value)} hint="Empty: the cover is used." />
-          <Field label="Canonical address" value={f.canonical} onChange={(e) => set('canonical', e.target.value)} hint="Only when the guide first appeared elsewhere." />
+          <Field label={tx('Share picture (OG image)')} value={f.ogImage} onChange={(e) => set('ogImage', e.target.value)} hint={tx('Empty: the cover is used.')} />
+          <Field label={tx('Canonical address')} value={f.canonical} onChange={(e) => set('canonical', e.target.value)} hint={tx('Only when the guide first appeared elsewhere.')} />
           <div className="li">
-            <span style={{ flex: 1 }}>Hide from search engines (noindex)</span>
-            <Switch label="Hide from search engines" checked={f.noindex} onChange={(on) => set('noindex', on)} />
+            <span style={{ flex: 1 }}>
+              <T s={'Hide from search engines (noindex)'} />
+            </span>
+            <Switch label={tx('Hide from search engines')} checked={f.noindex} onChange={(on) => set('noindex', on)} />
           </div>
         </div>
         {f.id && (
           <div className="glass card sob-stack">
-            <h2>History</h2>
+            <h2>
+              <T s={'History'} />
+            </h2>
             {revs === null ? (
               <Button variant="ghost" size="sm" onClick={() => void loadRevisions()}>
-                Show versions
+                <T s={'Show versions'} />
               </Button>
             ) : revs.length ? (
               revs.map((r) => (
                 <div key={r.id} className="li">
                   <span style={{ flex: 1 }}>
-                    {new Date(r.at).toLocaleString()} · {r.words} words{r.autosave ? ' · autosave' : ''}
+                    <T s={'{v0} · {words} words{v2}'} v={{ v0: new Date(r.at).toLocaleString(), words: r.words, v2: r.autosave ? ' · autosave' : '' }} />
                   </span>
                   <button type="button" className="sob-sx-link" onClick={() => void restore(r.id)}>
-                    Restore
+                    <T s={'Restore'} />
                   </button>
                 </div>
               ))
             ) : (
-              <p className="tag">No versions yet.</p>
+              <p className="tag">
+                <T s={'No versions yet.'} />
+              </p>
             )}
           </div>
         )}

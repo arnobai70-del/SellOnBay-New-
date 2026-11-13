@@ -13,6 +13,8 @@ import { adminMayPreview } from '@/lib/seo/preview';
 import { pageBlocks } from '@/lib/site/contentStore';
 import { SITE_URL } from '@/lib/site';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 /*
  * What an admin added to a page (SEO and CMS > Edit page), in the site's existing looks: extra text, related listings and questions, with the
  * page's WebPage data and FAQPage data. Renders nothing when nothing is saved, so a page looks exactly as before.
@@ -34,6 +36,7 @@ export async function PageExtras({
   /* Questions the page shows until an admin saves questions of their own (a listing's come from its own facts, lib/seo/productFaq.ts). */
   defaultFaqs?: { q: string; a: string }[];
 }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const c = await pageControls(path);
   // The page body is the one place that decides the status code before anything is sent, so a closed page is a real 404 here too (metadata can stream after it).
   if (!isPublic(path, c) && !(await adminMayPreview())) notFound();
@@ -60,7 +63,7 @@ export async function PageExtras({
   const touched = top.length + bottom.length > 0 || blocks.length > 0 || related.length > 0 || faqs.length > 0 || !!c.ogImage || !!c.canonical;
   if (!touched) return null;
   return (
-    <section className="sec" aria-label="More about this page" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <section className="sec" aria-label={tx('More about this page')} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {meta && <JsonLd data={meta} />}
       {faq && <JsonLd data={faq} />}
       {c.ogImage && (
@@ -80,7 +83,9 @@ export async function PageExtras({
       )}
       {related.length > 0 && (
         <>
-          <h2>Related</h2>
+          <h2>
+            <T s={'Related'} />
+          </h2>
           <div className="grid3">
             {related.map((p) => (
               <WebsiteCard key={p.id} p={p} />
@@ -90,7 +95,9 @@ export async function PageExtras({
       )}
       {faqs.length > 0 && (
         <>
-          <h2 id="page-faq-h">Questions and answers</h2>
+          <h2 id="page-faq-h">
+            <T s={'Questions and answers'} />
+          </h2>
           <FaqList items={faqs.map((f) => ({ q: f.q, a: f.a }))} />
         </>
       )}

@@ -7,13 +7,16 @@ import { split } from '@/lib/ledger';
 import { getOrder, orderEvents } from '@/lib/orders/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Disputes', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Disputes'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const when = (t: number) => new Date(t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default async function Disputes() {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/support/disputes', roles: ['admin'], scope: ['support', 'finance'] });
   const list = await openDisputes();
   const now = Date.now();
@@ -24,42 +27,74 @@ export default async function Disputes() {
     }),
   );
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-disputes" title="Disputes">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-disputes" title={tx('Disputes')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Open disputes</h2>
-            <p className="tag">The seller replies within 48 hours. You decide within 5 days. Payment for the order is held until then. Read the evidence and the order history first.</p>
+            <h2>
+              <T s={'Open disputes'} />
+            </h2>
+            <p className="tag">
+              <T s={'The seller replies within 48 hours. You decide within 5 days. Payment for the order is held until then. Read the evidence and the order history first.'} />
+            </p>
           </div>
         </div>
-        {cards.length === 0 && <p className="muted">No open disputes.</p>}
+        {cards.length === 0 && (
+          <p className="muted">
+            <T s={'No open disputes.'} />
+          </p>
+        )}
         {cards.map(({ d, o, ev, history }) => {
           const sellerNet = o ? split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet : 0;
           return (
             <div className="sob-item" key={d.id}>
               <h3>
-                {o?.title ?? 'Order'} · {REASON_LABEL[d.reason]}
+                {o?.title ?? tx('Order')} · {translate(REASON_LABEL[d.reason])}
               </h3>
               <div className="meta">
-                <span>Order {d.orderId.slice(0, 8).toUpperCase()}</span>
+                <span>
+                  <T s={'Order {v0}'} v={{ v0: d.orderId.slice(0, 8).toUpperCase() }} />
+                </span>
                 <span>{o ? money(o.priceCents) : ''}</span>
-                <span>opened from {d.fromState}</span>
+                <span>
+                  <T s={'opened from {fromState}'} v={{ fromState: d.fromState }} />
+                </span>
                 <span>{when(d.createdAt)}</span>
-                {sellerOverdue(d, now) && <span className="status st-bad">Seller reply is late</span>}
-                {adminOverdue(d, now) && <span className="status st-bad">Decision is late</span>}
-                {d.status === 'seller_replied' && <span className="status st-ok">Seller replied</span>}
+                {sellerOverdue(d, now) && (
+                  <span className="status st-bad">
+                    <T s={'Seller reply is late'} />
+                  </span>
+                )}
+                {adminOverdue(d, now) && (
+                  <span className="status st-bad">
+                    <T s={'Decision is late'} />
+                  </span>
+                )}
+                {d.status === 'seller_replied' && (
+                  <span className="status st-ok">
+                    <T s={'Seller replied'} />
+                  </span>
+                )}
               </div>
               <p>
-                <b>Buyer:</b> {d.detail}
+                <b>
+                  <T s={'Buyer:'} />
+                </b>{' '}
+                {d.detail}
               </p>
               {d.sellerReply && (
                 <p>
-                  <b>Seller:</b> {d.sellerReply}
+                  <b>
+                    <T s={'Seller:'} />
+                  </b>{' '}
+                  {d.sellerReply}
                 </p>
               )}
               {ev.length > 0 && (
                 <details>
-                  <summary>Evidence ({ev.length})</summary>
+                  <summary>
+                    <T s={'Evidence ({length})'} v={{ length: ev.length }} />
+                  </summary>
                   <ul className="sob-ord-log">
                     {ev.map((e) => (
                       <li key={e.id}>
@@ -71,7 +106,9 @@ export default async function Disputes() {
               )}
               {history.length > 0 && (
                 <details>
-                  <summary>Order history ({history.length})</summary>
+                  <summary>
+                    <T s={'Order history ({length})'} v={{ length: history.length }} />
+                  </summary>
                   <ul className="sob-ord-log">
                     {history.map((h, i) => (
                       <li key={i}>
@@ -83,49 +120,52 @@ export default async function Disputes() {
               )}
               <AdminForm
                 endpoint={`/api/admin/disputes/${d.id}/decide`}
-                openLabel="Decide"
-                submit="Save decision"
+                openLabel={tx('Decide')}
+                submit={tx('Save decision')}
                 tone="gold"
                 fields={[
                   {
                     name: 'decision',
-                    label: 'Decision',
+                    label: tx('Decision'),
                     kind: 'select',
                     options: [
-                      ['refund_full', 'Refund the buyer in full'],
-                      ['refund_partial', 'Refund part of it'],
-                      ['fix_requested', 'Ask the seller to fix it'],
-                      ['release', 'Reject the dispute and pay the seller'],
+                      ['refund_full', tx('Refund the buyer in full')],
+                      ['refund_partial', tx('Refund part of it')],
+                      ['fix_requested', tx('Ask the seller to fix it')],
+                      ['release', tx('Reject the dispute and pay the seller')],
                     ],
                   },
                   {
                     name: 'refundCents',
-                    label: `Refund amount in dollars (up to ${money(sellerNet)}, taken from the seller's share)`,
+                    label: tx("Refund amount in dollars (up to {money}, taken from the seller's share)", { money: money(sellerNet) }),
                     kind: 'dollars',
                     showWhen: { field: 'decision', equals: 'refund_partial' },
                   },
                   {
                     name: 'liability',
-                    label: 'Whose fault was it? (recorded on the dispute)',
+                    label: tx('Whose fault was it? (recorded on the dispute)'),
                     kind: 'select',
                     options: [
-                      ['platform', 'Us or nobody'],
-                      ['seller', 'The seller'],
-                      ['buyer_fraud', 'The buyer (fraud): the buyer is flagged'],
+                      ['platform', tx('Us or nobody')],
+                      ['seller', tx('The seller')],
+                      ['buyer_fraud', tx('The buyer (fraud): the buyer is flagged')],
                     ],
                   },
                   {
                     name: 'feeCents',
-                    label: 'What the dispute cost, in dollars (for example the payment provider fee; empty for none). Taken from the seller only when the seller was at fault.',
+                    label: tx('What the dispute cost, in dollars (for example the payment provider fee; empty for none). Taken from the seller only when the seller was at fault.'),
                     kind: 'dollars',
                   },
-                  { name: 'note', label: 'Note (both sides see the decision; keep contact details out)', kind: 'textarea' },
+                  { name: 'note', label: tx('Note (both sides see the decision; keep contact details out)'), kind: 'textarea' },
                 ]}
               />
               <small className="muted">
-                <Link href={`/orders/${d.orderId}`}>Open the order page</Link> ·{' '}
+                <Link href={`/orders/${d.orderId}`}>
+                  <T s={'Open the order page'} />
+                </Link>{' '}
+                ·{' '}
                 <a href={`/api/orders/${d.orderId}/evidence`} download>
-                  Download the evidence file (PDF)
+                  <T s={'Download the evidence file (PDF)'} />
                 </a>
               </small>
             </div>

@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * One small form for admin actions: sends JSON to an admin API route, shows the answer in plain words, refreshes the page.
  * The server decides everything; this only collects the words.
@@ -37,6 +39,7 @@ export function AdminForm({
   open?: boolean;
   openLabel?: string;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [shown, setShown] = useState(open);
   const [v, setV] = useState<Record<string, string | boolean>>(() => Object.fromEntries(fields.map((f) => [f.name, f.kind === 'checkbox' ? false : (f.value ?? f.options?.[0]?.[0] ?? '')])));
@@ -62,8 +65,8 @@ export function AdminForm({
     const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Done.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Done.') });
     router.refresh();
   }
 
@@ -115,11 +118,11 @@ export function AdminForm({
       })}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className={tone === 'line' ? 'btn sm ghost' : 'btn sm'} type="submit" disabled={busy}>
-          {busy ? 'One moment...' : submit}
+          {busy ? tx('One moment...') : submit}
         </button>
         {!open && (
           <button className="btn sm ghost" type="button" onClick={() => setShown(false)}>
-            Cancel
+            <T s={'Cancel'} />
           </button>
         )}
       </div>

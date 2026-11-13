@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { decideListing } from '@/lib/admin/queue';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Reads the files link once before approving.
@@ -19,5 +20,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await decideListing(a.id, slug, body.data.decision, body.data.note, body.data.filesChecked);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

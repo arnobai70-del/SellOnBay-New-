@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { removeFakeAccount, removeFakeReview, removeReviewsBy } from '@/lib/clean';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ what: z.enum(['account', 'review', 'reviews_by']), id: z.string().trim().min(1).max(64), note: z.string().max(500).default('') });
@@ -18,5 +19,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const { what, id, note } = body.data;
   const r = what === 'account' ? await removeFakeAccount(a.id, id, note) : what === 'reviews_by' ? await removeReviewsBy(a.id, id, note) : await removeFakeReview(a.id, id, note);
-  return r.ok ? NextResponse.json(r) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json(r) : jsonT({ error: r.error }, { status: r.status });
 }

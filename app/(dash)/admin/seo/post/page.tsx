@@ -6,16 +6,18 @@ import { postById } from '@/lib/posts';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Write a post', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Write a post'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function PostPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await searchParams;
   const viewer = await requireViewer({ path: '/admin/seo/post' + (id ? `?id=${encodeURIComponent(id)}` : ''), roles: ['admin'], scope: 'content' });
   const post = id ? await postById(id) : null;
   if (id && !post) notFound();
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title={post ? 'Edit the post' : 'Write a post'}>
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-seo" title={post ? tx('Edit the post') : tx('Write a post')}>
       <div className="glass card sob-sec">
         <PostEditor key={post?.id ?? 'new'} post={post} siteUrl={SITE_URL} siteName={SITE_NAME} />
       </div>

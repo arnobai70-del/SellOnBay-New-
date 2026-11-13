@@ -5,6 +5,7 @@ import { clientIp } from '@/lib/delivery/service';
 import { runSiteIdeas } from '@/lib/tools/run';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ idea: z.string().max(400), token: z.string().max(2048).optional() });
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
   const existing = /(?:^|;\s*)lb-visitor=([0-9a-f-]{36})/.exec(req.headers.get('cookie') ?? '')?.[1];
   const cookieId = existing ?? randomUUID();
   const r = await runSiteIdeas({ idea: body.data.idea, cookieId, ip: clientIp(req), token: body.data.token });
-  const res = r.ok ? NextResponse.json(r.data) : NextResponse.json({ error: r.error }, { status: r.status });
+  const res = r.ok ? NextResponse.json(r.data) : await jsonT({ error: r.error }, { status: r.status });
   res.headers.set('cache-control', 'no-store');
   if (!existing) res.cookies.set(COOKIE, cookieId, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 60 * 60 * 24 * 365 });
   return res;

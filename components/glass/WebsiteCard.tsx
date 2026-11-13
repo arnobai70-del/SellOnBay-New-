@@ -4,6 +4,7 @@ import { publicSlug } from '@/lib/glass/publicSlug';
 import { PriceTag } from './PriceTag';
 import type { Product } from '@/lib/data';
 
+import { T } from '@/components/i18n/T';
 /* The tints of the design's drawn pages (design-reference/websites.html), picked by the listing so each card keeps its colour. */
 const TINTS: [string, string, string][] = [
   ['#D3EEE4', '#DDEAF6', '#F1E8DD'],
@@ -48,8 +49,7 @@ export function WebsiteCard({ p }: { p: Product; reveal?: boolean }) {
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 500 }}>{p.name}</div>
           <div className="tag">
-            {p.stack ? `${p.stack} · ` : ''}by {p.seller}
-            {p.reviews > 0 ? ` · ★ ${p.rating.toFixed(1)}` : ''}
+            <T s={'{v0}by {seller}{v2}'} v={{ v0: p.stack ? `${p.stack} · ` : '', seller: p.seller, v2: p.reviews > 0 ? ` · ★ ${p.rating.toFixed(1)}` : '' }} />
           </div>
         </div>
         <div style={{ fontWeight: 500, fontSize: 17, textAlign: 'right' }}>

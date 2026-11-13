@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { saveSellerSubSettings, savePlanVersion, setPlanOffered } from '@/lib/plans/admin';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const display = z.object({
@@ -44,5 +45,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const b = body.data;
   const r = b.action === 'settings' ? await saveSellerSubSettings(a.id, b) : b.action === 'saveVersion' ? await savePlanVersion(a.id, b) : await setPlanOffered(a.id, b.code, b.offered);
-  return r.ok ? NextResponse.json({ ok: true, value: r.value }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, value: r.value }) : jsonT({ error: r.error }, { status: r.status });
 }

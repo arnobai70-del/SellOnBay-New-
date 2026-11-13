@@ -5,6 +5,8 @@ import { Button } from './Button';
 import { Field } from './Field';
 import { Switch } from './Switch';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * Admin › Content › Pages (owner, 2026-11-08): the words, buttons and links of one public page, which sections show and in what order, and its SEO.
  * Save a draft and the live preview beside it shows the page with that draft; publishing needs a second admin (or a Super Admin). Live data
@@ -13,6 +15,7 @@ import { Switch } from './Switch';
 type History = { version: number; at: number; action: string }[];
 
 export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: PageDef; initial: PageDoc; previewPath: string | null; hasDraft: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [doc, setDoc] = useState<PageDoc>(initial);
   const [draft, setDraft] = useState(hasDraft);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -30,8 +33,8 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
     setMsg(null);
     const r = await fetch('/api/admin/pages', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: def.key, action, ...extra }) }).catch(() => null);
     const j = ((await r?.json().catch(() => null)) ?? {}) as { error?: string };
-    if (!r?.ok) return setMsg({ ok: false, text: j.error ?? 'Could not save.' });
-    setMsg({ ok: true, text: { draft: 'Draft saved. The preview shows it.', publish: 'Published.', discard: 'Draft thrown away.', restore: 'That version is live again.' }[action] });
+    if (!r?.ok) return setMsg({ ok: false, text: j.error ?? tx('Could not save.') });
+    setMsg({ ok: true, text: { draft: tx('Draft saved. The preview shows it.'), publish: 'Published.', discard: tx('Draft thrown away.'), restore: tx('That version is live again.') }[action] });
     if (action === 'draft') setDraft(true);
     if (action === 'publish' || action === 'discard') setDraft(false);
     if (action === 'restore' || action === 'discard') window.location.reload();
@@ -67,15 +70,15 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
                 <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
                   {def.reorder && (
                     <>
-                      <button type="button" className="sob-tool" aria-label={`Move ${s.label} up`} onClick={() => move(s.key, -1)}>
+                      <button type="button" className="sob-tool" aria-label={tx('Move {label} up', { label: s.label })} onClick={() => move(s.key, -1)}>
                         ↑
                       </button>
-                      <button type="button" className="sob-tool" aria-label={`Move ${s.label} down`} onClick={() => move(s.key, 1)}>
+                      <button type="button" className="sob-tool" aria-label={tx('Move {label} down', { label: s.label })} onClick={() => move(s.key, 1)}>
                         ↓
                       </button>
                     </>
                   )}
-                  <Switch label={`Show ${s.label}`} checked={!doc.hidden.includes(s.key)} onChange={(on) => toggle(s.key, on)} />
+                  <Switch label={tx('Show {label}', { label: s.label })} checked={!doc.hidden.includes(s.key)} onChange={(on) => toggle(s.key, on)} />
                 </span>
               )}
             </div>
@@ -89,43 +92,53 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
                   label={f.label}
                   value={v}
                   onChange={(e) => setText(id, e.target.value)}
-                  hint={f.default.includes('{') ? 'Keep {keep}, {fee}, {reviewHours}, {minPrice}, {payout}: they are filled from the rules.' : undefined}
+                  hint={f.default.includes('{') ? tx('Keep {keep}, {fee}, {reviewHours}, {minPrice}, {payout}: they are filled from the rules.') : undefined}
                 />
               ) : (
-                <Field key={id} label={f.label} value={v} onChange={(e) => setText(id, e.target.value)} hint={f.kind === 'link' ? 'A path like /websites or an https address.' : undefined} />
+                <Field key={id} label={f.label} value={v} onChange={(e) => setText(id, e.target.value)} hint={f.kind === 'link' ? tx('A path like /websites or an https address.') : undefined} />
               );
             })}
           </section>
         ))}
         {def.seo && (
           <section className="glass card sob-stack">
-            <h2>Search and sharing</h2>
+            <h2>
+              <T s={'Search and sharing'} />
+            </h2>
             <Field
               label="SEO title"
               value={doc.seo.title}
               onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, title: e.target.value } }))}
               maxLength={70}
-              hint="Empty: the page keeps its current title."
+              hint={tx('Empty: the page keeps its current title.')}
             />
             <Field as="textarea" label="SEO description" value={doc.seo.description} onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, description: e.target.value } }))} maxLength={170} />
-            <Field label="Share picture (https or an uploaded /blog/media address)" value={doc.seo.ogImage} onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, ogImage: e.target.value } }))} />
+            <Field
+              label={tx('Share picture (https or an uploaded /blog/media address)')}
+              value={doc.seo.ogImage}
+              onChange={(e) => setDoc((d) => ({ ...d, seo: { ...d.seo, ogImage: e.target.value } }))}
+            />
           </section>
         )}
       </div>
       <aside className="sob-editor-side sob-stack">
         <div className="glass card sob-stack">
-          <h2>Publish</h2>
-          <p className="tag">{draft ? 'A draft is waiting.' : 'No draft.'} Another admin publishes your draft, or a Super Admin.</p>
+          <h2>
+            <T s={'Publish'} />
+          </h2>
+          <p className="tag">
+            <T s={'{v0} Another admin publishes your draft, or a Super Admin.'} v={{ v0: draft ? tx('A draft is waiting.') : tx('No draft.') }} />
+          </p>
           <div className="row" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             <Button variant="ghost" size="sm" onClick={() => void call('draft', { doc })}>
-              Save draft
+              <T s={'Save draft'} />
             </Button>
             <Button size="sm" onClick={() => void call('publish')} disabled={!draft}>
-              Publish draft
+              <T s={'Publish draft'} />
             </Button>
             {draft && (
               <Button variant="ghost" size="sm" onClick={() => void call('discard')}>
-                Throw draft away
+                <T s={'Throw draft away'} />
               </Button>
             )}
           </div>
@@ -137,32 +150,38 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
         </div>
         {previewPath && (
           <div className="glass card sob-stack">
-            <h2>Live preview</h2>
-            <iframe ref={frame} title="Preview" src={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} className="sob-preview" />
+            <h2>
+              <T s={'Live preview'} />
+            </h2>
+            <iframe ref={frame} title={tx('Preview')} src={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} className="sob-preview" />
             <a href={`/api/admin/preview?path=${encodeURIComponent(previewPath)}`} target="_blank" rel="noopener">
-              Open the preview
+              <T s={'Open the preview'} />
             </a>
           </div>
         )}
         <div className="glass card sob-stack">
-          <h2>History</h2>
+          <h2>
+            <T s={'History'} />
+          </h2>
           {history === null ? (
             <Button variant="ghost" size="sm" onClick={() => void loadHistory()}>
-              Show published versions
+              <T s={'Show published versions'} />
             </Button>
           ) : history.length ? (
             history.map((h) => (
               <div key={h.version} className="li">
                 <span style={{ flex: 1 }}>
-                  Version {h.version} · {new Date(h.at).toLocaleString()}
+                  <T s={'Version {version} · {v1}'} v={{ version: h.version, v1: new Date(h.at).toLocaleString() }} />
                 </span>
-                <button type="button" className="sob-sx-link" onClick={() => window.confirm('Make this version live again?') && void call('restore', { version: h.version })}>
-                  Restore
+                <button type="button" className="sob-sx-link" onClick={() => window.confirm(tx('Make this version live again?')) && void call('restore', { version: h.version })}>
+                  <T s={'Restore'} />
                 </button>
               </div>
             ))
           ) : (
-            <p className="tag">Nothing published yet: the page shows its built-in words.</p>
+            <p className="tag">
+              <T s={'Nothing published yet: the page shows its built-in words.'} />
+            </p>
           )}
         </div>
       </aside>

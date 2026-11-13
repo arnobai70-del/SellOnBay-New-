@@ -1,4 +1,6 @@
 import 'server-only';
+import { jsonT } from '../i18n/jsonT';
+import { tx } from '../i18n/tx';
 import { passedCode } from '@/lib/auth/authenticator';
 import { NextResponse } from 'next/server';
 import { cannotAct, mayBuy } from '../accounts';
@@ -14,20 +16,20 @@ import { hasSocialIdentity, type Identity } from './social';
  * There are no accounts in demo mode, so these routes answer 404 there instead of guessing.
  */
 export type Who = { ok: true; id: string; name: string; email: string | null } | { ok: false; res: NextResponse };
-const no = (error: string, status: number): Who => ({ ok: false, res: NextResponse.json({ error }, { status }) });
+const no = async (error: string, status: number): Promise<Who> => ({ ok: false, res: await jsonT({ error }, { status }) });
 
 async function signedIn(): Promise<{ ok: true; id: string; email: string | null; role: string; name: string; aal2: boolean; social: boolean } | { ok: false; res: NextResponse }> {
-  if (!supabaseConfigured) return { ok: false, res: NextResponse.json({ error: 'This needs an account. There are none in demo mode.' }, { status: 404 }) };
+  if (!supabaseConfigured) return { ok: false, res: await jsonT({ error: tx('This needs an account. There are none in demo mode.') }, { status: 404 }) };
   const sb = await createClient();
   const {
     data: { user },
   } = await sb.auth.getUser();
-  if (!user) return { ok: false, res: NextResponse.json({ error: 'Sign in first.' }, { status: 401 }) };
+  if (!user) return { ok: false, res: await jsonT({ error: tx('Sign in first.') }, { status: 401 }) };
   const [{ data: p }, { data: aal }] = await Promise.all([
     sb.from('profiles').select('role, full_name, banned, suspended_until').eq('id', user.id).single(),
     sb.auth.mfa.getAuthenticatorAssuranceLevel(),
   ]);
-  if (!p || cannotAct(p)) return { ok: false, res: NextResponse.json({ error: 'This account cannot do that right now.' }, { status: 403 }) };
+  if (!p || cannotAct(p)) return { ok: false, res: await jsonT({ error: tx('This account cannot do that right now.') }, { status: 403 }) };
   return {
     ok: true,
     id: user.id,
@@ -42,15 +44,15 @@ async function signedIn(): Promise<{ ok: true; id: string; email: string | null;
 export async function buyerOnly(): Promise<Who> {
   const s = await signedIn();
   if (!s.ok) return s;
-  if (!mayBuy(s.role)) return no('Admin accounts cannot buy. Use your own account.', 403);
+  if (!mayBuy(s.role)) return no(tx('Admin accounts cannot buy. Use your own account.'), 403);
   return { ok: true, id: s.id, name: s.name, email: s.email };
 }
 
 export async function sellerOnly(): Promise<Who> {
   const s = await signedIn();
   if (!s.ok) return s;
-  if (s.role !== 'seller') return no('Only a seller account can do this.', 403);
-  if (!s.aal2) return no('Enter your authenticator code first.', 403);
+  if (s.role !== 'seller') return no(tx('Only a seller account can do this.'), 403);
+  if (!s.aal2) return no(tx('Enter your authenticator code first.'), 403);
   return { ok: true, id: s.id, name: s.name, email: s.email };
 }
 
@@ -63,9 +65,9 @@ export async function participant(): Promise<ParticipantCheck> {
   const s = await signedIn();
   if (!s.ok) return s;
   const role = s.role === 'admin' || s.role === 'seller' ? s.role : 'buyer';
-  if (role !== 'buyer' && !s.aal2) return { ok: false, res: NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 }) };
+  if (role !== 'buyer' && !s.aal2) return { ok: false, res: await jsonT({ error: tx('Enter your authenticator code first.') }, { status: 403 }) };
   if (role !== 'admin') return { ok: true, viewer: { id: s.id, role } };
-  if (s.social) return { ok: false, res: NextResponse.json({ error: 'Admin accounts sign in with password and authenticator code only.' }, { status: 403 }) }; // O-7
+  if (s.social) return { ok: false, res: await jsonT({ error: tx('Admin accounts sign in with password and authenticator code only.') }, { status: 403 }) }; // O-7
   const sb = await createClient();
   return { ok: true, viewer: { id: s.id, role, scopes: effectiveScopes((await readAdminProfile(sb, s.id))?.admin_scopes) } };
 }

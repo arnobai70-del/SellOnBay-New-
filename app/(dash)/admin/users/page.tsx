@@ -14,32 +14,36 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Users and roles', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import { tx, type Tx } from '@/lib/i18n/tx'; // tx marks the English of module-level words; translate() shows them in the page's language
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Users and roles'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const DOC: Record<string, string> = { passport: 'Passport', national_id: 'National ID card', driver_licence: 'Driver licence' };
+const DOC = (tx: Tx): Record<string, string> => ({ passport: 'Passport', national_id: tx('National ID card'), driver_licence: tx('Driver licence') });
 type Check = { id: string; seller_id: string; doc_type: string; country: string; back_path: string | null; created_at: string };
 
 /* The design's permission table: which pages each permission opens, and what can be done there (lib/admin/scopes.ts and each page's guard). */
 const PAGES: [page: string, open: AdminScope[], acts: ('edit' | 'approve' | 'pay' | 'export')[]][] = [
-  ['Overview', [...SCOPES], []],
-  ['Orders & payments', ['delivery', 'support', 'finance'], ['edit', 'approve', 'pay']],
-  ['Listing review', ['catalog'], ['edit', 'approve']],
-  ['Disputes & support', ['support'], ['edit', 'approve', 'pay']],
-  ['Domains', ['support'], ['edit']],
-  ['Finance & payouts', ['finance'], ['pay', 'export']],
-  ['Reports', ['finance'], ['export']],
-  ['Users & roles', ['finance'], ['approve']],
-  ['Guides & pages', ['content'], ['edit', 'approve']],
-  ['Settings', [], ['edit']],
+  [tx('Overview'), [...SCOPES], []],
+  [tx('Orders & payments'), ['delivery', 'support', 'finance'], ['edit', 'approve', 'pay']],
+  [tx('Listing review'), ['catalog'], ['edit', 'approve']],
+  [tx('Disputes & support'), ['support'], ['edit', 'approve', 'pay']],
+  [tx('Domains'), ['support'], ['edit']],
+  [tx('Finance & payouts'), ['finance'], ['pay', 'export']],
+  [tx('Reports'), ['finance'], ['export']],
+  [tx('Users & roles'), ['finance'], ['approve']],
+  [tx('Guides & pages'), ['content'], ['edit', 'approve']],
+  [tx('Settings'), [], ['edit']],
 ];
-const COLS = [
-  ['view', 'View'],
-  ['edit', 'Create / edit'],
-  ['approve', 'Approve'],
-  ['pay', 'Refund / pay'],
-  ['export', 'Export'],
-] as const;
+const COLS = (tx: Tx) =>
+  [
+    ['view', tx('View')],
+    ['edit', tx('Create / edit')],
+    ['approve', tx('Approve')],
+    ['pay', tx('Refund / pay')],
+    ['export', tx('Export')],
+  ] as const;
 
 /*
  * design-reference/admin-users.html: staff permissions, sellers' identity checks (Finance only, owner 2026-11-07; each document opens for 5 minutes
@@ -47,6 +51,7 @@ const COLS = [
  * An admin's permissions are changed in the accounts tool (/api/admin/users/[id]/scopes).
  */
 export default async function AdminUsers({ searchParams }: { searchParams: Promise<{ q?: string; b?: string; role?: string }> }) {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/users', roles: ['admin'], scope: ['super', 'finance'] });
   const sp = await searchParams;
   const q = (sp.q ?? '').slice(0, 60);
@@ -100,51 +105,71 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
     return d < 1 ? 'Today' : d === 1 ? 'Yesterday' : `${d} days ago`;
   };
   return (
-    <AdminShell viewer={viewer} active="users" file="admin-users" title="Users & roles" head={false}>
+    <AdminShell viewer={viewer} active="users" file="admin-users" title={tx('Users & roles')} head={false}>
       <div className="row">
         <div>
-          <h1>Users &amp; roles</h1>
-          <div className="tag">Staff permissions, seller verification and buyer records · deny by default</div>
+          <h1>
+            <T s={'Users & roles'} />
+          </h1>
+          <div className="tag">
+            <T s={'Staff permissions, seller verification and buyer records · deny by default'} />
+          </div>
         </div>
         {superAdmin && (
           <Link className="btn" href="/admin/users/accounts" prefetch={false}>
-            + Invite staff
+            <T s={'+ Invite staff'} />
           </Link>
         )}
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Staff</div>
+          <div className="l">
+            <T s={'Staff'} />
+          </div>
           <div className="v">{staff.length}</div>
-          <div className="s">{SCOPES.filter((s) => scopeCount(s) > 0).length} permissions in use</div>
+          <div className="s">
+            {SCOPES.filter((s) => scopeCount(s) > 0).length} <T s={'permissions in use'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Sellers</div>
+          <div className="l">
+            <T s={'Sellers'} />
+          </div>
           <div className="v">{sellers.length}</div>
-          <div className="s">{pending.length} waiting identity check</div>
+          <div className="s">
+            <T s={'{length} waiting identity check'} v={{ length: pending.length }} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Buyers</div>
+          <div className="l">
+            <T s={'Buyers'} />
+          </div>
           <div className="v">{buyers.length}</div>
-          <div className="s">{buyers.filter((b) => b.createdAt >= monthFrom).length} new this month</div>
+          <div className="s">
+            {buyers.filter((b) => b.createdAt >= monthFrom).length} <T s={'new this month'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Suspended</div>
+          <div className="l">
+            <T s={'Suspended'} />
+          </div>
           <div className="v">{suspended.length}</div>
-          <div className="s">{suspended.filter((a) => a.banned).length} banned</div>
+          <div className="s">
+            {suspended.filter((a) => a.banned).length} <T s={'banned'} />
+          </div>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <aside className="glass" style={{ flex: '1 1 220px', maxWidth: 280, padding: 10, display: 'flex', flexDirection: 'column', gap: 4 }} aria-label="Roles">
+        <aside className="glass" style={{ flex: '1 1 220px', maxWidth: 280, padding: 10, display: 'flex', flexDirection: 'column', gap: 4 }} aria-label={tx('Roles')}>
           <div className="grp" style={{ padding: '8px 10px 4px' }}>
-            Roles
+            <T s={'Roles'} />
           </div>
           {SCOPES.map((s) => (
             <Link key={s} className={s === role ? 'role on' : 'role'} href={`/admin/users?role=${s}`} prefetch={false}>
               <span>{SCOPE_LABEL[s]}</span>
               <span className="tag" style={{ margin: 0 }}>
-                {scopeCount(s)} people
+                <T s={'{v0} people'} v={{ v0: scopeCount(s) }} />
               </span>
             </Link>
           ))}
@@ -152,12 +177,16 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
         <section className="glass" style={{ flex: '999 1 480px', minWidth: 0, padding: '8px 8px 14px' }}>
           <div className="row" style={{ padding: '14px 14px 8px' }}>
             <div>
-              <h2>{SCOPE_LABEL[role]} permissions</h2>
-              <div className="tag">What this role can open and do. Give an admin a role in the accounts tool.</div>
+              <h2>
+                <T s={'{v0} permissions'} v={{ v0: SCOPE_LABEL[role] }} />
+              </h2>
+              <div className="tag">
+                <T s={'What this role can open and do. Give an admin a role in the accounts tool.'} />
+              </div>
             </div>
             {superAdmin && (
               <Link className="btn sm" href="/admin/users/accounts" prefetch={false}>
-                Set roles
+                <T s={'Set roles'} />
               </Link>
             )}
           </div>
@@ -165,8 +194,10 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
             <table className="pm">
               <thead>
                 <tr>
-                  <th>Page</th>
-                  {COLS.map(([, l]) => (
+                  <th>
+                    <T s={'Page'} />
+                  </th>
+                  {COLS(tx).map(([, l]) => (
                     <th key={l}>{l}</th>
                   ))}
                 </tr>
@@ -174,11 +205,11 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
               <tbody>
                 {PAGES.map((p, i) => (
                   <tr key={p[0]}>
-                    <td style={{ fontWeight: 500 }}>{p[0]}</td>
-                    {COLS.map(([k, l], j) => (
+                    <td style={{ fontWeight: 500 }}>{translate(p[0])}</td>
+                    {COLS(tx).map(([k, l], j) => (
                       <td key={k}>
                         <label className="hidden-label" htmlFor={`p${i}_${j}`}>
-                          {l} {p[0]}
+                          {l} {translate(p[0])}
                         </label>
                         <input id={`p${i}_${j}`} type="checkbox" checked={allowed(p, k)} readOnly disabled />
                       </td>
@@ -189,14 +220,16 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
             </table>
           </div>
           <div style={{ padding: '16px 14px 0' }}>
-            <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 8 }}>Hidden from this role</div>
+            <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 8 }}>
+              <T s={'Hidden from this role'} />
+            </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {(
                 [
-                  ['Payout account', role !== 'finance' && role !== 'super'],
-                  ['Identity documents', role !== 'finance' && role !== 'super'],
-                  ['Source file links', role !== 'catalog' && role !== 'delivery' && role !== 'super'],
-                  ['Audit log', role !== 'super'],
+                  [tx('Payout account'), role !== 'finance' && role !== 'super'],
+                  [tx('Identity documents'), role !== 'finance' && role !== 'super'],
+                  [tx('Source file links'), role !== 'catalog' && role !== 'delivery' && role !== 'super'],
+                  [tx('Audit log'), role !== 'super'],
                 ] as const
               ).map(([l, hidden]) => (
                 <label key={l} className="chk" style={{ padding: '0 12px', borderRadius: 999, border: '1px solid #DCE7EC', background: 'rgba(255,255,255,.7)' }}>
@@ -212,24 +245,40 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
         <section className="glass" style={{ padding: '8px 8px 4px' }} id="verify">
           <div className="row" style={{ padding: '14px 14px 4px' }}>
             <div>
-              <h2>Seller verification</h2>
-              <div className="tag">Identity and payout method are checked before the first payout. Only Finance sees these; each document opens for 5 minutes and the opening is logged.</div>
+              <h2>
+                <T s={'Seller verification'} />
+              </h2>
+              <div className="tag">
+                <T s={'Identity and payout method are checked before the first payout. Only Finance sees these; each document opens for 5 minutes and the opening is logged.'} />
+              </div>
             </div>
             <Link className="btn sm ghost" href="/admin/users/sellers" prefetch={false}>
-              All sellers
+              <T s={'All sellers'} />
             </Link>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Seller</th>
-                  <th>Sent</th>
-                  <th>Orders</th>
-                  <th>Document</th>
-                  <th>Country</th>
                   <th>
-                    <span className="hidden-label">Actions</span>
+                    <T s={'Seller'} />
+                  </th>
+                  <th>
+                    <T s={'Sent'} />
+                  </th>
+                  <th>
+                    <T s={'Orders'} />
+                  </th>
+                  <th>
+                    <T s={'Document'} />
+                  </th>
+                  <th>
+                    <T s={'Country'} />
+                  </th>
+                  <th>
+                    <span className="hidden-label">
+                      <T s={'Actions'} />
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -237,30 +286,30 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 {pending.length ? (
                   pending.map((c) => (
                     <tr key={c.id}>
-                      <td style={{ fontWeight: 500 }}>{nameOf.get(c.seller_id) ?? 'Seller'}</td>
+                      <td style={{ fontWeight: 500 }}>{nameOf.get(c.seller_id) ?? tx('Seller')}</td>
                       <td>{shortDate(Date.parse(c.created_at))}</td>
                       <td>{sellerSites.get(c.seller_id) ?? 0}</td>
                       <td>
-                        <span className="status st-wait">{DOC[c.doc_type] ?? c.doc_type}</span>
+                        <span className="status st-wait">{DOC(tx)[c.doc_type] ?? c.doc_type}</span>
                       </td>
                       <td>{COUNTRY_NAME[c.country] ?? c.country}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', textAlign: 'left' }}>
                           <a className="btn sm ghost" href={`/api/admin/verifications/${c.id}/file?side=front`} target="_blank" rel="noopener noreferrer">
-                            View front
+                            <T s={'View front'} />
                           </a>
                           {c.back_path && (
                             <a className="btn sm ghost" href={`/api/admin/verifications/${c.id}/file?side=back`} target="_blank" rel="noopener noreferrer">
-                              View back
+                              <T s={'View back'} />
                             </a>
                           )}
-                          <ActionButton endpoint={`/api/admin/verifications/${c.id}`} label="Approve" body={{ decision: 'approve' }} />
+                          <ActionButton endpoint={`/api/admin/verifications/${c.id}`} label={tx('Approve')} body={{ decision: 'approve' }} />
                           <ActionButton
                             endpoint={`/api/admin/verifications/${c.id}`}
-                            label="Reject"
+                            label={tx('Reject')}
                             tone="line"
                             body={{ decision: 'reject' }}
-                            note={{ label: 'Reason for the seller', required: true }}
+                            note={{ label: tx('Reason for the seller'), required: true }}
                           />
                         </div>
                       </td>
@@ -269,7 +318,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 ) : (
                   <tr>
                     <td colSpan={6} className="muted">
-                      No identity check is waiting.
+                      <T s={'No identity check is waiting.'} />
                     </td>
                   </tr>
                 )}
@@ -282,26 +331,42 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 4px' }}>
           <div>
-            <h2>Buyers (CRM)</h2>
-            <div className="tag">Purchase history and value per buyer, last 12 months</div>
+            <h2>
+              <T s={'Buyers (CRM)'} />
+            </h2>
+            <div className="tag">
+              <T s={'Purchase history and value per buyer, last 12 months'} />
+            </div>
           </div>
           <form action="/admin/users" method="get" role="search" style={{ maxWidth: 240, width: '100%' }}>
             <label htmlFor="bs" className="hidden-label">
-              Search buyers
+              <T s={'Search buyers'} />
             </label>
-            <input id="bs" name="b" defaultValue={sp.b ?? ''} className="input" placeholder="Search buyers" style={{ maxWidth: 240, borderRadius: 999 }} />
+            <input id="bs" name="b" defaultValue={sp.b ?? ''} className="input" placeholder={tx('Search buyers')} style={{ maxWidth: 240, borderRadius: 999 }} />
           </form>
         </div>
         <div className="tbl">
           <table>
             <thead>
               <tr>
-                <th>Buyer</th>
-                <th>Orders</th>
-                <th>Total spent</th>
-                <th>Domains</th>
-                <th>Last order</th>
-                <th>Tags</th>
+                <th>
+                  <T s={'Buyer'} />
+                </th>
+                <th>
+                  <T s={'Orders'} />
+                </th>
+                <th>
+                  <T s={'Total spent'} />
+                </th>
+                <th>
+                  <T s={'Domains'} />
+                </th>
+                <th>
+                  <T s={'Last order'} />
+                </th>
+                <th>
+                  <T s={'Tags'} />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -315,13 +380,21 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                     <td>{ago(r.last)}</td>
                     <td>
                       {r.refunded ? (
-                        <span className="status st-bad">Refunded</span>
+                        <span className="status st-bad">
+                          <T s={'Refunded'} />
+                        </span>
                       ) : r.n > 1 ? (
-                        <span className="status st-info">Repeat</span>
+                        <span className="status st-info">
+                          <T s={'Repeat'} />
+                        </span>
                       ) : r.domains && !r.spent ? (
-                        <span className="status st-draft">Domain only</span>
+                        <span className="status st-draft">
+                          <T s={'Domain only'} />
+                        </span>
                       ) : (
-                        <span className="status st-draft">New</span>
+                        <span className="status st-draft">
+                          <T s={'New'} />
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -329,7 +402,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
               ) : (
                 <tr>
                   <td colSpan={6} className="muted">
-                    {bq ? 'No buyer matches that search.' : 'No buyer has ordered yet.'}
+                    {bq ? tx('No buyer matches that search.') : tx('No buyer has ordered yet.')}
                   </td>
                 </tr>
               )}
@@ -342,16 +415,20 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
             <div>
-              <h2>Accounts</h2>
-              <div className="tag">Find, ban or unban a person. Every action goes in the audit log.</div>
+              <h2>
+                <T s={'Accounts'} />
+              </h2>
+              <div className="tag">
+                <T s={'Find, ban or unban a person. Every action goes in the audit log.'} />
+              </div>
             </div>
             <form action="/admin/users" method="get" role="search" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <label className="hidden-label" htmlFor="user-q">
-                Find by name
+                <T s={'Find by name'} />
               </label>
-              <input id="user-q" className="input" name="q" defaultValue={q} placeholder="Find by name" style={{ maxWidth: 240, borderRadius: 999 }} />
+              <input id="user-q" className="input" name="q" defaultValue={q} placeholder={tx('Find by name')} style={{ maxWidth: 240, borderRadius: 999 }} />
               <button className="btn ghost sm" type="submit">
-                Find
+                <T s={'Find'} />
               </button>
             </form>
           </div>
@@ -359,12 +436,22 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
             <table>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Joined</th>
-                  <th>State</th>
                   <th>
-                    <span className="hidden-label">Actions</span>
+                    <T s={'Name'} />
+                  </th>
+                  <th>
+                    <T s={'Role'} />
+                  </th>
+                  <th>
+                    <T s={'Joined'} />
+                  </th>
+                  <th>
+                    <T s={'State'} />
+                  </th>
+                  <th>
+                    <span className="hidden-label">
+                      <T s={'Actions'} />
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -375,26 +462,40 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                       <td style={{ fontWeight: 500 }}>{u.name}</td>
                       <td>{u.role}</td>
                       <td>{shortDate(u.createdAt)}</td>
-                      <td>{u.banned ? <span className="status st-bad">Banned</span> : u.flagged ? <span className="status st-wait">Flagged</span> : <span className="status st-ok">Active</span>}</td>
+                      <td>
+                        {u.banned ? (
+                          <span className="status st-bad">
+                            <T s={'Banned'} />
+                          </span>
+                        ) : u.flagged ? (
+                          <span className="status st-wait">
+                            <T s={'Flagged'} />
+                          </span>
+                        ) : (
+                          <span className="status st-ok">
+                            <T s={'Active'} />
+                          </span>
+                        )}
+                      </td>
                       <td style={{ textAlign: 'right' }}>
                         {u.id === viewer?.id ? null : (
                           <AdminForm
                             endpoint={`/api/admin/users/${u.id}/action`}
-                            openLabel="Act"
-                            submit="Save"
+                            openLabel={tx('Act')}
+                            submit={tx('Save')}
                             tone="line"
                             fields={[
                               {
                                 name: 'action',
-                                label: 'What to do',
+                                label: tx('What to do'),
                                 kind: 'select',
                                 options: [
                                   [u.banned ? 'unban' : 'ban', u.banned ? 'Unban' : 'Ban'],
-                                  ['unsuspend', 'Lift a suspension'],
-                                  ['clear_flag', 'Clear the flag'],
+                                  ['unsuspend', tx('Lift a suspension')],
+                                  ['clear_flag', tx('Clear the flag')],
                                 ],
                               },
-                              { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                              { name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
                             ]}
                           />
                         )}
@@ -404,7 +505,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 ) : (
                   <tr>
                     <td colSpan={5} className="muted">
-                      No accounts found.
+                      <T s={'No accounts found.'} />
                     </td>
                   </tr>
                 )}
@@ -417,9 +518,11 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
       {superAdmin && (
         <section className="glass card" id="developers">
           <div className="row" style={{ marginBottom: 6 }}>
-            <h2>Developer profiles</h2>
+            <h2>
+              <T s={'Developer profiles'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              Profiles stay hidden until you approve them
+              <T s={'Profiles stay hidden until you approve them'} />
             </span>
           </div>
           {devs.length ? (
@@ -433,28 +536,28 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 </p>
                 <AdminForm
                   endpoint={`/api/admin/developers/${d.handle}/decide`}
-                  submit="Save decision"
-                  openLabel="Decide"
+                  submit={tx('Save decision')}
+                  openLabel={tx('Decide')}
                   tone="blue"
                   fields={[
                     {
                       name: 'decision',
-                      label: 'Decision',
+                      label: tx('Decision'),
                       kind: 'select',
                       options: [
-                        ['approve', 'Approve and publish'],
-                        ['changes', 'Send back for changes'],
+                        ['approve', tx('Approve and publish')],
+                        ['changes', tx('Send back for changes')],
                         ['reject', 'Reject'],
                       ],
                     },
-                    { name: 'note', label: 'Note for the developer (needed unless you approve)', kind: 'textarea' },
+                    { name: 'note', label: tx('Note for the developer (needed unless you approve)'), kind: 'textarea' },
                   ]}
                 />
               </div>
             ))
           ) : (
             <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-              Nothing is waiting for review.
+              <T s={'Nothing is waiting for review.'} />
             </p>
           )}
         </section>

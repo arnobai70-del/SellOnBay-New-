@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { checkPaypalPayout, sendPaypalPayout } from '@/lib/payouts';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ action: z.enum(['send', 'check']) });
@@ -19,8 +20,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!body.ok) return body.res;
   if (body.data.action === 'send') {
     const r = await sendPaypalPayout(id, a.id);
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   }
   const r = await checkPaypalPayout(id, a.id);
-  return r.ok ? NextResponse.json({ ok: true, state: r.state }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, state: r.state }) : jsonT({ error: r.error }, { status: r.status });
 }

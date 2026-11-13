@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { priceLockedBySale, SALE_LOCK_TEXT } from '../prices/service';
 import { revalidatePath } from 'next/cache';
 import { CONFIG } from '../config';
@@ -69,12 +70,12 @@ export async function adminEditProduct(adminId: string | null, slug: string, inp
   if (!before) return { ok: false, status: supabaseConfigured ? 404 : 503, error: supabaseConfigured ? 'No such listing.' : 'Editing listings needs the database.' };
   const lim = await getSettings();
   // Before migration 0054 the listing has no hours column: hours cannot be set yet.
-  if (input.hours && before.delivery_hours === undefined) return { ok: false, status: 409, error: 'Delivery in hours needs migration 0054 first.' };
+  if (input.hours && before.delivery_hours === undefined) return { ok: false, status: 409, error: tx('Delivery in hours needs migration 0054 first.') };
   if (before.delivery_hours === undefined) input = { ...input, hours: undefined };
   const c = checkProductEdit(input, { platform: before.platform, priceMinCents: lim.priceMinCents, priceMaxCents: lim.priceMaxCents, hasHostedDemo: !!before.demo_path });
   if (!c.ok) return { ok: false, status: 400, error: c.error };
   const same = (Object.keys(c.row) as (keyof typeof c.row)[]).every((k) => JSON.stringify(c.row[k]) === JSON.stringify((before as Record<string, unknown>)[k] ?? null));
-  if (same) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (same) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (c.row.price_cents !== undefined && c.row.price_cents !== before.price_cents && (await priceLockedBySale(before.id)) !== null) return { ok: false, status: 409, error: SALE_LOCK_TEXT };
   // Buyers who paid already download the file behind the files link: it cannot be swapped under them (a digital product gets a new version instead).
   if (c.row.code_url !== undefined && c.row.code_url !== before.code_url) {
@@ -83,10 +84,10 @@ export async function adminEditProduct(adminId: string | null, slug: string, inp
       .select('id', { count: 'exact', head: true })
       .eq('product_id', before.id)
       .in('status', [...FUNDED_STATES]);
-    if (count === null || count > 0) return { ok: false, status: 409, error: 'Buyers already have the files of this listing, so the files link cannot change. Publish a new version instead.' };
+    if (count === null || count > 0) return { ok: false, status: 409, error: tx('Buyers already have the files of this listing, so the files link cannot change. Publish a new version instead.') };
   }
   const { error } = await createAdminClient().from('products').update(c.row).eq('id', before.id);
-  if (error) return { ok: false, status: 500, error: 'Could not save the listing.' };
+  if (error) return { ok: false, status: 500, error: tx('Could not save the listing.') };
   const diff = (Object.keys(c.row) as (keyof typeof c.row)[]).filter((k) => JSON.stringify(c.row[k]) !== JSON.stringify((before as Record<string, unknown>)[k] ?? null));
   await audit(adminId, 'listing_edited_by_admin', 'product', before.id, {
     slug,
@@ -109,17 +110,17 @@ function sniff(b: Uint8Array): { ext: string; type: string } | null {
 /* Adds one screenshot to an app listing (PNG, JPEG or WebP up to 4 MB, checked by its bytes), up to the limit. */
 export async function adminAddShot(adminId: string | null, slug: string, bytes: Uint8Array): Promise<Result> {
   const p = await productForEdit(slug);
-  if (!p) return { ok: false, status: 404, error: 'No such listing.' };
+  if (!p) return { ok: false, status: 404, error: tx('No such listing.') };
   const shots = p.app_shots ?? [];
   if (shots.length >= CONFIG.listing.maxShots) return { ok: false, status: 400, error: `At most ${CONFIG.listing.maxShots} screenshots.` };
-  if (bytes.length > MAX_SHOT) return { ok: false, status: 413, error: 'The picture is larger than 4 MB.' };
+  if (bytes.length > MAX_SHOT) return { ok: false, status: 413, error: tx('The picture is larger than 4 MB.') };
   const kind = sniff(bytes);
-  if (!kind) return { ok: false, status: 400, error: 'Use a PNG, JPEG or WebP picture.' };
+  if (!kind) return { ok: false, status: 400, error: tx('Use a PNG, JPEG or WebP picture.') };
   const used = shots.map((n) => Number(/shots\/(\d+)\./.exec(n)?.[1] ?? 0));
   const name = `shots/${Math.max(0, ...used) + 1}.${kind.ext}`;
   const db = createAdminClient();
   const { error } = await db.storage.from(BUCKET).upload(`${p.id}/${name}`, bytes, { contentType: kind.type, upsert: false });
-  if (error) return { ok: false, status: 500, error: 'Could not store the picture.' };
+  if (error) return { ok: false, status: 500, error: tx('Could not store the picture.') };
   const next = [...shots, name];
   const { error: e2 } = await db
     .from('products')
@@ -128,7 +129,7 @@ export async function adminAddShot(adminId: string | null, slug: string, bytes: 
     .eq('id', p.id);
   if (e2) {
     await db.storage.from(BUCKET).remove([`${p.id}/${name}`]);
-    return { ok: false, status: 500, error: 'Could not save the picture.' };
+    return { ok: false, status: 500, error: tx('Could not save the picture.') };
   }
   await audit(adminId, 'listing_shot_added', 'product', p.id, { slug, name });
   done(slug);
@@ -137,16 +138,16 @@ export async function adminAddShot(adminId: string | null, slug: string, bytes: 
 
 export async function adminRemoveShot(adminId: string | null, slug: string, name: string): Promise<Result> {
   const p = await productForEdit(slug);
-  if (!p) return { ok: false, status: 404, error: 'No such listing.' };
+  if (!p) return { ok: false, status: 404, error: tx('No such listing.') };
   const shots = p.app_shots ?? [];
-  if (!shots.includes(name)) return { ok: false, status: 404, error: 'No such picture.' };
+  if (!shots.includes(name)) return { ok: false, status: 404, error: tx('No such picture.') };
   const db = createAdminClient();
   const next = shots.filter((n) => n !== name);
   const { error } = await db
     .from('products')
     .update(p.platform === 'web' ? { app_shots: next } : { app_shots: next, demo_files: next.length })
     .eq('id', p.id);
-  if (error) return { ok: false, status: 500, error: 'Could not save the change.' };
+  if (error) return { ok: false, status: 500, error: tx('Could not save the change.') };
   await db.storage.from(BUCKET).remove([`${p.id}/${name}`]);
   await audit(adminId, 'listing_shot_removed', 'product', p.id, { slug, name });
   done(slug);

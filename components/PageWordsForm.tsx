@@ -5,6 +5,8 @@ import { PostBody } from './PostBody';
 import { htmlToMarkdown, type MdNode } from '@/lib/htmlToMarkdown';
 import { parseMarkdown } from '@/lib/markdown';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Words = { heading: string; intro: string; body: string };
 
 /*
@@ -26,6 +28,7 @@ export function PageWordsForm({
   hasBody: boolean;
   max: { heading: number; intro: number; body: number };
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [w, setW] = useState<Words>(saved);
   const [busy, setBusy] = useState(false);
@@ -41,7 +44,7 @@ export function PageWordsForm({
       if (!r.ok || !el) throw new Error();
       setW((p) => ({ ...p, body: htmlToMarkdown(el as unknown as MdNode) }));
     } catch {
-      setMsg({ ok: false, text: 'Could not read the page. Try again, or write the text yourself.' });
+      setMsg({ ok: false, text: tx('Could not read the page. Try again, or write the text yourself.') });
     }
   }
 
@@ -52,8 +55,8 @@ export function PageWordsForm({
     const r = await fetch('/api/admin/seo/words', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ path, ...w }) });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
-    if (!r.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: 'Saved. The page shows the new words within a minute.' });
+    if (!r.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: tx('Saved. The page shows the new words within a minute.') });
     router.refresh();
   }
 
@@ -61,24 +64,30 @@ export function PageWordsForm({
   return (
     <form className="sob-form sob-pw-form" onSubmit={save}>
       <div className="field">
-        <label htmlFor="pw-heading">Page heading</label>
+        <label htmlFor="pw-heading">
+          <T s={'Page heading'} />
+        </label>
         <input id="pw-heading" value={w.heading} onChange={set('heading')} maxLength={max.heading} placeholder={builtIn.heading} />
         <small>
-          The big title at the top of the page. Empty = &ldquo;{builtIn.heading}&rdquo;. {w.heading.length} / {max.heading}
+          <T s={'The big title at the top of the page. Empty = “{heading}”. {length} / {heading2}'} v={{ heading: builtIn.heading, length: w.heading.length, heading2: max.heading }} />
         </small>
       </div>
       {hasIntro && (
         <div className="field">
-          <label htmlFor="pw-intro">Intro</label>
-          <textarea id="pw-intro" rows={3} value={w.intro} onChange={set('intro')} maxLength={max.intro} placeholder={builtIn.intro ?? 'The built-in intro'} />
+          <label htmlFor="pw-intro">
+            <T s={'Intro'} />
+          </label>
+          <textarea id="pw-intro" rows={3} value={w.intro} onChange={set('intro')} maxLength={max.intro} placeholder={builtIn.intro ?? tx('The built-in intro')} />
           <small>
-            The line under the heading. Empty = the built-in intro. {w.intro.length} / {max.intro}
+            <T s={'The line under the heading. Empty = the built-in intro. {length} / {intro}'} v={{ length: w.intro.length, intro: max.intro }} />
           </small>
         </div>
       )}
       {hasBody && (
         <div className="field">
-          <label htmlFor="pw-body">Page text</label>
+          <label htmlFor="pw-body">
+            <T s={'Page text'} />
+          </label>
           <textarea
             id="pw-body"
             className="sob-pw-body"
@@ -86,28 +95,32 @@ export function PageWordsForm({
             value={w.body}
             onChange={set('body')}
             maxLength={max.body}
-            placeholder="Empty = the built-in text. Press Start from the current text to edit it."
+            placeholder={tx('Empty = the built-in text. Press Start from the current text to edit it.')}
           />
           <small>
-            ## Heading, ### Smaller heading, - list item, 1. numbered item, **bold**, *italic*, [link](/refunds). A blank line starts a new paragraph. Numbers you type here (fees, days) do not follow
-            later changes in the settings. {w.body.length.toLocaleString('en-US')} / {max.body.toLocaleString('en-US')}
+            <T
+              s={
+                '## Heading, ### Smaller heading, - list item, 1. numbered item, **bold**, *italic*, [link](/refunds). A blank line starts a new paragraph. Numbers you type here (fees, days) do not follow later changes in the settings. {v0} / {v1}'
+              }
+              v={{ v0: w.body.length.toLocaleString('en-US'), v1: max.body.toLocaleString('en-US') }}
+            />
           </small>
           {!w.body.trim() && (
             <button className="btn ghost sm" type="button" onClick={copyCurrent} style={{ justifySelf: 'start', marginTop: 8 }}>
-              Start from the current text
+              <T s={'Start from the current text'} />
             </button>
           )}
         </div>
       )}
       <div className="sob-acts">
         <button className="btn sm" type="submit" disabled={busy}>
-          {busy ? 'One moment...' : 'Save'}
+          {busy ? tx('One moment...') : tx('Save')}
         </button>
         <button className="btn ghost sm" type="button" onClick={() => setW({ heading: '', intro: '', body: '' })} disabled={busy}>
-          Clear all (use the built-in words)
+          <T s={'Clear all (use the built-in words)'} />
         </button>
         <a className="btn ghost sm" href={path} target="_blank" rel="noopener">
-          Open the page
+          <T s={'Open the page'} />
         </a>
       </div>
       {msg && (
@@ -117,7 +130,9 @@ export function PageWordsForm({
       )}
       {blocks.length > 0 && (
         <div className="sob-pw-preview">
-          <b>Preview of the page text</b>
+          <b>
+            <T s={'Preview of the page text'} />
+          </b>
           <div className="sob-prose">
             <PostBody blocks={blocks} />
           </div>

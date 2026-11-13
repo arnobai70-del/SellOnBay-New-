@@ -4,6 +4,8 @@ import { adminOnly } from '@/lib/admin/guard';
 import { adminAddShot, adminEditProduct, adminRemoveShot } from '@/lib/admin/productEdit';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const num = z.coerce.number();
@@ -42,10 +44,10 @@ export async function POST(req: Request) {
     const form = await req.formData().catch(() => null);
     const file = form?.get('file');
     const slug = String(form?.get('slug') ?? '');
-    if (!(file instanceof File) || !slug) return NextResponse.json({ error: 'Choose a picture.' }, { status: 400 });
-    if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: 'The picture is larger than 4 MB.' }, { status: 413 });
+    if (!(file instanceof File) || !slug) return jsonT({ error: tx('Choose a picture.') }, { status: 400 });
+    if (file.size > 4 * 1024 * 1024) return jsonT({ error: tx('The picture is larger than 4 MB.') }, { status: 413 });
     const r = await adminAddShot(a.id, slug, new Uint8Array(await file.arrayBuffer()));
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   }
   const body = await readJson(req, z.union([remove, edit]));
   if (!body.ok) return body.res;
@@ -73,5 +75,5 @@ export async function POST(req: Request) {
           codeUrl: d.codeUrl,
           licenceType: d.licenceType,
         });
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

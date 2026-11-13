@@ -12,3 +12,4 @@ package-lock.json
 .next-view
 design-reference
 SELLONBAY_REDESIGN.md
+lib/i18n/strings/catalog.json

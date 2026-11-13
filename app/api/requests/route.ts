@@ -3,6 +3,8 @@ import { buyerOnly } from '@/lib/auth/guards';
 import { guard } from '@/lib/guard';
 import { submitRequest } from '@/lib/requests/service';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -13,9 +15,9 @@ export async function POST(req: Request) {
   const who = await buyerOnly();
   if (!who.ok) return who.res;
   const g = await guard('order', who.id);
-  if (!g.ok) return NextResponse.json({ error: g.error }, { status: g.status });
+  if (!g.ok) return jsonT({ error: g.error }, { status: g.status });
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Send the request as JSON.' }, { status: 400 });
+  if (!body || typeof body !== 'object') return jsonT({ error: tx('Send the request as JSON.') }, { status: 400 });
   const r = await submitRequest(who.id, {
     product: typeof body.product === 'string' ? body.product.slice(0, 80) : undefined,
     kind: body.kind === 'custom_dev' ? 'custom_dev' : 'product',
@@ -29,5 +31,5 @@ export async function POST(req: Request) {
     business: (body.business as object) ?? {},
     consent: body.consent,
   });
-  return r.ok ? NextResponse.json({ ok: true, id: r.value.id }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, id: r.value.id }) : jsonT({ error: r.error }, { status: r.status });
 }

@@ -33,6 +33,7 @@ describe('demo mode can never switch the live site off (lib/demoMode.ts)', () =>
     };
     for (const d of ['lib', 'app', 'components']) walk(d);
     if (/LAUNCHBAY_DEMO/.test(readFileSync('proxy.ts', 'utf8'))) hits.push('proxy.ts');
-    expect(hits.sort()).toEqual(['lib/demoMode.ts', 'lib/launchCheck.ts']);
+    // lib/testGuard.ts reads it only to refuse a demo server that was given the production database (it never switches demo mode on).
+    expect(hits.sort()).toEqual(['lib/demoMode.ts', 'lib/launchCheck.ts', 'lib/testGuard.ts']);
   });
 });

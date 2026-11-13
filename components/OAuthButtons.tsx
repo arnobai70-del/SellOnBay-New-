@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { OAuthProvider as Provider } from '@/lib/supabase/oauth';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const APPLE = (
   <path
     fill="currentColor"
@@ -25,12 +26,13 @@ const LABEL: Record<Provider, string> = { google: 'Google', azure: 'Microsoft', 
  * error page. Apple is never a main button: existing Apple accounts get a small "Signed up with Apple?" link instead (Addendum 3.5).
  */
 export function OAuthButtons({ next, providers, appleExisting = false }: { next?: string; providers: Provider[]; appleExisting?: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [error, setError] = useState('');
   const go = async (provider: Provider) => {
     setError('');
     const redirectTo = `${location.origin}/auth/callback${next ? '?next=' + encodeURIComponent(next) : ''}`;
     const { error: e } = await createClient().auth.signInWithOAuth({ provider, options: { redirectTo } });
-    if (e) setError('That sign-in method is not available yet. Use email below.');
+    if (e) setError(tx('That sign-in method is not available yet. Use email below.'));
   };
   return (
     <div style={{ marginTop: 24 }}>

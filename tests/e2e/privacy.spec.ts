@@ -6,7 +6,7 @@ const REAL = process.env.REAL_URL ?? 'http://localhost:3000';
 
 test.describe('cookie notice', () => {
   test('shows once, says what is stored, goes away for good when closed, and never makes the page wider', async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, storageState: { cookies: [], origins: [] } });
+    const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-sob-e2e': '1' }, viewport: { width: 390, height: 800 }, storageState: { cookies: [], origins: [] } });
     const page = await ctx.newPage();
     await page.goto(DEMO + '/');
     const notice = page.getByRole('region', { name: 'Cookies' });

@@ -1,10 +1,13 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
 type Channel = 'buyer_admin' | 'admin_seller' | 'internal';
 type Msg = { id: string; channel: Channel; senderRole: 'buyer' | 'seller' | 'admin'; body: string; at: number };
 
-const TAB: Record<Channel, string> = { buyer_admin: 'Buyer and SellOnBay', admin_seller: 'SellOnBay and seller', internal: 'Internal notes' };
+const TAB = (tx: Tx): Record<Channel, string> => ({ buyer_admin: tx('Buyer and SellOnBay'), admin_seller: 'SellOnBay and seller', internal: tx('Internal notes') });
 const MINE: Record<'buyer' | 'seller' | 'admin', string> = { buyer: 'You', seller: 'You', admin: 'SellOnBay' };
 
 /*
@@ -15,7 +18,7 @@ export function ConversationPanel({
   type,
   id,
   me,
-  heading = 'Messages with SellOnBay',
+  heading: headingGiven,
   bare = false,
   actions,
 }: {
@@ -27,6 +30,8 @@ export function ConversationPanel({
   /* More buttons beside Send (the design's reply row). */
   actions?: React.ReactNode;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const heading = headingGiven ?? tx('Messages with SellOnBay');
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [tab, setTab] = useState<Channel | null>(null);
@@ -66,7 +71,7 @@ export function ConversationPanel({
     try {
       const r = await fetch(`/api/conversations/${type}/${id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ channel: tab, body: text }) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) return setError(j.error ?? 'Could not send the message. Try again.');
+      if (!r.ok) return setError(j.error ?? tx('Could not send the message. Try again.'));
       setText('');
       void load();
     } catch {
@@ -86,13 +91,13 @@ export function ConversationPanel({
         {!bare && <h2>{heading}</h2>}
         {status === 'loading' ? (
           <p className="muted" role="status" style={{ margin: 0, fontSize: 14 }}>
-            Loading messages…
+            <T s={'Loading messages…'} />
           </p>
         ) : (
           <p className="tag" role="alert" style={{ margin: 0 }}>
-            Could not load your messages just now.{' '}
+            <T s={'Could not load your messages just now.'} />{' '}
             <button type="button" className="btn ghost sm" onClick={() => void load()}>
-              Try again
+              <T s={'Try again'} />
             </button>
           </p>
         )}
@@ -107,14 +112,18 @@ export function ConversationPanel({
       {!bare && (
         <div>
           <h2>{heading}</h2>
-          {me !== 'admin' && <div className="tag">SellOnBay handles every message. Please keep contact details and payments on SellOnBay.</div>}
+          {me !== 'admin' && (
+            <div className="tag">
+              <T s={'SellOnBay handles every message. Please keep contact details and payments on SellOnBay.'} />
+            </div>
+          )}
         </div>
       )}
       {channels.length > 1 && (
-        <div className="seg" role="tablist" aria-label="Reply type" style={{ alignSelf: 'flex-start' }}>
+        <div className="seg" role="tablist" aria-label={tx('Reply type')} style={{ alignSelf: 'flex-start' }}>
           {channels.map((c) => (
             <button key={c} type="button" role="tab" aria-selected={tab === c} className={tab === c ? 'on' : ''} onClick={() => setTab(c)}>
-              {TAB[c]}
+              {TAB(tx)[c]}
             </button>
           ))}
         </div>
@@ -122,13 +131,13 @@ export function ConversationPanel({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} aria-live="polite">
         {shown.length === 0 && (
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-            No messages yet.
+            <T s={'No messages yet.'} />
           </p>
         )}
         {shown.map((m) => (
           <div key={m.id} className={bubble(m)}>
             <div className="tag" style={{ margin: '0 0 4px' }}>
-              {m.channel === 'internal' ? 'Internal note · ' : ''}
+              {m.channel === 'internal' ? tx('Internal note · ') : ''}
               {who(m)} · {new Date(m.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </div>
             <span style={{ whiteSpace: 'pre-wrap' }}>{m.body}</span>
@@ -137,19 +146,19 @@ export function ConversationPanel({
       </div>
       <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div className="field">
-          <label htmlFor={`cv-${type}-${id}`}>{tab === 'internal' ? 'Internal note' : me === 'admin' ? 'Reply' : 'Your reply'}</label>
+          <label htmlFor={`cv-${type}-${id}`}>{tab === 'internal' ? tx('Internal note') : me === 'admin' ? tx('Reply') : tx('Your reply')}</label>
           <textarea
             id={`cv-${type}-${id}`}
             className="input"
             maxLength={4000}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={tab === 'internal' ? 'Only admins see this.' : 'Write a reply…'}
+            placeholder={tab === 'internal' ? tx('Only admins see this.') : tx('Write a reply…')}
           />
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <button className="btn" type="submit" disabled={busy || !text.trim()}>
-            {busy ? 'Sending...' : 'Send'}
+            {busy ? tx('Sending...') : tx('Send')}
           </button>
           {actions}
         </div>

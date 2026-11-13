@@ -8,7 +8,9 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Source files', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Source files'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const size = (b: number | null) => (b === null ? '?' : b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
@@ -34,6 +36,7 @@ function Facts({ f, names }: { f: FileObject; names: Map<string, string> }) {
 
 /* Catalog reviews uploaded source files. Nothing is approved without every checklist item. The files are NOT malware-scanned (owner decision 2026-10-29). */
 export default async function Files() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/listings/files', roles: ['admin'], scope: 'catalog' });
   const files = await listFiles({ states: ['awaiting_review', 'checking', 'failed_checks', 'rejected'] });
   const names = new Map<string, string>();
@@ -46,18 +49,26 @@ export default async function Files() {
   const failed = files.filter((f) => f.state === 'failed_checks' || f.state === 'rejected').slice(0, 30);
   const legacy = await legacyCandidates();
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-files" title="Source files">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-files" title={tx('Source files')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Waiting for review ({review.length})</h2>
-            <p className="tag">These passed the archive and credential checks.</p>
+            <h2>
+              <T s={'Waiting for review ({length})'} v={{ length: review.length }} />
+            </h2>
+            <p className="tag">
+              <T s={'These passed the archive and credential checks.'} />
+            </p>
             <p className="sob-err" data-not-scanned>
-              Not scanned for malware (owner decision, security risk accepted). Open them only in an isolated sandbox, run them there, then decide.
+              <T s={'Not scanned for malware (owner decision, security risk accepted). Open them only in an isolated sandbox, run them there, then decide.'} />
             </p>
           </div>
         </div>
-        {review.length === 0 && <p className="muted">Nothing waiting.</p>}
+        {review.length === 0 && (
+          <p className="muted">
+            <T s={'Nothing waiting.'} />
+          </p>
+        )}
         <ul className="sob-list">
           {review.map((f) => {
             const c = f.checks as Checks;
@@ -69,30 +80,38 @@ export default async function Files() {
                   <Facts f={f} names={names} />
                   {c.evidence?.needsEvidenceReview && (
                     <small className="sob-err">
-                      Legacy file: its bytes {c.evidence.matchesEarlierDownloads ? 'match only some of' : 'do not match'} the {c.evidence.priorHashes} file version(s) earlier buyers downloaded. Review
-                      the evidence before approving (F-15); earlier buyers keep the file they had.
+                      <T
+                        s={
+                          'Legacy file: its bytes {v0} the {priorHashes} file version(s) earlier buyers downloaded. Review the evidence before approving (F-15); earlier buyers keep the file they had.'
+                        }
+                        v={{ v0: c.evidence.matchesEarlierDownloads ? 'match only some of' : 'do not match', priorHashes: c.evidence.priorHashes }}
+                      />
                     </small>
                   )}
-                  {twins > 0 && <small className="sob-err">The same bytes are already approved for {twins} other listing(s). Check this is not a copied product.</small>}
+                  {twins > 0 && (
+                    <small className="sob-err">
+                      <T s={'The same bytes are already approved for {twins} other listing(s). Check this is not a copied product.'} v={{ twins }} />
+                    </small>
+                  )}
                   <AdminForm
                     endpoint={`/api/admin/files/${f.id}`}
-                    openLabel="Review"
-                    submit="Save decision"
+                    openLabel={tx('Review')}
+                    submit={tx('Save decision')}
                     tone="line"
                     fields={[
                       {
                         name: 'decision',
-                        label: 'Decision',
+                        label: tx('Decision'),
                         kind: 'select',
                         options: [
-                          ['approve', 'Approve this exact file'],
+                          ['approve', tx('Approve this exact file')],
                           ['reject', 'Reject'],
                         ],
                       },
                       ...Object.entries(REVIEW_CHECKLIST).map(([k, label]) => ({ name: k, label, kind: 'checkbox' as const, showWhen: { field: 'decision', equals: 'approve' } })),
-                      { name: 'label', label: 'Version label, like 1.0', kind: 'text', showWhen: { field: 'decision', equals: 'approve' } },
-                      { name: 'changelog', label: 'What is in this version (shown to buyers)', kind: 'textarea', showWhen: { field: 'decision', equals: 'approve' } },
-                      { name: 'note', label: 'Note (needed to reject; sent to the seller)', kind: 'textarea' },
+                      { name: 'label', label: tx('Version label, like 1.0'), kind: 'text', showWhen: { field: 'decision', equals: 'approve' } },
+                      { name: 'changelog', label: tx('What is in this version (shown to buyers)'), kind: 'textarea', showWhen: { field: 'decision', equals: 'approve' } },
+                      { name: 'note', label: tx('Note (needed to reject; sent to the seller)'), kind: 'textarea' },
                     ]}
                   />
                 </div>
@@ -104,8 +123,12 @@ export default async function Files() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Waiting for checks ({checking.length})</h2>
-            <p className="tag">The file could not be read for checking yet. It is tried again by the scheduled job, or now with Check again.</p>
+            <h2>
+              <T s={'Waiting for checks ({length})'} v={{ length: checking.length }} />
+            </h2>
+            <p className="tag">
+              <T s={'The file could not be read for checking yet. It is tried again by the scheduled job, or now with Check again.'} />
+            </p>
           </div>
         </div>
         <ul className="sob-list">
@@ -115,7 +138,7 @@ export default async function Files() {
                 <b>{f.originalName}</b>
                 <Facts f={f} names={names} />
                 {f.scanDetail && <small>{f.scanDetail}</small>}
-                <AdminForm endpoint={`/api/admin/files/${f.id}`} fixed={{ decision: 'retry' }} fields={[]} openLabel="Check again" submit="Run the checks again" tone="line" />
+                <AdminForm endpoint={`/api/admin/files/${f.id}`} fixed={{ decision: 'retry' }} fields={[]} openLabel={tx('Check again')} submit={tx('Run the checks again')} tone="line" />
               </div>
             </li>
           ))}
@@ -124,10 +147,15 @@ export default async function Files() {
       <div className="glass card sob-sec" data-legacy>
         <div className="row sob-hd">
           <div>
-            <h2>Legacy listings without a checked file ({legacy.length})</h2>
+            <h2>
+              <T s={'Legacy listings without a checked file ({length})'} v={{ length: legacy.length }} />
+            </h2>
             <p className="tag">
-              These still point at a file on the seller&apos;s own host. Importing fetches it once into quarantine for the full checks; it cannot be requested again until a version is approved. This
-              list is a dry run: nothing changes until you press Import.
+              <T
+                s={
+                  "These still point at a file on the seller's own host. Importing fetches it once into quarantine for the full checks; it cannot be requested again until a version is approved. This list is a dry run: nothing changes until you press Import."
+                }
+              />
             </p>
           </div>
         </div>
@@ -137,10 +165,12 @@ export default async function Files() {
               <div className="sob-grow">
                 <b>{l.name}</b>
                 <small>
-                  {l.host} · {l.downloads} earlier download(s), {l.priorHashes.length} distinct file version(s)
-                  {l.openImport ? ' · import being checked' : ''}
+                  <T
+                    s={'{host} · {downloads} earlier download(s), {length} distinct file version(s){v3}'}
+                    v={{ host: l.host, downloads: l.downloads, length: l.priorHashes.length, v3: l.openImport ? ' · import being checked' : '' }}
+                  />
                 </small>
-                {!l.openImport && <AdminForm endpoint="/api/admin/files/legacy" fixed={{ productId: l.productId }} fields={[]} openLabel="Import" submit="Import and check" tone="line" />}
+                {!l.openImport && <AdminForm endpoint="/api/admin/files/legacy" fixed={{ productId: l.productId }} fields={[]} openLabel={tx('Import')} submit={tx('Import and check')} tone="line" />}
               </div>
             </li>
           ))}
@@ -149,8 +179,12 @@ export default async function Files() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Not accepted (recent)</h2>
-            <p className="tag">Deleted from quarantine 7 days after the decision unless a legal hold applies. The record stays.</p>
+            <h2>
+              <T s={'Not accepted (recent)'} />
+            </h2>
+            <p className="tag">
+              <T s={'Deleted from quarantine 7 days after the decision unless a legal hold applies. The record stays.'} />
+            </p>
           </div>
         </div>
         <ul className="sob-list">
@@ -168,11 +202,14 @@ export default async function Files() {
                   ))}
                   {(c.secrets ?? []).slice(0, 6).map((s, i) => (
                     <small key={'s' + i}>
-                      Credential: {s.kind} in {s.file}
-                      {s.line ? `, line ${s.line}` : ''}
+                      <T s={'Credential: {kind} in {file}{v2}'} v={{ kind: s.kind, file: s.file, v2: s.line ? `, line ${s.line}` : '' }} />
                     </small>
                   ))}
-                  {f.reviewNote && <small>Reviewer: {f.reviewNote}</small>}
+                  {f.reviewNote && (
+                    <small>
+                      <T s={'Reviewer: {reviewNote}'} v={{ reviewNote: f.reviewNote }} />
+                    </small>
+                  )}
                 </div>
               </li>
             );

@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 /*
  * Manual-first payments (owner decisions D-I, F-4, F-5). Pure, tested. A buyer's proof is evidence only: an order is funded when Finance has
  * reconciled payments, against funds actually received, that add up to at least the amount due. Anything above it is owed back.
@@ -15,14 +16,14 @@ export type Submission = { methodId: string; reference: string; amountCents: num
 export function checkSubmission(s: Partial<Submission>, dueCents: number, today: string): { ok: true; value: Submission } | { ok: false; error: string } {
   const reference = typeof s.reference === 'string' ? s.reference.trim() : '';
   if (reference.length < 3 || reference.length > 100 || /[<>\u0000-\u001f]/.test(reference))
-    return { ok: false, error: 'Enter the transaction reference from your bank or wallet (3 to 100 characters).' };
-  if (referenceKey(reference).length < 3) return { ok: false, error: 'That reference is too short.' };
+    return { ok: false, error: tx('Enter the transaction reference from your bank or wallet (3 to 100 characters).') };
+  if (referenceKey(reference).length < 3) return { ok: false, error: tx('That reference is too short.') };
   const amount = Number(s.amountCents);
-  if (!Number.isInteger(amount) || amount <= 0) return { ok: false, error: 'Enter the amount you sent.' };
-  if (amount > dueCents * 10) return { ok: false, error: 'That amount is far above the amount due. Check it and try again.' };
+  if (!Number.isInteger(amount) || amount <= 0) return { ok: false, error: tx('Enter the amount you sent.') };
+  if (amount > dueCents * 10) return { ok: false, error: tx('That amount is far above the amount due. Check it and try again.') };
   const paidOn = typeof s.paidOn === 'string' ? s.paidOn : '';
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidOn) || paidOn > today) return { ok: false, error: 'Enter the date you paid (not in the future).' };
-  if (typeof s.methodId !== 'string' || !s.methodId) return { ok: false, error: 'Choose how you paid.' };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidOn) || paidOn > today) return { ok: false, error: tx('Enter the date you paid (not in the future).') };
+  if (typeof s.methodId !== 'string' || !s.methodId) return { ok: false, error: tx('Choose how you paid.') };
   return { ok: true, value: { methodId: s.methodId, reference, amountCents: amount, paidOn } };
 }
 
@@ -43,11 +44,11 @@ export function receivedAtOf(text: string, now: number): number {
 export type Reconciliation = { amountReceivedCents: number; statementRef: string; receivedAt: number };
 export function checkReconciliation(r: Partial<Reconciliation>, now: number): { ok: true; value: Reconciliation } | { ok: false; error: string } {
   const amount = Number(r.amountReceivedCents);
-  if (!Number.isInteger(amount) || amount <= 0) return { ok: false, error: 'Enter the amount that actually arrived, in cents. If nothing arrived, reject the payment instead.' };
+  if (!Number.isInteger(amount) || amount <= 0) return { ok: false, error: tx('Enter the amount that actually arrived, in cents. If nothing arrived, reject the payment instead.') };
   const statementRef = typeof r.statementRef === 'string' ? r.statementRef.trim() : '';
-  if (statementRef.length < 3 || statementRef.length > 120) return { ok: false, error: 'Enter the reference on your bank or wallet statement (3 to 120 characters).' };
+  if (statementRef.length < 3 || statementRef.length > 120) return { ok: false, error: tx('Enter the reference on your bank or wallet statement (3 to 120 characters).') };
   const at = Number(r.receivedAt);
-  if (!Number.isFinite(at) || at > now + 60_000 || at < now - 400 * 86_400_000) return { ok: false, error: 'Enter when the money arrived.' };
+  if (!Number.isFinite(at) || at > now + 60_000 || at < now - 400 * 86_400_000) return { ok: false, error: tx('Enter when the money arrived.') };
   return { ok: true, value: { amountReceivedCents: amount, statementRef, receivedAt: at } };
 }
 
@@ -70,13 +71,13 @@ export const PROOF_MAX_BYTES = 5 * 1024 * 1024;
 
 export type MethodInput = { kind: MethodKind; label: string; instructions: string; currency: string; active: boolean };
 export function checkMethod(m: Partial<MethodInput>): { ok: true; value: MethodInput } | { ok: false; error: string } {
-  if (!METHOD_KINDS.includes(m.kind as MethodKind)) return { ok: false, error: 'Choose bank transfer or local wallet.' };
+  if (!METHOD_KINDS.includes(m.kind as MethodKind)) return { ok: false, error: tx('Choose bank transfer or local wallet.') };
   const label = (m.label ?? '').trim();
   const instructions = (m.instructions ?? '').trim();
-  if (label.length < 2 || label.length > 80) return { ok: false, error: 'Give the method a short name (2 to 80 characters).' };
-  if (instructions.length < 10 || instructions.length > 2000) return { ok: false, error: 'Write the payment instructions buyers see (10 to 2000 characters).' };
-  if (/<[a-z/!]/i.test(label + instructions)) return { ok: false, error: 'Plain text only.' };
+  if (label.length < 2 || label.length > 80) return { ok: false, error: tx('Give the method a short name (2 to 80 characters).') };
+  if (instructions.length < 10 || instructions.length > 2000) return { ok: false, error: tx('Write the payment instructions buyers see (10 to 2000 characters).') };
+  if (/<[a-z/!]/i.test(label + instructions)) return { ok: false, error: tx('Plain text only.') };
   const currency = (m.currency ?? 'USD').trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(currency)) return { ok: false, error: 'Use a three-letter currency code, like USD or BDT.' };
+  if (!/^[A-Z]{3}$/.test(currency)) return { ok: false, error: tx('Use a three-letter currency code, like USD or BDT.') };
   return { ok: true, value: { kind: m.kind as MethodKind, label, instructions, currency, active: m.active === true } };
 }

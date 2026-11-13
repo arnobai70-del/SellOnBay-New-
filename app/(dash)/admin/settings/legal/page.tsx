@@ -6,7 +6,9 @@ import { LEGAL_DOCS, type DocKey } from '@/lib/legal/rules';
 import { legalDocs } from '@/lib/legal/service';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Legal documents', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Legal documents'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number | null) => (ms ? new Date(ms).toISOString().slice(0, 10) : '–');
@@ -16,18 +18,24 @@ const day = (ms: number | null) => (ms ? new Date(ms).toISOString().slice(0, 10)
  * never changes; publishing the next one retires it. Until a version is published the page shows its built-in text. [LAWYER REVIEW]
  */
 export default async function Legal() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/settings/legal', roles: ['admin'], scope: 'content' });
   const all = await legalDocs();
   const isSuper = !viewer || viewer.scopes.includes('super'); // demo mode has no accounts and acts as Super, like the API
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-legal" title="Legal documents">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-legal" title={tx('Legal documents')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Legal documents</h2>
+            <h2>
+              <T s={'Legal documents'} />
+            </h2>
             <p className="tag">
-              Each text is kept as numbered versions. Published versions never change. Every text must be reviewed by a lawyer before launch; a version shows &quot;Not yet reviewed by a lawyer&quot;
-              until a Super Admin records that review.
+              <T
+                s={
+                  'Each text is kept as numbered versions. Published versions never change. Every text must be reviewed by a lawyer before launch; a version shows "Not yet reviewed by a lawyer" until a Super Admin records that review.'
+                }
+              />
             </p>
           </div>
         </div>
@@ -46,16 +54,23 @@ export default async function Legal() {
                 <p className="tag">
                   {pub
                     ? `Version ${pub.version} published ${day(pub.publishedAt)}${pub.lawyerReviewed ? `, reviewed: ${pub.reviewedNote}` : ', not yet reviewed by a lawyer'}.`
-                    : 'No version published: the built-in text shows.'}{' '}
-                  {path && <Link href={path}>Open the page</Link>}
-                  {k === 'licences' && ' Quotations record the published version number.'}
+                    : tx('No version published: the built-in text shows.')}{' '}
+                  {path && (
+                    <Link href={path}>
+                      <T s={'Open the page'} />
+                    </Link>
+                  )}
+                  {k === 'licences' && tx(' Quotations record the published version number.')}
                 </p>
               </div>
             </div>
             {draft ? (
               <>
                 <p>
-                  <b>Draft, version {draft.version}</b> · last saved {day(draft.updatedAt)} · {draft.lawyerReviewed ? `reviewed: ${draft.reviewedNote}` : 'not reviewed'}
+                  <b>
+                    <T s={'Draft, version {version}'} v={{ version: draft.version }} />
+                  </b>{' '}
+                  <T s={'· last saved {v0} · {v1}'} v={{ v0: day(draft.updatedAt), v1: draft.lawyerReviewed ? `reviewed: ${draft.reviewedNote}` : 'not reviewed' }} />
                 </p>
                 <AdminForm
                   endpoint="/api/admin/legal"
@@ -63,9 +78,9 @@ export default async function Legal() {
                   openLabel="Edit the draft"
                   submit="Save the draft"
                   fields={[
-                    { name: 'title', label: 'Title', kind: 'text', required: true, value: draft.title, max: 160 },
-                    { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: draft.body, max: 200_000, hint: 'Saving clears a recorded review.' },
-                    { name: 'summary', label: 'What changed', kind: 'text', value: draft.summary, max: 500 },
+                    { name: 'title', label: tx('Title'), kind: 'text', required: true, value: draft.title, max: 160 },
+                    { name: 'body', label: tx('Text (Markdown)'), kind: 'textarea', required: true, value: draft.body, max: 200_000, hint: tx('Saving clears a recorded review.') },
+                    { name: 'summary', label: tx('What changed'), kind: 'text', value: draft.summary, max: 500 },
                   ]}
                 />
                 {isSuper && (
@@ -76,7 +91,7 @@ export default async function Legal() {
                       openLabel="Record the lawyer's review"
                       submit="Record review"
                       tone="line"
-                      fields={[{ name: 'note', label: 'Who reviewed it, and when', kind: 'text', required: true, max: 500 }]}
+                      fields={[{ name: 'note', label: tx('Who reviewed it, and when'), kind: 'text', required: true, max: 500 }]}
                     />
                     <AdminForm
                       endpoint="/api/admin/legal"
@@ -84,7 +99,7 @@ export default async function Legal() {
                       openLabel="Publish this version"
                       submit="Publish"
                       tone="dark"
-                      fields={[{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
+                      fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
                     />
                   </>
                 )}
@@ -97,13 +112,17 @@ export default async function Legal() {
                 openLabel="Start a new version"
                 submit="Save as draft"
                 fields={[
-                  { name: 'title', label: 'Title', kind: 'text', required: true, value: pub?.title ?? LEGAL_DOCS[k].title, max: 160 },
-                  { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: pub?.body ?? '', max: 200_000 },
-                  { name: 'summary', label: 'What changed', kind: 'text', max: 500 },
+                  { name: 'title', label: tx('Title'), kind: 'text', required: true, value: pub?.title ?? LEGAL_DOCS[k].title, max: 160 },
+                  { name: 'body', label: tx('Text (Markdown)'), kind: 'textarea', required: true, value: pub?.body ?? '', max: 200_000 },
+                  { name: 'summary', label: tx('What changed'), kind: 'text', max: 500 },
                 ]}
               />
             )}
-            {retired.length > 0 && <p className="muted">Earlier versions: {retired.map((d) => `v${d.version} (${day(d.publishedAt)})`).join(', ')}</p>}
+            {retired.length > 0 && (
+              <p className="muted">
+                <T s={'Earlier versions:'} /> {retired.map((d) => `v${d.version} (${day(d.publishedAt)})`).join(', ')}
+              </p>
+            )}
           </div>
         );
       })}

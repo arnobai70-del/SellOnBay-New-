@@ -9,6 +9,7 @@ import { PUBLIC_LINKS, type NavLink } from '@/lib/glass/nav';
 import { AccountMenu } from './AccountMenu';
 import { SearchBox } from './SearchBox';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const isHere = (path: string, href: string) => path === href || path.startsWith(href + '/');
 
 /*
@@ -17,15 +18,22 @@ const isHere = (path: string, href: string) => path === href || path.startsWith(
  */
 export function PublicNav({
   links = PUBLIC_LINKS,
-  account = { label: 'Sign in', href: '/signin' },
+  account = { label: 'Sign in', href: '/signin' }, // callers pass the translated words
   showCart = true,
   search = true,
+  home = '/',
+  words = { search: 'Search', cart: 'Cart', cartCount: 'Cart · {n}', openMenu: 'Open menu', closeMenu: 'Close menu' },
+  langSwitch = null,
 }: {
   links?: NavLink[];
   account?: NavLink;
   showCart?: boolean;
   search?: boolean;
+  home?: string;
+  words?: { search: string; cart: string; cartCount: string; openMenu: string; closeMenu: string };
+  langSwitch?: React.ReactNode;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const path = usePathname() ?? '/';
   const cartCount = useCart().length;
   // Phones (owner, 2026-11-11): the links sit behind a menu button and open as a sheet; a link, Escape or a new page closes it.
@@ -38,12 +46,12 @@ export function PublicNav({
     return () => document.removeEventListener('keydown', esc);
   }, [menu]);
   return (
-    <nav className="glass nav" aria-label="Main">
-      <Link className="logo" href="/" prefetch={false}>
+    <nav className="glass nav" aria-label={tx('Main')}>
+      <Link className="logo" href={home} prefetch={false}>
         <BrandMark />
         {BRAND_NAME}
       </Link>
-      <button type="button" className="sob-burger" aria-expanded={menu} aria-controls="sob-navlinks" aria-label={menu ? 'Close menu' : 'Open menu'} onClick={() => setMenu((v) => !v)}>
+      <button type="button" className="sob-burger" aria-expanded={menu} aria-controls="sob-navlinks" aria-label={menu ? words.closeMenu : words.openMenu} onClick={() => setMenu((v) => !v)}>
         <span aria-hidden="true" />
       </button>
       <div id="sob-navlinks" className={menu ? 'navlinks open' : 'navlinks'}>
@@ -54,12 +62,13 @@ export function PublicNav({
         ))}
       </div>
       <div className="sob-navr">
-        {search && <SearchBox compact placeholder="Search" />}
+        {search && <SearchBox compact placeholder={words.search} />}
         {showCart && (
           <Link className="btn ghost" href="/cart" prefetch={false} data-track="cart">
-            {cartCount > 0 ? `Cart · ${cartCount}` : 'Cart'}
+            {cartCount > 0 ? words.cartCount.replace('{n}', String(cartCount)) : words.cart}
           </Link>
         )}
+        {langSwitch}
         <AccountMenu fallback={account} />
       </div>
     </nav>

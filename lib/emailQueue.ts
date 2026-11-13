@@ -2,6 +2,7 @@ import 'server-only';
 import { after } from 'next/server';
 import type { NotificationKind } from '../emails/templates';
 import { renderNotification } from './cms/emailRender';
+import { liveLangOr } from './i18n/recipient';
 import { CONFIG } from './config';
 import { emailProvider } from './providers/email';
 import { createAdminClient } from './supabase/server';
@@ -42,9 +43,11 @@ export async function queueEmail(notificationId: string): Promise<boolean> {
   return true;
 }
 
-async function addressOf(userId: string): Promise<string | null> {
+/* The address and the language the email goes out in (lib/i18n/recipient.ts): the account's saved language when it is published, else English. */
+async function recipientOf(userId: string): Promise<{ email: string; lang: string } | null> {
   const { data } = await createAdminClient().auth.admin.getUserById(userId);
-  return data.user?.email ?? null;
+  const email = data.user?.email;
+  return email ? { email, lang: await liveLangOr(data.user?.user_metadata?.lang) } : null;
 }
 
 async function sendOne(row: Claimed): Promise<'sent' | 'retry' | 'failed'> {
@@ -56,8 +59,9 @@ async function sendOne(row: Claimed): Promise<'sent' | 'retry' | 'failed'> {
   };
   try {
     const { data: n } = await db.from('notifications').select('id, user_id, kind, payload').eq('id', row.notification_id).maybeSingle();
-    const tpl = n ? await renderNotification(n.kind as NotificationKind, n.payload ?? {}) : null; // published template, else built-in
-    const to = n && tpl ? await addressOf(n.user_id) : null;
+    const who = n ? await recipientOf(n.user_id) : null;
+    const tpl = n && who ? await renderNotification(n.kind as NotificationKind, n.payload ?? {}, who.lang) : null; // published template, else built-in
+    const to = tpl ? (who?.email ?? null) : null;
     // No notification, no template or no address: nothing to send, and trying again will not change that.
     if (!n || !tpl || !to) {
       await finish('failed');

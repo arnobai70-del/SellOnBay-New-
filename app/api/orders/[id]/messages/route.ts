@@ -6,6 +6,8 @@ import { getOrder } from '@/lib/orders/service';
 import { createClient } from '@/lib/supabase/server';
 import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -27,7 +29,7 @@ async function party(id: string) {
   }
   return { error: undefined, o, role, userId: user.id };
 }
-const refuse = (status: 401 | 403 | 404) => NextResponse.json({ error: status === 401 ? 'Sign in first.' : status === 403 ? 'Not allowed.' : 'Order not found.' }, { status });
+const refuse = (status: 401 | 403 | 404) => jsonT({ error: status === 401 ? 'Sign in first.' : status === 403 ? 'Not allowed.' : 'Order not found.' }, { status });
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const closed = await maintenanceFor('messaging'); // module maintenance (lib/maintenance)
@@ -45,5 +47,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 export async function POST() {
   const closed = await maintenanceFor('messaging'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  return NextResponse.json({ error: 'Messages now go through SellOnBay. Use "Messages with SellOnBay" on the order.' }, { status: 410 });
+  return jsonT({ error: tx('Messages now go through SellOnBay. Use "Messages with SellOnBay" on the order.') }, { status: 410 });
 }

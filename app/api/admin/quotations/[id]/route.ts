@@ -6,6 +6,8 @@ import { hasScope } from '@/lib/admin/scopes';
 import { issueQuote, superDecision, withdrawQuote } from '@/lib/requests/service';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({ action: z.enum(['issue', 'withdraw', 'approve_override', 'decline_override']), reason: z.string().max(2000).default('') });
@@ -21,7 +23,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!body.ok) return body.res;
   const d = body.data;
   if ((d.action === 'approve_override' || d.action === 'decline_override') && !hasScope(a.scopes, 'super'))
-    return NextResponse.json({ error: 'Only a Super Admin can approve a price that differs from the listed price.' }, { status: 403 });
+    return jsonT({ error: tx('Only a Super Admin can approve a price that differs from the listed price.') }, { status: 403 });
   try {
     const r =
       d.action === 'issue'
@@ -29,9 +31,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         : d.action === 'withdraw'
           ? await withdrawQuote(a.id, id, d.reason)
           : await superDecision(a.id, id, d.action === 'approve_override' ? 'approve' : 'decline', d.reason);
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { adminOnly } from '@/lib/admin/guard';
 import { setAllowIps } from '@/lib/maintenance/service';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ ips: z.string().max(1200) });
@@ -14,5 +15,5 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await setAllowIps(a.id, body.data.ips.split(/[\s,]+/));
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

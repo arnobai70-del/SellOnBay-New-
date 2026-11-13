@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { CONFIG, DAY_MS } from '../config';
 import { LICENCE_TEXT_VERSION, isRequestedTier, type RequestedTier } from '../licenceTiers';
 import { LINE_KINDS, commissionFor, type LineKind, type Plan, type PricedLine } from '../plans/rules';
@@ -65,34 +66,34 @@ const noMarkup = (s: string) => !/[<>]/.test(s);
 const CONTACT = /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})|(\+?\d[\d\s().-]{7,}\d)|(wa\.me|t\.me\/|whatsapp|telegram|skype:)/i;
 
 export function checkRequest(i: RequestInput, kind: RequestKind = 'product'): { ok: true; value: CleanRequest } | { ok: false; error: string } {
-  if (i.consent !== true) return { ok: false, error: 'Tick the box to confirm you understand how requests work.' };
-  if (!isRequestedTier(i.licenceTier)) return { ok: false, error: 'Choose a licence.' };
+  if (i.consent !== true) return { ok: false, error: tx('Tick the box to confirm you understand how requests work.') };
+  if (!isRequestedTier(i.licenceTier)) return { ok: false, error: tx('Choose a licence.') };
   const pkg = i.package === 'setup' || i.package === 'custom' ? i.package : i.package === 'asis' || i.package === undefined ? 'asis' : null;
-  if (!pkg) return { ok: false, error: 'Choose how you want it delivered.' };
+  if (!pkg) return { ok: false, error: tx('Choose how you want it delivered.') };
   const intendedUse = str(i.intendedUse, 1000);
-  if (intendedUse.length < 10) return { ok: false, error: 'Tell us how you will use it (at least 10 characters).' };
+  if (intendedUse.length < 10) return { ok: false, error: tx('Tell us how you will use it (at least 10 characters).') };
   const requirements = str(i.requirements, kind === 'custom_dev' ? 4000 : 4000);
-  if (kind === 'custom_dev' && requirements.length < 50) return { ok: false, error: 'Describe what you need built (at least 50 characters).' };
+  if (kind === 'custom_dev' && requirements.length < 50) return { ok: false, error: tx('Describe what you need built (at least 50 characters).') };
   for (const t of [intendedUse, requirements]) {
-    if (!noMarkup(t)) return { ok: false, error: 'Leave out < and > in what you write.' };
-    if (CONTACT.test(t)) return { ok: false, error: 'Please do not include email addresses, phone numbers or messenger links. SellOnBay handles all communication.' };
+    if (!noMarkup(t)) return { ok: false, error: tx('Leave out < and > in what you write.') };
+    if (CONTACT.test(t)) return { ok: false, error: tx('Please do not include email addresses, phone numbers or messenger links. SellOnBay handles all communication.') };
   }
   const d = i.delivery ?? {};
   const domain = str(d.domain, 80)
     .toLowerCase()
     .replace(/^https?:\/\//, '')
     .replace(/\/.*$/, '');
-  if (domain && !DOMAIN.test(domain)) return { ok: false, error: 'Enter your domain like mybusiness.com, or leave it empty.' };
+  if (domain && !DOMAIN.test(domain)) return { ok: false, error: tx('Enter your domain like mybusiness.com, or leave it empty.') };
   const appName = str(d.appName, 30);
   const oses = Array.isArray(d.oses) ? [...new Set(d.oses.filter((o): o is string => typeof o === 'string' && OSES.includes(o)))] : [];
   const github = str(d.github, 39).replace(/^@/, '');
-  if (github && !GITHUB.test(github)) return { ok: false, error: 'Enter a GitHub username like octocat, or leave it empty.' };
+  if (github && !GITHUB.test(github)) return { ok: false, error: tx('Enter a GitHub username like octocat, or leave it empty.') };
   const b = i.business ?? {};
   const company = str(b.company, 120);
   const country = str(b.country, 2).toUpperCase();
-  if (country && !/^[A-Z]{2}$/.test(country)) return { ok: false, error: 'Use a two-letter country code, like BD or US.' };
+  if (country && !/^[A-Z]{2}$/.test(country)) return { ok: false, error: tx('Use a two-letter country code, like BD or US.') };
   const taxId = str(b.taxId, 40);
-  if (![appName, company, taxId].every(noMarkup)) return { ok: false, error: 'Leave out < and > in what you write.' };
+  if (![appName, company, taxId].every(noMarkup)) return { ok: false, error: tx('Leave out < and > in what you write.') };
   return {
     ok: true,
     value: {
@@ -142,18 +143,18 @@ export const listedSellerCents = (lines: readonly PricedLine[]) => lines.filter(
 
 /* Checks the lines an admin wrote. */
 export function checkLines(raw: unknown): { ok: true; lines: PricedLine[] } | { ok: false; error: string } {
-  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 20) return { ok: false, error: 'A quotation has 1 to 20 lines.' };
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 20) return { ok: false, error: tx('A quotation has 1 to 20 lines.') };
   const lines: PricedLine[] = [];
   for (const r of raw as Record<string, unknown>[]) {
     const label = str(r?.label, 120);
     const cents = Number(r?.cents);
     const kind = r?.kind as LineKind;
-    if (label.length < 2 || !noMarkup(label)) return { ok: false, error: 'Every line needs a short name without < or >.' };
+    if (label.length < 2 || !noMarkup(label)) return { ok: false, error: tx('Every line needs a short name without < or >.') };
     if (!Number.isInteger(cents) || cents < 0 || cents > 100_000_000) return { ok: false, error: `"${label}": the amount must be whole cents.` };
     if (!(LINE_KINDS as readonly string[]).includes(kind)) return { ok: false, error: `"${label}": choose what kind of line it is.` };
     lines.push({ label, cents, kind, ...(kind === 'domain' || kind === 'hosting' ? { passThroughVerified: r?.passThroughVerified === true } : {}) });
   }
-  if (lines.reduce((s, l) => s + l.cents, 0) <= 0) return { ok: false, error: 'The total must be more than zero.' };
+  if (lines.reduce((s, l) => s + l.cents, 0) <= 0) return { ok: false, error: tx('The total must be more than zero.') };
   return { ok: true, lines };
 }
 
@@ -182,26 +183,26 @@ export type QuoteTerms = {
 export function checkTerms(raw: Record<string, unknown>, tier: RequestedTier): { ok: true; terms: QuoteTerms } | { ok: false; error: string } {
   const n = (v: unknown) => Number(v);
   const days = n(raw.deliveryDays);
-  if (!Number.isInteger(days) || days < 1 || days > 60) return { ok: false, error: 'Delivery takes 1 to 60 days.' };
+  if (!Number.isInteger(days) || days < 1 || days > 60) return { ok: false, error: tx('Delivery takes 1 to 60 days.') };
   const hours = raw.deliveryHours === undefined || raw.deliveryHours === null || raw.deliveryHours === '' ? undefined : n(raw.deliveryHours);
-  if (hours !== undefined && (!Number.isInteger(hours) || hours < 1 || hours > 24 * 60)) return { ok: false, error: 'Delivery in hours must be a whole number.' };
+  if (hours !== undefined && (!Number.isInteger(hours) || hours < 1 || hours > 24 * 60)) return { ok: false, error: tx('Delivery in hours must be a whole number.') };
   const supportDays = n(raw.supportDays ?? 0),
     updateDays = n(raw.updateDays ?? 0);
-  if (![supportDays, updateDays].every((x) => Number.isInteger(x) && x >= 0 && x <= 730)) return { ok: false, error: 'Support and updates last 0 to 730 days.' };
+  if (![supportDays, updateDays].every((x) => Number.isInteger(x) && x >= 0 && x <= 730)) return { ok: false, error: tx('Support and updates last 0 to 730 days.') };
   const rv = (raw.revisions ?? {}) as Record<string, unknown>;
   const included = n(rv.included ?? 0),
     windowDays = n(rv.windowDays ?? 0);
-  if (!Number.isInteger(included) || included < 0 || included > 50) return { ok: false, error: 'Included revisions: 0 to 50.' };
-  if (!Number.isInteger(windowDays) || windowDays < 0 || windowDays > 365) return { ok: false, error: 'Revision window: 0 to 365 days.' };
+  if (!Number.isInteger(included) || included < 0 || included > 50) return { ok: false, error: tx('Included revisions: 0 to 50.') };
+  if (!Number.isInteger(windowDays) || windowDays < 0 || windowDays > 365) return { ok: false, error: tx('Revision window: 0 to 365 days.') };
   const scope = str(rv.scope, 1000);
   const extra = rv.extraPriceCents === undefined || rv.extraPriceCents === null || rv.extraPriceCents === '' ? null : n(rv.extraPriceCents);
-  if (extra !== null && (!Number.isInteger(extra) || extra < 0)) return { ok: false, error: 'The price of an extra revision is whole cents, or empty.' };
-  if (included > 0 && scope.length < 5) return { ok: false, error: 'Describe what counts as a revision.' };
+  if (extra !== null && (!Number.isInteger(extra) || extra < 0)) return { ok: false, error: tx('The price of an extra revision is whole cents, or empty.') };
+  if (included > 0 && scope.length < 5) return { ok: false, error: tx('Describe what counts as a revision.') };
   const note = str(raw.note, 1000);
   let exclusive: QuoteTerms['exclusive'];
   if (tier === 'exclusive_review') {
     const legal = str(raw.legalReview, 500);
-    if (legal.length < 10) return { ok: false, error: 'Exclusive rights need a recorded legal/IP review (who checked, and what about earlier buyers).' };
+    if (legal.length < 10) return { ok: false, error: tx('Exclusive rights need a recorded legal/IP review (who checked, and what about earlier buyers).') };
     exclusive = { approvedBy: '', legalReview: legal };
   }
   return {

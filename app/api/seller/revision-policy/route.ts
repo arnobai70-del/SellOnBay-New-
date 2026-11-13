@@ -4,6 +4,8 @@ import { sellerOnly } from '@/lib/auth/guards';
 import { proposePolicy } from '@/lib/revisions/service';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const { product, extraPrice, ...terms } = body.data;
   const extraPriceCents = extraPrice.trim() === '' ? null : Math.round(Number(extraPrice) * 100);
-  if (extraPriceCents !== null && !Number.isFinite(extraPriceCents)) return NextResponse.json({ error: 'Write the extra revision price in dollars, or leave it empty.' }, { status: 400 });
+  if (extraPriceCents !== null && !Number.isFinite(extraPriceCents)) return jsonT({ error: tx('Write the extra revision price in dollars, or leave it empty.') }, { status: 400 });
   const r = await proposePolicy(who.id, product, { ...terms, extraPriceCents });
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

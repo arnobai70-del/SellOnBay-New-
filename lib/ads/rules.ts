@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { checkMessage } from '../chatFilter';
 import { CONFIG, DAY_MS } from '../config';
 import type { FlagKey } from '../featureFlagRegistry';
@@ -36,9 +37,9 @@ export type PromoInput = { platform: AdPlatform; productSlug: string; headline: 
 /* Text and budget checks. The budget is the seller's own money on their own account; these are SellOnBay's guardrails on what it submits. */
 export function checkPromo(raw: Record<string, unknown>): { ok: true; value: PromoInput } | { ok: false; error: string } {
   const platform = raw.platform;
-  if (!isAdPlatform(platform)) return { ok: false, error: 'Choose Meta or Google Ads.' };
+  if (!isAdPlatform(platform)) return { ok: false, error: tx('Choose Meta or Google Ads.') };
   const productSlug = String(raw.productSlug ?? '').trim();
-  if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(productSlug)) return { ok: false, error: 'Choose one of your live listings.' };
+  if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(productSlug)) return { ok: false, error: tx('Choose one of your live listings.') };
   const headline = String(raw.headline ?? '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -47,8 +48,8 @@ export function checkPromo(raw: Record<string, unknown>): { ok: true; value: Pro
     .trim();
   if (headline.length < 5 || headline.length > CONFIG.ads.headlineMax) return { ok: false, error: `The headline is 5 to ${CONFIG.ads.headlineMax} characters.` };
   if (text.length < 10 || text.length > CONFIG.ads.textMax) return { ok: false, error: `The text is 10 to ${CONFIG.ads.textMax} characters.` };
-  if (![headline, text].every((t) => checkMessage(t).ok)) return { ok: false, error: 'Ads cannot carry contact details, links or payment instructions. The ad links to the listing.' };
-  if (/\b(guarantee[ds]?|100%|risk[- ]free|best in the world|#1)\b/i.test(`${headline} ${text}`)) return { ok: false, error: 'Avoid promises we cannot keep, such as "guaranteed" or "#1".' };
+  if (![headline, text].every((t) => checkMessage(t).ok)) return { ok: false, error: tx('Ads cannot carry contact details, links or payment instructions. The ad links to the listing.') };
+  if (/\b(guarantee[ds]?|100%|risk[- ]free|best in the world|#1)\b/i.test(`${headline} ${text}`)) return { ok: false, error: tx('Avoid promises we cannot keep, such as "guaranteed" or "#1".') };
   const daily = Number(raw.dailyBudgetCents);
   const days = Number(raw.days);
   if (!Number.isInteger(daily) || daily < CONFIG.ads.minDailyCents || daily > CONFIG.ads.maxDailyCents)

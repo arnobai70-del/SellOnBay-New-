@@ -5,7 +5,9 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Your profile', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Your profile'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The signed-in person's own profile: their name can be changed here; the email and the sign-in methods have their own pages. */
@@ -30,29 +32,39 @@ export default async function YourProfile() {
   return (
     <div className="wrap">
       <div className="sob-page-head">
-        <h1>Your profile</h1>
-        <p>The name we use for you on orders, receipts and messages.</p>
+        <h1>
+          <T s={'Your profile'} />
+        </h1>
+        <p>
+          <T s={'The name we use for you on orders, receipts and messages.'} />
+        </p>
       </div>
       <div className="sob-prose" style={{ paddingBottom: 80 }}>
         {!supabaseConfigured ? (
-          <p className="muted">In demo mode there are no accounts, so there is no profile to change.</p>
+          <p className="muted">
+            <T s={'In demo mode there are no accounts, so there is no profile to change.'} />
+          </p>
         ) : failed ? (
           <p className="sob-err" role="alert">
-            Could not load your profile just now. Reload the page to try again.
+            <T s={'Could not load your profile just now. Reload the page to try again.'} />
           </p>
         ) : (
           <>
             <ProfileForm name={name} />
             {email && (
               <p className="muted" style={{ marginTop: 18 }}>
-                You sign in as {email}. To change how you sign in, open <Link href="/account/sign-in">Sign-in methods</Link>.
+                <T s={'You sign in as {email}. To change how you sign in, open'} v={{ email }} />{' '}
+                <Link href="/account/sign-in">
+                  <T s={'Sign-in methods'} />
+                </Link>
+                .
               </p>
             )}
           </>
         )}
         <p style={{ marginTop: 24 }}>
           <Link className="btn ghost sm" href={home}>
-            Back to your dashboard
+            <T s={'Back to your dashboard'} />
           </Link>
         </p>
       </div>

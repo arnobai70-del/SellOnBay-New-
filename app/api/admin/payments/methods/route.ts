@@ -5,6 +5,7 @@ import { AuditError } from '@/lib/admin/audit';
 import { saveMethodAsAdmin } from '@/lib/payments/service';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const onOff = z.union([z.boolean(), z.enum(['on', 'off']).transform((v) => v === 'on')]);
@@ -29,9 +30,9 @@ export async function POST(req: Request) {
   const { reason, ...m } = body.data;
   try {
     const r = await saveMethodAsAdmin(a.id, m, reason);
-    return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

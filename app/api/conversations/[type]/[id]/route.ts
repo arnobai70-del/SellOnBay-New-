@@ -4,6 +4,8 @@ import { participant } from '@/lib/auth/guards';
 import { postMessage, readConversation } from '@/lib/messaging/service';
 import { idParam, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const TYPES = ['request', 'order', 'ticket'] as const;
@@ -21,9 +23,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ type: s
   const who = await participant();
   if (!who.ok) return who.res;
   const s = await parse(params);
-  if (!s) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+  if (!s) return jsonT({ error: tx('Not found.') }, { status: 404 });
   const r = await readConversation(who.viewer, s.type, s.id);
-  return r.ok ? NextResponse.json(r.value, { headers: { 'cache-control': 'no-store' } }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json(r.value, { headers: { 'cache-control': 'no-store' } }) : jsonT({ error: r.error }, { status: r.status });
 }
 
 /* Writes in one channel the viewer belongs to. Buyers and sellers are checked for contact details and outside-payment talk on the server. */
@@ -33,9 +35,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ type: s
   const who = await participant();
   if (!who.ok) return who.res;
   const s = await parse(params);
-  if (!s) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+  if (!s) return jsonT({ error: tx('Not found.') }, { status: 404 });
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await postMessage(who.viewer, s.type, s.id, body.data.channel, body.data.body);
-  return r.ok ? NextResponse.json({ ok: true, message: r.value }) : NextResponse.json({ error: r.error, blocked: r.blocked ?? false }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, message: r.value }) : jsonT({ error: r.error, blocked: r.blocked ?? false }, { status: r.status });
 }

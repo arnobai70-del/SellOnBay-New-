@@ -7,6 +7,8 @@ import { getOrder } from '@/lib/orders/service';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -29,17 +31,17 @@ export async function POST(req: Request) {
   if (closed) return closed;
   const a = await adminOnly('support');
   if (!a.ok) return a.res;
-  if (!supabaseConfigured) return NextResponse.json({ error: 'Domains need the database.' }, { status: 404 });
+  if (!supabaseConfigured) return jsonT({ error: tx('Domains need the database.') }, { status: 404 });
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const { orderId, name, expiresAt, registrarRef } = body.data;
   const o = await getOrder(orderId);
-  if (!o || !o.buyerId) return NextResponse.json({ error: 'Order not found, or it has no buyer account.' }, { status: 404 });
-  if (Date.parse(expiresAt) < Date.now()) return NextResponse.json({ error: 'The expiry date has passed.' }, { status: 400 });
+  if (!o || !o.buyerId) return jsonT({ error: tx('Order not found, or it has no buyer account.') }, { status: 404 });
+  if (Date.parse(expiresAt) < Date.now()) return jsonT({ error: tx('The expiry date has passed.') }, { status: 400 });
   const { error } = await createAdminClient()
     .from('domains')
     .insert({ order_id: orderId, owner_id: o.buyerId, name, source: 'purchased', registrar_ref: registrarRef || null, expires_at: expiresAt });
-  if (error) return NextResponse.json({ error: error.code === '23505' ? 'That domain is already recorded.' : 'Could not save.' }, { status: error.code === '23505' ? 409 : 500 });
+  if (error) return jsonT({ error: error.code === '23505' ? 'That domain is already recorded.' : 'Could not save.' }, { status: error.code === '23505' ? 409 : 500 });
   await audit(a.id, 'domain_recorded', 'order', orderId, { name, expiresAt });
   return NextResponse.json({ ok: true });
 }

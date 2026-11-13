@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { CONFIG, DAY_MS, HOUR_MS } from '../config';
 import { split } from '../ledger';
 import type { Order, OrderState } from '../orders/machine';
@@ -40,7 +41,7 @@ export function cleanFilters(raw: Record<string, unknown>, scope: ReportScope, m
   const today = new Date(now).toISOString().slice(0, 10);
   const from = typeof raw.from === 'string' && DAY.test(raw.from) ? raw.from : new Date(now - 30 * DAY_MS).toISOString().slice(0, 10);
   const to = typeof raw.to === 'string' && DAY.test(raw.to) ? raw.to : today;
-  if (from > to) return { ok: false, error: 'The start date is after the end date.' };
+  if (from > to) return { ok: false, error: tx('The start date is after the end date.') };
   if (Date.parse(to) - Date.parse(from) > CONFIG.reports.maxRangeDays * DAY_MS) return { ok: false, error: `Choose at most ${CONFIG.reports.maxRangeDays} days.` };
   const statuses = (Array.isArray(raw.statuses) ? raw.statuses : typeof raw.statuses === 'string' && raw.statuses ? [raw.statuses] : []).filter((s): s is OrderState =>
     SALE_STATES.includes(s as OrderState),

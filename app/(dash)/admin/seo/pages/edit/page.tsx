@@ -17,15 +17,18 @@ import { allPageWords } from '@/lib/seo/pageWords';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Edit a page', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit a page'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* One page at a time: what Google shows (meta title and description) and what visitors read (heading, intro, policy text). */
 export default async function EditPage({ searchParams }: { searchParams: Promise<{ path?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { path = '' } = await searchParams;
   const viewer = await requireViewer({ path: `/admin/seo/pages/edit?path=${encodeURIComponent(path)}`, roles: ['admin'], scope: 'content' });
   const home = path === '/';
-  const page = home ? { path: '/', name: 'Home page', title: SITE_NAME, description: '', words: undefined } : (seoPage(path) ?? (await listingPage(path)));
+  const page = home ? { path: '/', name: tx('Home page'), title: SITE_NAME, description: '', words: undefined } : (seoPage(path) ?? (await listingPage(path)));
   if (!page) notFound();
   const isListing = 'product' in page;
   const product = 'product' in page ? (page as { product: Product }).product : undefined;
@@ -59,17 +62,23 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             </p>
           </div>
           <Link className="btn ghost sm" href={isListing ? '/admin/seo/listings' : '/admin/seo/pages'}>
-            {isListing ? 'All listings' : 'All pages'}
+            {isListing ? tx('All listings') : tx('All pages')}
           </Link>
         </div>
-        <h3 className="sob-pw-h">In Google</h3>
+        <h3 className="sob-pw-h">
+          <T s={'In Google'} />
+        </h3>
         <div className="sob-pe-serp">
           <span className="sob-pe-st">{s.title || `${page.title} · ${SITE_NAME}`}</span>
-          <span className="sob-pe-sd">{s.description || page.description || 'The site-wide description (this page has none of its own yet).'}</span>
+          <span className="sob-pe-sd">{s.description || page.description || tx('The site-wide description (this page has none of its own yet).')}</span>
         </div>
         {home ? (
           <p className="tag">
-            The home page&rsquo;s meta title and description are set on <Link href="/admin/seo">SEO and blog</Link>, under Home page in Google.
+            <T s={'The home page’s meta title and description are set on'} />{' '}
+            <Link href="/admin/seo">
+              <T s={'SEO and blog'} />
+            </Link>
+            <T s={', under Home page in Google.'} />
           </p>
         ) : (
           <AdminForm
@@ -79,22 +88,22 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             fields={[
               {
                 name: 'title',
-                label: 'Meta title',
+                label: tx('Meta title'),
                 kind: 'text',
                 value: s.title,
                 max: PAGE_SEO_MAX.title,
-                hint: `About ${PAGE_SEO_GOOD.title} characters show in Google. Empty = "${page.title} · ${SITE_NAME}".`,
+                hint: tx('About {title} characters show in Google. Empty = "{title2} · {SITE_NAME}".', { title: PAGE_SEO_GOOD.title, title2: page.title, SITE_NAME }),
               },
               {
                 name: 'description',
-                label: 'Meta description',
+                label: tx('Meta description'),
                 kind: 'textarea',
                 value: s.description,
                 max: PAGE_SEO_MAX.description,
-                hint: `About ${PAGE_SEO_GOOD.description} characters show. Empty = the built-in words.`,
+                hint: tx('About {description} characters show. Empty = the built-in words.', { description: PAGE_SEO_GOOD.description }),
               },
             ]}
-            submit="Save meta title and description"
+            submit={tx('Save meta title and description')}
           />
         )}
       </div>
@@ -102,11 +111,15 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Listing content, price and pictures</h2>
-              <p className="tag">Change the name, description, category, price, delivery, links and extras, and an app&rsquo;s screenshots.</p>
+              <h2>
+                <T s={'Listing content, price and pictures'} />
+              </h2>
+              <p className="tag">
+                <T s={'Change the name, description, category, price, delivery, links and extras, and an app’s screenshots.'} />
+              </p>
             </div>
             <Link className="btn sm" href={`/admin/seo/product?slug=${encodeURIComponent(product.id)}`}>
-              Edit the listing
+              <T s={'Edit the listing'} />
             </Link>
           </div>
         </div>
@@ -115,19 +128,25 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Address</h2>
+              <h2>
+                <T s={'Address'} />
+              </h2>
               <p className="tag">
-                The listing&rsquo;s address is /product/{product.id}. Changing it keeps its orders, downloads and licences, moves your saved search words with it, and sends the old address to the new
-                one with a 301. After saving, open the listing again from the listings page.
+                <T
+                  s={
+                    'The listing’s address is /product/{id}. Changing it keeps its orders, downloads and licences, moves your saved search words with it, and sends the old address to the new one with a 301. After saving, open the listing again from the listings page.'
+                  }
+                  v={{ id: product.id }}
+                />
               </p>
             </div>
           </div>
           <AdminForm
             endpoint="/api/admin/seo/slug"
             fixed={{ slug: product.id }}
-            fields={[{ name: 'newSlug', label: 'New address ending', kind: 'text', value: product.id, max: 61, hint: 'Lowercase letters, numbers and dashes.' }]}
-            submit="Change the address"
-            openLabel="Change the address"
+            fields={[{ name: 'newSlug', label: tx('New address ending'), kind: 'text', value: product.id, max: 61, hint: tx('Lowercase letters, numbers and dashes.') }]}
+            submit={tx('Change the address')}
+            openLabel={tx('Change the address')}
             tone="line"
           />
         </div>
@@ -135,15 +154,17 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>On the page</h2>
+            <h2>
+              <T s={'On the page'} />
+            </h2>
             <p className="tag">
               {isListing
-                ? "The listing's own words (name, description, pictures) are the seller's; change them from the seller's listing form."
+                ? tx("The listing's own words (name, description, pictures) are the seller's; change them from the seller's listing form.")
                 : page.words
                   ? page.words.body
-                    ? 'The heading and the whole text of this page. Leave a box empty to keep the built-in words.'
-                    : 'The heading and the line under it. The rest of this page is built from live parts (lists, prices, forms) and stays as it is.'
-                  : 'This page is built from live parts (products, developers, counts), so only its meta title and description can be changed here.'}
+                    ? tx('The heading and the whole text of this page. Leave a box empty to keep the built-in words.')
+                    : tx('The heading and the line under it. The rest of this page is built from live parts (lists, prices, forms) and stays as it is.')
+                  : tx('This page is built from live parts (products, developers, counts), so only its meta title and description can be changed here.')}
             </p>
           </div>
         </div>
@@ -153,15 +174,33 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Publishing, search and questions</h2>
+              <h2>
+                <T s={'Publishing, search and questions'} />
+              </h2>
               <p className="tag">
-                Now: {isPublic(path, ctl) ? 'visitors can open it' : 'a 404 for visitors'}; {ctl.index ? 'search engines may list it' : 'kept out of search'}; {inSitemap(path, ctl) ? 'in' : 'not in'}{' '}
-                the sitemap.
+                <T
+                  s={'Now: {v0}; {v1}; {v2} the sitemap.'}
+                  v={{
+                    v0: isPublic(path, ctl) ? 'visitors can open it' : 'a 404 for visitors',
+                    v1: ctl.index ? 'search engines may list it' : 'kept out of search',
+                    v2: inSitemap(path, ctl) ? 'in' : 'not in',
+                  }}
+                />
               </p>
-              {sameCanonical.length > 0 && <p className="tag">Warning: the same canonical address is set on {sameCanonical.join(', ')}.</p>}
-              {sameTitle.length > 0 && <p className="tag">Warning: the same meta title is used on {sameTitle.join(', ')}.</p>}
+              {sameCanonical.length > 0 && (
+                <p className="tag">
+                  <T s={'Warning: the same canonical address is set on {v0}.'} v={{ v0: sameCanonical.join(', ') }} />
+                </p>
+              )}
+              {sameTitle.length > 0 && (
+                <p className="tag">
+                  <T s={'Warning: the same meta title is used on {v0}.'} v={{ v0: sameTitle.join(', ') }} />
+                </p>
+              )}
               {(!s.title || !s.description) && (
-                <p className="tag">Missing: {[!s.title && 'a saved meta title', !s.description && 'a saved meta description'].filter(Boolean).join(' and ')} (the built-in words are used).</p>
+                <p className="tag">
+                  <T s={'Missing: {v0} (the built-in words are used).'} v={{ v0: [!s.title && 'a saved meta title', !s.description && 'a saved meta description'].filter(Boolean).join(' and ') }} />
+                </p>
               )}
             </div>
           </div>

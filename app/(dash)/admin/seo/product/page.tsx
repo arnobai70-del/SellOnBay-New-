@@ -11,11 +11,14 @@ import { LICENCE_TYPES, LICENCES } from '@/lib/licences';
 import { WEB_CATS, webCatLabel } from '@/lib/webCategories';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Edit a listing', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit a listing'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* An admin edits a seller's listing: words, category, price, delivery, links, extras and screenshots. Its page settings (search, picture, questions) are on its Edit page. */
 export default async function EditProduct({ searchParams }: { searchParams: Promise<{ slug?: string }> }) {
+  const { translate } = await getI18n(); // licence names in the page's language
   const { slug = '' } = await searchParams;
   const viewer = await requireViewer({ path: `/admin/seo/product?slug=${encodeURIComponent(slug)}`, roles: ['admin'], scope: 'catalog' });
   const p = await productForEdit(slug);
@@ -28,16 +31,20 @@ export default async function EditProduct({ searchParams }: { searchParams: Prom
           <div>
             <h2>{p.name}</h2>
             <p className="tag">
-              Status: {p.status}. Orders already placed keep the price and promise they were made under; a change here applies to new orders. The private code link, licence and owner cannot be changed
-              here.
+              <T
+                s={
+                  'Status: {status}. Orders already placed keep the price and promise they were made under; a change here applies to new orders. The private code link, licence and owner cannot be changed here.'
+                }
+                v={{ status: p.status }}
+              />
             </p>
           </div>
           <div className="sob-acts">
             <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(`/product/${p.slug}`)}`}>
-              Search, picture and questions
+              <T s={'Search, picture and questions'} />
             </Link>
             <Link className="btn ghost sm" href={`/product/${p.slug}`}>
-              Open the listing
+              <T s={'Open the listing'} />
             </Link>
           </div>
         </div>
@@ -68,7 +75,7 @@ export default async function EditProduct({ searchParams }: { searchParams: Prom
           setupOptions={CONFIG.packages.setupCents.map((c) => c / 100)}
           customOptions={CONFIG.packages.customCents.map((c) => c / 100)}
           periods={[...CONFIG.listing.periodDays]}
-          licences={LICENCE_TYPES.map((t) => [t, LICENCES[t].label] as [string, string])}
+          licences={LICENCE_TYPES.map((t) => [t, translate(LICENCES[t].label)] as [string, string])}
           shots={p.app_shots ?? []}
           maxHours={MAX_HOURS}
           maxShots={CONFIG.listing.maxShots}

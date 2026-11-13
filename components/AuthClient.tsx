@@ -6,10 +6,14 @@ import { Turnstile } from './Turnstile';
 import { authenticate, requestReset } from '@/app/(bare)/login/actions';
 import type { OAuthProvider } from '@/lib/supabase/oauth';
 
-const ROLES = [
-  { key: 'buyer', title: 'I want a website', note: 'Pick one and go live on my domain.' },
-  { key: 'seller', title: 'I sell websites', note: 'List what I built and get paid.' },
-] as const;
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
+import type { Tx } from '@/lib/i18n/tx';
+const ROLES = (tx: Tx) =>
+  [
+    { key: 'buyer', title: 'I want a website', note: tx('Pick one and go live on my domain.') },
+    { key: 'seller', title: 'I sell websites', note: tx('List what I built and get paid.') },
+  ] as const;
 
 /* Real sign-in when Supabase keys are set, otherwise the old demo redirect. */
 export function AuthClient({
@@ -35,6 +39,7 @@ export function AuthClient({
   codeRequired?: boolean;
   startMode?: 'signup' | 'forgot';
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(sent ? 'forgot' : (startMode ?? 'signin'));
@@ -58,59 +63,71 @@ export function AuthClient({
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }} data-auth>
       <div className="glass" style={{ width: '100%', maxWidth: 440, padding: 36, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h1 style={{ fontSize: 30 }}>{mode === 'forgot' ? 'Reset your password' : signup ? 'Create your account' : 'Welcome back'}</h1>
+        <h1 style={{ fontSize: 30 }}>{mode === 'forgot' ? tx('Reset your password') : signup ? tx('Create your account') : tx('Welcome back')}</h1>
         <div className="muted" style={{ fontSize: 14, marginTop: -6 }}>
           {mode === 'forgot'
-            ? 'Enter your email and we will send you a link to choose a new password.'
+            ? tx('Enter your email and we will send you a link to choose a new password.')
             : signup
-              ? 'Buy safely with escrow, or sell and keep your share.'
-              : 'Sign in to see your orders and messages.'}
+              ? tx('Buy safely with escrow, or sell and keep your share.')
+              : tx('Sign in to see your orders and messages.')}
         </div>
         {mode !== 'forgot' && (
-          <div className="seg" role="tablist" aria-label="Sign in or create an account">
+          <div className="seg" role="tablist" aria-label={tx('Sign in or create an account')}>
             <button type="button" role="tab" aria-selected={!signup} className={!signup ? 'on' : ''} onClick={() => setMode('signin')}>
-              Sign in
+              <T s={'Sign in'} />
             </button>
             <button type="button" role="tab" aria-selected={signup} className={signup ? 'on' : ''} onClick={() => setMode('signup')}>
-              Create account
+              <T s={'Create account'} />
             </button>
           </div>
         )}
         {!signup && (next?.startsWith('/admin') || next?.startsWith('/dashboard/admin')) && (
           <div style={NOTE}>
-            You are opening the <b>admin area</b>. {codeRequired ? 'Sign in, then enter the code from your authenticator app.' : 'Sign in to continue.'}
+            <T s={'You are opening the'} />{' '}
+            <b>
+              <T s={'admin area'} />
+            </b>
+            . {codeRequired ? tx('Sign in, then enter the code from your authenticator app.') : tx('Sign in to continue.')}
           </div>
         )}
         {!signup && next?.startsWith('/dashboard/seller') && (
           <div style={NOTE}>
-            You are opening the <b>seller dashboard</b>. Sign in to continue.
+            <T s={'You are opening the'} />{' '}
+            <b>
+              <T s={'seller dashboard'} />
+            </b>
+            <T s={'. Sign in to continue.'} />
           </div>
         )}
         {mode === 'forgot' ? (
           <>
             {sent ? (
-              <div style={NOTE}>If that email has an account, a reset link is on its way. Check your inbox and spam folder.</div>
+              <div style={NOTE}>
+                <T s={'If that email has an account, a reset link is on its way. Check your inbox and spam folder.'} />
+              </div>
             ) : (
               <form action={requestReset} onSubmit={bot ? afterSend : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="field">
-                  <label htmlFor="f-mail">Email</label>
+                  <label htmlFor="f-mail">
+                    <T s={'Email'} />
+                  </label>
                   <input id="f-mail" name="email" className="input" type="email" placeholder="you@example.com" required autoComplete="email" />
                 </div>
                 {botCheck}
                 <button className="btn" type="submit" disabled={bot && !token}>
-                  Send reset link
+                  <T s={'Send reset link'} />
                 </button>
               </form>
             )}
             <button type="button" style={{ ...LINK, alignSelf: 'flex-start' }} onClick={() => setMode('signin')}>
-              Back to sign in
+              <T s={'Back to sign in'} />
             </button>
           </>
         ) : (
           <>
             {(signup || !live) && (
-              <div className="seg" role="radiogroup" aria-label="What brings you here">
-                {ROLES.map((r) => (
+              <div className="seg" role="radiogroup" aria-label={tx('What brings you here')}>
+                {ROLES(tx).map((r) => (
                   <button key={r.key} type="button" role="radio" aria-checked={role === r.key} className={role === r.key ? 'on' : ''} onClick={() => setRole(r.key)} title={r.note}>
                     {r.title}
                   </button>
@@ -133,16 +150,22 @@ export function AuthClient({
               <input type="hidden" name="next" value={next ?? ''} />
               {signup && (
                 <div className="field">
-                  <label htmlFor="a-name">Your name</label>
+                  <label htmlFor="a-name">
+                    <T s={'Your name'} />
+                  </label>
                   <input id="a-name" name="name" className="input" required autoComplete="name" />
                 </div>
               )}
               <div className="field">
-                <label htmlFor="a-mail">Email</label>
+                <label htmlFor="a-mail">
+                  <T s={'Email'} />
+                </label>
                 <input id="a-mail" name="email" className="input" type="email" placeholder="you@example.com" required autoComplete="email" />
               </div>
               <div className="field">
-                <label htmlFor="a-pass">Password</label>
+                <label htmlFor="a-pass">
+                  <T s={'Password'} />
+                </label>
                 <div style={{ position: 'relative' }}>
                   <input
                     id="a-pass"
@@ -160,14 +183,18 @@ export function AuthClient({
                     aria-pressed={show}
                     style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 0, cursor: 'pointer', color: '#566C78', fontSize: 13 }}
                   >
-                    {show ? 'Hide' : 'Show'}
+                    {show ? tx('Hide') : tx('Show')}
                   </button>
                 </div>
-                {signup && <div className="tag">At least 8 characters.</div>}
+                {signup && (
+                  <div className="tag">
+                    <T s={'At least 8 characters.'} />
+                  </div>
+                )}
               </div>
               {!signup && live && (
                 <button type="button" onClick={() => setMode('forgot')} style={{ ...LINK, alignSelf: 'flex-end', marginTop: -6 }}>
-                  Forgot password?
+                  <T s={'Forgot password?'} />
                 </button>
               )}
               {error && (
@@ -177,11 +204,11 @@ export function AuthClient({
               )}
               {botCheck}
               <button className="btn" type="submit" disabled={bot && !token}>
-                {signup ? 'Create account' : 'Sign in'}
+                {signup ? tx('Create account') : tx('Sign in')}
               </button>
               {signup && (
                 <div className="tag" style={{ margin: 0 }}>
-                  By creating an account you accept our terms of service and privacy policy.
+                  <T s={'By creating an account you accept our terms of service and privacy policy.'} />
                 </div>
               )}
             </form>
@@ -189,7 +216,7 @@ export function AuthClient({
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#566C78' }}>
                   <span style={{ flex: 1, height: 1, background: '#DCE7EC' }} />
-                  or
+                  <T s={'or'} />
                   <span style={{ flex: 1, height: 1, background: '#DCE7EC' }} />
                 </div>
                 <OAuthButtons next={next} providers={oauth} appleExisting={appleExisting} />
@@ -198,7 +225,7 @@ export function AuthClient({
           </>
         )}
         <div className="tag" style={{ margin: 0 }}>
-          Money is held in escrow on every order.{codeRequired ? ' Sellers and admins sign in with a code from an authenticator app.' : ''}
+          <T s={'Money is held in escrow on every order.{v0}'} v={{ v0: codeRequired ? ' Sellers and admins sign in with a code from an authenticator app.' : '' }} />
         </div>
       </div>
     </div>

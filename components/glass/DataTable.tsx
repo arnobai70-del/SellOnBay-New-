@@ -1,3 +1,4 @@
+import { getI18n } from '@/lib/i18n/server';
 export type Column<T> = {
   key: string;
   label: string;
@@ -11,19 +12,9 @@ export type Column<T> = {
  * A table that becomes a short list per row on a phone (app/glass.css). `caption` names it for screen readers. The roles are written out because a CSS
  * display change takes the table's meaning away from them in some browsers.
  */
-export function DataTable<T>({
-  caption,
-  columns,
-  rows,
-  rowKey,
-  empty = 'Nothing here yet.',
-}: {
-  caption: string;
-  columns: Column<T>[];
-  rows: T[];
-  rowKey: (row: T) => string;
-  empty?: React.ReactNode;
-}) {
+export async function DataTable<T>({ caption, columns, rows, rowKey, empty: emptyGiven }: { caption: string; columns: Column<T>[]; rows: T[]; rowKey: (row: T) => string; empty?: React.ReactNode }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
+  const empty = emptyGiven ?? tx('Nothing here yet.');
   if (!rows.length)
     return (
       <p className="muted" style={{ fontSize: 14, padding: '12px 14px' }}>

@@ -1,4 +1,6 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
+import { localizeMetadata } from '../i18n/seo';
 import { recordRevision } from '../cms/history';
 import type { Metadata } from 'next';
 import { revalidatePath } from 'next/cache';
@@ -79,23 +81,25 @@ export async function pageMetadata(path: string, extra: Metadata = {}): Promise<
   // The share card falls back to the saved meta words when no share words are set.
   const out = applyControls(path, base, { ...ctl, ogTitle: ctl.ogTitle || (ctl.ogImage || ctl.ogDescription ? title : ''), ogDescription: ctl.ogDescription });
   if (preview) return { ...out, robots: { index: false, follow: false } };
+  // Each language's own address, hreflang and translated SEO words (lib/i18n/seo.ts).
+  const local = await localizeMetadata(path, out);
   // Outside the five categories (legal pages, help, the seller page) a page stays reachable but is not offered to search engines.
-  return !isHubPath(path) && !INDEXED_PAGES.includes(path) ? { ...out, robots: { index: false, follow: true } } : out;
+  return !isHubPath(path) && !INDEXED_PAGES.includes(path) ? { ...local, robots: { index: false, follow: true } } : local;
 }
 
 export async function setPageSeo(adminId: string | null, path: string, v: PageSeo): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
-  if (!seoPage(path) && !(await listingPage(path))) return { ok: false, status: 404, error: 'That page cannot be changed here.' };
+  if (!seoPage(path) && !(await listingPage(path))) return { ok: false, status: 404, error: tx('That page cannot be changed here.') };
   const next = { title: v.title.trim(), description: v.description.trim() };
   const bad = pageSeoProblem(next);
   if (bad) return { ok: false, status: 400, error: bad };
   g.__pageSeoCache = undefined;
   const before = (await allPageSeo())[path] ?? EMPTY;
-  if (before.title === next.title && before.description === next.description) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (before.title === next.title && before.description === next.description) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const { error } = await createAdminClient()
       .from('app_settings')
       .upsert({ key: KEY(path), value: next, changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else mem.saved[path] = next;
   g.__pageSeoCache = undefined;
   await audit(adminId, 'seo_page_changed', 'settings', path, { from: before, to: next });

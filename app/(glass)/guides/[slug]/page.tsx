@@ -13,6 +13,8 @@ import { parseMarkdown } from '@/lib/markdown';
 import { descriptionOf, postBySlug, publishedPost, type Post } from '@/lib/posts';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const dynamic = 'force-dynamic';
 
 type Params = { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> };
@@ -31,7 +33,7 @@ async function load({ params, searchParams }: Params): Promise<{ p: Post; previe
 
 export async function generateMetadata(props: Params): Promise<Metadata> {
   const r = await load(props);
-  if (!r) return { title: 'Guide not found', robots: { index: false } };
+  if (!r) return { title: (await getI18n()).tx('Guide not found'), robots: { index: false } };
   const { p, preview } = r;
   const title = p.metaTitle || p.title;
   const description = descriptionOf({ ...p, body: p.body || p.bodyHtml.replace(/<[^>]+>/g, ' ') });
@@ -77,6 +79,7 @@ async function GuideHtml({ html }: { html: string }) {
 }
 
 export default async function GuidePage(props: Params) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const r = await load(props);
   if (!r) notFound();
   const { p, preview } = r;
@@ -88,16 +91,22 @@ export default async function GuidePage(props: Params) {
     <PublicFrame file="guides">
       {preview && (
         <p className="sob-note sob-note-warn" role="status" style={{ marginTop: 16, borderRadius: 14 }}>
-          Preview: this guide is {p.status}. Only admins can see it.
+          <T s={'Preview: this guide is {status}. Only admins can see it.'} v={{ status: p.status }} />
         </p>
       )}
-      <nav className="tag" aria-label="Breadcrumb" style={{ marginTop: 32 }}>
-        <Link href="/">Home</Link> / <Link href="/guides">Guides</Link>
+      <nav className="tag" aria-label={tx('Breadcrumb')} style={{ marginTop: 32 }}>
+        <Link href="/">
+          <T s={'Home'} />
+        </Link>{' '}
+        /{' '}
+        <Link href="/guides">
+          <T s={'Guides'} />
+        </Link>
       </nav>
       <article>
         <header className="pagehead" style={{ paddingTop: 24 }}>
           <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-            {p.category || 'Guide'}
+            {p.category || tx('Guide')}
           </span>
           <h1>{p.title}</h1>
           <p className="tag">
@@ -113,9 +122,15 @@ export default async function GuidePage(props: Params) {
         )}
         <div className="glass card sob-prose" style={{ padding: 32 }}>
           {p.bodyHtml ? <GuideHtml html={p.bodyHtml} /> : <PostBody blocks={parseMarkdown(p.body)} />}
-          {p.tags.length > 0 && <p className="tag">Tags: {p.tags.join(', ')}</p>}
+          {p.tags.length > 0 && (
+            <p className="tag">
+              <T s={'Tags: {v0}'} v={{ v0: p.tags.join(', ') }} />
+            </p>
+          )}
           <p>
-            <Link href="/guides">More guides</Link>
+            <Link href="/guides">
+              <T s={'More guides'} />
+            </Link>
           </p>
         </div>
       </article>

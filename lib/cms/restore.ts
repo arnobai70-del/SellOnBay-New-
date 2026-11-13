@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { saveSite } from '../site/contentStore';
 import { setPageControls } from '../seo/controlStore';
 import { DEFAULT_CONTROLS, type PageControls } from '../seo/controls';
@@ -22,9 +23,9 @@ const obj = <T>(v: unknown, empty: T): T => (v && typeof v === 'object' ? (v as 
  */
 export async function rollback(adminId: string | null, key: string, version: number): Promise<Result> {
   const t = trackedKey(key);
-  if (!t) return { ok: false, status: 404, error: 'This setting has no history.' };
+  if (!t) return { ok: false, status: 404, error: tx('This setting has no history.') };
   const r = await revision(key, version);
-  if (!r) return { ok: false, status: 404, error: 'That revision does not exist.' };
+  if (!r) return { ok: false, status: 404, error: tx('That revision does not exist.') };
   const ok = nextRevision(await revisionsOf(key, 1000), { key, value: r.value, action: 'rollback', fromVersion: version });
   if (!ok.ok) return { ok: false, status: 409, error: ok.error };
   const v = r.value;
@@ -50,7 +51,7 @@ export async function rollback(adminId: string | null, key: string, version: num
       case 'nav':
         return setNavConfig(adminId, obj<NavConfig>(v, { order: [], hidden: [] }));
       case 'cms_doc':
-        if (v === null) return { ok: false, status: 409, error: 'The built-in text cannot be put back from here. Publish a new version instead.' };
+        if (v === null) return { ok: false, status: 409, error: tx('The built-in text cannot be put back from here. Publish a new version instead.') };
         return publishValue(adminId, path as DocName, v, null);
       case 'robots':
         return setRobotsExtra(adminId, Array.isArray(v) ? v.map(String) : []);

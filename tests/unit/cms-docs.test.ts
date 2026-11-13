@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkEmail, checkFaq, checkHow, faqToText, fillTemplate, howToText, parseFaqText, parseHowText, publishProblem } from '@/lib/cms/docs';
+import { checkEmail, checkFaq, emailDocName, emailDocParts, isEmailDoc, checkHow, faqToText, fillTemplate, howToText, parseFaqText, parseHowText, publishProblem } from '@/lib/cms/docs';
 import { discardDraft, draftOf, publishDraft, publishedFaq, publishedOf, saveDraft } from '@/lib/cms/docStore';
 import { renderNotification } from '@/lib/cms/emailRender';
 import { revisionsOf } from '@/lib/cms/history';
@@ -76,5 +76,18 @@ describe('CMS documents: draft, publish, history, rollback', () => {
       text: 'Your payment for Shop kit is checked. SellOnBay will release it soon.',
     });
     expect(await renderNotification('order_delivered', { title: 'Shop kit' })).not.toBeNull(); // other kinds untouched
+  });
+  it('email templates are per language: each reader gets their own, the English one never stands in for another', async () => {
+    expect([isEmailDoc('email:order_funded@bn'), isEmailDoc('email:order_funded@en'), isEmailDoc('email:order_funded@xx')]).toEqual([true, false, false]);
+    expect(emailDocParts('email:order_funded@ar')).toEqual({ kind: 'order_funded', lang: 'ar' });
+    expect(emailDocName('order_funded', 'en')).toBe('email:order_funded');
+    // the English template above is published; a Bengali reader without a Bengali template gets the built-in Bengali words, not the English template
+    expect((await renderNotification('order_funded', { title: 'Shop kit' }, 'bn'))?.subject).toBe('Shop kit-এর পেমেন্ট পাওয়া গেছে');
+    await saveDraft('c-1', content, 'email:order_funded@bn', { subject: 'পেমেন্ট যাচাই হয়েছে: {{title}}', text: '{{title}}-এর জন্য আপনার পেমেন্ট যাচাই হয়েছে।' });
+    expect(await publishDraft('c-2', content, 'email:order_funded@bn')).toMatchObject({ ok: false, status: 403 }); // Super Admin only, as in English
+    expect((await publishDraft('s-1', superS, 'email:order_funded@bn')).ok).toBe(true);
+    expect(await renderNotification('order_funded', { title: 'Shop kit' }, 'bn')).toEqual({ subject: 'পেমেন্ট যাচাই হয়েছে: Shop kit', text: 'Shop kit-এর জন্য আপনার পেমেন্ট যাচাই হয়েছে।' });
+    expect((await renderNotification('order_funded', { title: 'Shop kit' }))?.subject).toBe('Payment checked: Shop kit'); // English keeps its own
+    expect((await renderNotification('order_funded', { title: 'Shop kit' }, 'ar'))?.subject).not.toMatch(/Payment checked|পেমেন্ট/); // Arabic: its built-in words
   });
 });

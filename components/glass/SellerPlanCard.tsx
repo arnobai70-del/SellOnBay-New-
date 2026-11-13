@@ -3,6 +3,8 @@ import { offeredNow, planVersions, sellerSubSettings } from '@/lib/plans/admin';
 import { PLAN_CODES } from '@/lib/plans/rules';
 import { sellerPlan } from '@/lib/plans/service';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
 
 /*
@@ -10,6 +12,7 @@ const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFracti
  * plans they may ask for (the existing request, POST /api/seller/plan; an admin takes it from there). Off: just the current plan.
  */
 export async function SellerPlanCard({ sellerId }: { sellerId: string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [{ plan, subscription }, settings, versions] = await Promise.all([sellerPlan(sellerId), sellerSubSettings(), planVersions()]);
   const now = offeredNow(versions);
   const offers =
@@ -17,12 +20,16 @@ export async function SellerPlanCard({ sellerId }: { sellerId: string }) {
   return (
     <section className="glass card" id="plan" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div className="row">
-        <h2>Your plan</h2>
+        <h2>
+          <T s={'Your plan'} />
+        </h2>
         <span className="status st-ok">{plan.name}</span>
       </div>
       <div className="tag" style={{ margin: 0 }}>
-        {plan.commissionBps / 100}% commission · up to {plan.listingLimit} published listings
-        {subscription ? ` · ${subscription.status.replace('_', ' ')}` : ''}
+        <T
+          s={'{v0}% commission · up to {listingLimit} published listings{v2}'}
+          v={{ v0: plan.commissionBps / 100, listingLimit: plan.listingLimit, v2: subscription ? ` · ${subscription.status.replace('_', ' ')}` : '' }}
+        />
       </div>
       {offers.map((c) => {
         const p = now[c]!;
@@ -34,7 +41,10 @@ export async function SellerPlanCard({ sellerId }: { sellerId: string }) {
                 {p.name} {d.badge && <span className="tag">· {d.badge}</span>}
               </div>
               <div className="tag" style={{ margin: 0 }}>
-                {usd(p.monthlyCents)} a month or {usd(p.yearlyCents)} a year · {p.commissionBps / 100}% commission · {p.listingLimit} listings
+                <T
+                  s={'{v0} a month or {v1} a year · {v2}% commission · {listingLimit} listings'}
+                  v={{ v0: usd(p.monthlyCents), v1: usd(p.yearlyCents), v2: p.commissionBps / 100, listingLimit: p.listingLimit }}
+                />
               </div>
               {d.description && (
                 <div className="muted" style={{ fontSize: 13 }}>
@@ -55,15 +65,15 @@ export async function SellerPlanCard({ sellerId }: { sellerId: string }) {
               <ActionButton
                 endpoint="/api/seller/plan"
                 body={{ plan: c, billing: 'monthly' }}
-                label="Ask monthly"
+                label={tx('Ask monthly')}
                 tone="line"
-                confirm={`Ask for ${p.name}, paid monthly? We send payment details; nothing is charged now.`}
+                confirm={tx('Ask for {name}, paid monthly? We send payment details; nothing is charged now.', { name: p.name })}
               />
               <ActionButton
                 endpoint="/api/seller/plan"
                 body={{ plan: c, billing: 'yearly' }}
-                label="Ask yearly"
-                confirm={`Ask for ${p.name}, paid yearly? We send payment details; nothing is charged now.`}
+                label={tx('Ask yearly')}
+                confirm={tx('Ask for {name}, paid yearly? We send payment details; nothing is charged now.', { name: p.name })}
               />
             </div>
           </div>

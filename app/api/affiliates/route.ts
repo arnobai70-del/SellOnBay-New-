@@ -7,6 +7,8 @@ import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.discriminatedUnion('action', [
@@ -32,19 +34,19 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   // Without accounts (the demo build) one demo affiliate stands in, and only on a server marked as a demo: production never falls back to it.
   let userId = DEMO_AFFILIATE;
-  if (!supabaseConfigured && !mayUseDemoAdmin(process.env)) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+  if (!supabaseConfigured && !mayUseDemoAdmin(process.env)) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
   if (supabaseConfigured) {
     const sb = await createClient();
     const {
       data: { user },
     } = await sb.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+    if (!user) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
     const { data: p } = await sb.from('profiles').select('banned, suspended_until').eq('id', user.id).single();
-    if (!p || p.banned || (p.suspended_until && Date.parse(p.suspended_until) > Date.now())) return NextResponse.json({ error: 'This account cannot do this.' }, { status: 403 });
+    if (!p || p.banned || (p.suspended_until && Date.parse(p.suspended_until) > Date.now())) return jsonT({ error: tx('This account cannot do this.') }, { status: 403 });
     userId = user.id;
   }
-  if (!(await limit(`aff:${userId}`, 30, 3_600_000))) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  if (!(await limit(`aff:${userId}`, 30, 3_600_000))) return jsonT({ error: tx('Too many requests. Please try again later.') }, { status: 429 });
   const b = body.data;
   const r = b.action === 'join' ? await joinProgram(userId, b.displayName, b.acceptTerms) : b.action === 'profile' ? await updateProfile(userId, b) : await requestWithdrawal(userId, b.amountCents);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

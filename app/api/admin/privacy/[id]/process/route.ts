@@ -3,6 +3,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { processDeletion } from '@/lib/privacy';
 import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 
@@ -13,5 +14,5 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const a = await adminOnly('super');
   if (!a.ok) return a.res;
   const r = await processDeletion(a.id, await idOf(params));
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

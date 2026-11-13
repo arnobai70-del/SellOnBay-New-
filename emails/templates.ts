@@ -1,9 +1,12 @@
 import { BRAND_NAME } from '../lib/brand';
 import { BUGFIX_DAYS, CONFIG, REVIEW_HOURS } from '../lib/config';
+import { txLookup } from '../lib/i18n/tx';
 
 /*
  * The words of every notification, in one place. Plain text for now (React Email templates can replace these without touching the callers).
  * Short, plain verbs. Never put a secret, a card detail or somebody else's private data in here.
+ * Every sentence goes through tx() (lib/i18n/tx.ts), so the email reaches a person in the language saved on their account when that language is
+ * published (lib/i18n/recipient.ts); English otherwise. Names, amounts and dates from the payload are filled in as they are, never translated.
  */
 export type NotificationKind =
   | 'aff_qualified'
@@ -74,226 +77,340 @@ export type NotificationKind =
   | 'delivery_returned';
 
 export type Payload = Record<string, string | number | boolean | null | undefined>;
-const t = (v: unknown, fallback = 'your order') => (typeof v === 'string' && v ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : fallback);
+/* Turns an English sentence into the reader's language. English by default. */
+export type Tx = (english: string, vars?: Record<string, string | number>) => string;
+export const englishTx: Tx = (e, v) => txLookup(null, e, v);
+type Mail = { subject: string; text: string };
 
-export const TEMPLATES: Record<NotificationKind, (p: Payload) => { subject: string; text: string }> = {
-  beta_requested: (p) => ({
-    subject: "Request received, we'll review it shortly",
-    text: `We have your request for ${t(p.title)}. It is free during the beta and no payment is taken. We'll email you when it has been reviewed.`,
+/* A payload value as text, or the fallback. Never translated: names, amounts and dates stay as they were sent. */
+const val = (v: unknown, fallback = ''): string => (typeof v === 'string' && v ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : fallback);
+
+export const TEMPLATES: Record<NotificationKind, (p: Payload, tx?: Tx) => Mail> = {
+  beta_requested: (p, tx = englishTx) => ({
+    subject: tx("Request received, we'll review it shortly"),
+    text: tx("We have your request for {title}. It is free during the beta and no payment is taken. We'll email you when it has been reviewed.", { title: val(p.title, tx('your order')) }),
   }),
-  aff_qualified: () => ({ subject: 'You are a SellOnBay Verified Affiliate', text: 'You reached the qualification target. Your green Verified Affiliate badge is on your affiliate dashboard.' }),
-  aff_commission: (p) => ({
-    subject: `A commission of ${t(p.amount)} is approved`,
-    text: 'The sale passed its refund period. The amount is now in your available balance on the affiliate dashboard.',
+  aff_qualified: (_p, tx = englishTx) => ({
+    subject: tx('You are a SellOnBay Verified Affiliate'),
+    text: tx('You reached the qualification target. Your green Verified Affiliate badge is on your affiliate dashboard.'),
   }),
-  aff_withdrawal: (p) => ({ subject: `Your withdrawal of ${t(p.amount)} is ${t(p.status)}`, text: `${t(p.note, 'See the affiliate dashboard for details.')}` }),
-  sub_active: (p) => ({ subject: `Your ${t(p.title)} subscription is active`, text: `You can now choose ${t(p.credits)} websites with full source code. Open Subscription in your dashboard.` }),
-  sub_renewed: (p) => ({ subject: `Your ${t(p.title)} subscription is renewed`, text: `Your licence and support for the websites you chose now run until ${t(p.until)}.` }),
-  sub_expiring: (p) => ({
-    subject: `Your ${t(p.title)} subscription ends soon`,
-    text: `It ends on ${t(p.until)}. Renew to keep the licence and free support for your chosen websites. Your sites keep running either way.`,
+  aff_commission: (p, tx = englishTx) => ({
+    subject: tx('A commission of {amount} is approved', { amount: val(p.amount, tx('your order')) }),
+    text: tx('The sale passed its refund period. The amount is now in your available balance on the affiliate dashboard.'),
   }),
-  beta_approved: (p) => ({ subject: `Your request for ${t(p.title)} is approved`, text: 'Your files are ready. Open the order in your dashboard to download them and to start your domain steps.' }),
-  beta_declined: (p) => ({ subject: `About your request for ${t(p.title)}`, text: `We could not approve this request. ${t(p.reason)}` }),
-  identity_checked: (p) =>
+  aff_withdrawal: (p, tx = englishTx) => ({
+    subject: tx('Your withdrawal of {amount} is {status}', { amount: val(p.amount, tx('your order')), status: val(p.status, tx('your order')) }),
+    text: val(p.note, tx('See the affiliate dashboard for details.')),
+  }),
+  sub_active: (p, tx = englishTx) => ({
+    subject: tx('Your {title} subscription is active', { title: val(p.title, tx('your order')) }),
+    text: tx('You can now choose {credits} websites with full source code. Open Subscription in your dashboard.', { credits: val(p.credits, tx('your order')) }),
+  }),
+  sub_renewed: (p, tx = englishTx) => ({
+    subject: tx('Your {title} subscription is renewed', { title: val(p.title, tx('your order')) }),
+    text: tx('Your licence and support for the websites you chose now run until {until}.', { until: val(p.until, tx('your order')) }),
+  }),
+  sub_expiring: (p, tx = englishTx) => ({
+    subject: tx('Your {title} subscription ends soon', { title: val(p.title, tx('your order')) }),
+    text: tx('It ends on {until}. Renew to keep the licence and free support for your chosen websites. Your sites keep running either way.', { until: val(p.until, tx('your order')) }),
+  }),
+  beta_approved: (p, tx = englishTx) => ({
+    subject: tx('Your request for {title} is approved', { title: val(p.title, tx('your order')) }),
+    text: tx('Your files are ready. Open the order in your dashboard to download them and to start your domain steps.'),
+  }),
+  beta_declined: (p, tx = englishTx) => ({
+    subject: tx('About your request for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('We could not approve this request. {reason}', { reason: val(p.reason, tx('your order')) }),
+  }),
+  identity_checked: (p, tx = englishTx) =>
     p.ok
-      ? { subject: 'Your identity is verified', text: 'Thank you. Your weekly payouts can now be sent.' }
-      : { subject: 'Your identity check needs another look', text: `We could not accept the document: ${t(p.reason, 'it was not clear enough')}. Please send it again from Earnings & payouts.` },
-  beta_feedback: (p) => ({ subject: `How is ${t(p.title)} working for you?`, text: `It has been a week. Two minutes of feedback helps us a lot: ${t(p.url)}` }),
-  repo_invite_resent: (p) => ({
-    subject: `A new GitHub invite for ${t(p.title)}`,
-    text: `The seller sent your invite again. Accept it on GitHub within ${t(p.days, '7')} days, then confirm in your order that you can open it.`,
+      ? { subject: tx('Your identity is verified'), text: tx('Thank you. Your weekly payouts can now be sent.') }
+      : {
+          subject: tx('Your identity check needs another look'),
+          text: tx('We could not accept the document: {reason}. Please send it again from Earnings & payouts.', { reason: val(p.reason, tx('it was not clear enough')) }),
+        },
+  beta_feedback: (p, tx = englishTx) => ({
+    subject: tx('How is {title} working for you?', { title: val(p.title, tx('your order')) }),
+    text: tx('It has been a week. Two minutes of feedback helps us a lot: {url}', { url: val(p.url, tx('your order')) }),
   }),
-  repo_invite_expiring: (p) => ({
-    subject: `Your GitHub invite for ${t(p.title)} runs out soon`,
-    text: 'GitHub removes an invitation that is not accepted in time. Accept it now and confirm in your order. If it already ran out, ask the seller to send it again.',
+  repo_invite_resent: (p, tx = englishTx) => ({
+    subject: tx('A new GitHub invite for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('The seller sent your invite again. Accept it on GitHub within {days} days, then confirm in your order that you can open it.', { days: val(p.days, '7') }),
   }),
-  repo_invite_expired: (p) => ({
-    subject: `The GitHub invite for ${t(p.title)} has run out`,
-    text: 'The buyer did not accept it in time. Send the invite again from your seller dashboard so the order can go on.',
+  repo_invite_expiring: (p, tx = englishTx) => ({
+    subject: tx('Your GitHub invite for {title} runs out soon', { title: val(p.title, tx('your order')) }),
+    text: tx('GitHub removes an invitation that is not accepted in time. Accept it now and confirm in your order. If it already ran out, ask the seller to send it again.'),
   }),
-  repo_invite_lapsed: (p) => ({
-    subject: `The GitHub invite for ${t(p.title)} has run out`,
-    text: `We asked the seller to send a new one. Accept it and confirm in your order. If you do not confirm, access counts as confirmed on ${t(p.date)} and your time to check it starts then.`,
+  repo_invite_expired: (p, tx = englishTx) => ({
+    subject: tx('The GitHub invite for {title} has run out', { title: val(p.title, tx('your order')) }),
+    text: tx('The buyer did not accept it in time. Send the invite again from your seller dashboard so the order can go on.'),
   }),
-  repo_revoke_request: (p) => ({
-    subject: `Remove the buyer from the repository: ${t(p.title)}`,
-    text: `The order was ${t(p.outcome, 'refunded')}. Remove GitHub user ${t(p.github, 'the buyer')} from your private repository, then press "I removed the access" on your seller dashboard. Our team then confirms it.`,
+  repo_invite_lapsed: (p, tx = englishTx) => ({
+    subject: tx('The GitHub invite for {title} has run out', { title: val(p.title, tx('your order')) }),
+    text: tx('We asked the seller to send a new one. Accept it and confirm in your order. If you do not confirm, access counts as confirmed on {date} and your time to check it starts then.', {
+      date: val(p.date, tx('your order')),
+    }),
   }),
-  repo_revoke_ready: (p) => ({
-    subject: `Repository access removal to confirm: ${t(p.title)}`,
-    text: 'The seller says the buyer was removed from the repository. Check it, then confirm in Repository access in the admin dashboard.',
+  repo_revoke_request: (p, tx = englishTx) => ({
+    subject: tx('Remove the buyer from the repository: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('The order was {outcome}. Remove GitHub user {github} from your private repository, then press "I removed the access" on your seller dashboard. Our team then confirms it.', {
+      outcome: val(p.outcome, tx('refunded')),
+      github: val(p.github, tx('the buyer')),
+    }),
   }),
-  repo_revoke_confirmed: (p) => ({ subject: `Repository access removed: ${t(p.title)}`, text: 'Our team confirmed that the buyer no longer has access to the repository for this order.' }),
-  product_update: (p) => ({
-    subject: `A new version of ${t(p.title, 'your product')} is ready`,
-    text: `Version ${t(p.version, 'new')} is out. What changed: ${t(p.changelog, 'see your order')}. Open your order and use "Get my files" to download it. Your updates run until ${t(p.until, 'the end of your update period')}.`,
+  repo_revoke_ready: (p, tx = englishTx) => ({
+    subject: tx('Repository access removal to confirm: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('The seller says the buyer was removed from the repository. Check it, then confirm in Repository access in the admin dashboard.'),
   }),
-  version_decision: (p) => ({
-    subject: p.decision === 'approved' ? `Version ${t(p.version)} of ${t(p.title, 'your product')} is live` : `Version ${t(p.version)} of ${t(p.title, 'your product')} was not published`,
+  repo_revoke_confirmed: (p, tx = englishTx) => ({
+    subject: tx('Repository access removed: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Our team confirmed that the buyer no longer has access to the repository for this order.'),
+  }),
+  product_update: (p, tx = englishTx) => ({
+    subject: tx('A new version of {title} is ready', { title: val(p.title, tx('your product')) }),
+    text: tx('Version {version} is out. What changed: {changelog}. Open your order and use "Get my files" to download it. Your updates run until {until}.', {
+      version: val(p.version, tx('new')),
+      changelog: val(p.changelog, tx('see your order')),
+      until: val(p.until, tx('the end of your update period')),
+    }),
+  }),
+  version_decision: (p, tx = englishTx) => {
+    const vars = { version: val(p.version, tx('your order')), title: val(p.title, tx('your product')) };
+    return p.decision === 'approved'
+      ? { subject: tx('Version {version} of {title} is live', vars), text: tx('Buyers whose update period is still running have been told and can download it.') }
+      : { subject: tx('Version {version} of {title} was not published', vars), text: val(p.note, tx('The version was not approved. Fix what the note says and publish it again.')) };
+  },
+  version_review: (p, tx = englishTx) => ({
+    subject: tx('New version waiting for review: {title} {version}', { title: val(p.title, tx('a product')), version: val(p.version, '') }),
+    text: tx('Open Versions in the admin dashboard, check the files, then approve or reject.'),
+  }),
+  order_held: (p, tx = englishTx) => ({
+    subject: tx('Payment received for {title}, waiting for a short check', { title: val(p.title, tx('your order')) }),
+    text: tx(
+      'The payment is safe in escrow. Our team is doing a short safety check on this order before work starts. Please do not start yet. We will tell you as soon as it is cleared, and your delivery time starts again then.',
+    ),
+  }),
+  order_hold_alert: (p, tx = englishTx) => ({
+    subject: tx('Order waiting for a safety check: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('{reason} ({price} USD). Release or cancel it in Risk in the admin dashboard.', { reason: val(p.reason, tx('This order needs a look')), price: val(p.price, '0') }),
+  }),
+  order_hold_decided: (p, tx = englishTx) => {
+    const title = val(p.title, tx('your order'));
+    return p.decision === 'released'
+      ? { subject: tx('{title} is cleared, you can start', { title }), text: tx('The safety check is done. You can start now. The delivery time you had left when the check began starts again now.') }
+      : { subject: tx('{title} was cancelled after a safety check', { title }), text: tx('The buyer was refunded from escrow. You do not need to do anything for this order.') };
+  },
+  order_funded: (p, tx = englishTx) => ({
+    subject: tx('Payment received for {title}', { title: val(p.title, tx('your order')) }),
     text:
-      p.decision === 'approved'
-        ? 'Buyers whose update period is still running have been told and can download it.'
-        : t(p.note, 'The version was not approved. Fix what the note says and publish it again.'),
+      Number(p.hours) > 0
+        ? tx('The payment is held safely in escrow. The seller can start now, and delivery is due in {hours} hours.', { hours: val(p.hours, tx('your order')) })
+        : tx('The payment is held safely in escrow. The seller can start now, and delivery is due in {days} days.', {
+            days: val(p.days, tx('{min} to {max}', { min: CONFIG.delivery.minDays, max: CONFIG.delivery.maxDays })),
+          }),
   }),
-  version_review: (p) => ({
-    subject: `New version waiting for review: ${t(p.title, 'a product')} ${t(p.version, '')}`,
-    text: 'Open Versions in the admin dashboard, check the files, then approve or reject.',
+  order_due_soon: (p, tx = englishTx) => ({
+    subject: tx('Delivery of {title} is due soon', { title: val(p.title, tx('your order')) }),
+    text: tx("This order is due within {hours} hours. Deliver it on time to keep the buyer's trust.", { hours: val(p.hours, '6') }),
   }),
-  order_held: (p) => ({
-    subject: `Payment received for ${t(p.title)}, waiting for a short check`,
-    text: 'The payment is safe in escrow. Our team is doing a short safety check on this order before work starts. Please do not start yet. We will tell you as soon as it is cleared, and your delivery time starts again then.',
+  order_delivered: (p, tx = englishTx) => ({
+    subject: tx('{title} is ready to review', { title: val(p.title, tx('your order')) }),
+    text: tx('You have {hours} hours to check it. Accept it, or open a problem. If you do nothing it is accepted for you.', { hours: REVIEW_HOURS }),
   }),
-  order_hold_alert: (p) => ({
-    subject: `Order waiting for a safety check: ${t(p.title)}`,
-    text: `${t(p.reason, 'This order needs a look')} (${t(p.price, '0')} USD). Release or cancel it in Risk in the admin dashboard.`,
+  review_ending: (p, tx = englishTx) => ({
+    subject: tx('Review time for {title} ends soon', { title: val(p.title, tx('your order')) }),
+    text: tx('About {hours} hours are left. After that the order is accepted for you.', { hours: val(p.hours, '12') }),
   }),
-  order_hold_decided: (p) => ({
-    subject: p.decision === 'released' ? `${t(p.title)} is cleared, you can start` : `${t(p.title)} was cancelled after a safety check`,
-    text:
-      p.decision === 'released'
-        ? 'The safety check is done. You can start now. The delivery time you had left when the check began starts again now.'
-        : 'The buyer was refunded from escrow. You do not need to do anything for this order.',
+  order_accepted: (p, tx = englishTx) => ({
+    subject: tx('{title} was accepted', { title: val(p.title, tx('your order')) }),
+    text: tx('Your earnings are paid out weekly, {holdDays} days after acceptance. The buyer has a {bugfixDays}-day bug-fix guarantee.', {
+      holdDays: CONFIG.payout.holdDays,
+      bugfixDays: BUGFIX_DAYS,
+    }),
   }),
-  order_funded: (p) => ({
-    subject: `Payment received for ${t(p.title)}`,
-    text: `The payment is held safely in escrow. The seller can start now, and delivery is due in ${Number(p.hours) > 0 ? `${t(p.hours)} hours` : `${t(p.days, `${CONFIG.delivery.minDays} to ${CONFIG.delivery.maxDays}`)} days`}.`,
+  order_overdue: (p, tx = englishTx) => ({
+    subject: tx('{title} is late', { title: val(p.title, tx('your order')) }),
+    text: tx('The delivery time has passed. The buyer can cancel for a full refund.'),
   }),
-  order_due_soon: (p) => ({ subject: `Delivery of ${t(p.title)} is due soon`, text: `This order is due within ${t(p.hours, '6')} hours. Deliver it on time to keep the buyer's trust.` }),
-  order_delivered: (p) => ({
-    subject: `${t(p.title)} is ready to review`,
-    text: `You have ${REVIEW_HOURS} hours to check it. Accept it, or open a problem. If you do nothing it is accepted for you.`,
+  order_cancelled: (p, tx = englishTx) => ({
+    subject: tx('{title} was cancelled', { title: val(p.title, tx('your order')) }),
+    text: tx('The order is closed. The money held in escrow goes back to the buyer.'),
   }),
-  review_ending: (p) => ({ subject: `Review time for ${t(p.title)} ends soon`, text: `About ${t(p.hours, '12')} hours are left. After that the order is accepted for you.` }),
-  order_accepted: (p) => ({
-    subject: `${t(p.title)} was accepted`,
-    text: `Your earnings are paid out weekly, ${CONFIG.payout.holdDays} days after acceptance. The buyer has a ${BUGFIX_DAYS}-day bug-fix guarantee.`,
+  extra_work_request: (p, tx = englishTx) => ({
+    subject: tx('Extra work for {title}: {request}', { title: val(p.title, tx('your order')), request: val(p.request, tx('a request')) }),
+    text: tx('The seller asks for {price} and {days} more days. Approve and pay it into escrow, or decline. Nothing starts before it is paid.', {
+      price: val(p.price, tx('more money')),
+      days: val(p.days, '1'),
+    }),
   }),
-  order_overdue: (p) => ({ subject: `${t(p.title)} is late`, text: 'The delivery time has passed. The buyer can cancel for a full refund.' }),
-  order_cancelled: (p) => ({ subject: `${t(p.title)} was cancelled`, text: 'The order is closed. The money held in escrow goes back to the buyer.' }),
-  extra_work_request: (p) => ({
-    subject: `Extra work for ${t(p.title)}: ${t(p.request, 'a request')}`,
-    text: `The seller asks for ${t(p.price, 'more money')} and ${t(p.days, '1')} more days. Approve and pay it into escrow, or decline. Nothing starts before it is paid.`,
+  extra_work_funded: (p, tx = englishTx) => ({
+    subject: tx('Extra work paid for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('The buyer paid {price} into escrow. The deadline moved out by {days} days. You can start.', { price: val(p.price, tx('the extra work')), days: val(p.days, '1') }),
   }),
-  extra_work_funded: (p) => ({
-    subject: `Extra work paid for ${t(p.title)}`,
-    text: `The buyer paid ${t(p.price, 'the extra work')} into escrow. The deadline moved out by ${t(p.days, '1')} days. You can start.`,
+  dispute_opened: (p, tx = englishTx) => ({
+    subject: tx('A problem was reported on {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Reason: {reason}. Payment for this order is held. The seller replies within {replyHours} hours and an admin decides within {decisionDays} days.', {
+      reason: val(p.reason, tx('not given')),
+      replyHours: CONFIG.dispute.sellerReplyHours,
+      decisionDays: CONFIG.dispute.adminDecisionDays,
+    }),
   }),
-  dispute_opened: (p) => ({
-    subject: `A problem was reported on ${t(p.title)}`,
-    text: `Reason: ${t(p.reason, 'not given')}. Payment for this order is held. The seller replies within ${CONFIG.dispute.sellerReplyHours} hours and an admin decides within ${CONFIG.dispute.adminDecisionDays} days.`,
+  dispute_reply: (p, tx = englishTx) => ({
+    subject: tx('The seller replied on {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Open the order to read the reply and add evidence if you need to.'),
   }),
-  dispute_reply: (p) => ({ subject: `The seller replied on ${t(p.title)}`, text: 'Open the order to read the reply and add evidence if you need to.' }),
-  dispute_decided: (p) => ({ subject: `Decision on ${t(p.title)}`, text: `Decision: ${t(p.decision, 'made')}. ${t(p.note, '')}`.trim() }),
-  payout_sent: (p) => ({
-    subject: 'Your payout was sent',
-    text: `${t(p.amount, 'Your earnings')} were sent with ${t(p.method, 'the payout method on your account')}. It can take a few days to show.`,
+  dispute_decided: (p, tx = englishTx) => ({
+    subject: tx('Decision on {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Decision: {decision}. {note}', { decision: val(p.decision, tx('made')), note: val(p.note, '') }).trim(),
   }),
-  payout_details_changed: (p) => ({
-    subject: 'Your payout details were changed',
-    text: `Your earnings will now be sent to: ${t(p.now, 'the new account')}. Before: ${t(p.was, 'none')}. If you did not do this, change your password and contact support at once.`,
+  payout_sent: (p, tx = englishTx) => ({
+    subject: tx('Your payout was sent'),
+    text: tx('{amount} were sent with {method}. It can take a few days to show.', { amount: val(p.amount, tx('Your earnings')), method: val(p.method, tx('the payout method on your account')) }),
   }),
-  listing_decision: (p) => ({ subject: `Your listing ${t(p.name, '')} was ${t(p.decision, 'reviewed')}`, text: t(p.note, 'Open your dashboard for details.') }),
-  domain_expiring: (p) => ({ subject: `${t(p.domain, 'Your domain')} expires soon`, text: `It expires on ${t(p.date, 'soon')}. Renew it so your site stays online.` }),
-  new_message: (p) => ({ subject: `New message about ${t(p.title)}`, text: 'Open the order to read it and reply. Keep everything on the platform, it protects both of you.' }),
-  chat_warning: () => ({
-    subject: 'A warning about your messages',
-    text: `Some of your messages were blocked because they shared contact details or asked to pay outside ${BRAND_NAME}. After ${CONFIG.chat.suspendAtBlocks} blocked messages in ${CONFIG.chat.windowDays} days your account is suspended for a while. Keep everything on the platform, it protects both sides.`,
+  payout_details_changed: (p, tx = englishTx) => ({
+    subject: tx('Your payout details were changed'),
+    text: tx('Your earnings will now be sent to: {now}. Before: {was}. If you did not do this, change your password and contact support at once.', {
+      now: val(p.now, tx('the new account')),
+      was: val(p.was, tx('none')),
+    }),
   }),
-  account_suspended: (p) => ({
-    subject: 'Your account is suspended for a while',
-    text: `Too many messages were blocked. You can use the account again after ${t(p.until, 'a few days')}. Contact support if you think this is a mistake.`,
+  listing_decision: (p, tx = englishTx) => ({
+    subject: tx('Your listing {name} was {decision}', { name: val(p.name, ''), decision: val(p.decision, tx('reviewed')) }),
+    text: val(p.note, tx('Open your dashboard for details.')),
   }),
-  admin_payout: (p) => ({
-    subject: `Payout: ${t(p.what, 'something to look at')}`,
-    text: `${t(p.detail, 'Open Payouts in the admin dashboard.')}
+  domain_expiring: (p, tx = englishTx) => ({
+    subject: tx('{domain} expires soon', { domain: val(p.domain, tx('Your domain')) }),
+    text: tx('It expires on {date}. Renew it so your site stays online.', { date: val(p.date, tx('soon')) }),
+  }),
+  new_message: (p, tx = englishTx) => ({
+    subject: tx('New message about {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Open the order to read it and reply. Keep everything on the platform, it protects both of you.'),
+  }),
+  chat_warning: (_p, tx = englishTx) => ({
+    subject: tx('A warning about your messages'),
+    text: tx(
+      'Some of your messages were blocked because they shared contact details or asked to pay outside {brand}. After {blocks} blocked messages in {days} days your account is suspended for a while. Keep everything on the platform, it protects both sides.',
+      { brand: BRAND_NAME, blocks: CONFIG.chat.suspendAtBlocks, days: CONFIG.chat.windowDays },
+    ),
+  }),
+  account_suspended: (p, tx = englishTx) => ({
+    subject: tx('Your account is suspended for a while'),
+    text: tx('Too many messages were blocked. You can use the account again after {until}. Contact support if you think this is a mistake.', { until: val(p.until, tx('a few days')) }),
+  }),
+  admin_payout: (p, tx = englishTx) => ({
+    subject: tx('Payout: {what}', { what: val(p.what, tx('something to look at')) }),
+    text: `${val(p.detail, tx('Open Payouts in the admin dashboard.'))}
 
-All details are in the admin dashboard under Payouts.`,
+${tx('All details are in the admin dashboard under Payouts.')}`,
   }),
-  abuse_alert: (p) => ({ subject: `Admin alert: ${t(p.what, 'something needs a look')}`, text: t(p.detail, 'Open the admin dashboard.') }),
+  abuse_alert: (p, tx = englishTx) => ({
+    subject: tx('Admin alert: {what}', { what: val(p.what, tx('something needs a look')) }),
+    text: val(p.detail, tx('Open the admin dashboard.')),
+  }),
   // ---- SellOnBay 2.0 (requests, quotations, payments, release, files, plans, messages) ----
-  plan_changed: (p) => ({
-    subject: `Your seller plan: ${t(p.plan, 'your plan')} is ${t(p.status, 'updated')}`,
-    text: `SellOnBay updated your seller plan (${t(p.plan, 'your plan')}): it is now ${t(p.status, 'updated')}. Open your seller dashboard for the details.`,
+  plan_changed: (p, tx = englishTx) => {
+    const vars = { plan: val(p.plan, tx('your plan')), status: val(p.status, tx('updated')) };
+    return {
+      subject: tx('Your seller plan: {plan} is {status}', vars),
+      text: tx('SellOnBay updated your seller plan ({plan}): it is now {status}. Open your seller dashboard for the details.', vars),
+    };
+  },
+  plan_requested: (p, tx = englishTx) => ({
+    subject: tx('Plan request from a seller: {plan}', { plan: val(p.plan, tx('a plan')) }),
+    text: tx('A seller asked for the {plan} plan ({billing}). Send payment instructions and activate it under Sellers once Finance has reconciled the payment.', {
+      plan: val(p.plan, ''),
+      billing: val(p.billing, ''),
+    }),
   }),
-  plan_requested: (p) => ({
-    subject: `Plan request from a seller: ${t(p.plan, 'a plan')}`,
-    text: `A seller asked for the ${t(p.plan, '')} plan (${t(p.billing, '')}). Send payment instructions and activate it under Sellers once Finance has reconciled the payment.`,
+  request_received: (p, tx = englishTx) => ({
+    subject: tx('We received your request for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('SellOnBay will review your request and reply with a quotation or a question. Nothing is charged until you accept a quotation.'),
   }),
-  request_received: (p) => ({
-    subject: `We received your request for ${t(p.title)}`,
-    text: 'SellOnBay will review your request and reply with a quotation or a question. Nothing is charged until you accept a quotation.',
+  request_update: (p, tx = englishTx) => ({
+    subject: tx('Update on your request for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('{note} Open your requests to see it.', { note: val(p.note, tx('There is an update on your request.')) }),
   }),
-  request_update: (p) => ({
-    subject: `Update on your request for ${t(p.title)}`,
-    text: `${t(p.note, 'There is an update on your request.')} Open your requests to see it.`,
+  quote_issued: (p, tx = englishTx) => ({
+    subject: tx('Your quotation for {title} is ready', { title: val(p.title, tx('your order')) }),
+    text: tx('SellOnBay sent you a quotation of {total}. It is valid until {until}. Review the terms and accept it to continue.', {
+      total: val(p.total, tx('the agreed amount')),
+      until: val(p.until, tx('the date shown')),
+    }),
   }),
-  quote_issued: (p) => ({
-    subject: `Your quotation for ${t(p.title)} is ready`,
-    text: `SellOnBay sent you a quotation of ${t(p.total, 'the agreed amount')}. It is valid until ${t(p.until, 'the date shown')}. Review the terms and accept it to continue.`,
+  quote_needs_super: (p, tx = englishTx) => ({
+    subject: tx('Price change waiting for Super Admin: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('A quotation differs from the listed price ({listed} listed, {quoted} quoted). A Super Admin must approve it before it is sent.', {
+      listed: val(p.listed, '?'),
+      quoted: val(p.quoted, '?'),
+    }),
   }),
-  quote_needs_super: (p) => ({
-    subject: `Price change waiting for Super Admin: ${t(p.title)}`,
-    text: `A quotation differs from the listed price (${t(p.listed, '?')} listed, ${t(p.quoted, '?')} quoted). A Super Admin must approve it before it is sent.`,
+  quote_accepted: (p, tx = englishTx) => ({
+    subject: tx('Quotation accepted: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('The buyer accepted the quotation and an order was created. It waits for payment.'),
   }),
-  quote_accepted: (p) => ({
-    subject: `Quotation accepted: ${t(p.title)}`,
-    text: 'The buyer accepted the quotation and an order was created. It waits for payment.',
+  payment_submitted: (p, tx = englishTx) => ({
+    subject: tx('Payment to reconcile: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('A buyer reported a payment of {amount} by {method}. Check it against the funds actually received before marking it reconciled.', {
+      amount: val(p.amount, '?'),
+      method: val(p.method, tx('a manual method')),
+    }),
   }),
-  payment_submitted: (p) => ({
-    subject: `Payment to reconcile: ${t(p.title)}`,
-    text: `A buyer reported a payment of ${t(p.amount, '?')} by ${t(p.method, 'a manual method')}. Check it against the funds actually received before marking it reconciled.`,
+  payment_reconciled: (p, tx = englishTx) => ({
+    subject: tx('Payment received for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('SellOnBay has confirmed your payment. Your order now waits for its files to be approved and released by our team.'),
   }),
-  payment_reconciled: (p) => ({
-    subject: `Payment received for ${t(p.title)}`,
-    text: 'SellOnBay has confirmed your payment. Your order now waits for its files to be approved and released by our team.',
+  payment_rejected: (p, tx = englishTx) => ({
+    subject: tx('We could not confirm your payment for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('{reason} Open your order to see what to do next.', { reason: val(p.reason, tx('The payment could not be matched to funds received.')) }),
   }),
-  payment_rejected: (p) => ({
-    subject: `We could not confirm your payment for ${t(p.title)}`,
-    text: `${t(p.reason, 'The payment could not be matched to funds received.')} Open your order to see what to do next.`,
+  release_waiting: (p, tx = englishTx) => ({
+    subject: tx('Release waiting: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Payment is verified and the files are ready. Approve or refuse the release by {due}.', { due: val(p.due, tx('the deadline shown')) }),
   }),
-  release_waiting: (p) => ({
-    subject: `Release waiting: ${t(p.title)}`,
-    text: `Payment is verified and the files are ready. Approve or refuse the release by ${t(p.due, 'the deadline shown')}.`,
+  release_overdue: (p, tx = englishTx) => ({
+    subject: tx('Release overdue: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('This order has waited longer than the 12-hour release target. Nothing is released automatically; please decide now.'),
   }),
-  release_overdue: (p) => ({
-    subject: `Release overdue: ${t(p.title)}`,
-    text: 'This order has waited longer than the 12-hour release target. Nothing is released automatically; please decide now.',
+  files_released: (p, tx = englishTx) => ({
+    subject: tx('Your files for {title} are ready', { title: val(p.title, tx('your order')) }),
+    text: tx('SellOnBay approved the release. Your files, licence and documents are in your order. Download links expire after 24 hours; you can ask for a new one.'),
   }),
-  files_released: (p) => ({
-    subject: `Your files for ${t(p.title)} are ready`,
-    text: 'SellOnBay approved the release. Your files, licence and documents are in your order. Download links expire after 24 hours; you can ask for a new one.',
+  file_checked: (p, tx = englishTx) => ({
+    subject: tx('File check for {title}: {result}', { title: val(p.title, tx('your order')), result: val(p.result, tx('done')) }),
+    text: tx('{note} Open your listing to see the details.', { note: val(p.note, tx('Your upload was checked.')) }),
   }),
-  file_checked: (p) => ({
-    subject: `File check for ${t(p.title)}: ${t(p.result, 'done')}`,
-    text: `${t(p.note, 'Your upload was checked.')} Open your listing to see the details.`,
+  file_review_needed: (p, tx = englishTx) => ({
+    subject: tx('File passed the automatic checks: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('An uploaded file passed archive, secret and malware checks and waits for human review in Catalog.'),
   }),
-  file_review_needed: (p) => ({
-    subject: `File passed the automatic checks: ${t(p.title)}`,
-    text: 'An uploaded file passed archive, secret and malware checks and waits for human review in Catalog.',
+  message_new: (p, tx = englishTx) => ({
+    subject: tx('New message about {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('You have a new message from SellOnBay. Open your messages to read it.'),
   }),
-  message_new: (p) => ({
-    subject: `New message about ${t(p.title)}`,
-    text: 'You have a new message from SellOnBay. Open your messages to read it.',
+  revision_update: (p, tx = englishTx) => ({
+    subject: tx('Revision update: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('{note} Open the order to see it.', { note: val(p.note, tx('There is an update on a revision.')) }),
   }),
-  revision_update: (p) => ({
-    subject: `Revision update: ${t(p.title)}`,
-    text: `${t(p.note, 'There is an update on a revision.')} Open the order to see it.`,
+  refund_issued: (p, tx = englishTx) => ({
+    subject: tx('Refund for {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('SellOnBay refunded {amount}. {note}', { amount: val(p.amount, tx('your payment')), note: val(p.note, '') }).trim(),
   }),
-  refund_issued: (p) => ({
-    subject: `Refund for ${t(p.title)}`,
-    text: `SellOnBay refunded ${t(p.amount, 'your payment')}. ${t(p.note, '')}`.trim(),
+  work_authorised: (p, tx = englishTx) => ({
+    subject: tx('You can start: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('Payment is verified and SellOnBay authorised the work. Send your delivery through your seller dashboard; it is checked and released by our team.'),
   }),
-  work_authorised: (p) => ({
-    subject: `You can start: ${t(p.title)}`,
-    text: 'Payment is verified and SellOnBay authorised the work. Send your delivery through your seller dashboard; it is checked and released by our team.',
+  delivery_returned: (p, tx = englishTx) => ({
+    subject: tx('Delivery returned: {title}', { title: val(p.title, tx('your order')) }),
+    text: tx('{reason} Please fix it and send it again.', { reason: val(p.reason, tx('SellOnBay returned the delivery.')) }),
   }),
-  delivery_returned: (p) => ({
-    subject: `Delivery returned: ${t(p.title)}`,
-    text: `${t(p.reason, 'SellOnBay returned the delivery.')} Please fix it and send it again.`,
-  }),
-  daily_report: (p) => ({
-    subject: `Daily report for ${t(p.day, 'yesterday')}: ${t(p.visitors, '0')} visitors`,
-    text: `${t(p.visitors, '0')} visitors (${t(p.repeat, '0')} came back), ${t(p.pages, '0')} pages opened, ${t(p.orders, '0')} orders. Most opened product: ${t(p.top, 'none yet')}. The full report is under Visitors in the admin dashboard.`,
+  daily_report: (p, tx = englishTx) => ({
+    subject: tx('Daily report for {day}: {visitors} visitors', { day: val(p.day, tx('yesterday')), visitors: val(p.visitors, '0') }),
+    text: tx('{visitors} visitors ({repeat} came back), {pages} pages opened, {orders} orders. Most opened product: {top}. The full report is under Visitors in the admin dashboard.', {
+      visitors: val(p.visitors, '0'),
+      repeat: val(p.repeat, '0'),
+      pages: val(p.pages, '0'),
+      orders: val(p.orders, '0'),
+      top: val(p.top, tx('none yet')),
+    }),
   }),
 };

@@ -16,15 +16,19 @@ import { listPayouts } from '@/lib/payouts';
 import { paypalConfigured } from '@/lib/providers/payment';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Finance and payouts', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Finance and payouts'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['payouts', 'Payouts'],
-  ['ledger', 'Ledger'],
-  ['refunds', 'Refunds'],
-  ['reconciliation', 'Reconciliation'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['payouts', tx('Payouts')],
+    ['ledger', tx('Ledger')],
+    ['refunds', tx('Refunds')],
+    ['reconciliation', tx('Reconciliation')],
+  ] as const;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
 const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
@@ -35,9 +39,10 @@ const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T'
  * orders are $0 and never touch the ledger.
  */
 export default async function AdminFinance({ searchParams }: { searchParams: Promise<{ tab?: string; from?: string; to?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/finance', roles: ['admin'], scope: 'finance' });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'payouts';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'payouts';
   const now = Date.now();
   const to = DAY.test(sp.to ?? '') ? sp.to! : iso(now);
   const from = DAY.test(sp.from ?? '') ? sp.from! : iso(Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1));
@@ -72,73 +77,107 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
   const weeks = [...new Set(toSend.filter((p) => p.status === 'scheduled').map((p) => p.weekStart))];
   const query = (t: string) => `/admin/finance?${new URLSearchParams({ ...(t !== 'payouts' ? { tab: t } : {}), ...(sp.from ? { from } : {}), ...(sp.to ? { to } : {}) })}`;
   const lines: [string, number][] = [
-    ['Buyer money in escrow', escrow],
-    ['Sellers, on the 7-day hold', pending],
-    ['Sellers, available for payout', available],
-    ['Sellers, reserve', reserve],
-    ['Owed by sellers after refunds', debt],
-    ['Reported payments held, not matched to an order yet', held],
-    ['Refunds owed to buyers', refundDue],
-    ['Platform revenue', revenue],
+    [tx('Buyer money in escrow'), escrow],
+    [tx('Sellers, on the 7-day hold'), pending],
+    [tx('Sellers, available for payout'), available],
+    [tx('Sellers, reserve'), reserve],
+    [tx('Owed by sellers after refunds'), debt],
+    [tx('Reported payments held, not matched to an order yet'), held],
+    [tx('Refunds owed to buyers'), refundDue],
+    [tx('Platform revenue'), revenue],
   ];
   return (
-    <AdminShell viewer={viewer} active="finance" file="admin-finance" title="Finance & payouts" head={false}>
+    <AdminShell viewer={viewer} active="finance" file="admin-finance" title={tx('Finance & payouts')} head={false}>
       <div className="row">
         <div>
-          <h1>Finance &amp; payouts</h1>
+          <h1>
+            <T s={'Finance & payouts'} />
+          </h1>
           <div className="tag">
-            Double-entry ledger, escrow balance, seller payouts and reconciliation · fee {PLAN_FEE_TEXT} · {PAYOUT_TEXT}
+            <T s={'Double-entry ledger, escrow balance, seller payouts and reconciliation · fee {PLAN_FEE_TEXT} · {PAYOUT_TEXT}'} v={{ PLAN_FEE_TEXT, PAYOUT_TEXT }} />
           </div>
         </div>
         <form action="/admin/finance" method="get" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {tab !== 'payouts' && <input type="hidden" name="tab" value={tab} />}
           <label htmlFor="fr" className="hidden-label">
-            From
+            <T s={'From'} />
           </label>
           <input id="fr" name="from" className="input" type="date" defaultValue={from} style={{ width: 'auto' }} />{' '}
           <label htmlFor="to" className="hidden-label">
-            To
+            <T s={'To'} />
           </label>
           <input id="to" name="to" className="input" type="date" defaultValue={to} style={{ width: 'auto' }} />{' '}
           <button className="btn ghost" type="submit">
-            Apply
+            <T s={'Apply'} />
           </button>
         </form>
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Cash in</div>
+          <div className="l">
+            <T s={'Cash in'} />
+          </div>
           <div className="v">{usd(cashIn)}</div>
-          <div className="s">Paid orders in these dates</div>
+          <div className="s">
+            <T s={'Paid orders in these dates'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Cash out</div>
+          <div className="l">
+            <T s={'Cash out'} />
+          </div>
           <div className="v">{usd(paidOut + refunded)}</div>
-          <div className="s">Payouts + refunds</div>
+          <div className="s">
+            <T s={'Payouts + refunds'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Held in escrow</div>
+          <div className="l">
+            <T s={'Held in escrow'} />
+          </div>
           <div className="v">{usd(escrow)}</div>
-          <div className="s">Not yet earned</div>
+          <div className="s">
+            <T s={'Not yet earned'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Owed to sellers</div>
+          <div className="l">
+            <T s={'Owed to sellers'} />
+          </div>
           <div className="v">{usd(owed)}</div>
-          <div className="s">{usd(available)} ready for Thursday</div>
+          <div className="s">
+            <T s={'{v0} ready for Thursday'} v={{ v0: usd(available) }} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Platform income</div>
+          <div className="l">
+            <T s={'Platform income'} />
+          </div>
           <div className="v">{usd(revenue)}</div>
-          <div className="s">{PLAN_FEE_TEXT} share + domains</div>
+          <div className="s">
+            <T s={'{PLAN_FEE_TEXT} share + domains'} v={{ PLAN_FEE_TEXT }} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Reconciliation</div>
+          <div className="l">
+            <T s={'Reconciliation'} />
+          </div>
           <div className="v">{usd(held)}</div>
-          <div className="s">{held ? <span className="status st-wait">To match</span> : <span className="status st-ok">Match</span>}</div>
+          <div className="s">
+            {held ? (
+              <span className="status st-wait">
+                <T s={'To match'} />
+              </span>
+            ) : (
+              <span className="status st-ok">
+                <T s={'Match'} />
+              </span>
+            )}
+          </div>
         </div>
       </div>
-      <div className="seg" role="tablist" aria-label="Finance section" style={{ alignSelf: 'flex-start' }}>
-        {TABS.map(([k, l]) => (
+      <div className="seg" role="tablist" aria-label={tx('Finance section')} style={{ alignSelf: 'flex-start' }}>
+        {TABS(tx).map(([k, l]) => (
           <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={query(k)} prefetch={false}>
             {l}
           </Link>
@@ -149,21 +188,25 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
             <div>
-              <h2>Payout queue</h2>
-              <div className="tag">Only sellers with a verified identity and payout method can be paid. Download a week&apos;s CSV, send, then mark each one paid.</div>
+              <h2>
+                <T s={'Payout queue'} />
+              </h2>
+              <div className="tag">
+                <T s={"Only sellers with a verified identity and payout method can be paid. Download a week's CSV, send, then mark each one paid."} />
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {weeks.length ? (
                 weeks.map((w) => (
                   <form key={w} method="post" action={`/api/admin/payouts/csv?week=${w}`}>
                     <button type="submit" className="btn">
-                      Pay all ready · CSV {w}
+                      <T s={'Pay all ready · CSV {w}'} v={{ w }} />
                     </button>
                   </form>
                 ))
               ) : (
                 <Link className="btn ghost" href="/admin/finance/payouts" prefetch={false}>
-                  Every payout
+                  <T s={'Every payout'} />
                 </Link>
               )}
             </div>
@@ -172,14 +215,28 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
             <table>
               <thead>
                 <tr>
-                  <th>Seller</th>
-                  <th>Orders</th>
-                  <th>Earned ({PLAN_KEEP_TEXT})</th>
-                  <th>Method</th>
-                  <th>Identity</th>
-                  <th>Status</th>
                   <th>
-                    <span className="hidden-label">Actions</span>
+                    <T s={'Seller'} />
+                  </th>
+                  <th>
+                    <T s={'Orders'} />
+                  </th>
+                  <th>
+                    <T s={'Earned ({PLAN_KEEP_TEXT})'} v={{ PLAN_KEEP_TEXT }} />
+                  </th>
+                  <th>
+                    <T s={'Method'} />
+                  </th>
+                  <th>
+                    <T s={'Identity'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
+                  <th>
+                    <span className="hidden-label">
+                      <T s={'Actions'} />
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -191,18 +248,20 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                       <tr key={p.id}>
                         <td style={{ fontWeight: 500 }}>
                           {p.sellerName}
-                          <div className="tag">Payout day {p.weekStart}</div>
+                          <div className="tag">
+                            <T s={'Payout day {weekStart}'} v={{ weekStart: p.weekStart }} />
+                          </div>
                         </td>
                         <td>{p.orderIds.length}</td>
                         <td>{usd(p.amountCents)}</td>
-                        <td>{p.method || 'Not set'}</td>
+                        <td>{p.method || tx('Not set')}</td>
                         <td>
                           <span className={`status ${id === 'approved' ? 'st-ok' : id === 'rejected' ? 'st-bad' : 'st-wait'}`}>
-                            {id === 'approved' ? 'Verified' : id === 'rejected' ? 'Rejected' : id ? 'Pending' : 'Not sent'}
+                            {id === 'approved' ? tx('Verified') : id === 'rejected' ? tx('Rejected') : id ? tx('Pending') : tx('Not sent')}
                           </span>
                         </td>
                         <td>
-                          <span className={`status ${p.status === 'exported' ? 'st-wait' : 'st-info'}`}>{p.status === 'exported' ? 'Being sent' : 'Ready'}</span>
+                          <span className={`status ${p.status === 'exported' ? 'st-wait' : 'st-info'}`}>{p.status === 'exported' ? tx('Being sent') : tx('Ready')}</span>
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', textAlign: 'left' }}>
@@ -211,35 +270,42 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                                 endpoint={`/api/admin/payouts/${p.id}/paypal`}
                                 fixed={{ action: 'send' }}
                                 fields={[]}
-                                openLabel="Pay now"
-                                submit={`Send ${usd(p.amountCents)} to ${p.account}`}
+                                openLabel={tx('Pay now')}
+                                submit={tx('Send {usd} to {account}', { usd: usd(p.amountCents), account: p.account })}
                                 tone="blue"
                               />
                             )}
                             {paypal && p.status === 'exported' && p.reference?.startsWith('paypal:') && (
-                              <AdminForm endpoint={`/api/admin/payouts/${p.id}/paypal`} fixed={{ action: 'check' }} fields={[]} openLabel="Check PayPal" submit="Ask PayPal now" tone="line" />
+                              <AdminForm
+                                endpoint={`/api/admin/payouts/${p.id}/paypal`}
+                                fixed={{ action: 'check' }}
+                                fields={[]}
+                                openLabel={tx('Check PayPal')}
+                                submit={tx('Ask PayPal now')}
+                                tone="line"
+                              />
                             )}
                             {p.status === 'exported' && !p.reference?.startsWith('paypal:') && (
                               <>
                                 <AdminForm
                                   endpoint={`/api/admin/payouts/${p.id}/paid`}
-                                  openLabel="Mark paid"
-                                  submit="I sent it"
+                                  openLabel={tx('Mark paid')}
+                                  submit={tx('I sent it')}
                                   tone="blue"
-                                  fields={[{ name: 'reference', label: 'Transfer reference from Wise, Payoneer or the bank', kind: 'text', required: true }]}
+                                  fields={[{ name: 'reference', label: tx('Transfer reference from Wise, Payoneer or the bank'), kind: 'text', required: true }]}
                                 />
                                 <AdminForm
                                   endpoint={`/api/admin/payouts/${p.id}/fail`}
-                                  openLabel="Failed"
-                                  submit="Mark failed"
+                                  openLabel={tx('Failed')}
+                                  submit={tx('Mark failed')}
                                   tone="line"
-                                  fields={[{ name: 'note', label: 'What went wrong', kind: 'textarea' }]}
+                                  fields={[{ name: 'note', label: tx('What went wrong'), kind: 'textarea' }]}
                                 />
                               </>
                             )}
                             {p.status === 'scheduled' && !(paypal && p.method === 'paypal') && (
                               <span className="tag" style={{ margin: 0 }}>
-                                Download the CSV first
+                                <T s={'Download the CSV first'} />
                               </span>
                             )}
                           </div>
@@ -250,7 +316,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                 ) : (
                   <tr>
                     <td colSpan={7} className="muted">
-                      No payouts waiting. {PAYOUT_TEXT}.
+                      <T s={'No payouts waiting. {PAYOUT_TEXT}.'} v={{ PAYOUT_TEXT }} />
                     </td>
                   </tr>
                 )}
@@ -263,9 +329,9 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
       {(tab === 'ledger' || tab === 'reconciliation') && (
         <section className="glass card">
           <div className="row" style={{ marginBottom: 6 }}>
-            <h2>{tab === 'ledger' ? 'Ledger balances' : 'Reconciliation'}</h2>
+            <h2>{tab === 'ledger' ? tx('Ledger balances') : tx('Reconciliation')}</h2>
             <span className="tag" style={{ margin: 0 }}>
-              Check each line against the bank, wallet and provider statements
+              <T s={'Check each line against the bank, wallet and provider statements'} />
             </span>
           </div>
           {lines.map(([label, n]) => (
@@ -276,9 +342,11 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
           ))}
           {tab === 'reconciliation' && (
             <div className="li" style={{ fontSize: 14 }}>
-              <span style={{ flex: 1 }}>Reported payments to match</span>
+              <span style={{ flex: 1 }}>
+                <T s={'Reported payments to match'} />
+              </span>
               <Link className="btn sm ghost" href="/admin/orders" prefetch={false}>
-                Payments to verify
+                <T s={'Payments to verify'} />
               </Link>
             </div>
           )}
@@ -288,20 +356,32 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
       {tab === 'refunds' && (
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>Refunds</h2>
+            <h2>
+              <T s={'Refunds'} />
+            </h2>
             <Link className="btn sm ghost" href="/admin/orders#refunds" prefetch={false}>
-              Approve or record refunds
+              <T s={'Approve or record refunds'} />
             </Link>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Order</th>
-                  <th>Amount</th>
-                  <th>Kind</th>
-                  <th>Reason</th>
-                  <th>Status</th>
+                  <th>
+                    <T s={'Order'} />
+                  </th>
+                  <th>
+                    <T s={'Amount'} />
+                  </th>
+                  <th>
+                    <T s={'Kind'} />
+                  </th>
+                  <th>
+                    <T s={'Reason'} />
+                  </th>
+                  <th>
+                    <T s={'Status'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -320,7 +400,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                 ) : (
                   <tr>
                     <td colSpan={5} className="muted">
-                      No refunds.
+                      <T s={'No refunds.'} />
                     </td>
                   </tr>
                 )}
@@ -333,15 +413,17 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
       <div className="grid2">
         <section className="glass card">
           <div className="row" style={{ marginBottom: 8 }}>
-            <h2>Where the money is</h2>
+            <h2>
+              <T s={'Where the money is'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              From the ledger
+              <T s={'From the ledger'} />
             </span>
           </div>
           <div
             style={{ display: 'flex', height: 16, borderRadius: 999, overflow: 'hidden', margin: '10px 0 14px', background: '#E1EAEF' }}
             role="img"
-            aria-label={`Escrow ${share(escrow)}, owed to sellers ${share(owed)}, platform income ${share(revenue)}`}
+            aria-label={tx('Escrow {share}, owed to sellers {share2}, platform income {share22}', { share: share(escrow), share2: share(owed), share22: share(revenue) })}
           >
             <span style={{ width: share(escrow), background: '#9FC9E3' }} />
             <span style={{ width: share(owed), background: '#7FBFA9' }} />
@@ -349,9 +431,9 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
           </div>
           {(
             [
-              ['#9FC9E3', 'Held in escrow', escrow],
-              ['#7FBFA9', 'Owed to sellers', owed],
-              ['#B9B0E0', 'Platform income', revenue],
+              ['#9FC9E3', tx('Held in escrow'), escrow],
+              ['#7FBFA9', tx('Owed to sellers'), owed],
+              ['#B9B0E0', tx('Platform income'), revenue],
             ] as const
           ).map(([c, l, n]) => (
             <div key={l} className="li" style={{ fontSize: 14 }}>
@@ -362,29 +444,45 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
           ))}
         </section>
         <section className="glass card">
-          <h2>Audit</h2>
+          <h2>
+            <T s={'Audit'} />
+          </h2>
           <div className="li" style={{ fontSize: 14 }}>
-            <span style={{ flex: 1 }}>Ledger entries</span>
-            <span className="status st-ok">Keyed, never below zero</span>
+            <span style={{ flex: 1 }}>
+              <T s={'Ledger entries'} />
+            </span>
+            <span className="status st-ok">
+              <T s={'Keyed, never below zero'} />
+            </span>
           </div>
           <div className="li" style={{ fontSize: 14 }}>
-            <span style={{ flex: 1 }}>Last payment action</span>
-            <span className="muted">{lastPay ? `${when(lastPay.at)} · ${lastPay.action.replace(/_/g, ' ')}` : 'None yet'}</span>
+            <span style={{ flex: 1 }}>
+              <T s={'Last payment action'} />
+            </span>
+            <span className="muted">{lastPay ? `${when(lastPay.at)} · ${lastPay.action.replace(/_/g, ' ')}` : tx('None yet')}</span>
           </div>
           <div className="li" style={{ fontSize: 14 }}>
-            <span style={{ flex: 1 }}>Edits to posted entries</span>
-            <span className="muted">Not allowed · reverse instead</span>
+            <span style={{ flex: 1 }}>
+              <T s={'Edits to posted entries'} />
+            </span>
+            <span className="muted">
+              <T s={'Not allowed · reverse instead'} />
+            </span>
           </div>
           <div className="li" style={{ fontSize: 14 }}>
-            <span style={{ flex: 1 }}>Export for accountant</span>
+            <span style={{ flex: 1 }}>
+              <T s={'Export for accountant'} />
+            </span>
             <Link className="btn sm ghost" href="/admin/reports" prefetch={false}>
-              Sales PDF
+              <T s={'Sales PDF'} />
             </Link>
           </div>
           <div className="li" style={{ fontSize: 14 }}>
-            <span style={{ flex: 1 }}>Every payout, by week and method</span>
+            <span style={{ flex: 1 }}>
+              <T s={'Every payout, by week and method'} />
+            </span>
             <Link className="btn sm ghost" href="/admin/finance/payouts" prefetch={false}>
-              Open
+              <T s={'Open'} />
             </Link>
           </div>
         </section>

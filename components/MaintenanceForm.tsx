@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* One module's maintenance switch in the Maintenance Manager. The server checks and records everything; this only collects the choice. */
 const local = (ms: number | null) => {
   if (!ms) return '';
@@ -29,6 +31,7 @@ export function MaintenanceForm({
   max: number;
   othersClosed: number;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [on, setOn] = useState(enabled);
   const [text, setText] = useState(message);
@@ -41,7 +44,7 @@ export function MaintenanceForm({
     e.preventDefault();
     // A second question before a change that closes a lot at once, or the admin dashboard itself.
     if (on && !enabled) {
-      if (module === 'admin' && !confirm('Close the admin dashboard? Only this Maintenance Manager and the audit log stay open.')) return;
+      if (module === 'admin' && !confirm(tx('Close the admin dashboard? Only this Maintenance Manager and the audit log stay open.'))) return;
       if (othersClosed >= 4 && !confirm(`${othersClosed} other parts are already in maintenance. Close ${label} as well?`)) return;
     }
     setBusy(true);
@@ -53,8 +56,8 @@ export function MaintenanceForm({
     });
     const j = (await res.json().catch(() => ({}))) as { error?: string };
     setBusy(false);
-    if (!res.ok) return setMsg({ ok: false, text: j.error ?? 'Something went wrong.' });
-    setMsg({ ok: true, text: on ? 'Saved. This part is now in maintenance (or will be at the start time).' : 'Saved. This part is open again.' });
+    if (!res.ok) return setMsg({ ok: false, text: j.error ?? tx('Something went wrong.') });
+    setMsg({ ok: true, text: on ? tx('Saved. This part is now in maintenance (or will be at the start time).') : tx('Saved. This part is open again.') });
     router.refresh();
   }
 
@@ -63,25 +66,31 @@ export function MaintenanceForm({
     <form className="sob-mm-form" onSubmit={send}>
       <label className="sob-mm-switch" htmlFor={id('on')}>
         <input id={id('on')} type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} />
-        Under maintenance
+        <T s={'Under maintenance'} />
       </label>
-      <label htmlFor={id('msg')}>Message visitors see (empty = the standard words)</label>
+      <label htmlFor={id('msg')}>
+        <T s={'Message visitors see (empty = the standard words)'} />
+      </label>
       <textarea id={id('msg')} rows={2} maxLength={max} value={text} onChange={(e) => setText(e.target.value)} />
       <small className="muted">
         {text.length}/{max}
       </small>
       <div className="sob-mm-times">
         <span>
-          <label htmlFor={id('start')}>Start (optional, your time)</label>
+          <label htmlFor={id('start')}>
+            <T s={'Start (optional, your time)'} />
+          </label>
           <input id={id('start')} type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
         </span>
         <span>
-          <label htmlFor={id('end')}>End (optional; it opens again by itself)</label>
+          <label htmlFor={id('end')}>
+            <T s={'End (optional; it opens again by itself)'} />
+          </label>
           <input id={id('end')} type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
         </span>
       </div>
       <button className="btn sm" type="submit" disabled={busy}>
-        {busy ? 'Saving…' : 'Save'}
+        {busy ? tx('Saving…') : tx('Save')}
       </button>
       {msg && (
         <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>

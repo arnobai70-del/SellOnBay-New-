@@ -12,7 +12,9 @@ import { listMethods } from '@/lib/payments/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 import { SellerSection } from './SellerSection';
 
-export const metadata: Metadata = { title: 'Buyer subscriptions', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Buyer subscriptions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
@@ -25,6 +27,7 @@ const API = '/api/admin/buyer-subscriptions';
  * payments and subscriptions Finance or Super. Coupons are the ones in Admin › Marketing.
  */
 export default async function AdminSubscriptions({ searchParams }: { searchParams: Promise<{ edit?: string; status?: string; tab?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/subscriptions', roles: ['admin'], scope: ['finance', 'super'] });
   const sp = await searchParams;
   const now = Date.now();
@@ -38,13 +41,19 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
   const tab = sp.tab === 'seller' ? 'seller' : 'buyer';
   const methods = superAdmin ? await listMethods(true).catch(() => []) : [];
   return (
-    <AdminShell viewer={viewer} active="subscriptions" file="admin-finance" title="Subscription Management" subtitle="Buyer and seller subscriptions: switches, plans, prices, members and payments.">
-      <div className="seg" role="tablist" aria-label="Subscriptions" style={{ alignSelf: 'flex-start' }}>
+    <AdminShell
+      viewer={viewer}
+      active="subscriptions"
+      file="admin-finance"
+      title={tx('Subscription Management')}
+      subtitle={tx('Buyer and seller subscriptions: switches, plans, prices, members and payments.')}
+    >
+      <div className="seg" role="tablist" aria-label={tx('Subscriptions')} style={{ alignSelf: 'flex-start' }}>
         <Link role="tab" aria-selected={tab === 'buyer'} className={tab === 'buyer' ? 'on' : ''} href="/admin/subscriptions" prefetch={false}>
-          Buyer subscriptions
+          <T s={'Buyer subscriptions'} />
         </Link>
         <Link role="tab" aria-selected={tab === 'seller'} className={tab === 'seller' ? 'on' : ''} href="/admin/subscriptions?tab=seller" prefetch={false}>
-          Seller subscriptions
+          <T s={'Seller subscriptions'} />
         </Link>
       </div>
       {tab === 'seller' ? (
@@ -55,7 +64,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
             {[
               ['Active', String(report.active), 'running now'],
               ['Waiting', String(report.waiting), 'payment or review'],
-              ['Ending in 30 days', String(report.expiringSoon), 'reminders go out 14 days before'],
+              [tx('Ending in 30 days'), String(report.expiringSoon), 'reminders go out 14 days before'],
               ['Revenue', usd(report.revenueCents), `${report.newSales} new · ${report.renewals} renewals`],
               ['Expired', String(report.expired), 'licence and support ended'],
             ].map(([l, v, s]) => (
@@ -70,8 +79,10 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
           {superAdmin && (
             <section className="glass card">
               <div className="row" style={{ marginBottom: 8 }}>
-                <h2>Feature and pricing page</h2>
-                <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? 'Open' : 'Off'}</span>
+                <h2>
+                  <T s={'Feature and pricing page'} />
+                </h2>
+                <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? tx('Open') : tx('Off')}</span>
               </div>
               <SubSettingsForm
                 enabled={settings.enabled}
@@ -82,19 +93,25 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               />
               <div className="tag">
                 <Link href="/subscriptions" prefetch={false}>
-                  Open the pricing page
+                  <T s={'Open the pricing page'} />
                 </Link>{' '}
-                (admins see it even while it is off). Coupons for subscriptions are made in <Link href="/admin/marketing">Marketing</Link>.
+                <T s={'(admins see it even while it is off). Coupons for subscriptions are made in'} />{' '}
+                <Link href="/admin/marketing">
+                  <T s={'Marketing'} />
+                </Link>
+                .
               </div>
             </section>
           )}
 
           <section className="glass card">
             <div className="row" style={{ marginBottom: 8 }}>
-              <h2>Plans</h2>
+              <h2>
+                <T s={'Plans'} />
+              </h2>
               {superAdmin && (
                 <Link className="btn sm" href="/admin/subscriptions?edit=new#plan-editor" prefetch={false}>
-                  + New plan
+                  <T s={'+ New plan'} />
                 </Link>
               )}
             </div>
@@ -102,13 +119,29 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               <table>
                 <thead>
                   <tr>
-                    <th>Plan</th>
-                    <th>Price</th>
-                    <th>Renewal</th>
-                    <th>Websites</th>
-                    <th>Support</th>
-                    <th>State</th>
-                    {superAdmin && <th>Actions</th>}
+                    <th>
+                      <T s={'Plan'} />
+                    </th>
+                    <th>
+                      <T s={'Price'} />
+                    </th>
+                    <th>
+                      <T s={'Renewal'} />
+                    </th>
+                    <th>
+                      <T s={'Websites'} />
+                    </th>
+                    <th>
+                      <T s={'Support'} />
+                    </th>
+                    <th>
+                      <T s={'State'} />
+                    </th>
+                    {superAdmin && (
+                      <th>
+                        <T s={'Actions'} />
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -123,24 +156,26 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                       </td>
                       <td>{usd(p.renewalCents)}</td>
                       <td>{p.websiteLimit}</td>
-                      <td>{p.supportDays} days</td>
+                      <td>
+                        <T s={'{supportDays} days'} v={{ supportDays: p.supportDays }} />
+                      </td>
                       <td>
                         <span className={`status ${p.archivedAt ? 'st-draft' : p.active && p.visible ? 'st-ok' : 'st-wait'}`}>
-                          {p.archivedAt ? 'Archived' : !p.active ? 'Inactive' : !p.visible ? 'Hidden' : 'On sale'}
+                          {p.archivedAt ? tx('Archived') : !p.active ? tx('Inactive') : !p.visible ? tx('Hidden') : tx('On sale')}
                         </span>
                       </td>
                       {superAdmin && (
                         <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <Link className="btn sm ghost" href={`/admin/subscriptions?edit=${p.id}#plan-editor`} prefetch={false}>
-                            Edit
+                            <T s={'Edit'} />
                           </Link>
-                          <ActionButton endpoint={API} body={{ action: 'duplicatePlan', id: p.id }} label="Duplicate" tone="line" />
+                          <ActionButton endpoint={API} body={{ action: 'duplicatePlan', id: p.id }} label={tx('Duplicate')} tone="line" />
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'archivePlan', id: p.id, archived: !p.archivedAt }}
-                            label={p.archivedAt ? 'Restore' : 'Delete'}
+                            label={p.archivedAt ? tx('Restore') : tx('Delete')}
                             tone="line"
-                            confirm={p.archivedAt ? undefined : 'Delete this plan? It is archived: hidden and not for sale, and running subscriptions keep working.'}
+                            confirm={p.archivedAt ? undefined : tx('Delete this plan? It is archived: hidden and not for sale, and running subscriptions keep working.')}
                           />
                         </td>
                       )}
@@ -154,9 +189,9 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
           {superAdmin && sp.edit && (
             <section className="glass card" id="plan-editor">
               <div className="row" style={{ marginBottom: 8 }}>
-                <h2>{editing ? `Edit ${editing.name}` : 'New plan'}</h2>
+                <h2>{editing ? tx('Edit {name}', { name: editing.name }) : tx('New plan')}</h2>
                 <Link className="btn sm ghost" href="/admin/subscriptions" prefetch={false}>
-                  Close
+                  <T s={'Close'} />
                 </Link>
               </div>
               <PlanEditor key={editing?.id ?? 'new'} plan={editing ?? null} categories={categories} />
@@ -165,8 +200,10 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
 
           <section className="glass" style={{ padding: '8px 8px 4px' }}>
             <div className="row" style={{ padding: '14px 14px 4px', flexWrap: 'wrap', gap: 8 }}>
-              <h2>Subscriptions</h2>
-              <div className="seg" role="tablist" aria-label="Filter">
+              <h2>
+                <T s={'Subscriptions'} />
+              </h2>
+              <div className="seg" role="tablist" aria-label={tx('Filter')}>
                 {[['', 'All'], ...Object.entries(STATUS_LABEL)].map(([k, l]) => (
                   <Link
                     key={k || 'all'}
@@ -185,20 +222,34 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
               <table>
                 <thead>
                   <tr>
-                    <th>Buyer</th>
-                    <th>Plan</th>
-                    <th>Status</th>
-                    <th>Websites</th>
-                    <th>Ends</th>
-                    <th>Payment to check</th>
-                    <th>Actions</th>
+                    <th>
+                      <T s={'Buyer'} />
+                    </th>
+                    <th>
+                      <T s={'Plan'} />
+                    </th>
+                    <th>
+                      <T s={'Status'} />
+                    </th>
+                    <th>
+                      <T s={'Websites'} />
+                    </th>
+                    <th>
+                      <T s={'Ends'} />
+                    </th>
+                    <th>
+                      <T s={'Payment to check'} />
+                    </th>
+                    <th>
+                      <T s={'Actions'} />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {shown.length === 0 && (
                     <tr>
                       <td colSpan={7} className="muted">
-                        No subscriptions here yet.
+                        <T s={'No subscriptions here yet.'} />
                       </td>
                     </tr>
                   )}
@@ -220,31 +271,31 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                         {waiting.map((p) => (
                           <div key={p.id} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 }}>
                             <span className="tag" style={{ margin: 0 }}>
-                              {p.kind === 'new' ? 'New' : 'Renewal'} {usd(p.amountCents)} · {p.methodLabel || 'manual'} · {p.reference}
+                              {p.kind === 'new' ? tx('New') : tx('Renewal')} {usd(p.amountCents)} · {p.methodLabel || 'manual'} · {p.reference}
                               {p.paidOn ? ` · ${p.paidOn}` : ''}
                             </span>
-                            <ActionButton endpoint={API} body={{ action: 'payment', id: p.id, verified: true }} label="Verify" />
+                            <ActionButton endpoint={API} body={{ action: 'payment', id: p.id, verified: true }} label={tx('Verify')} />
                             <ActionButton
                               endpoint={API}
                               body={{ action: 'payment', id: p.id, verified: false }}
-                              label="Reject"
+                              label={tx('Reject')}
                               tone="line"
-                              confirm="Reject this payment? The buyer can send another reference."
+                              confirm={tx('Reject this payment? The buyer can send another reference.')}
                             />
                           </div>
                         ))}
                         {paid.map((p) => (
                           <div key={p.id} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 }}>
                             <span className="tag" style={{ margin: 0 }}>
-                              {p.kind === 'new' ? 'New' : 'Renewal'} {usd(p.amountCents)} · {p.refundedAt ? `refunded ${day(p.refundedAt)}` : 'verified'}
+                              {p.kind === 'new' ? tx('New') : tx('Renewal')} {usd(p.amountCents)} · {p.refundedAt ? `refunded ${day(p.refundedAt)}` : 'verified'}
                             </span>
                             {!p.refundedAt && (
                               <ActionButton
                                 endpoint={API}
                                 body={{ action: 'refund', id: p.id }}
-                                label="Record refund"
+                                label={tx('Record refund')}
                                 tone="line"
-                                note={{ label: 'Refund reason (after you refunded by hand; kept in the history)', required: true }}
+                                note={{ label: tx('Refund reason (after you refunded by hand; kept in the history)'), required: true }}
                               />
                             )}
                           </div>
@@ -257,22 +308,28 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                             key={to}
                             endpoint={API}
                             body={{ action: 'move', id: sub.id, to }}
-                            label={to === 'active' ? (sub.startsAt ? 'Reactivate' : 'Approve') : to === 'suspended' ? 'Suspend' : to === 'cancelled' ? 'Cancel' : 'Reject'}
+                            label={to === 'active' ? (sub.startsAt ? tx('Reactivate') : tx('Approve')) : to === 'suspended' ? tx('Suspend') : to === 'cancelled' ? tx('Cancel') : tx('Reject')}
                             tone={to === 'active' ? 'blue' : 'line'}
-                            note={to === 'active' ? undefined : { label: 'Reason (kept in the history)', required: true }}
+                            note={to === 'active' ? undefined : { label: tx('Reason (kept in the history)'), required: true }}
                           />
                         ))}
                         {sub.status !== 'cancelled' && paid.some((p) => !p.refundedAt) && (
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'cancelRefund', id: sub.id }}
-                            label="Cancel with refund"
+                            label={tx('Cancel with refund')}
                             tone="line"
-                            note={{ label: 'Reason (after you refunded the latest payment by hand)', required: true }}
+                            note={{ label: tx('Reason (after you refunded the latest payment by hand)'), required: true }}
                           />
                         )}
                         {sub.expiresAt && (
-                          <ActionButton endpoint={API} body={{ action: 'extend', id: sub.id }} label="Extend" tone="line" note={{ label: 'Days to add (1 to 3650)', required: true, rows: 1 }} />
+                          <ActionButton
+                            endpoint={API}
+                            body={{ action: 'extend', id: sub.id }}
+                            label={tx('Extend')}
+                            tone="line"
+                            note={{ label: tx('Days to add (1 to 3650)'), required: true, rows: 1 }}
+                          />
                         )}
                       </td>
                     </tr>
@@ -282,8 +339,15 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
             </div>
           </section>
           <div className="tag">
-            Expiry ends the licence and free support only: buyers&apos; websites keep running and their downloaded files stay theirs. Each chosen website is a $0 order, so its files, downloads and
-            support use the normal order tools (<Link href="/admin/support">Disputes &amp; support</Link>).
+            <T
+              s={
+                "Expiry ends the licence and free support only: buyers' websites keep running and their downloaded files stay theirs. Each chosen website is a $0 order, so its files, downloads and support use the normal order tools ("
+              }
+            />
+            <Link href="/admin/support">
+              <T s={'Disputes & support'} />
+            </Link>
+            ).
           </div>
         </>
       )}

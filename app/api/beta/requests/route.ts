@@ -8,6 +8,8 @@ import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -32,13 +34,13 @@ export async function POST(req: Request) {
     const {
       data: { user },
     } = await sb.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+    if (!user) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
     const { data: p } = await sb.from('profiles').select('role, banned, suspended_until').eq('id', user.id).single();
-    if (!p || p.banned || (p.suspended_until && Date.parse(p.suspended_until) > Date.now())) return NextResponse.json({ error: 'This account cannot make requests.' }, { status: 403 });
-    if (!mayBuy(p.role)) return NextResponse.json({ error: BUYERS_ONLY }, { status: 403 });
+    if (!p || p.banned || (p.suspended_until && Date.parse(p.suspended_until) > Date.now())) return jsonT({ error: tx('This account cannot make requests.') }, { status: 403 });
+    if (!mayBuy(p.role)) return jsonT({ error: BUYERS_ONLY }, { status: 403 });
     buyerId = user.id;
   }
-  if (!(await limit(`beta:${buyerId}`, 10, 3_600_000))) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  if (!(await limit(`beta:${buyerId}`, 10, 3_600_000))) return jsonT({ error: tx('Too many requests. Please try again later.') }, { status: 429 });
   const { ids, ...form } = body.data;
   const orders: string[] = [];
   const problems: string[] = [];
@@ -47,6 +49,6 @@ export async function POST(req: Request) {
     if (r.ok) orders.push(r.value.id);
     else problems.push(r.error);
   }
-  if (!orders.length) return NextResponse.json({ error: problems[0] ?? 'Could not make the request.' }, { status: 409 });
+  if (!orders.length) return jsonT({ error: problems[0] ?? 'Could not make the request.' }, { status: 409 });
   return NextResponse.json({ orders, problems });
 }

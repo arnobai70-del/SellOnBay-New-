@@ -476,6 +476,11 @@
 }
 
 /* Phones, second pass (owner, 2026-11-10: measured at 360px). */
+/* the short form of a label, shown only where .sob-hide-sm hides the long one (i18n: a whole phrase per language, never an English suffix) */
+:is(.sob-p, .sob-d)[data-sob] .sob-show-sm {
+  display: none;
+}
+
 @media (max-width: 760px) {
   .sob-p[data-sob] .nav .logo {
     font-size: 16px;
@@ -487,6 +492,9 @@
   }
   :is(.sob-p, .sob-d)[data-sob] .sob-hide-sm {
     display: none;
+  }
+  :is(.sob-p, .sob-d)[data-sob] .sob-show-sm {
+    display: inline;
   }
   .sob-p[data-sob] .search-glow {
     padding: 6px 6px 6px 16px !important;

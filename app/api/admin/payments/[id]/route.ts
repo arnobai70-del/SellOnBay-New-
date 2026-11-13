@@ -6,6 +6,7 @@ import { reconcile, rejectPayment } from '@/lib/payments/service';
 import { receivedAtOf } from '@/lib/payments/rules';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.union([
@@ -26,13 +27,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     if (d.action === 'reject') {
       const r = await rejectPayment(a.id, id, d.reason);
-      return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+      return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
     }
     const receivedAt = receivedAtOf(d.receivedOn, Date.now());
     const r = await reconcile(a.id, id, { amountReceivedCents: Math.round(d.amountReceived * 100), statementRef: d.statementRef, receivedAt, note: d.note });
-    return r.ok ? NextResponse.json({ ok: true, funded: r.value.funded, short: r.value.shortCents, excess: r.value.excessCents }) : NextResponse.json({ error: r.error }, { status: r.status });
+    return r.ok ? NextResponse.json({ ok: true, funded: r.value.funded, short: r.value.shortCents, excess: r.value.excessCents }) : jsonT({ error: r.error }, { status: r.status });
   } catch (e) {
-    if (e instanceof AuditError) return NextResponse.json({ error: e.message }, { status: 503 });
+    if (e instanceof AuditError) return jsonT({ error: e.message }, { status: 503 });
     throw e;
   }
 }

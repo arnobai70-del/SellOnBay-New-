@@ -13,15 +13,24 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createAdminClient } from '@/lib/supabase/server';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Listing review', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Listing review'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const STATUS: Record<string, [string, string]> = { live: ['Live', 'st-ok'], in_review: ['In review', 'st-info'], rejected: ['Changes requested', 'st-bad'], paused: ['Paused', 'st-draft'] };
-const TABS = [
-  ['waiting', 'Waiting'],
-  ['changes', 'Changes requested'],
-  ['approved', 'Recently approved'],
-] as const;
+const STATUS = (tx: Tx): Record<string, [string, string]> => ({
+  live: ['Live', 'st-ok'],
+  in_review: [tx('In review'), 'st-info'],
+  rejected: [tx('Changes requested'), 'st-bad'],
+  paused: ['Paused', 'st-draft'],
+});
+const TABS = (tx: Tx) =>
+  [
+    ['waiting', tx('Waiting')],
+    ['changes', tx('Changes requested')],
+    ['approved', tx('Recently approved')],
+  ] as const;
 const FILTERS = ['', 'in_review', 'live', 'paused', 'rejected'];
 const ago = (t: number, now: number) => {
   const h = Math.round((now - t) / 3_600_000);
@@ -31,14 +40,14 @@ const ago = (t: number, now: number) => {
 const TINT = ['#D3EEE4', '#E1E2F6', '#DDEAF6', '#F1E8DD'];
 
 /* What the design's checklist checks, from the listing's own facts. */
-function checks(l: QueueListing): [ok: boolean, text: string][] {
+function checks(l: QueueListing, tx: Tx): [ok: boolean, text: string][] {
   return [
-    [!!l.demoUrl, l.demoUrl ? 'Live demo link given' : 'No live demo link'],
-    [!!l.codeUrl, l.codeUrl ? 'Files link given' : 'No files link'],
+    [!!l.demoUrl, l.demoUrl ? tx('Live demo link given') : tx('No live demo link')],
+    [!!l.codeUrl, l.codeUrl ? tx('Files link given') : tx('No files link')],
     [l.includes.length >= 4, `${l.includes.length} included items listed`],
-    [l.description.trim().length >= 80, 'Clear description'],
-    [l.priceCents >= CONFIG.sale.priceMinCents, `Price at least $${CONFIG.sale.priceMinCents / 100}`],
-    [!!l.licence, l.licence ? 'Licence type set' : 'No licence type'],
+    [l.description.trim().length >= 80, tx('Clear description')],
+    [l.priceCents >= CONFIG.sale.priceMinCents, tx('Price at least ${v0}', { v0: CONFIG.sale.priceMinCents / 100 })],
+    [!!l.licence, l.licence ? tx('Licence type set') : tx('No licence type')],
   ];
 }
 
@@ -47,9 +56,10 @@ function checks(l: QueueListing): [ok: boolean, text: string][] {
  * tick), then every listing with its sale and price history (owner, 2026-11-08). No file is scanned: open the files in a sandbox before approving.
  */
 export default async function AdminListings({ searchParams }: { searchParams: Promise<{ tab?: string; status?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/listings', roles: ['admin'], scope: 'catalog' });
   const sp = await searchParams;
-  const tab = TABS.find(([k]) => k === sp.tab)?.[0] ?? 'waiting';
+  const tab = TABS(tx).find(([k]) => k === sp.tab)?.[0] ?? 'waiting';
   const status = FILTERS.includes(sp.status ?? '') ? (sp.status ?? '') : '';
   const now = Date.now();
   const [queue, all, rows, log, { data: idRows }] = await Promise.all([
@@ -68,14 +78,18 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
   const recentlyApproved = [...new Set(log.filter((a) => a.action === 'listing_approve').map((a) => a.targetRef))].map((slug) => all.find((l) => l.slug === slug)).filter((l) => !!l);
   const oldest = queue.length ? Math.min(...queue.map((l) => l.createdAt)) : null;
   return (
-    <AdminShell viewer={viewer} active="listings" file="admin-listings" title="Listing review" head={false}>
+    <AdminShell viewer={viewer} active="listings" file="admin-listings" title={tx('Listing review')} head={false}>
       <div className="row">
         <div>
-          <h1>Listing review</h1>
-          <div className="tag">Check every website before buyers can see it. Files are not scanned: open them in a sandbox before you approve.</div>
+          <h1>
+            <T s={'Listing review'} />
+          </h1>
+          <div className="tag">
+            <T s={'Check every website before buyers can see it. Files are not scanned: open them in a sandbox before you approve.'} />
+          </div>
         </div>
-        <div className="seg" role="tablist" aria-label="Queue">
-          {TABS.map(([k, l]) => (
+        <div className="seg" role="tablist" aria-label={tx('Queue')}>
+          {TABS(tx).map(([k, l]) => (
             <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={k === 'waiting' ? '/admin/listings' : `/admin/listings?tab=${k}`} prefetch={false}>
               {l}
             </Link>
@@ -84,24 +98,38 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">Waiting for review</div>
+          <div className="l">
+            <T s={'Waiting for review'} />
+          </div>
           <div className="v">{queue.length}</div>
-          <div className="s">{oldest ? `Oldest ${ago(oldest, now).replace(' ago', '')}` : 'None waiting'}</div>
+          <div className="s">{oldest ? tx('Oldest {v0}', { v0: ago(oldest, now).replace(' ago', '') }) : tx('None waiting')}</div>
         </div>
         <div className="glass kpi">
-          <div className="l">Approved this week</div>
+          <div className="l">
+            <T s={'Approved this week'} />
+          </div>
           <div className="v">{approvedWeek.length}</div>
-          <div className="s">From the audit log</div>
+          <div className="s">
+            <T s={'From the audit log'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Changes requested</div>
+          <div className="l">
+            <T s={'Changes requested'} />
+          </div>
           <div className="v">{changes.length}</div>
-          <div className="s">Waiting on seller</div>
+          <div className="s">
+            <T s={'Waiting on seller'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Live websites</div>
+          <div className="l">
+            <T s={'Live websites'} />
+          </div>
           <div className="v">{live.length}</div>
-          <div className="s">{sales.size} on sale now</div>
+          <div className="s">
+            <T s={'{size} on sale now'} v={{ size: sales.size }} />
+          </div>
         </div>
       </div>
 
@@ -123,17 +151,21 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                   <div>
                     <h2>{plainWords(l.name)}</h2>
                     <div className="tag">
-                      by {l.seller} · {l.category} · {l.platform} · {usd(l.priceCents)} · submitted {ago(l.createdAt, now)}
-                      {l.hasTrial ? ' · has a trial copy' : ''}
+                      <T
+                        s={'by {seller} · {category} · {platform} · {v3} · submitted {v4}{v5}'}
+                        v={{ seller: l.seller, category: l.category, platform: l.platform, v3: usd(l.priceCents), v4: ago(l.createdAt, now), v5: l.hasTrial ? ' · has a trial copy' : '' }}
+                      />
                     </div>
                   </div>
-                  <span className="status st-info">In review</span>
+                  <span className="status st-info">
+                    <T s={'In review'} />
+                  </span>
                 </div>
                 <p className="muted" style={{ margin: '10px 0 0', fontSize: 14, lineHeight: 1.6 }}>
                   {l.description}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px, 100%),1fr))', gap: 8, marginTop: 14 }}>
-                  {checks(l).map(([ok, text]) => (
+                  {checks(l, tx).map(([ok, text]) => (
                     <div key={text} className="ck">
                       <i style={{ background: ok ? '#3F8F77' : '#C2553F' }} aria-hidden="true">
                         {ok ? '✓' : '!'}
@@ -142,57 +174,65 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                     </div>
                   ))}
                 </div>
-                {l.includes.length > 0 && <div className="tag">Includes: {l.includes.join(' · ')}</div>}
-                {l.thirdParty.length > 0 && <div className="tag">Third-party code: {l.thirdParty.map((t) => `${t.name} (${t.licence})`).join(', ')}</div>}
+                {l.includes.length > 0 && (
+                  <div className="tag">
+                    <T s={'Includes: {v0}'} v={{ v0: l.includes.join(' · ') }} />
+                  </div>
+                )}
+                {l.thirdParty.length > 0 && (
+                  <div className="tag">
+                    <T s={'Third-party code:'} /> {l.thirdParty.map((t) => `${t.name} (${t.licence})`).join(', ')}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16, alignItems: 'flex-start' }}>
                   {l.demoUrl && (
                     <a className="btn sm ghost" href={l.demoUrl} target="_blank" rel="noopener noreferrer nofollow">
-                      Open live demo
+                      <T s={'Open live demo'} />
                     </a>
                   )}
                   {l.codeUrl && (
                     <a className="btn sm ghost" href={l.codeUrl} target="_blank" rel="noopener noreferrer nofollow">
-                      Files (private link)
+                      <T s={'Files (private link)'} />
                     </a>
                   )}
                   {l.sampleUrl && (
                     <a className="btn sm ghost" href={l.sampleUrl} target="_blank" rel="noopener noreferrer nofollow">
-                      Free sample
+                      <T s={'Free sample'} />
                     </a>
                   )}
                   <AdminForm
                     endpoint={`/api/admin/listings/${l.slug}/decide`}
                     fixed={{ decision: 'approve' }}
                     fields={[
-                      { name: 'note', label: 'Note for the seller (optional)', kind: 'textarea' },
-                      ...(l.digital ? [{ name: 'filesChecked', label: 'I opened the files in a sandbox and they are clean (needed for a digital product)', kind: 'checkbox' as const }] : []),
+                      { name: 'note', label: tx('Note for the seller (optional)'), kind: 'textarea' },
+                      ...(l.digital ? [{ name: 'filesChecked', label: tx('I opened the files in a sandbox and they are clean (needed for a digital product)'), kind: 'checkbox' as const }] : []),
                     ]}
-                    submit="Approve and publish"
-                    openLabel="Approve"
+                    submit={tx('Approve and publish')}
+                    openLabel={tx('Approve')}
                     tone="blue"
                   />
                   <AdminForm
                     endpoint={`/api/admin/listings/${l.slug}/decide`}
                     fixed={{ decision: 'changes' }}
-                    fields={[{ name: 'note', label: 'What should the seller change? (at least 5 characters)', kind: 'textarea', required: true }]}
-                    submit="Send back"
-                    openLabel="Request changes"
+                    fields={[{ name: 'note', label: tx('What should the seller change? (at least 5 characters)'), kind: 'textarea', required: true }]}
+                    submit={tx('Send back')}
+                    openLabel={tx('Request changes')}
                     tone="line"
                   />
                   <AdminForm
                     endpoint={`/api/admin/listings/${l.slug}/decide`}
                     fixed={{ decision: 'reject' }}
-                    fields={[{ name: 'note', label: 'Why is it declined? The seller reads this (at least 5 characters)', kind: 'textarea', required: true }]}
-                    submit="Decline"
-                    openLabel="Reject"
+                    fields={[{ name: 'note', label: tx('Why is it declined? The seller reads this (at least 5 characters)'), kind: 'textarea', required: true }]}
+                    submit={tx('Decline')}
+                    openLabel={tx('Reject')}
                     tone="line"
                   />
                   <span style={{ flex: 1 }} />
                   <Link className="btn sm ghost" href={`/admin/seo/product?slug=${encodeURIComponent(l.slug)}`} prefetch={false}>
-                    Edit the whole listing
+                    <T s={'Edit the whole listing'} />
                   </Link>
                   <Link className="chk" style={{ minHeight: 0 }} href="/admin/seo/categories" prefetch={false}>
-                    Feature on home
+                    <T s={'Feature on home'} />
                   </Link>
                 </div>
               </div>
@@ -201,29 +241,29 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
         ) : (
           <section className="glass card">
             <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-              Nothing is waiting for review.
+              <T s={'Nothing is waiting for review.'} />
             </p>
           </section>
         ))}
 
       {tab !== 'waiting' && (
         <section className="glass card">
-          <h2>{tab === 'changes' ? 'Sent back or declined' : 'Recently approved'}</h2>
+          <h2>{tab === 'changes' ? tx('Sent back or declined') : tx('Recently approved')}</h2>
           {(tab === 'changes' ? changes : recentlyApproved).length ? (
             (tab === 'changes' ? changes : recentlyApproved).slice(0, 50).map((l) => (
               <div key={l.slug} className="li">
-                <span className={`status ${STATUS[l.status]?.[1] ?? 'st-draft'}`}>{STATUS[l.status]?.[0] ?? l.status}</span>
+                <span className={`status ${STATUS(tx)[l.status]?.[1] ?? 'st-draft'}`}>{STATUS(tx)[l.status]?.[0] ?? l.status}</span>
                 <div style={{ flex: 1, minWidth: 0, fontSize: 14 }}>
                   {plainWords(l.name)} <span className="muted">· {l.seller}</span>
                 </div>
                 <Link className="btn sm ghost" href={`/admin/seo/product?slug=${encodeURIComponent(l.slug)}`} prefetch={false}>
-                  Edit
+                  <T s={'Edit'} />
                 </Link>
               </div>
             ))
           ) : (
             <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
-              None.
+              <T s={'None.'} />
             </p>
           )}
         </section>
@@ -231,8 +271,10 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
 
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
         <div className="row" style={{ padding: '14px 14px 8px' }}>
-          <h2>All listings</h2>
-          <div className="seg" role="tablist" aria-label="Listing status">
+          <h2>
+            <T s={'All listings'} />
+          </h2>
+          <div className="seg" role="tablist" aria-label={tx('Listing status')}>
             {FILTERS.map((f) => (
               <Link
                 key={f || 'all'}
@@ -242,7 +284,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                 href={f ? `/admin/listings?tab=${tab}&status=${f}` : `/admin/listings?tab=${tab}`}
                 prefetch={false}
               >
-                {f ? (STATUS[f]?.[0] ?? f) : 'All'}
+                {f ? (STATUS(tx)[f]?.[0] ?? f) : tx('All')}
               </Link>
             ))}
           </div>
@@ -251,20 +293,34 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
           <table>
             <thead>
               <tr>
-                <th>Website</th>
-                <th>Seller</th>
-                <th>Price</th>
-                <th>Added</th>
-                <th>Sale</th>
-                <th>Price history</th>
-                <th>Status</th>
+                <th>
+                  <T s={'Website'} />
+                </th>
+                <th>
+                  <T s={'Seller'} />
+                </th>
+                <th>
+                  <T s={'Price'} />
+                </th>
+                <th>
+                  <T s={'Added'} />
+                </th>
+                <th>
+                  <T s={'Sale'} />
+                </th>
+                <th>
+                  <T s={'Price history'} />
+                </th>
+                <th>
+                  <T s={'Status'} />
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.length ? (
                 rows.map((l) => {
                   const h = historyOfSlug(l.slug);
-                  const [label, tone] = STATUS[l.status] ?? [l.status, 'st-draft'];
+                  const [label, tone] = STATUS(tx)[l.status] ?? [l.status, 'st-draft'];
                   return (
                     <tr key={l.slug}>
                       <td style={{ fontWeight: 500 }}>
@@ -281,11 +337,12 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                       <td>
                         {h.length ? (
                           <details>
-                            <summary>{h.length} prices</summary>
+                            <summary>
+                              <T s={'{length} prices'} v={{ length: h.length }} />
+                            </summary>
                             {[...h].reverse().map((x) => (
                               <div key={x.from} className="tag">
-                                {usd(x.priceCents)} from {shortDate(x.from)}
-                                {x.to ? ` to ${shortDate(x.to)}` : ' (now)'}
+                                <T s={'{v0} from {v1}{v2}'} v={{ v0: usd(x.priceCents), v1: shortDate(x.from), v2: x.to ? ` to ${shortDate(x.to)}` : ' (now)' }} />
                               </div>
                             ))}
                           </details>
@@ -302,7 +359,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
               ) : (
                 <tr>
                   <td colSpan={7} className="muted">
-                    No listings.
+                    <T s={'No listings.'} />
                   </td>
                 </tr>
               )}
@@ -312,21 +369,23 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
       </section>
       <section className="glass card">
         <div className="row">
-          <h2>More listing tools</h2>
+          <h2>
+            <T s={'More listing tools'} />
+          </h2>
         </div>
         {(
           [
-            ['/admin/listings/all', 'Every listing with its edit link'],
-            ['/admin/listings/files', 'Source files waiting for a check'],
-            ['/admin/listings/versions', 'New versions of live listings'],
-            ['/admin/listings/repo', 'Repository access deliveries'],
-            ['/admin/seo/categories', 'Featured listings per category'],
+            ['/admin/listings/all', tx('Every listing with its edit link')],
+            ['/admin/listings/files', tx('Source files waiting for a check')],
+            ['/admin/listings/versions', tx('New versions of live listings')],
+            ['/admin/listings/repo', tx('Repository access deliveries')],
+            ['/admin/seo/categories', tx('Featured listings per category')],
           ] as const
         ).map(([href, text]) => (
           <div key={href} className="li" style={{ fontSize: 14 }}>
             <span style={{ flex: 1 }}>{text}</span>
             <Link className="btn sm ghost" href={href} prefetch={false}>
-              Open
+              <T s={'Open'} />
             </Link>
           </div>
         ))}

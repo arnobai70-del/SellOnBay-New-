@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
 import { MARKET_MENU, menuLinks } from '../marketMenu';
@@ -46,9 +47,9 @@ export const allowedOrigin = (origin: string) => {
 };
 
 export async function runLinkCheck(adminId: string | null, origin: string): Promise<{ ok: true; report: LinkReport } | { ok: false; status: number; error: string }> {
-  if (!allowedOrigin(origin)) return { ok: false, status: 400, error: 'The check can only call this site.' };
+  if (!allowedOrigin(origin)) return { ok: false, status: 400, error: tx('The check can only call this site.') };
   const prev = await lastLinkReport();
-  if (prev && Date.now() - prev.at < 30_000) return { ok: false, status: 429, error: 'The check ran a moment ago. Wait 30 seconds.' };
+  if (prev && Date.now() - prev.at < 30_000) return { ok: false, status: 429, error: tx('The check ran a moment ago. Wait 30 seconds.') };
   const list = await addressesToCheck();
   const results: LinkResult[] = [];
   let next = 0;

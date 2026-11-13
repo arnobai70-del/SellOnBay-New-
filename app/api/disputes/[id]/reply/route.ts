@@ -6,6 +6,8 @@ import { getOrder } from '@/lib/orders/service';
 import { createClient } from '@/lib/supabase/server';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({ text: z.string().max(2500) });
@@ -19,14 +21,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const {
     data: { user },
   } = await sb.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+  if (!user) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (!passedCode(aal)) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
+  if (!passedCode(aal)) return jsonT({ error: tx('Enter your authenticator code first.') }, { status: 403 });
   const d = await getDispute(id);
   const o = d ? await getOrder(d.orderId) : null;
-  if (!d || !o || o.sellerId !== user.id) return NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });
+  if (!d || !o || o.sellerId !== user.id) return jsonT({ error: tx('Dispute not found.') }, { status: 404 });
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await sellerReply(id, user.id, body.data.text);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

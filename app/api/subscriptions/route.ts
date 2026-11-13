@@ -7,6 +7,8 @@ import { limit } from '@/lib/rateLimit';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.discriminatedUnion('action', [
@@ -34,13 +36,13 @@ export async function POST(req: Request) {
     const {
       data: { user },
     } = await sb.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+    if (!user) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
     const { data: p } = await sb.from('profiles').select('role, banned, suspended_until').eq('id', user.id).single();
-    if (!p || p.banned || (p.suspended_until && Date.parse(p.suspended_until) > Date.now())) return NextResponse.json({ error: 'This account cannot do this.' }, { status: 403 });
-    if (!mayBuy(p.role)) return NextResponse.json({ error: BUYERS_ONLY }, { status: 403 });
+    if (!p || p.banned || (p.suspended_until && Date.parse(p.suspended_until) > Date.now())) return jsonT({ error: tx('This account cannot do this.') }, { status: 403 });
+    if (!mayBuy(p.role)) return jsonT({ error: BUYERS_ONLY }, { status: 403 });
     buyerId = user.id;
   }
-  if (!(await limit(`subs:${buyerId}`, 30, 3_600_000))) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  if (!(await limit(`subs:${buyerId}`, 30, 3_600_000))) return jsonT({ error: tx('Too many requests. Please try again later.') }, { status: 429 });
   const b = body.data;
   const r =
     b.action === 'subscribe'
@@ -48,5 +50,5 @@ export async function POST(req: Request) {
       : b.action === 'pay'
         ? await submitPayment(buyerId, b.subscriptionId, { kind: b.kind, methodLabel: b.method, reference: b.reference, paidOn: b.paidOn })
         : await pickWebsite(buyerId, b.subscriptionId, b.productKey);
-  return r.ok ? NextResponse.json({ ok: true, value: r.value }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, value: r.value }) : jsonT({ error: r.error }, { status: r.status });
 }

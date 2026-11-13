@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { blockEmail, blockKey } from '@/lib/guard';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z
@@ -28,5 +29,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const { kind, key, email, reason } = body.data;
   const r = kind === 'email' ? await blockEmail(a.id, email!, reason) : await blockKey(a.id, kind, key!, reason);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

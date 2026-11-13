@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { MarkRead } from '@/components/MarkRead';
 import type { Notification } from '@/lib/notify';
 
+import { T } from '@/components/i18n/T';
 /* The groups of the design's filter (design-reference/buyer-notifications.html, seller-notifications.html), by notification kind. */
 export const GROUPS = { all: 'All', orders: 'Orders', websites: 'Websites', domains: 'Domains', payouts: 'Payouts', support: 'Support' } as const;
 export type Group = keyof typeof GROUPS;
@@ -55,8 +56,12 @@ export function NotificationsList({
     <>
       <div className="row">
         <div>
-          <h1>Notifications</h1>
-          <div className="tag">{unread} unread</div>
+          <h1>
+            <T s={'Notifications'} />
+          </h1>
+          <div className="tag">
+            <T s={'{unread} unread'} v={{ unread }} />
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="seg" role="tablist" aria-label="Type">
@@ -100,7 +105,7 @@ export function NotificationsList({
           })
         ) : (
           <p className="muted" style={{ margin: 10, fontSize: 14 }}>
-            Nothing here yet. Order updates, reminders and answers from us show up here.
+            <T s={'Nothing here yet. Order updates, reminders and answers from us show up here.'} />
           </p>
         )}
       </section>

@@ -5,9 +5,10 @@ import { GlassPage } from '@/components/glass/GlassPage';
 import { PreviewShell } from '@/components/PreviewShell';
 import { visibleProduct } from '@/lib/catalog';
 
+import { getI18n } from '@/lib/i18n/server';
 type Props = { params: Promise<{ id: string }> };
 
-export const metadata: Metadata = { title: 'Preview', robots: { index: false, follow: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Preview'), robots: { index: false, follow: false } });
 
 export default async function Preview({ params }: Props) {
   const { id } = await params;

@@ -3,6 +3,8 @@ import { limit } from '@/lib/rateLimit';
 import { exportData, logExport } from '@/lib/privacy';
 import { getViewerId, staffNeedsCode } from '@/lib/supabase/viewer';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -11,9 +13,9 @@ export async function GET() {
   const closed = await maintenanceFor('auth'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const id = await getViewerId();
-  if (!id) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
-  if (await staffNeedsCode()) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
-  if (!(await limit(`export:${id}`, 3, 24 * 3_600_000))) return NextResponse.json({ error: 'You already downloaded your data a few times today. Try again tomorrow.' }, { status: 429 });
+  if (!id) return jsonT({ error: tx('Sign in first.') }, { status: 401 });
+  if (await staffNeedsCode()) return jsonT({ error: tx('Enter your authenticator code first.') }, { status: 403 });
+  if (!(await limit(`export:${id}`, 3, 24 * 3_600_000))) return jsonT({ error: tx('You already downloaded your data a few times today. Try again tomorrow.') }, { status: 429 });
   const data = await exportData(id);
   await logExport(id);
   return new NextResponse(JSON.stringify(data, null, 2), {

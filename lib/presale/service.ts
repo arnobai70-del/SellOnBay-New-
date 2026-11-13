@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { supabaseConfigured } from '../supabase/env';
 import { createAdminClient } from '../supabase/server';
 import { limit } from '../rateLimit';
@@ -37,8 +38,8 @@ export type AskResult = { ok: true; id: string } | { ok: false; status: number; 
 
 /* The cheap checks that need no database: rate limits per person and per address. */
 export async function burstLimit(userId: string, ip: string): Promise<AskResult | null> {
-  if (!(await limit(`ask-user:${userId}`, ...LIMITS.perUserBurst))) return { ok: false, status: 429, error: 'You are asking too fast. Wait a few minutes and try again.' };
-  if (!(await limit(`ask-ip:${ip}`, ...LIMITS.perIpBurst))) return { ok: false, status: 429, error: 'Too many questions from this connection. Try again later.' };
+  if (!(await limit(`ask-user:${userId}`, ...LIMITS.perUserBurst))) return { ok: false, status: 429, error: tx('You are asking too fast. Wait a few minutes and try again.') };
+  if (!(await limit(`ask-ip:${ip}`, ...LIMITS.perIpBurst))) return { ok: false, status: 429, error: tx('Too many questions from this connection. Try again later.') };
   return null;
 }
 

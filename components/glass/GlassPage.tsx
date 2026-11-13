@@ -1,18 +1,21 @@
-import '@/app/sob.css';
-import '@/app/sob-extra.css';
-import '@/app/sob-parts.css';
-import { CookieNotice } from '@/components/CookieNotice';
-import { inter } from './font';
+import { getI18n } from '@/lib/i18n/server';
+import { localizedPath } from '@/lib/i18n/config';
+import { GlassFrame } from './GlassFrame';
 
-/*
- * The root of every page on the design (design-reference/, app/sob.css): the scope of its group (`p` public, `d` dashboards), the design file it
- * is ported from (its own rules and keyframes) and the drifting background (.page). The design file's <body> becomes this element.
- */
-export function GlassPage({ kind = 'p', file, children }: { kind?: 'p' | 'd'; file: string; children: React.ReactNode }) {
+/* GlassFrame with the cookie notice in the page's language (lib/i18n). Error pages use GlassFrame directly. */
+export async function GlassPage({ kind = 'p', file, children }: { kind?: 'p' | 'd'; file: string; children: React.ReactNode }) {
+  const i = await getI18n();
+  const cookieWords = {
+    region: i.t('cookie.region'),
+    text: i.t('cookie.text'),
+    more: i.t('cookie.more'),
+    needed: i.t('cookie.needed'),
+    all: i.t('cookie.all'),
+    link: `${localizedPath('/legal/privacy', i.lang)}#cookies`,
+  };
   return (
-    <div className={`sob-${kind} ${inter.variable}`} data-sob={file}>
-      <div className="page">{children}</div>
-      <CookieNotice />
-    </div>
+    <GlassFrame kind={kind} file={file} cookieWords={cookieWords}>
+      {children}
+    </GlassFrame>
   );
 }

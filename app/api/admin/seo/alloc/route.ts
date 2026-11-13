@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { setAssignment, setHubLimit, setHubSlug } from '@/lib/seo/hubStore';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.union([
@@ -22,5 +23,5 @@ export async function POST(req: Request) {
   if (!body.ok) return body.res;
   const d = body.data;
   const r = 'productId' in d ? await setAssignment(a.id, d.productId, d.to) : 'slug' in d ? await setHubSlug(a.id, d.hub, d.slug) : await setHubLimit(a.id, d.hub, d.limit);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

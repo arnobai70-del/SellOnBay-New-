@@ -171,7 +171,7 @@ skipRetired('orders.spec.ts');
 const env = realEnv;
 
 test.describe('orders on the real database', () => {
-  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
+  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs the staging keys (never .env.local, which is production)');
   const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321', env.SUPABASE_SERVICE_ROLE_KEY || 'unset', { auth: { persistSession: false } });
   const made: string[] = [];
   let ready = false;

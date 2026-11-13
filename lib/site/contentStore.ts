@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { recordRevision } from '../cms/history';
 import { revalidatePath } from 'next/cache';
 import { audit } from '../admin/audit';
@@ -42,13 +43,13 @@ async function write(adminId: string | null, key: string, value: unknown | null,
   cache.delete(key);
   const before = await read(key, 0);
   const blank = (x: unknown) => x === null || (Array.isArray(x) && x.length === 0); // a reset row holds []
-  if (JSON.stringify(before) === JSON.stringify(value) || (blank(before) && blank(value))) return { ok: false, status: 409, error: 'Nothing changed.' };
+  if (JSON.stringify(before) === JSON.stringify(value) || (blank(before) && blank(value))) return { ok: false, status: 409, error: tx('Nothing changed.') };
   if (await settingsTableReady()) {
     const db = createAdminClient();
     // A reset saves an empty list instead of deleting the row: the server may not delete app_settings rows (migration 0040), and every reader
     // treats an empty list as "nothing saved", so the built-in menu, footer, sections or blocks show again (owner, 2026-11-08).
     const { error } = await db.from('app_settings').upsert({ key, value: value ?? [], changed_by: /^[0-9a-f-]{36}$/i.test(adminId ?? '') ? adminId : null, changed_at: new Date().toISOString() });
-    if (error) return { ok: false, status: 500, error: 'Could not save.' };
+    if (error) return { ok: false, status: 500, error: tx('Could not save.') };
   } else if (value === null) mem.delete(key);
   else mem.set(key, value);
   cache.delete(key);
@@ -134,9 +135,9 @@ export async function saveSite(adminId: string | null, kind: Kind | 'blocks' | '
     return r;
   }
   if (kind === 'blocks') {
-    if (!path || !blockablePath(path)) return { ok: false as const, status: 404, error: 'That page cannot have blocks.' };
+    if (!path || !blockablePath(path)) return { ok: false as const, status: 404, error: tx('That page cannot have blocks.') };
     const blocks = cleanBlocks(value);
-    if (Array.isArray(value) && value.length > 0 && blocks.length === 0) return { ok: false as const, status: 400, error: 'No block was complete. Fill in the text, address or picture.' };
+    if (Array.isArray(value) && value.length > 0 && blocks.length === 0) return { ok: false as const, status: 400, error: tx('No block was complete. Fill in the text, address or picture.') };
     const r = await write(adminId, BLOCKS + path, blocks.length ? blocks : null, 'site_blocks_changed');
     cache.delete('__top');
     if (r.ok) {
@@ -151,13 +152,13 @@ export async function saveSite(adminId: string | null, kind: Kind | 'blocks' | '
   if (kind === 'social') {
     const links = cleanSocial(value);
     if (typeof value === 'string' && value.trim() && !links.length)
-      return { ok: false as const, status: 400, error: 'Write one "network https-address" per line, for example: instagram https://instagram.com/sellonbay' };
+      return { ok: false as const, status: 400, error: tx('Write one "network https-address" per line, for example: instagram https://instagram.com/sellonbay') };
     return write(adminId, KEY.social, links.length ? links : null, 'site_social_changed');
   }
   if (kind === 'menu') {
     const m = cleanMenu(value);
     if (Array.isArray((value as { items?: unknown })?.items ?? value) && ((value as { items?: unknown[] })?.items ?? (value as unknown[])).length > 0 && m.length === 0)
-      return { ok: false as const, status: 400, error: 'Every menu item needs a name and an address (a path like /faq or an https address).' };
+      return { ok: false as const, status: 400, error: tx('Every menu item needs a name and an address (a path like /faq or an https address).') };
     return write(adminId, KEY.menu, m.length ? m : null, 'site_menu_changed');
   }
   const f = cleanFooter(value);

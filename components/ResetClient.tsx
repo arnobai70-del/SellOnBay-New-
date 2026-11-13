@@ -2,8 +2,11 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* The reset link already signed this person in, so they only need to choose a new password. */
 export function ResetClient() {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [pw, setPw] = useState('');
   const [again, setAgain] = useState('');
   const [show, setShow] = useState(false);
@@ -13,8 +16,8 @@ export function ResetClient() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (pw.length < 8) return setError('Use at least 8 characters.');
-    if (pw !== again) return setError('The two passwords do not match.');
+    if (pw.length < 8) return setError(tx('Use at least 8 characters.'));
+    if (pw !== again) return setError(tx('The two passwords do not match.'));
     setBusy(true);
     const sb = createClient();
     const { error: err } = await sb.auth.updateUser({ password: pw });
@@ -25,10 +28,10 @@ export function ResetClient() {
       if (/aal2/i.test(err.message)) return window.location.assign('/two-factor?next=' + encodeURIComponent('/reset-password'));
       return setError(
         /weak|leaked|pwned/i.test(err.message)
-          ? 'Choose a stronger password: this one is too common or has appeared in a leak.'
+          ? tx('Choose a stronger password: this one is too common or has appeared in a leak.')
           : /same/i.test(err.message)
-            ? 'Choose a password different from your old one.'
-            : 'Could not save the password. Request a new reset link and try again.',
+            ? tx('Choose a password different from your old one.')
+            : tx('Could not save the password. Request a new reset link and try again.'),
       );
     }
     const {
@@ -43,13 +46,17 @@ export function ResetClient() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
       <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 400 }}>Choose a new password</h1>
+        <h1 style={{ fontSize: 30, fontWeight: 400 }}>
+          <T s={'Choose a new password'} />
+        </h1>
         <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-          You will be signed in right after.
+          <T s={'You will be signed in right after.'} />
         </p>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="field">
-            <label htmlFor="r-pw">New password</label>
+            <label htmlFor="r-pw">
+              <T s={'New password'} />
+            </label>
             <div style={{ position: 'relative' }}>
               <input
                 className="input"
@@ -79,13 +86,17 @@ export function ResetClient() {
                   fontSize: 14,
                 }}
               >
-                {show ? 'Hide' : 'Show'}
+                {show ? tx('Hide') : tx('Show')}
               </button>
             </div>
-            <small>At least 8 characters.</small>
+            <small>
+              <T s={'At least 8 characters.'} />
+            </small>
           </div>
           <div className="field">
-            <label htmlFor="r-pw2">Type it again</label>
+            <label htmlFor="r-pw2">
+              <T s={'Type it again'} />
+            </label>
             <input className="input" id="r-pw2" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} required autoComplete="new-password" />
           </div>
           {error && (
@@ -94,7 +105,7 @@ export function ResetClient() {
             </p>
           )}
           <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
-            {busy ? 'Saving' : 'Save password'}
+            {busy ? tx('Saving') : tx('Save password')}
           </button>
         </form>
       </section>

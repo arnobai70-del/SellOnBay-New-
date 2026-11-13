@@ -12,14 +12,18 @@ import { getRequest, quoteEvents, quotesOf, requestEvents } from '@/lib/requests
 import { QUOTE_WORDS, REQUEST_WORDS, personNames, productNames, requestTitle, usd } from '@/lib/requests/view';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Purchase request', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Purchase request'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number) => new Date(ms).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
-const why = { name: 'note', label: 'Message (the buyer sees it)', kind: 'textarea' as const, required: true };
+const why = (tx: Tx) => ({ name: 'note', label: tx('Message (the buyer sees it)'), kind: 'textarea' as const, required: true });
 
 /* One request for Support or Catalog: the facts, the full log, the next steps, and the quotation editor. */
 export default async function AdminRequest({ params }: { params: Promise<{ id: string }> }) {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/admin/orders/requests/${id}`, roles: ['admin'], scope: ['support', 'catalog'] });
   const r = /^[0-9a-f-]{36}$/i.test(id) ? await getRequest(id) : null;
@@ -30,8 +34,9 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
   const open = quotes.find((q) => ['draft', 'pending_super', 'issued'].includes(q.status));
   const canQuote = ['under_review', 'requirements_verified'].includes(r.status) && !open && (r.kind === 'product' || !!r.requirementsConfirmedAt);
   const qEvents = new Map(await Promise.all(quotes.map(async (q) => [q.id, await quoteEvents(q.id)] as const)));
-  const [word, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
-  const title = requestTitle(r, products);
+  const [english, chip] = REQUEST_WORDS[r.status] ?? [r.status, 'status st-draft'];
+  const word = translate(english);
+  const title = translate(requestTitle(r, products));
   return (
     <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-requests" title={title}>
       <div className="glass card sob-sec" data-admin-request={r.id}>
@@ -43,78 +48,99 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                 <i />
                 {word}
               </span>{' '}
-              · from {buyers.get(r.buyerId) ?? 'a buyer'} · {r.kind === 'custom_dev' ? 'custom development' : 'product request'}
+              <T s={'· from {v0} · {v1}'} v={{ v0: buyers.get(r.buyerId) ?? 'a buyer', v1: r.kind === 'custom_dev' ? 'custom development' : 'product request' }} />
               {product ? (
                 <>
                   {' '}
-                  · <Link href={`/product/${product.slug}`}>open the listing</Link>
+                  ·{' '}
+                  <Link href={`/product/${product.slug}`}>
+                    <T s={'open the listing'} />
+                  </Link>
                 </>
               ) : null}
             </p>
           </div>
         </div>
         <dl className="sob-kv">
-          <dt>Licence asked for</dt>
+          <dt>
+            <T s={'Licence asked for'} />
+          </dt>
           <dd>
-            {TIER_TEXT[r.licenceTier].label}
-            {r.licenceTier === 'exclusive_review' ? ' (needs special admin and legal/IP review, F-10)' : ''}
+            {translate(TIER_TEXT[r.licenceTier].label)}
+            {r.licenceTier === 'exclusive_review' ? tx(' (needs special admin and legal/IP review, F-10)') : ''}
           </dd>
-          <dt>Package and extras</dt>
+          <dt>
+            <T s={'Package and extras'} />
+          </dt>
           <dd>
             {r.package}
-            {r.extras.express ? ', express' : ''}
-            {r.extras.hosting ? ', hosting' : ''}
+            {r.extras.express ? tx(', express') : ''}
+            {r.extras.hosting ? tx(', hosting') : ''}
           </dd>
-          <dt>Intended use</dt>
+          <dt>
+            <T s={'Intended use'} />
+          </dt>
           <dd>{r.intendedUse}</dd>
           {r.requirements && (
             <>
-              <dt>Requirements</dt>
+              <dt>
+                <T s={'Requirements'} />
+              </dt>
               <dd style={{ whiteSpace: 'pre-wrap' }}>{r.requirements}</dd>
             </>
           )}
-          <dt>Delivery details</dt>
+          <dt>
+            <T s={'Delivery details'} />
+          </dt>
           <dd>
             {Object.entries(r.delivery).length
               ? Object.entries(r.delivery)
                   .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
                   .join(' · ')
-              : 'None given'}
+              : tx('None given')}
           </dd>
-          <dt>Business</dt>
+          <dt>
+            <T s={'Business'} />
+          </dt>
           <dd>
             {Object.entries(r.business).length
               ? Object.entries(r.business)
                   .map(([k, v]) => `${k}: ${v}`)
                   .join(' · ')
-              : 'None given'}
+              : tx('None given')}
           </dd>
-          <dt>Consent</dt>
+          <dt>
+            <T s={'Consent'} />
+          </dt>
           <dd>
-            Version {r.consentVersion}, {day(r.consentedAt)}
+            <T s={'Version {consentVersion}, {v1}'} v={{ consentVersion: r.consentVersion, v1: day(r.consentedAt) }} />
           </dd>
           {product && (
             <>
-              <dt>Product file</dt>
-              <dd>{product.latestVersionId ? 'An approved version is pinned to the quotation when it is written.' : 'No approved file version: it cannot be quoted.'}</dd>
+              <dt>
+                <T s={'Product file'} />
+              </dt>
+              <dd>{product.latestVersionId ? tx('An approved version is pinned to the quotation when it is written.') : tx('No approved file version: it cannot be quoted.')}</dd>
             </>
           )}
         </dl>
         <div className="sob-acts" style={{ marginTop: 12 }}>
-          {r.status === 'submitted' && <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'review' }} fields={[]} openLabel="Start review" submit="Start review" tone="blue" />}
+          {r.status === 'submitted' && (
+            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'review' }} fields={[]} openLabel={tx('Start review')} submit={tx('Start review')} tone="blue" />
+          )}
           {['under_review', 'requirements_verified'].includes(r.status) && (
-            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'ask' }} fields={[why]} openLabel="Ask the buyer" submit="Send question" tone="line" />
+            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'ask' }} fields={[why(tx)]} openLabel={tx('Ask the buyer')} submit={tx('Send question')} tone="line" />
           )}
           {['submitted', 'under_review', 'needs_info', 'requirements_verified'].includes(r.status) && (
-            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'decline' }} fields={[why]} openLabel="Decline" submit="Decline the request" tone="line" />
+            <AdminForm endpoint={`/api/admin/requests/${r.id}`} fixed={{ action: 'decline' }} fields={[why(tx)]} openLabel={tx('Decline')} submit={tx('Decline the request')} tone="line" />
           )}
           {['submitted', 'under_review', 'needs_info', 'requirements_verified', 'quoted'].includes(r.status) && (
             <AdminForm
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'set_expiry' }}
-              fields={[{ name: 'expiresInDays', label: 'Expire this request after how many days (0 = never)', kind: 'text', required: true }]}
-              openLabel="Set expiry"
-              submit="Save"
+              fields={[{ name: 'expiresInDays', label: tx('Expire this request after how many days (0 = never)'), kind: 'text', required: true }]}
+              openLabel={tx('Set expiry')}
+              submit={tx('Save')}
               tone="line"
             />
           )}
@@ -122,25 +148,26 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
             <AdminForm
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'propose_requirements' }}
-              fields={[{ name: 'requirements', label: 'Written requirement set for the buyer to confirm', kind: 'textarea', required: true, value: r.verifiedRequirements ?? '', max: 8000 }]}
-              openLabel="Write requirements"
-              submit="Send to the buyer"
+              fields={[{ name: 'requirements', label: tx('Written requirement set for the buyer to confirm'), kind: 'textarea', required: true, value: r.verifiedRequirements ?? '', max: 8000 }]}
+              openLabel={tx('Write requirements')}
+              submit={tx('Send to the buyer')}
               tone="line"
             />
           )}
           {r.kind === 'custom_dev' && ['submitted', 'under_review', 'needs_info', 'requirements_verified'].includes(r.status) && (
             <>
               <p className="muted" data-assigned={r.assignedSellerId ?? 'sellonbay'}>
-                Developer: {r.assignedSellerId ? `seller account ${r.assignedSellerId}` : 'SellOnBay (no seller split)'}. Choose before quoting: the quotation records that seller&apos;s plan and
-                commission.
-                {r.parentOrderId ? ' This is a paid change to an earlier order.' : ''}
+                <T
+                  s={"Developer: {v0}. Choose before quoting: the quotation records that seller's plan and commission.{v1}"}
+                  v={{ v0: r.assignedSellerId ? `seller account ${r.assignedSellerId}` : 'SellOnBay (no seller split)', v1: r.parentOrderId ? ' This is a paid change to an earlier order.' : '' }}
+                />
               </p>
               <AdminForm
                 endpoint={`/api/admin/requests/${r.id}`}
                 fixed={{ action: 'assign' }}
-                fields={[{ name: 'sellerId', label: 'Seller account id (leave empty for SellOnBay)', kind: 'text', value: r.assignedSellerId ?? '', max: 36 }]}
-                openLabel="Assign a developer"
-                submit="Assign"
+                fields={[{ name: 'sellerId', label: tx('Seller account id (leave empty for SellOnBay)'), kind: 'text', value: r.assignedSellerId ?? '', max: 36 }]}
+                openLabel={tx('Assign a developer')}
+                submit={tx('Assign')}
                 tone="line"
               />
             </>
@@ -152,13 +179,17 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Write a quotation</h2>
-              <p className="tag">Valid 7 days once issued. Commission is worked out from the seller&apos;s plan. Any difference from the listed price goes to a Super Admin first.</p>
+              <h2>
+                <T s={'Write a quotation'} />
+              </h2>
+              <p className="tag">
+                <T s={"Valid 7 days once issued. Commission is worked out from the seller's plan. Any difference from the listed price goes to a Super Admin first."} />
+              </p>
             </div>
           </div>
           <QuoteEditor
             requestId={r.id}
-            start={(listed ?? [{ label: r.kind === 'custom_dev' ? 'Custom development' : title, cents: 0, kind: r.kind === 'custom_dev' ? 'custom' : 'product' }]).map((l) => ({
+            start={(listed ?? [{ label: r.kind === 'custom_dev' ? tx('Custom development') : title, cents: 0, kind: r.kind === 'custom_dev' ? 'custom' : 'product' }]).map((l) => ({
               label: l.label,
               cents: l.cents,
               kind: l.kind,
@@ -174,19 +205,30 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
         <div className="glass card sob-sec">
           <div className="row sob-hd">
             <div>
-              <h2>Quotations</h2>
+              <h2>
+                <T s={'Quotations'} />
+              </h2>
             </div>
           </div>
           {quotes.map((q) => (
             <div key={q.id} className="sob-item" data-quote={q.id}>
               <b>
-                Version {q.version}: {QUOTE_WORDS[q.status]} · {usd(q.totalCents)} · fee {usd(q.feeCents)} ({q.ownerType === 'platform' ? 'platform-owned' : `${(q.commissionBps ?? 0) / 100}%`})
+                <T
+                  s={'Version {version}: {v1} · {v2} · fee {v3} ({v4})'}
+                  v={{
+                    version: q.version,
+                    v1: translate(QUOTE_WORDS[q.status]),
+                    v2: usd(q.totalCents),
+                    v3: usd(q.feeCents),
+                    v4: q.ownerType === 'platform' ? 'platform-owned' : `${(q.commissionBps ?? 0) / 100}%`,
+                  }}
+                />
               </b>
               <small className="muted">
                 {q.lines.map((l) => `${l.label} ${usd(l.cents)}`).join(' · ')}
                 {q.priceOverride ? ` · differs from listed ${q.listedCents === null ? '(none)' : usd(q.listedCents)}: ${q.overrideReason}` : ''}
                 {q.validUntil ? ` · valid until ${day(q.validUntil)}` : ''}
-                {q.orderId ? ' · order created' : ''}
+                {q.orderId ? tx(' · order created') : ''}
               </small>
               <small className="muted">{(qEvents.get(q.id) ?? []).map((e) => `${e.event} ${day(e.at)}`).join(' · ')}</small>
               <div className="sob-acts">
@@ -195,8 +237,8 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                     endpoint={`/api/admin/quotations/${q.id}`}
                     fixed={{ action: 'issue' }}
                     fields={[]}
-                    openLabel="Issue"
-                    submit={q.priceOverride ? 'Send to Super Admin' : 'Send to the buyer'}
+                    openLabel={tx('Issue')}
+                    submit={q.priceOverride ? tx('Send to Super Admin') : tx('Send to the buyer')}
                     tone="blue"
                   />
                 )}
@@ -204,15 +246,15 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                   <AdminForm
                     endpoint={`/api/admin/quotations/${q.id}`}
                     fixed={{ action: 'withdraw' }}
-                    fields={[{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
-                    openLabel="Withdraw"
-                    submit="Withdraw"
+                    fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
+                    openLabel={tx('Withdraw')}
+                    submit={tx('Withdraw')}
                     tone="line"
                   />
                 )}
                 {q.orderId && (
                   <Link className="btn ghost sm" href={`/admin/orders/${q.orderId}`}>
-                    Open the order
+                    <T s={'Open the order'} />
                   </Link>
                 )}
               </div>
@@ -221,12 +263,14 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      <ConversationPanel type="request" id={r.id} me="admin" heading="Messages" />
+      <ConversationPanel type="request" id={r.id} me="admin" heading={tx('Messages')} />
 
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Log</h2>
+            <h2>
+              <T s={'Log'} />
+            </h2>
           </div>
         </div>
         <ul className="sob-tl2">

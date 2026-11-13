@@ -5,6 +5,8 @@ import { maintenanceFor } from '@/lib/maintenance/service';
 import { saveContact, saveSite } from '@/lib/site/contentStore';
 import { checkSocialUrl } from '@/lib/site/social';
 import { readJson } from '@/lib/validate';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -27,21 +29,21 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const { contact, social } = body.data;
-  if (!contact && !social) return NextResponse.json({ error: 'Nothing to save.' }, { status: 400 });
+  if (!contact && !social) return jsonT({ error: tx('Nothing to save.') }, { status: 400 });
   if (social) {
     const seen = new Set<string>();
     for (const s of social) {
-      if (seen.has(s.network)) return NextResponse.json({ error: 'Each network can be added once.' }, { status: 400 });
+      if (seen.has(s.network)) return jsonT({ error: tx('Each network can be added once.') }, { status: 400 });
       seen.add(s.network);
       const c = checkSocialUrl(s.network, s.url);
-      if (!c.ok) return NextResponse.json({ error: c.error }, { status: 400 });
+      if (!c.ok) return jsonT({ error: c.error }, { status: 400 });
     }
   }
   const results = [];
   if (contact) results.push(await saveContact(a.id, contact));
   if (social) results.push(await saveSite(a.id, 'social', social));
   const bad = results.find((r) => !r.ok && r.status !== 409);
-  if (bad && !bad.ok) return NextResponse.json({ error: bad.error }, { status: bad.status });
-  if (results.every((r) => !r.ok)) return NextResponse.json({ error: 'Nothing changed.' }, { status: 409 });
+  if (bad && !bad.ok) return jsonT({ error: bad.error }, { status: bad.status });
+  if (results.every((r) => !r.ok)) return jsonT({ error: tx('Nothing changed.') }, { status: 409 });
   return NextResponse.json({ ok: true });
 }

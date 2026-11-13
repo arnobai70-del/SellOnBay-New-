@@ -3,7 +3,8 @@ import { CartClient } from './CartClient';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 import { REVIEW_HOURS } from '@/lib/config';
 
-export const metadata: Metadata = { title: 'Your cart', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Your cart'), robots: { index: false } });
 
 /* design-reference/cart.html. ?add=<website> puts a website in this browser's cart (the website page's button). */
 export default async function Cart({ searchParams }: { searchParams: Promise<{ add?: string }> }) {

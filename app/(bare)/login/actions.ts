@@ -1,5 +1,5 @@
 'use server';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { authenticatorRequired } from '@/lib/auth/authenticator';
 import { authBotCheck } from '@/lib/bot/turnstile';
@@ -63,6 +63,12 @@ export async function authenticate(formData: FormData) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) return back('Email or password is wrong.');
     userId = data.user.id;
+    // The language saved on the account (lib/i18n) comes back on this device too, unless this browser already chose one.
+    const lang = data.user.user_metadata?.lang;
+    if (typeof lang === 'string' && /^[a-z]{2}(-[a-z]{2})?$/.test(lang)) {
+      const jar = await cookies();
+      if (!jar.get('sob_lang')) jar.set('sob_lang', lang, { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+    }
   }
 
   await noteAccount(userId, signup ? 'signup' : 'login');

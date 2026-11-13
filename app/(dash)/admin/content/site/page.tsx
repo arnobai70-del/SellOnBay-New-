@@ -14,23 +14,27 @@ import { AdminForm } from '@/components/AdminForm';
 import { NETWORKS } from '@/lib/site/social';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Site builder', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Site builder'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS: [string, string][] = [
-  ['menu', 'Top menu'],
-  ['footer', 'Footer'],
-  ['sections', 'Home sections'],
-  ['blocks', 'Page blocks'],
-  ['social', 'Social links'],
+const TABS = (tx: Tx): [string, string][] => [
+  ['menu', tx('Top menu')],
+  ['footer', tx('Footer')],
+  ['sections', tx('Home sections')],
+  ['blocks', tx('Page blocks')],
+  ['social', tx('Social links')],
 ];
 
 /* Edit the pieces of the site from one place: the top menu, the footer columns, and blocks (headings, text, pictures, buttons, listings, questions) on any page. */
 export default async function SiteBuilderPage({ searchParams }: { searchParams: Promise<{ tab?: string; path?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/site', roles: ['admin'], scope: 'content' });
   const q = await searchParams;
-  const tab = TABS.some(([k]) => k === q.tab) ? q.tab! : 'menu';
-  const pages: [string, string][] = [['/', 'Home page'], ...SEO_PAGES.filter((p) => p.path !== '/').map((p) => [p.path, p.name] as [string, string])];
+  const tab = TABS(tx).some(([k]) => k === q.tab) ? q.tab! : 'menu';
+  const pages: [string, string][] = [['/', tx('Home page')], ...SEO_PAGES.filter((p) => p.path !== '/').map((p) => [p.path, p.name] as [string, string])];
   const path = pages.some(([p]) => p === q.path) || /^[/]product[/][A-Za-z0-9_-]{1,80}$/.test(q.path ?? '') ? q.path! : '/';
 
   const menu = tab === 'menu' ? await savedMenu(0) : null;
@@ -40,18 +44,20 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
   const listings = tab === 'blocks' ? (await realListings()).map((p) => [p.id, p.name] as [string, string]) : [];
 
   return (
-    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-site" title="Site builder">
+    <DashShell name={viewer?.name} signedIn={!!viewer} viewerRole={viewer?.role} role="admin" active="admin-site" title={tx('Site builder')}>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Build the site</h2>
+            <h2>
+              <T s={'Build the site'} />
+            </h2>
             <p className="tag">
-              Add, remove and reorder the menu, the footer and the blocks of any page. Nothing changes on the site until you save, and each part can go back to the built-in version.
+              <T s={'Add, remove and reorder the menu, the footer and the blocks of any page. Nothing changes on the site until you save, and each part can go back to the built-in version.'} />
             </p>
           </div>
         </div>
-        <div className="sob-acts" aria-label="Parts of the site">
-          {TABS.map(([k, label]) => (
+        <div className="sob-acts" aria-label={tx('Parts of the site')}>
+          {TABS(tx).map(([k, label]) => (
             <Link key={k} className={'btn sm' + (tab === k ? '' : ' ghost')} href={`/admin/content/site?tab=${k}`}>
               {label}
             </Link>
@@ -64,15 +70,19 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
         {tab === 'social' && (
           <div data-social-builder>
             <p className="muted">
-              One per line: the network, a space, then the https address on that network ({Object.keys(NETWORKS).join(', ')}). They show as text links at the foot of every page. An empty box removes
-              them. Every save is kept in Site history.
+              <T
+                s={
+                  'One per line: the network, a space, then the https address on that network ({v0}). They show as text links at the foot of every page. An empty box removes them. Every save is kept in Site history.'
+                }
+                v={{ v0: Object.keys(NETWORKS).join(', ') }}
+              />
             </p>
             <AdminForm
               endpoint="/api/admin/site"
               fixed={{ kind: 'social' }}
               open
-              submit="Save social links"
-              fields={[{ name: 'value', label: 'Social links', kind: 'textarea', max: 3000, value: (await savedSocial(0)).map((l) => `${l.network} ${l.url}`).join('\n') }]}
+              submit={tx('Save social links')}
+              fields={[{ name: 'value', label: tx('Social links'), kind: 'textarea', max: 3000, value: (await savedSocial(0)).map((l) => `${l.network} ${l.url}`).join('\n') }]}
             />
           </div>
         )}
@@ -82,7 +92,9 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
         {tab === 'blocks' && (
           <>
             <div className="field" style={{ marginTop: 14 }}>
-              <label>Page</label>
+              <label>
+                <T s={'Page'} />
+              </label>
               <div className="sob-acts">
                 {pages.map(([p, name]) => (
                   <Link key={p} className={'btn sm' + (p === path ? '' : ' ghost')} href={`/admin/content/site?tab=blocks&path=${encodeURIComponent(p)}`}>
@@ -91,8 +103,12 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
                   </Link>
                 ))}
               </div>
-              <small>A dot means the page already has blocks.</small>
-              <label style={{ marginTop: 10 }}>Or a listing</label>
+              <small>
+                <T s={'A dot means the page already has blocks.'} />
+              </small>
+              <label style={{ marginTop: 10 }}>
+                <T s={'Or a listing'} />
+              </label>
               <div className="sob-acts">
                 {listings.slice(0, 40).map(([id, name]) => (
                   <Link key={id} className={'btn sm' + (path === `/product/${id}` ? '' : ' ghost')} href={`/admin/content/site?tab=blocks&path=${encodeURIComponent(`/product/${id}`)}`}>
@@ -100,7 +116,11 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
                     {withBlocks.includes(`/product/${id}`) ? ' •' : ''}
                   </Link>
                 ))}
-                {listings.length === 0 && <small className="muted">No live listings yet.</small>}
+                {listings.length === 0 && (
+                  <small className="muted">
+                    <T s={'No live listings yet.'} />
+                  </small>
+                )}
               </div>
             </div>
             <BlocksBuilder key={path} path={path} initial={blocks} listings={listings} />

@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from '../i18n/tx';
 import { auditStrict } from '../admin/audit';
 import { CONFIG } from '../config';
 import { safeFetch } from '../delivery/ssrf';
@@ -50,8 +51,8 @@ export function legacyEvidence(sha256: string, priorHashes: string[]): { priorHa
 /* Fetches the seller-hosted file once (SSRF-guarded, size-capped) into quarantine and starts the checks. Catalog admin; audited first. */
 export async function importLegacy(adminId: string | null, productId: string, store: ObjectStore = objectStore()): Promise<Result<FileObject>> {
   const c = (await legacyCandidates()).find((x) => x.productId === productId);
-  if (!c) return { ok: false, status: 404, error: 'This listing has no legacy file to import (or it already has an approved version).' };
-  if (c.openImport) return { ok: false, status: 409, error: 'An import of this listing is already being checked.' };
+  if (!c) return { ok: false, status: 404, error: tx('This listing has no legacy file to import (or it already has an approved version).') };
+  if (c.openImport) return { ok: false, status: 409, error: tx('An import of this listing is already being checked.') };
   const { data: p } = await createAdminClient().from('products').select('code_url').eq('id', productId).single();
   await auditStrict(adminId, 'legacy_file_import', 'product', productId, { host: c.host, priorHashes: c.priorHashes.length });
   const max = CONFIG.files.maxArchiveMb * 1024 * 1024;

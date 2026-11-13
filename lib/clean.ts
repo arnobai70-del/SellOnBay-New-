@@ -1,4 +1,5 @@
 import 'server-only';
+import { tx } from './i18n/tx';
 import { audit } from './admin/audit';
 import { blockEmail } from './guard';
 import { deleteReportsBy } from './abuse';
@@ -56,9 +57,9 @@ export async function removeReviewsBy(adminId: string | null, userId: string, no
 
 export async function removeFakeReview(adminId: string | null, orderId: string, note: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   const why = note.trim();
-  if (why.length < 5) return { ok: false, status: 400, error: 'Write why (at least 5 characters). It goes in the audit log.' };
-  if (!UUID.test(orderId)) return { ok: false, status: 400, error: 'That is not an order id.' };
-  if (!(await deleteReview(orderId))) return { ok: false, status: 404, error: 'No review for that order.' };
+  if (why.length < 5) return { ok: false, status: 400, error: tx('Write why (at least 5 characters). It goes in the audit log.') };
+  if (!UUID.test(orderId)) return { ok: false, status: 400, error: tx('That is not an order id.') };
+  if (!(await deleteReview(orderId))) return { ok: false, status: 404, error: tx('No review for that order.') };
   await audit(adminId, 'review_removed', 'order', orderId, { note: why });
   return { ok: true };
 }

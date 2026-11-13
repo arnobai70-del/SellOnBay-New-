@@ -4,6 +4,8 @@ import { listMessages, roleIn } from '@/lib/chat';
 import { getViewerId } from '@/lib/supabase/viewer';
 import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -12,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const closed = await maintenanceFor('messaging'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const o = await orderFor(await idOf(params));
-  if (!o || !roleIn(o, (await getViewerId()) ?? null)) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  if (!o || !roleIn(o, (await getViewerId()) ?? null)) return jsonT({ error: tx('Order not found.') }, { status: 404 });
   const since = Number(new URL(req.url).searchParams.get('since') ?? 0) || 0;
   return NextResponse.json({ messages: await listMessages(o.id, since), now: Date.now() }, { headers: { 'cache-control': 'no-store' } });
 }
@@ -24,5 +26,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 export async function POST() {
   const closed = await maintenanceFor('messaging'); // module maintenance (lib/maintenance)
   if (closed) return closed;
-  return NextResponse.json({ error: 'Messages now go through SellOnBay. Use "Messages with SellOnBay" on the order.' }, { status: 410 });
+  return jsonT({ error: tx('Messages now go through SellOnBay. Use "Messages with SellOnBay" on the order.') }, { status: 410 });
 }

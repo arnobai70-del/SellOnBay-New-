@@ -15,19 +15,23 @@ import { orderStore } from '@/lib/orders/store';
 import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Orders and escrow', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Orders and escrow'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const TABS = [
-  ['all', 'All'],
-  ['review', 'In review'],
-  ['released', 'Released'],
-  ['refunded', 'Refunded'],
-] as const;
+const TABS = (tx: Tx) =>
+  [
+    ['all', tx('All')],
+    ['review', tx('In review')],
+    ['released', tx('Released')],
+    ['refunded', tx('Refunded')],
+  ] as const;
 const RELEASED = ['accepted', 'payout_pending', 'paid_out'];
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
-const timeLeft = (dueAt: number | null | undefined, now: number) => {
-  if (!dueAt) return 'No deadline';
+const timeLeft = (dueAt: number | null | undefined, now: number, tx: Tx) => {
+  if (!dueAt) return tx('No deadline');
   const h = Math.floor((dueAt - now) / 3_600_000);
   if (h < 0) return 'Overdue';
   return h >= 48 ? `${Math.floor(h / 24)} days left` : `${h} hours left`;
@@ -39,9 +43,10 @@ const share = (o: Order) => (o.fundedAt ? split(o.lines, o.feeCents, o.sellerGro
  * actions as before (deliver, the GitHub invite, delivery files, the record PDF) and repository access to take back after a refund.
  */
 export default async function SellerOrders({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tx, translate } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/orders', roles: ['seller', 'admin'] });
   const { tab: raw } = await searchParams;
-  const tab = TABS.find(([k]) => k === raw)?.[0] ?? 'all';
+  const tab = TABS(tx).find(([k]) => k === raw)?.[0] ?? 'all';
   const [v, files, all] = viewer ? await Promise.all([sellerDashboard(viewer.id), listFiles({ uploadedBy: viewer.id }), (await orderStore()).forUser(viewer.id)]) : [null, [], [] as Order[]];
   const sold = all.filter((o) => o.sellerId === viewer?.id).sort((a, b) => b.createdAt - a.createdAt);
   const names = await profileNames(sold.map((o) => o.buyerId));
@@ -56,14 +61,18 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
     .filter((o) => (tab === 'review' ? o.state === 'delivered' : tab === 'released' ? RELEASED.includes(o.state) : tab === 'refunded' ? o.state === 'refunded' || o.refundedCents > 0 : true))
     .slice(0, 100);
   return (
-    <SellerShell viewer={viewer} active="orders" file="seller-orders" title="Orders & escrow" head={false}>
+    <SellerShell viewer={viewer} active="orders" file="seller-orders" title={tx('Orders & escrow')} head={false}>
       <div className="row">
         <div>
-          <h1>Orders &amp; escrow</h1>
-          <div className="tag">Who bought what, and when your money is released. Deliver before the time runs out.</div>
+          <h1>
+            <T s={'Orders & escrow'} />
+          </h1>
+          <div className="tag">
+            <T s={'Who bought what, and when your money is released. Deliver before the time runs out.'} />
+          </div>
         </div>
-        <div className="seg" role="tablist" aria-label="Order filter">
-          {TABS.map(([k, l]) => (
+        <div className="seg" role="tablist" aria-label={tx('Order filter')}>
+          {TABS(tx).map(([k, l]) => (
             <Link key={k} role="tab" className={k === tab ? 'on' : ''} aria-selected={k === tab} href={k === 'all' ? '/dashboard/seller/orders' : `/dashboard/seller/orders?tab=${k}`} prefetch={false}>
               {l}
             </Link>
@@ -72,45 +81,71 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
       </div>
       <div className="kpis">
         <div className="glass kpi">
-          <div className="l">In review now</div>
+          <div className="l">
+            <T s={'In review now'} />
+          </div>
           <div className="v">{inReview.length}</div>
-          <div className="s">{usd(inReview.reduce((s, o) => s + share(o), 0))} your share</div>
+          <div className="s">
+            {usd(inReview.reduce((s, o) => s + share(o), 0))} <T s={'your share'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Released this month</div>
+          <div className="l">
+            <T s={'Released this month'} />
+          </div>
           <div className="v">{released.length}</div>
-          <div className="s">{usd(released.reduce((s, o) => s + share(o), 0))} your share</div>
+          <div className="s">
+            {usd(released.reduce((s, o) => s + share(o), 0))} <T s={'your share'} />
+          </div>
         </div>
         <div className="glass kpi">
-          <div className="l">Open problems</div>
+          <div className="l">
+            <T s={'Open problems'} />
+          </div>
           <div className="v">{problems.length}</div>
-          <div className="s">{problems.length ? 'Payment on hold' : 'None'}</div>
+          <div className="s">{problems.length ? tx('Payment on hold') : tx('None')}</div>
         </div>
         <div className="glass kpi">
-          <div className="l">Refunded</div>
+          <div className="l">
+            <T s={'Refunded'} />
+          </div>
           <div className="v">{refunded.length}</div>
-          <div className="s">{usd(refunded.reduce((s, o) => s + Math.max(0, share(o)), 0))} earned</div>
+          <div className="s">
+            {usd(refunded.reduce((s, o) => s + Math.max(0, share(o)), 0))} <T s={'earned'} />
+          </div>
         </div>
       </div>
 
       {v && v.toDeliver.length > 0 && (
         <section className="glass" style={{ padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>To deliver</h2>
+            <h2>
+              <T s={'To deliver'} />
+            </h2>
             <span className="tag" style={{ margin: 0 }}>
-              The buyer&apos;s money is held in escrow until they accept
+              <T s={"The buyer's money is held in escrow until they accept"} />
             </span>
           </div>
           <div className="tbl">
             <table>
               <thead>
                 <tr>
-                  <th>Order</th>
-                  <th>Buyer&apos;s domain</th>
-                  <th>Time left</th>
-                  <th>You earn</th>
                   <th>
-                    <span className="hidden-label">Actions</span>
+                    <T s={'Order'} />
+                  </th>
+                  <th>
+                    <T s={"Buyer's domain"} />
+                  </th>
+                  <th>
+                    <T s={'Time left'} />
+                  </th>
+                  <th>
+                    <T s={'You earn'} />
+                  </th>
+                  <th>
+                    <span className="hidden-label">
+                      <T s={'Actions'} />
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -119,19 +154,31 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                   <tr key={o.id}>
                     <td style={{ fontWeight: 500 }}>
                       {plainWords(o.title)}
-                      {o.express && <div className="tag">Express</div>}
+                      {o.express && (
+                        <div className="tag">
+                          <T s={'Express'} />
+                        </div>
+                      )}
                     </td>
                     <td>{o.domain?.name ?? (o.githubUsername ? `GitHub: ${o.githubUsername}` : '-')}</td>
-                    <td>{held ? 'Paused for a safety check' : timeLeft(o.dueAt, now)}</td>
+                    <td>{held ? tx('Paused for a safety check') : timeLeft(o.dueAt, now, tx)}</td>
                     <td>{usd(earnCents)}</td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
                         <Link className="btn sm ghost" href={`/messages/${o.id}`} prefetch={false}>
-                          Open chat
+                          <T s={'Open chat'} />
                         </Link>
                         {/* A quotation order's delivery is sent for release and released by SellOnBay; the seller never marks it delivered. */}
-                        {o.quotationId && o.state === 'funded' && <span className="tag">Waiting for SellOnBay to authorise the work.</span>}
-                        {o.quotationId && o.state === 'release_pending' && <span className="tag">Sent. Waiting for SellOnBay to release it.</span>}
+                        {o.quotationId && o.state === 'funded' && (
+                          <span className="tag">
+                            <T s={'Waiting for SellOnBay to authorise the work.'} />
+                          </span>
+                        )}
+                        {o.quotationId && o.state === 'release_pending' && (
+                          <span className="tag">
+                            <T s={'Sent. Waiting for SellOnBay to release it.'} />
+                          </span>
+                        )}
                         {o.quotationId && ['in_delivery', 'overdue', 'fix_requested'].includes(o.state) && (
                           <DeliveryForm
                             orderId={o.id}
@@ -143,19 +190,19 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                         )}
                         {!o.quotationId &&
                           (o.state === 'fix_requested' || (o.deliveryType !== 'repo_access' && !o.instant && (o.state === 'funded' || o.state === 'in_delivery' || o.state === 'overdue'))) && (
-                            <AdminForm endpoint={`/api/orders/${o.id}/deliver`} fields={[]} submit="Yes, it is live and ready" openLabel="I delivered it" tone="dark" />
+                            <AdminForm endpoint={`/api/orders/${o.id}/deliver`} fields={[]} submit={tx('Yes, it is live and ready')} openLabel={tx('I delivered it')} tone="dark" />
                           )}
                         {o.deliveryType === 'repo_access' && (o.quotationId ? o.state === 'delivered' && !!o.releaseApprovedAt : o.state === 'funded' || o.state === 'in_delivery') && (
                           <AdminForm
                             endpoint={o.state === 'funded' ? `/api/orders/${o.id}/handover` : `/api/orders/${o.id}/resend-invite`}
                             fields={[]}
-                            submit={o.state === 'funded' ? 'I sent the invite' : 'Send the invite again'}
-                            openLabel={o.state === 'funded' ? 'I sent the invite' : 'Send the invite again'}
+                            submit={o.state === 'funded' ? tx('I sent the invite') : tx('Send the invite again')}
+                            openLabel={o.state === 'funded' ? tx('I sent the invite') : tx('Send the invite again')}
                             tone="line"
                           />
                         )}
                         <a className="tag" href={`/api/orders/${o.id}/evidence`} download>
-                          Record (PDF)
+                          <T s={'Record (PDF)'} />
                         </a>
                       </div>
                     </td>
@@ -169,14 +216,18 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
 
       {v && v.revocations.length > 0 && (
         <section className="glass card" data-revocations>
-          <h2>Remove access to a repository</h2>
-          <div className="tag">These orders were refunded or cancelled after you sent the GitHub invite. Remove the buyer from your private repository, then tell us.</div>
+          <h2>
+            <T s={'Remove access to a repository'} />
+          </h2>
+          <div className="tag">
+            <T s={'These orders were refunded or cancelled after you sent the GitHub invite. Remove the buyer from your private repository, then tell us.'} />
+          </div>
           {v.revocations.map((c) => (
             <div key={c.orderId} className="li" style={{ fontSize: 14 }}>
               <span style={{ flex: 1 }}>
-                {plainWords(c.title)} · remove GitHub user {c.github || 'the buyer'}
+                <T s={'{v0} · remove GitHub user {v1}'} v={{ v0: plainWords(c.title), v1: c.github || 'the buyer' }} />
               </span>
-              <AdminForm endpoint={`/api/orders/${c.orderId}/revoke-done`} fields={[]} submit="I removed the access" openLabel="I removed the access" tone="dark" />
+              <AdminForm endpoint={`/api/orders/${c.orderId}/revoke-done`} fields={[]} submit={tx('I removed the access')} openLabel={tx('I removed the access')} tone="dark" />
             </div>
           ))}
         </section>
@@ -187,13 +238,27 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
           <table>
             <thead>
               <tr>
-                <th>Order</th>
-                <th>Website</th>
-                <th>Buyer</th>
-                <th>Price</th>
-                <th>You get ({PLAN_KEEP_TEXT})</th>
-                <th>Status</th>
-                <th>Released in</th>
+                <th>
+                  <T s={'Order'} />
+                </th>
+                <th>
+                  <T s={'Website'} />
+                </th>
+                <th>
+                  <T s={'Buyer'} />
+                </th>
+                <th>
+                  <T s={'Price'} />
+                </th>
+                <th>
+                  <T s={'You get ({PLAN_KEEP_TEXT})'} v={{ PLAN_KEEP_TEXT }} />
+                </th>
+                <th>
+                  <T s={'Status'} />
+                </th>
+                <th>
+                  <T s={'Released in'} />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -213,7 +278,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                       <td>{usd(o.priceCents)}</td>
                       <td>{usd(Math.max(0, share(o)))}</td>
                       <td>
-                        <span className={`status ${o.state === 'disputed' ? 'st-bad' : TONE[st.tone]}`}>{o.state === 'disputed' ? 'Problem reported' : st.label}</span>
+                        <span className={`status ${o.state === 'disputed' ? 'st-bad' : TONE[st.tone]}`}>{o.state === 'disputed' ? tx('Problem reported') : translate(st.label)}</span>
                       </td>
                       <td style={{ minWidth: 130 }}>
                         {left !== null && left > 0 ? (
@@ -228,11 +293,11 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                         ) : (
                           <span className="tag" style={{ margin: 0 }}>
                             {RELEASED.includes(o.state) && o.acceptedAt
-                              ? `Released ${shortDate(o.acceptedAt)}`
+                              ? tx('Released {shortDate}', { shortDate: shortDate(o.acceptedAt) })
                               : o.state === 'refunded'
-                                ? 'Refunded'
+                                ? tx('Refunded')
                                 : o.state === 'disputed' || o.state === 'fix_requested'
-                                  ? 'On hold'
+                                  ? tx('On hold')
                                   : '—'}
                           </span>
                         )}
@@ -243,7 +308,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
               ) : (
                 <tr>
                   <td colSpan={7} className="muted">
-                    No orders here yet.
+                    <T s={'No orders here yet.'} />
                   </td>
                 </tr>
               )}
@@ -253,14 +318,16 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
       </section>
 
       <section className="glass card">
-        <h2>How you get paid</h2>
+        <h2>
+          <T s={'How you get paid'} />
+        </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px, 100%),1fr))', gap: 12, marginTop: 12, fontSize: 14 }}>
           {(
             [
-              ['1 · Buyer pays', 'Money goes to escrow, not to anyone yet', false],
-              [`2 · ${REVIEW_HOURS}-hour review`, 'Buyer checks files and setup', false],
-              ['3 · Released', 'Buyer approves or the time ends with no problem', false],
-              ['4 · Payout', 'Paid to your payout method on Thursday, after the 7-day hold', true],
+              ['1 · Buyer pays', tx('Money goes to escrow, not to anyone yet'), false],
+              [`2 · ${REVIEW_HOURS}-hour review`, tx('Buyer checks files and setup'), false],
+              ['3 · Released', tx('Buyer approves or the time ends with no problem'), false],
+              ['4 · Payout', tx('Paid to your payout method on Thursday, after the 7-day hold'), true],
             ] as const
           ).map(([b, t, mint]) => (
             <div key={b} style={{ padding: 14, borderRadius: 14, background: mint ? '#E6F5EF' : 'rgba(255,255,255,.7)', border: mint ? '1px solid #CFE9DF' : '1px solid #DCE7EC' }}>

@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server';
 import { cannotAct } from '@/lib/accounts';
 import { idOf, readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({ text: z.string().max(2500) });
@@ -17,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const closed = await maintenanceFor('disputes'); // module maintenance (lib/maintenance)
   if (closed) return closed;
   const id = await idOf(params);
-  const notFound = () => NextResponse.json({ error: 'Dispute not found.' }, { status: 404 });
+  const notFound = () => jsonT({ error: tx('Dispute not found.') }, { status: 404 });
   // Who is asking comes first: a signed-out visitor gets the same "not found" without the dispute ever being looked up (2026-11-12).
   const sb = supabaseConfigured ? await createClient() : null;
   const user = sb ? (await sb.auth.getUser().catch(() => ({ data: { user: null } }))).data.user : null;
@@ -31,15 +33,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (sb && user) {
     if (user.id !== o.buyerId && user.id !== o.sellerId) return notFound();
     const { data: p } = await sb.from('profiles').select('banned, suspended_until').eq('id', user.id).single();
-    if (!p || cannotAct(p)) return NextResponse.json({ error: 'Not allowed.' }, { status: 403 });
+    if (!p || cannotAct(p)) return jsonT({ error: tx('Not allowed.') }, { status: 403 });
     if (user.id === o.sellerId && user.id !== o.buyerId) {
       const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (!passedCode(aal)) return NextResponse.json({ error: 'Enter your authenticator code first.' }, { status: 403 });
+      if (!passedCode(aal)) return jsonT({ error: tx('Enter your authenticator code first.') }, { status: 403 });
     }
     me = user.id;
   }
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await addEvidenceTo(id, me, body.data.text);
-  return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

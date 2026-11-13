@@ -1,7 +1,7 @@
 import { passedCode } from './lib/auth/authenticator';
 import { originOf } from './lib/publicOrigin';
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { sessionCookieOptions } from '@/lib/supabase/cookieOptions';
 import { supabaseAnonKey, supabaseConfigured, supabaseUrl } from '@/lib/supabase/env';
 import { cannotAct } from './lib/accounts';
@@ -16,12 +16,19 @@ import { savedRedirects } from './lib/seo/redirectRead';
 import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
 import { SITE_URL } from './lib/site';
 import { basicAuthOk, isStaging, openOnStaging, STAGING_ROBOTS, stagingProblem } from './lib/stage';
+import { GUARD_HEADER, TEST_HEADER, testGuard } from './lib/testGuard';
+import { isBot } from './lib/analyticsCore';
+import { COOKIE as I18N_COOKIE, HEADER as I18N_HEADER, SOURCE as I18N_SOURCE, isPublicPath, liveLanguages, localizedPath, splitLocale } from './lib/i18n/config';
+import { languageSettings } from './lib/i18n/settingsRead';
 
 const SIGNED_IN = ['/dashboard', '/admin', '/messages', '/checkout', '/sell/new'];
 const STAFF = ['/dashboard/seller', '/dashboard/admin', '/admin', '/sell/new']; // sellers and admins need 2FA (/admin: the glass admin, Phase 6)
 
 /* Every visitor gets a random device id once. It is only used to spot many accounts on one device (lib/guard.ts) and is stored as a hash. */
 export async function proxy(req: NextRequest) {
+  // Tests never reach the production database (lib/testGuard.ts): checked first, before staging, maintenance or any route.
+  const refused = testGuard(process.env, req.headers.get('host'), req.headers.get(TEST_HEADER));
+  if (refused) return new NextResponse(refused.reason, { status: refused.status, headers: { [GUARD_HEADER]: 'production-db', 'cache-control': 'no-store' } });
   // Staging (lib/stage.ts): password and noindex on everything; a wrong configuration answers 503 instead of running. Production: unchanged.
   if (isStaging()) {
     const problem = stagingProblem();
@@ -36,7 +43,48 @@ export async function proxy(req: NextRequest) {
   return proxyInner(req);
 }
 
-async function proxyInner(req: NextRequest) {
+/*
+ * Languages (lib/i18n, owner 2026-11-12). Public pages in another language live under /<code>/… (English keeps today's addresses). A prefixed
+ * address of a live language is served by the same page with the language in a request header, and every rule below sees the plain address.
+ * The header is always overwritten, so a visitor cannot set it. A saved choice (cookie) sends a person to their language; bots never are.
+ */
+type Locale = { redirect?: string; status?: number; req: NextRequest; rewritten: boolean };
+async function resolveLocale(req: NextRequest): Promise<Locale> {
+  const url = req.nextUrl;
+  const s = await languageSettings();
+  const live = liveLanguages(s).map((l) => l.code);
+  const { lang, path } = splitLocale(url.pathname);
+  const withLang = (code: string, pathname: string) => {
+    const headers = new Headers(req.headers);
+    headers.set(I18N_HEADER, code);
+    const next = new URL(url.href);
+    next.pathname = pathname;
+    return new NextRequest(next, { headers, method: req.method });
+  };
+  if (lang && isPublicPath(path)) {
+    if (lang === I18N_SOURCE) return { redirect: `${path}${url.search}`, status: 308, req, rewritten: false }; // one address for English
+    if (live.includes(lang)) return { req: withLang(lang, path), rewritten: true };
+    return { req: withLang(I18N_SOURCE, url.pathname), rewritten: false }; // a language that is off or a draft: the plain 404
+  }
+  const saved = req.cookies.get(I18N_COOKIE)?.value ?? '';
+  const choice = saved !== I18N_SOURCE && live.includes(saved) ? saved : null;
+  if (choice && isPublicPath(url.pathname) && (req.method === 'GET' || req.method === 'HEAD') && !req.headers.get('next-router-prefetch') && !isBot(req.headers.get('user-agent')))
+    return { redirect: `${localizedPath(url.pathname, choice)}${url.search}`, status: 307, req, rewritten: false };
+  return { req: withLang(isPublicPath(url.pathname) ? I18N_SOURCE : (choice ?? I18N_SOURCE), url.pathname), rewritten: false };
+}
+
+async function proxyInner(original: NextRequest) {
+  const loc = await resolveLocale(original);
+  if (loc.redirect) return NextResponse.redirect(new URL(loc.redirect, originOf(original)), loc.status);
+  const res = await proxyRules(loc.req);
+  if (!loc.rewritten || res.headers.get('x-middleware-next') !== '1') return res;
+  // the page itself is the plain address: serve it there, keeping the language header and any cookie the rules set (a refreshed session)
+  const out = NextResponse.rewrite(loc.req.nextUrl, { request: { headers: loc.req.headers } });
+  for (const c of res.cookies.getAll()) out.cookies.set(c);
+  return out;
+}
+
+async function proxyRules(req: NextRequest) {
   const h = req.headers;
   // One address for the site: the www and the non-www host both lead to the one in NEXT_PUBLIC_SITE_URL (permanent, path and query kept), so search engines see one site.
   if ((req.method === 'GET' || req.method === 'HEAD') && process.env.NODE_ENV === 'production') {

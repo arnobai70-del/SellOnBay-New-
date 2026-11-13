@@ -1,3 +1,4 @@
+import { tx } from '../i18n/tx';
 import { BUGFIX_DAYS, CONFIG, PAYOUT_TEXT, PLAN_FEE_TEXT, PLAN_KEEP_TEXT, REVIEW_HOURS } from '../config';
 
 /*
@@ -275,7 +276,8 @@ export function checkPageDoc(def: PageDef, raw: unknown): { ok: true; value: Pag
       .slice(0, 170),
     ogImage: String(r.seo?.ogImage ?? '').trim(),
   };
-  if (seo.ogImage && !/^(\/blog\/media\/[A-Za-z0-9._-]{1,120}|https:\/\/\S{4,500})$/.test(seo.ogImage)) return { ok: false, error: 'The share picture must be uploaded here or be an https address.' };
+  if (seo.ogImage && !/^(\/blog\/media\/[A-Za-z0-9._-]{1,120}|https:\/\/\S{4,500})$/.test(seo.ogImage))
+    return { ok: false, error: tx('The share picture must be uploaded here or be an https address.') };
   return { ok: true, value: { text, order, hidden, seo } };
 }
 

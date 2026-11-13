@@ -4,6 +4,7 @@ import { adminOnly } from '@/lib/admin/guard';
 import { idOf, readJson } from '@/lib/validate';
 import { decideVersion } from '@/lib/versions';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
 
 export const runtime = 'nodejs';
 const schema = z.object({ decision: z.enum(['approve', 'reject']), note: z.string().max(500).default(''), filesChecked: z.boolean().default(false) });
@@ -18,5 +19,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const r = await decideVersion(a.id, id, body.data.decision, body.data.note, body.data.filesChecked);
-  return r.ok ? NextResponse.json({ ok: true, notified: r.value.notified }) : NextResponse.json({ error: r.error }, { status: r.status });
+  return r.ok ? NextResponse.json({ ok: true, notified: r.value.notified }) : jsonT({ error: r.error }, { status: r.status });
 }

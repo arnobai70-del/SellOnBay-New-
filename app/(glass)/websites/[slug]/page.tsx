@@ -13,6 +13,9 @@ import { betaEligible } from '@/lib/beta/rules';
 import { visibleProduct } from '@/lib/catalog';
 import { BUGFIX_DAYS, REVIEW_HOURS } from '@/lib/config';
 import { pageCopy } from '@/lib/content/copy';
+import { localizedPath } from '@/lib/i18n/config';
+import { getI18n } from '@/lib/i18n/server';
+import { alternateLanguages } from '@/lib/i18n/seo';
 import { pkgOffered } from '@/lib/data';
 import { deliveryText } from '@/lib/deliveryTime';
 import { examplesBuyable } from '@/lib/examples';
@@ -27,6 +30,7 @@ import { productFaqs } from '@/lib/seo/productFaq';
 import { getSettings } from '@/lib/settings';
 import { SITE_URL } from '@/lib/site';
 
+import { T } from '@/components/i18n/T';
 /* A listing in review is private, so this page renders per request. Its page settings stay keyed by /product/<id>, where an admin saved them. */
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ slug: string }> };
@@ -44,10 +48,19 @@ async function find(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const f = await find(slug);
-  if (!f) return { title: 'Not found', robots: { index: false } };
-  const m = listingMetadata(f.product, f.status, (await allPageSeo())[listingPath(f.product.id)], f.ctl);
-  const canonical = websitePath(f.product.id);
-  return f.ctl.canonical ? m : { ...m, alternates: { ...m.alternates, canonical }, openGraph: { ...m.openGraph, url: canonical } };
+  if (!f) return { title: (await getI18n()).tx('Not found'), robots: { index: false } };
+  // In another language (lib/i18n): the listing's translated name, description and SEO words, its own address and the other languages.
+  const i = await getI18n();
+  const id = f.product.id;
+  const product = { ...f.product, name: i.pick(`product.${id}.name`, f.product.name), desc: i.pick(`product.${id}.description`, f.product.desc) };
+  const m = listingMetadata(product, f.status, (await allPageSeo())[listingPath(id)], f.ctl);
+  const canonical = localizedPath(websitePath(id), i.lang);
+  const languages = alternateLanguages(websitePath(id), i.languages);
+  const seo =
+    i.lang === 'en' ? {} : { title: i.pick(`product.${id}.seoTitle`, String(m.title ?? product.name)), description: i.pick(`product.${id}.seoDescription`, String(m.description ?? product.desc)) };
+  return f.ctl.canonical && i.lang === 'en'
+    ? { ...m, alternates: { ...m.alternates, languages } }
+    : { ...m, ...seo, alternates: { ...m.alternates, canonical, languages }, openGraph: { ...m.openGraph, ...seo, url: canonical, locale: i.lang } };
 }
 
 const TINTS = ['#D3EEE4', '#DDEAF6', '#E6E2F4', '#F1E8DD'];
@@ -65,11 +78,13 @@ const SHIELD = 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z';
  * In the free beta the button asks for the website (the cart); with live payments it buys into escrow (checkout).
  */
 export default async function Website({ params }: Props) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { slug } = await params;
   const f = await find(slug);
   if (!f) notFound();
-  if (publicSlug(f.product.id) !== slug) permanentRedirect(websitePath(f.product.id)); // an old address with "template" in it
-  const p = f.product;
+  const i18n = await getI18n();
+  if (publicSlug(f.product.id) !== slug) permanentRedirect(localizedPath(websitePath(f.product.id), i18n.lang)); // an old address with "template" in it
+  const p = { ...f.product, name: i18n.pick(`product.${f.product.id}.name`, f.product.name), desc: i18n.pick(`product.${f.product.id}.description`, f.product.desc) }; // translated words (lib/i18n)
   const [cats, reviews, rating, settings, sites, sellers, copy] = await Promise.all([
     websiteCategories(),
     reviewsFor(p.id),
@@ -93,7 +108,7 @@ export default async function Website({ params }: Props) {
       <TrackView id={p.id} />
       <div className="muted" style={{ fontSize: 13, padding: '32px 0 20px' }}>
         <Link href="/websites" style={{ color: '#566C78' }} prefetch={false}>
-          Websites
+          <T s={'Websites'} />
         </Link>
         {hub && (
           <>
@@ -109,15 +124,15 @@ export default async function Website({ params }: Props) {
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '999 1 560px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <ShotGallery shots={p.shots ?? []} name={p.name} tint={tint} />
-          <div style={{ marginTop: 18, borderBottom: '1px solid #D9E5EB' }} role="tablist" aria-label="About this website">
+          <div style={{ marginTop: 18, borderBottom: '1px solid #D9E5EB' }} role="tablist" aria-label={tx('About this website')}>
             <a className="tab on" href="#overview" role="tab">
-              Overview
+              <T s={'Overview'} />
             </a>
             <a className="tab" href="#features" role="tab">
-              Features
+              <T s={'Features'} />
             </a>
             <a className="tab" href="#reviews" role="tab">
-              Reviews
+              <T s={'Reviews'} />
             </a>
           </div>
           <div id="overview" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 6 }}>
@@ -135,15 +150,21 @@ export default async function Website({ params }: Props) {
           <div id="features" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 14, marginTop: 10 }}>
             <div className="glass" style={{ padding: 22 }}>
               <div style={{ fontSize: 17, marginBottom: 10 }}>{copy.t('labels', 'included')}</div>
-              {(p.inc.length ? p.inc : ['Source files', 'Setup guide']).map((x, i, a) => (
+              {(p.inc.length ? p.inc : [tx('Source files'), tx('Setup guide')]).map((x, i, a) => (
                 <div key={x} className="li" style={i < a.length - 1 ? { marginBottom: 8 } : undefined}>
                   <span aria-hidden="true">✓</span> {x}
                 </div>
               ))}
             </div>
             <div className="glass" style={{ padding: 22 }}>
-              <div style={{ fontSize: 17, marginBottom: 10 }}>To run it you need</div>
-              {[p.stack ? `Hosting that runs ${p.stack}` : 'Hosting for the website', 'Or ask the seller for setup help when you order', 'A domain (you can add one below)'].map((x, i, a) => (
+              <div style={{ fontSize: 17, marginBottom: 10 }}>
+                <T s={'To run it you need'} />
+              </div>
+              {[
+                p.stack ? tx('Hosting that runs {stack}', { stack: p.stack }) : tx('Hosting for the website'),
+                tx('Or ask the seller for setup help when you order'),
+                tx('A domain (you can add one below)'),
+              ].map((x, i, a) => (
                 <div key={x} className="li" style={i < a.length - 1 ? { marginBottom: 8 } : undefined}>
                   <span aria-hidden="true">·</span> {x}
                 </div>
@@ -155,38 +176,44 @@ export default async function Website({ params }: Props) {
             style={{ marginTop: 4, padding: '20px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', borderColor: '#CFE9DF' }}
           >
             <div>
-              <div style={{ fontSize: 17 }}>Add a domain</div>
+              <div style={{ fontSize: 17 }}>
+                <T s={'Add a domain'} />
+              </div>
               <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-                Registered in your own name and connected to this website for you
+                <T s={'Registered in your own name and connected to this website for you'} />
               </div>
             </div>
             <Link className="btn" href="/domains" prefetch={false}>
-              Find a domain
+              <T s={'Find a domain'} />
             </Link>
           </div>
           <div className="glass" style={{ marginTop: 4, padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 17 }}>Need this website customized?</div>
+              <div style={{ fontSize: 17 }}>
+                <T s={'Need this website customized?'} />
+              </div>
               <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-                {beta ? 'Paid custom work is available after the beta.' : 'Work with the seller, paid through escrow.'}
+                {beta ? tx('Paid custom work is available after the beta.') : tx('Work with the seller, paid through escrow.')}
               </div>
             </div>
             {!beta && custom ? (
               <Link className="btn" href={`/checkout?id=${encodeURIComponent(p.id)}&pkg=custom`} prefetch={false}>
-                Request customization
+                <T s={'Request customization'} />
               </Link>
             ) : seller ? (
               <Link className="btn ghost" href={`/sellers/${seller.handle}`} prefetch={false}>
-                Seller&apos;s store
+                <T s={"Seller's store"} />
               </Link>
             ) : null}
           </div>
           <section id="reviews" className="glass" style={{ padding: 22, marginTop: 4 }}>
-            <div style={{ fontSize: 17, marginBottom: 6 }}>Reviews</div>
+            <div style={{ fontSize: 17, marginBottom: 6 }}>
+              <T s={'Reviews'} />
+            </div>
             {reviews.length ? (
               <>
                 <div className="muted" style={{ fontSize: 14 }}>
-                  ★ {rating.avg.toFixed(1)} from {rating.count} verified {rating.count === 1 ? 'buyer' : 'buyers'}
+                  <T s={'★ {v0} from {count} verified {v2}'} v={{ v0: rating.avg.toFixed(1), count: rating.count, v2: rating.count === 1 ? 'buyer' : 'buyers' }} />
                 </div>
                 {reviews.slice(0, 5).map((r) => (
                   <div key={r.orderId} className="li" style={{ display: 'block' }}>
@@ -201,7 +228,7 @@ export default async function Website({ params }: Props) {
               </>
             ) : (
               <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-                No reviews yet. Only buyers who received this website can review it.
+                <T s={'No reviews yet. Only buyers who received this website can review it.'} />
               </p>
             )}
           </section>
@@ -219,27 +246,31 @@ export default async function Website({ params }: Props) {
             </div>
             {beta && requestable && (
               <span className="status st-info" style={{ alignSelf: 'flex-start' }}>
-                Free during beta
+                <T s={'Free during beta'} />
               </span>
             )}
             <div className="lic on" role="radio" aria-checked="true">
               <span>
-                <span style={{ display: 'block', fontWeight: 500 }}>Standard</span>
+                <span style={{ display: 'block', fontWeight: 500 }}>
+                  <T s={'Standard'} />
+                </span>
                 <span className="tag" style={{ display: 'block' }}>
-                  One end website, for you or one client
+                  <T s={'One end website, for you or one client'} />
                 </span>
               </span>
               <span>${p.price}</span>
             </div>{' '}
             <Link className="lic" href="/legal/licenses" prefetch={false} role="radio" aria-checked="false">
               <span>
-                <span style={{ display: 'block', fontWeight: 500 }}>Extended</span>
+                <span style={{ display: 'block', fontWeight: 500 }}>
+                  <T s={'Extended'} />
+                </span>
                 <span className="tag" style={{ display: 'block' }}>
-                  Several clients, resale or SaaS
+                  <T s={'Several clients, resale or SaaS'} />
                 </span>
               </span>
               <span className="tag" style={{ margin: 0 }}>
-                {beta ? 'After beta' : 'Quotation'}
+                {beta ? tx('After beta') : tx('Quotation')}
               </span>
             </Link>{' '}
             {p.demo && (
@@ -248,11 +279,11 @@ export default async function Website({ params }: Props) {
               </Link>
             )}{' '}
             <Link href="/legal/licenses" style={{ fontSize: 13, textAlign: 'center' }} prefetch={false}>
-              Compare licenses
+              <T s={'Compare licenses'} />
             </Link>{' '}
             {!beta ? (
               <Link className="btn full" href={`/checkout?id=${encodeURIComponent(p.id)}`}>
-                Buy with escrow
+                <T s={'Buy with escrow'} />
               </Link>
             ) : requestable ? (
               <Link className="btn full" href={`/cart?add=${encodeURIComponent(p.id)}`}>
@@ -264,30 +295,32 @@ export default async function Website({ params }: Props) {
               </button>
             )}
             <div className="tag" style={{ textAlign: 'center' }}>
-              One-time purchase · Seller paid after your approval
+              <T s={'One-time purchase · Seller paid after your approval'} />
             </div>
           </div>
           <div className="glass" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontWeight: 500 }}>Buyer protection</div>
+            <div style={{ fontWeight: 500 }}>
+              <T s={'Buyer protection'} />
+            </div>
             <div className="li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" aria-hidden="true">
                 <path d={SHIELD} />
               </svg>
-              Payment held in escrow until you approve
+              <T s={'Payment held in escrow until you approve'} />
             </div>
             <div className="li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3 2" />
               </svg>
-              {REVIEW_HOURS} hours to review files and setup, then a {BUGFIX_DAYS}-day bug-fix guarantee
+              <T s={'{REVIEW_HOURS} hours to review files and setup, then a {BUGFIX_DAYS}-day bug-fix guarantee'} v={{ REVIEW_HOURS, BUGFIX_DAYS }} />
             </div>
             <div className="li">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="1.8" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
               </svg>
-              Domain registered in your own name
+              <T s={'Domain registered in your own name'} />
             </div>
           </div>
           {seller && (
@@ -304,7 +337,7 @@ export default async function Website({ params }: Props) {
                 </div>
               </div>
               <Link className="btn ghost" href={`/sellers/${seller.handle}`} style={{ padding: '0 16px' }} prefetch={false}>
-                Store
+                <T s={'Store'} />
               </Link>
             </div>
           )}
@@ -312,7 +345,9 @@ export default async function Website({ params }: Props) {
       </div>
       {related.length > 0 && (
         <section className="sec">
-          <h2 style={{ fontSize: 28, marginBottom: 18 }}>More like this</h2>
+          <h2 style={{ fontSize: 28, marginBottom: 18 }}>
+            <T s={'More like this'} />
+          </h2>
           <div className="grid3">
             {related.map((x) => (
               <WebsiteCard key={x.id} p={x} />
@@ -345,7 +380,7 @@ export default async function Website({ params }: Props) {
           ],
         }}
       />
-      <PageExtras path={listingPath(p.id)} urlPath={websitePath(p.id)} name={p.name} description={p.desc} defaultFaqs={productFaqs(p)} />
+      <PageExtras path={listingPath(p.id)} urlPath={websitePath(p.id)} name={p.name} description={p.desc} defaultFaqs={productFaqs(p, i18n)} />
     </PublicFrame>
   );
 }

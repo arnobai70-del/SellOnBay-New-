@@ -19,6 +19,8 @@ import { expireDue } from '@/lib/requests/service';
 import { releaseJobs } from '@/lib/release/service';
 import { purgeReports } from '@/lib/reports/service';
 import { adminIdentityCheck } from '@/lib/auth/socialService';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
   const given = (req.headers.get('authorization') ?? '').replace(/^Bearer /, '');
   const a = Buffer.from(given),
     b = Buffer.from(secret);
-  if (!secret || a.length !== b.length || !timingSafeEqual(a, b)) return NextResponse.json({ error: 'Not allowed.' }, { status: 401 });
+  if (!secret || a.length !== b.length || !timingSafeEqual(a, b)) return jsonT({ error: tx('Not allowed.') }, { status: 401 });
   // Each run is recorded for the admin system page (lib/cronRuns.ts); a failure is recorded and thrown on as before.
   const done = await recordRun('orders', async () => ({
     moved: await runDueJobs(),

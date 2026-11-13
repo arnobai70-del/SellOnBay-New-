@@ -6,6 +6,8 @@ import { pageCopy } from '@/lib/content/copy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const generateMetadata = () => pageMetadata('/websites', { alternates: { canonical: '/websites' } });
 
 /*
@@ -13,6 +15,7 @@ export const generateMetadata = () => pageMetadata('/websites', { alternates: { 
  * chosen on /domains comes along (?domain=): the buyer adds it at checkout.
  */
 export default async function Websites({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const raw = await searchParams;
   const [words, copy] = await Promise.all([pageWords('/websites'), pageCopy('websites')]);
   const q = typeof raw.q === 'string' ? raw.q.slice(0, 100) : '';
@@ -24,7 +27,7 @@ export default async function Websites({ searchParams }: { searchParams: Promise
         <form action="/websites" method="get" role="search" className="glass" style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 8px 8px 20px', borderRadius: 999 }}>
           {typeof raw.category === 'string' && raw.category && <input type="hidden" name="category" value={raw.category} />}
           <label htmlFor="s" className="hidden-label">
-            Search websites
+            <T s={'Search websites'} />
           </label>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
@@ -34,16 +37,20 @@ export default async function Websites({ searchParams }: { searchParams: Promise
             id="s"
             name="q"
             defaultValue={q}
-            placeholder="Search full-stack websites…"
+            placeholder={tx('Search full-stack websites…')}
             style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
           />{' '}
           <button className="btn" type="submit">
-            Search
+            <T s={'Search'} />
           </button>
         </form>
         {domain && (
           <div className="tag" role="status" style={{ margin: 0 }}>
-            Pick a website for <b style={{ fontWeight: 500 }}>{domain}</b>: you add the domain when you request it. <Link href="/domains">Change the domain</Link>
+            <T s={'Pick a website for'} /> <b style={{ fontWeight: 500 }}>{domain}</b>
+            <T s={': you add the domain when you request it.'} />{' '}
+            <Link href="/domains">
+              <T s={'Change the domain'} />
+            </Link>
           </div>
         )}
       </header>

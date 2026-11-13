@@ -5,8 +5,11 @@ import { Field } from '@/components/glass/Field';
 import { Turnstile } from '@/components/Turnstile';
 import { CONTACT_TOPICS } from '@/lib/contact';
 
+import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* The contact form for people who are not signed in. The server checks everything again (app/api/contact). */
 export function ContactForm({ siteKey }: { siteKey?: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
@@ -14,9 +17,11 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
   if (state === 'sent')
     return (
       <div role="status">
-        <h2>Message sent</h2>
+        <h2>
+          <T s={'Message sent'} />
+        </h2>
         <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
-          Thanks. We will answer by email.
+          <T s={'Thanks. We will answer by email.'} />
         </p>
       </div>
     );
@@ -35,28 +40,28 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
         }).catch(() => null);
         if (res?.ok) return setState('sent');
         setState('idle');
-        setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Could not send. Please try again.');
+        setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error ?? tx('Could not send. Please try again.'));
       }}
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
-        <Field label="Name" name="name" required maxLength={100} autoComplete="name" />
-        <Field label="Email" name="email" type="email" required maxLength={254} autoComplete="email" />
+        <Field label={tx('Name')} name="name" required maxLength={100} autoComplete="name" />
+        <Field label={tx('Email')} name="email" type="email" required maxLength={254} autoComplete="email" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px, 100%),1fr))', gap: 12 }}>
-        <Field as="select" label="Topic" name="topic" defaultValue={CONTACT_TOPICS[0]}>
+        <Field as="select" label={tx('Topic')} name="topic" defaultValue={CONTACT_TOPICS[0]}>
           {CONTACT_TOPICS.map((t) => (
             <option key={t}>{t}</option>
           ))}
         </Field>
-        <Field label="Order number (optional)" name="orderRef" maxLength={40} placeholder="#SB-…" />
+        <Field label={tx('Order number (optional)')} name="orderRef" maxLength={40} placeholder={tx('#SB-…')} />
       </div>
-      <Field as="textarea" label="Message" name="message" required minLength={10} maxLength={4000} error={error || undefined} />
+      <Field as="textarea" label={tx('Message')} name="message" required minLength={10} maxLength={4000} error={error || undefined} />
       {/* A trap for bots: hidden from people and from screen readers. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: -9999, width: 1, height: 1 }} />
       <Turnstile siteKey={siteKey} onToken={setToken} />
       <div style={{ alignSelf: 'flex-start' }}>
         <Button type="submit" disabled={state === 'sending'}>
-          {state === 'sending' ? 'Sending' : 'Send message'}
+          {state === 'sending' ? tx('Sending') : tx('Send message')}
         </Button>
       </div>
     </form>

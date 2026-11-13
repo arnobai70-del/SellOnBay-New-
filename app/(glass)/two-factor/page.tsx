@@ -6,7 +6,8 @@ import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import { safeNext } from '@/lib/safeNext';
 
-export const metadata: Metadata = { title: 'Two-step sign in' };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Two-step sign in') });
 
 export default async function Mfa({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;

@@ -12,6 +12,8 @@ import { CONFIG } from '@/lib/config';
 import { deliveryChoices, expressHelps, readDelivery } from '@/lib/deliveryTime';
 import { cleanTags } from '@/lib/listingTags';
 
+import { T } from '@/components/i18n/T';
+import { useTx, useWord } from '@/components/i18n/TxProvider';
 const MAX_ZIP = 25 * 1024 * 1024;
 const MAX_SHOT = 4 * 1024 * 1024;
 type Kind = 'web' | 'android' | 'ios' | 'webapp' | 'desktop' | 'digital';
@@ -65,11 +67,13 @@ export function SellForm({
   /* Tags are kept once migration 0070 is applied (lib/listingTagsStore.ts); until then the field is hidden. */
   tagsEnabled?: boolean;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
+  const word = useWord(); // shared labels (lib/) in the page's language
   // Delivery: the admin's hour choices, then 1 to 7 days. A listing being edited keeps hours it already promises, even if no longer offered.
   const [keptHours, setKeptHours] = useState<number | null>(null);
   const [deliveryV, setDeliveryV] = useState('3');
   const choices = deliveryChoices(hourChoices, keptHours);
-  const deliveryLabel = (v: string) => (v.endsWith('h') ? (choices.find(([c]) => c === v)?.[1] ?? v) : Number(v) === 1 ? '1 day' : `Up to ${v} days`);
+  const deliveryLabel = (v: string) => (v.endsWith('h') ? (choices.find(([c]) => c === v)?.[1] ?? v) : Number(v) === 1 ? '1 day' : tx('Up to {v} days', { v }));
   const chosen = readDelivery(deliveryV, hourChoices, keptHours);
   const fastAlready = chosen.ok && !expressHelps(chosen);
   const [price, setPrice] = useState(Math.min(maxPrice, Math.max(minPrice, 39)));
@@ -96,8 +100,8 @@ export function SellForm({
   const checks: [string, boolean][] = dig
     ? [
         ['3 or more pictures', shots.length >= 3],
-        ['A demo or view-only link', /^https:\/\//.test(demoN)],
-        ['A clear description', descN >= 80],
+        [tx('A demo or view-only link'), /^https:\/\//.test(demoN)],
+        [tx('A clear description'), descN >= 80],
         ['4 or more things listed as included', incN >= 4],
       ]
     : [];
@@ -145,15 +149,17 @@ export function SellForm({
           {shots.length ? (
             <>
               <b>
-                {shots.length} picture{shots.length === 1 ? '' : 's'}
+                <T s={'{length} picture{v1}'} v={{ length: shots.length, v1: shots.length === 1 ? '' : 's' }} />
               </b>{' '}
-              chosen. Click to change.
+              <T s={'chosen. Click to change.'} />
             </>
           ) : (
             choose
           )}
         </label>
-        <small>PNG, JPG or WebP, up to 4 MB each. {hint}</small>
+        <small>
+          <T s={'PNG, JPG or WebP, up to 4 MB each. {hint}'} v={{ hint }} />
+        </small>
       </div>
       {shots.length > 0 && (
         <div className="sob-shots">
@@ -169,11 +175,11 @@ export function SellForm({
     setError('');
     if (f && !/\.zip$/i.test(f.name)) {
       setFile(null);
-      return setError('Choose a .zip file of your site.');
+      return setError(tx('Choose a .zip file of your site.'));
     }
     if (f && f.size > MAX_ZIP) {
       setFile(null);
-      return setError('That zip is larger than 25 MB.');
+      return setError(tx('That zip is larger than 25 MB.'));
     }
     setFile(f);
   };
@@ -187,7 +193,7 @@ export function SellForm({
     fetch(`/api/listings?${isEdit ? 'edit' : 'draft'}=${encodeURIComponent(slug)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!d) return setError(isEdit ? 'That listing could not be opened.' : '');
+        if (!d) return setError(isEdit ? tx('That listing could not be opened.') : '');
         prefill.current = d;
         const h = /^(\d+)h$/.exec(String(d.days ?? ''));
         if (h) setKeptHours(Number(h[1]));
@@ -197,11 +203,13 @@ export function SellForm({
           if (d.keptZip) setHow('zip');
           else if (d.platform === 'web') setHow('link');
           setNote(
-            'Editing your listing. Changes to the text, prices and options are saved at once. If you change a link or a file, it goes back to review and buyers cannot buy it until it is approved again. Leave the files empty to keep the ones you sent.',
+            tx(
+              'Editing your listing. Changes to the text, prices and options are saved at once. If you change a link or a file, it goes back to review and buyers cannot buy it until it is approved again. Leave the files empty to keep the ones you sent.',
+            ),
           );
         } else {
           setDraftSlug(slug);
-          setNote('Draft opened. Add your files again before you submit.');
+          setNote(tx('Draft opened. Add your files again before you submit.'));
         }
         setKind(d.platform as Kind);
         setPrice(Math.min(maxPrice, Math.max(minPrice, Number(d.price) || 39)));
@@ -250,7 +258,7 @@ export function SellForm({
   // Unsaved changes: leaving the page (closing, reloading or following a link on the site) asks first, until the listing is sent.
   useEffect(() => {
     if (!dirty || done) return;
-    const LEAVE = 'You have changes that are not saved. Leave this page?';
+    const LEAVE = tx('You have changes that are not saved. Leave this page?');
     const unload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
@@ -317,14 +325,14 @@ export function SellForm({
       setup: Number(setupShown) || 0,
       custom: Number(customShown) || 0,
       express: Number(str('express')) || 0,
-      licence: isLicenceType(lt) ? LICENCES[lt].label : lt,
+      licence: isLicenceType(lt) ? word(LICENCES[lt].label) : lt,
       support: Number(str('supportDays')) || 0,
       updates: Number(str('updateDays')) || 0,
       requirements: str('requirements'),
       demo: app ? (dig ? str('demo') : '') : how === 'link' ? str('demo') : '',
       docs: str('docsUrl'),
       files: [
-        app ? '' : how === 'zip' ? (file ? `${file.name} (hosted by us)` : 'The site files you sent before') : 'Your live demo link',
+        app ? '' : how === 'zip' ? (file ? `${file.name} (hosted by us)` : tx('The site files you sent before')) : tx('Your live demo link'),
         shots.length ? `${shots.length} new picture${shots.length === 1 ? '' : 's'}` : kept.shots ? `${kept.shots} picture${kept.shots === 1 ? '' : 's'} you sent before` : '',
       ]
         .filter(Boolean)
@@ -344,9 +352,9 @@ export function SellForm({
         setMissing(m);
         return;
       }
-    } else if (String(new FormData(form.current!).get('name') ?? '').trim().length < 3) return setError('Give your draft a name of 3 to 60 characters so you can find it later.');
+    } else if (String(new FormData(form.current!).get('name') ?? '').trim().length < 3) return setError(tx('Give your draft a name of 3 to 60 characters so you can find it later.'));
     if (!live) {
-      if (intent === 'draft') return setNote('Draft saved (demo mode keeps nothing).');
+      if (intent === 'draft') return setNote(tx('Draft saved (demo mode keeps nothing).'));
       setDone({ slug: '', hosted: !app && how === 'zip', files: 0, edited: !!editSlug });
       return;
     } // demo mode: no backend
@@ -386,21 +394,21 @@ export function SellForm({
       }
       if (xhr.status === 200 && body.ok && body.draft) {
         setDraftSlug(body.slug!);
-        setNote('Draft saved. Files are not kept in drafts, so add your screenshots or zip again when you submit.');
+        setNote(tx('Draft saved. Files are not kept in drafts, so add your screenshots or zip again when you submit.'));
       } else if (xhr.status === 200 && body.ok) setDone({ slug: body.slug!, hosted: !!body.hosted, files: body.files ?? 0, edited: body.edited, status: body.status });
       else if (xhr.status === 422 && body.missing) {
         setCheck(null);
         setMissing(body.missing);
       } else if (xhr.status !== 200) setCheck(null);
       if (xhr.status !== 200 && xhr.status !== 422) {
-        if (xhr.status === 401) setError('Please sign in as a seller first.');
-        else setError(body.error ?? 'Something went wrong. Please try again.');
+        if (xhr.status === 401) setError(tx('Please sign in as a seller first.'));
+        else setError(body.error ?? tx('Something went wrong. Please try again.'));
       }
     };
     xhr.onerror = () => {
       setBusy(false);
       setCheck(null);
-      setError('The upload was interrupted. Check your connection and try again.');
+      setError(tx('The upload was interrupted. Check your connection and try again.'));
     };
     xhr.send(data);
   };
@@ -409,8 +417,10 @@ export function SellForm({
     <div className="sob-sellform" data-sell>
       {!embedded && (
         <div className="row">
-          <h1>{editSlug ? 'Edit your listing' : 'List a site'}</h1>
-          <p>Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.</p>
+          <h1>{editSlug ? tx('Edit your listing') : tx('List a site')}</h1>
+          <p>
+            <T s={'Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.'} />
+          </p>
         </div>
       )}
       <div className="sob-split" style={{ paddingTop: 16 }}>
@@ -421,35 +431,41 @@ export function SellForm({
                 <>
                   <span className="status st-ok">
                     <i />
-                    {done.status === 'live' ? 'Live' : 'Paused'}
+                    {done.status === 'live' ? tx('Live') : tx('Paused')}
                   </span>
-                  <h2 style={{ marginTop: 14 }}>Changes saved.</h2>
+                  <h2 style={{ marginTop: 14 }}>
+                    <T s={'Changes saved.'} />
+                  </h2>
                   <p className="muted" style={{ marginTop: 10 }}>
-                    {done.status === 'live' ? 'Buyers see the new version now.' : 'The listing is still paused while we look at the reports about it.'} No link or file changed, so it did not need a
-                    new review.
+                    <T
+                      s={'{v0} No link or file changed, so it did not need a new review.'}
+                      v={{ v0: done.status === 'live' ? tx('Buyers see the new version now.') : tx('The listing is still paused while we look at the reports about it.') }}
+                    />
                   </p>
                 </>
               ) : (
                 <>
                   <span className="status st-wait">
                     <i />
-                    In review
+                    <T s={'In review'} />
                   </span>
-                  <h2 style={{ marginTop: 14 }}>{done.edited ? 'Changes sent. We\u2019ll review them within 24 hours.' : 'Submitted. We\u2019ll reply within 24 hours.'}</h2>
+                  <h2 style={{ marginTop: 14 }}>{done.edited ? tx('Changes sent. We’ll review them within 24 hours.') : tx('Submitted. We’ll reply within 24 hours.')}</h2>
                   <p className="muted" style={{ marginTop: 10 }}>
-                    {done.hosted ? `We opened your zip (${done.files || 'all'} files) and it is ready to preview. ` : ''}
-                    We look at your files and the demo. You&apos;ll get an email when the listing is live.
+                    <T
+                      s={"{v0}We look at your files and the demo. You'll get an email when the listing is live."}
+                      v={{ v0: done.hosted ? tx('We opened your zip ({v0} files) and it is ready to preview. ', { v0: done.files || 'all' }) : '' }}
+                    />
                   </p>
                 </>
               )}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 22 }}>
                 {done.slug && (
                   <Link className="btn" href={`/preview/${done.slug}`} target="_blank">
-                    Preview your site
+                    <T s={'Preview your site'} />
                   </Link>
                 )}
                 <Link className="btn ghost" href="/dashboard/seller">
-                  Open seller dashboard
+                  <T s={'Open seller dashboard'} />
                 </Link>
               </div>
             </div>
@@ -458,37 +474,53 @@ export function SellForm({
           <>
             {check && (
               <div className="sob-panel sob-check" data-check aria-labelledby="chk-h">
-                <h2 id="chk-h">Check your listing</h2>
-                <p className="muted">This is what buyers will see, in the same order as every other listing. Change anything with Edit.</p>
+                <h2 id="chk-h">
+                  <T s={'Check your listing'} />
+                </h2>
+                <p className="muted">
+                  <T s={'This is what buyers will see, in the same order as every other listing. Change anything with Edit.'} />
+                </p>
                 <dl className="sob-kv">
                   <div>
-                    <dt>Name</dt>
+                    <dt>
+                      <T s={'Name'} />
+                    </dt>
                     <dd>{check.name}</dd>
                   </div>
                   <div>
-                    <dt>Category</dt>
+                    <dt>
+                      <T s={'Category'} />
+                    </dt>
                     <dd>
                       {check.category}
                       {check.stack ? ` · ${dig ? 'made for' : 'built with'} ${check.stack}` : ''}
                     </dd>
                   </div>
                   <div>
-                    <dt>Price</dt>
+                    <dt>
+                      <T s={'Price'} />
+                    </dt>
                     <dd>{money(price)}</dd>
                   </div>
                   <div>
-                    <dt>Delivery</dt>
+                    <dt>
+                      <T s={'Delivery'} />
+                    </dt>
                     <dd>
                       {deliveryLabel(check.days)}
                       {check.express && !fastAlready ? `, or in ${CONFIG.delivery.expressHours} hours for ${money(check.express)} more` : ''}
                     </dd>
                   </div>
                   <div>
-                    <dt>What it does</dt>
+                    <dt>
+                      <T s={'What it does'} />
+                    </dt>
                     <dd>{check.desc}</dd>
                   </div>
                   <div>
-                    <dt>What is included</dt>
+                    <dt>
+                      <T s={'What is included'} />
+                    </dt>
                     <dd>
                       <ul>
                         {check.includes.map((i) => (
@@ -498,51 +530,71 @@ export function SellForm({
                     </dd>
                   </div>
                   <div>
-                    <dt>With setup help</dt>
-                    <dd>{check.setup ? `${money(price + check.setup)} (${money(check.setup)} more)` : 'Not offered'}</dd>
+                    <dt>
+                      <T s={'With setup help'} />
+                    </dt>
+                    <dd>{check.setup ? `${money(price + check.setup)} (${money(check.setup)} more)` : tx('Not offered')}</dd>
                   </div>
                   <div>
-                    <dt>With customisation</dt>
-                    <dd>{check.custom ? `${money(price + check.custom)} (${money(check.custom)} more)` : 'Not offered'}</dd>
+                    <dt>
+                      <T s={'With customisation'} />
+                    </dt>
+                    <dd>{check.custom ? `${money(price + check.custom)} (${money(check.custom)} more)` : tx('Not offered')}</dd>
                   </div>
                   <div>
-                    <dt>Licence</dt>
+                    <dt>
+                      <T s={'Licence'} />
+                    </dt>
                     <dd>{check.licence}</dd>
                   </div>
                   {dig && (
                     <>
                       <div>
-                        <dt>Support</dt>
-                        <dd>{check.support ? `${check.support} days` : 'None'}</dd>
+                        <dt>
+                          <T s={'Support'} />
+                        </dt>
+                        <dd>{check.support ? `${check.support} days` : tx('None')}</dd>
                       </div>
                       <div>
-                        <dt>Updates</dt>
-                        <dd>{check.updates ? `${check.updates} days` : 'None'}</dd>
+                        <dt>
+                          <T s={'Updates'} />
+                        </dt>
+                        <dd>{check.updates ? `${check.updates} days` : tx('None')}</dd>
                       </div>
                       <div>
-                        <dt>What it needs</dt>
-                        <dd>{check.requirements || 'Not stated'}</dd>
+                        <dt>
+                          <T s={'What it needs'} />
+                        </dt>
+                        <dd>{check.requirements || tx('Not stated')}</dd>
                       </div>
                     </>
                   )}
                   {check.demo && (
                     <div>
-                      <dt>Demo</dt>
+                      <dt>
+                        <T s={'Demo'} />
+                      </dt>
                       <dd>{check.demo}</dd>
                     </div>
                   )}
                   {check.docs && (
                     <div>
-                      <dt>Documentation</dt>
+                      <dt>
+                        <T s={'Documentation'} />
+                      </dt>
                       <dd>{check.docs}</dd>
                     </div>
                   )}
                   <div>
-                    <dt>Pictures and files</dt>
+                    <dt>
+                      <T s={'Pictures and files'} />
+                    </dt>
                     <dd>{check.files}</dd>
                   </div>
                   <div>
-                    <dt>You earn per sale</dt>
+                    <dt>
+                      <T s={'You earn per sale'} />
+                    </dt>
                     <dd>{money(you)}</dd>
                   </div>
                 </dl>
@@ -554,15 +606,15 @@ export function SellForm({
                 {busy && (
                   <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                     <i style={{ width: pct + '%' }} />
-                    <span>{pct < 100 ? `Uploading ${pct}%` : 'Opening and checking your files'}</span>
+                    <span>{pct < 100 ? tx('Uploading {pct}%', { pct }) : tx('Opening and checking your files')}</span>
                   </div>
                 )}
                 <div className="sob-acts">
                   <button className="btn" type="button" disabled={busy} onClick={() => go('review')}>
-                    {busy ? 'Please wait' : editSlug ? 'Send changes for review' : 'Submit for review'}
+                    {busy ? tx('Please wait') : editSlug ? tx('Send changes for review') : tx('Submit for review')}
                   </button>
                   <button className="btn ghost" type="button" disabled={busy} onClick={() => setCheck(null)}>
-                    Edit
+                    <T s={'Edit'} />
                   </button>
                 </div>
               </div>
@@ -579,16 +631,18 @@ export function SellForm({
               }}
             >
               <div className="field" style={{ marginTop: 0 }}>
-                <label>What are you selling?</label>
-                <div className="seg" role="group" aria-label="What are you selling">
+                <label>
+                  <T s={'What are you selling?'} />
+                </label>
+                <div className="seg" role="group" aria-label={tx('What are you selling')}>
                   {(
                     [
-                      ['web', 'A website'],
-                      ['android', 'An Android app'],
-                      ['ios', 'An iPhone & iPad app'],
-                      ['webapp', 'A web app'],
-                      ['desktop', 'A desktop app'],
-                      ['digital', 'A digital product'],
+                      ['web', tx('A website')],
+                      ['android', tx('An Android app')],
+                      ['ios', tx('An iPhone & iPad app')],
+                      ['webapp', tx('A web app')],
+                      ['desktop', tx('A desktop app')],
+                      ['digital', tx('A digital product')],
                     ] as [Kind, string][]
                   )
                     // New listings are websites only; an older app or digital listing being edited keeps its own button.
@@ -610,12 +664,14 @@ export function SellForm({
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="s-name">{dig ? 'Product name' : app ? 'App name' : 'Site name'}</label>
-                <input id="s-name" name="name" required minLength={3} maxLength={60} placeholder={dig ? 'Lead Capture workflow' : app ? 'HabitLoop' : 'Saffron Table'} />
+                <label htmlFor="s-name">{dig ? tx('Product name') : app ? tx('App name') : tx('Site name')}</label>
+                <input id="s-name" name="name" required minLength={3} maxLength={60} placeholder={dig ? tx('Lead Capture workflow') : app ? tx('HabitLoop') : tx('Saffron Table')} />
               </div>
               <div className="sob-grid2">
                 <div className="field">
-                  <label htmlFor="s-cat">Category</label>
+                  <label htmlFor="s-cat">
+                    <T s={'Category'} />
+                  </label>
                   <select id="s-cat" key={kind} name="category" onChange={(e) => setCat(e.target.value)}>
                     {(app ? catsFor(kind) : WEB_CATS).map((c) => (
                       <option key={c}>{c}</option>
@@ -623,7 +679,9 @@ export function SellForm({
                   </select>
                 </div>
                 <div className="field">
-                  <label htmlFor="s-days">Delivery time</label>
+                  <label htmlFor="s-days">
+                    <T s={'Delivery time'} />
+                  </label>
                   <select id="s-days" name="days" defaultValue="3" onChange={(e) => setDeliveryV(e.target.value)}>
                     {choices.map(([v, label]) => (
                       <option key={v} value={v}>
@@ -632,14 +690,20 @@ export function SellForm({
                     ))}
                   </select>
                   <small>
-                    Promise only what you can keep. The time starts when the buyer pays.{' '}
-                    {hourChoices.length ? 'Pick hours for a quick job, days for a bigger one.' : 'For a faster job, offer 24-hour express below, or agree it with the buyer in the order chat.'}
+                    <T
+                      s={'Promise only what you can keep. The time starts when the buyer pays. {v0}'}
+                      v={{
+                        v0: hourChoices.length
+                          ? tx('Pick hours for a quick job, days for a bigger one.')
+                          : tx('For a faster job, offer 24-hour express below, or agree it with the buyer in the order chat.'),
+                      }}
+                    />
                   </small>
                 </div>
               </div>
               {app && (
                 <div className="field">
-                  <label htmlFor="s-stack">{dig ? 'Made for' : 'Built with'}</label>
+                  <label htmlFor="s-stack">{dig ? tx('Made for') : tx('Built with')}</label>
                   <select id="s-stack" name="stack" defaultValue={DEFAULT_STACK[kind]} key={'st' + kind}>
                     {toolsFor(kind).map((x) => (
                       <option key={x}>{x}</option>
@@ -648,7 +712,9 @@ export function SellForm({
                 </div>
               )}
               <div className="field">
-                <label htmlFor="s-desc">What does it do?</label>
+                <label htmlFor="s-desc">
+                  <T s={'What does it do?'} />
+                </label>
                 <textarea
                   id="s-desc"
                   name="desc"
@@ -657,41 +723,49 @@ export function SellForm({
                   required
                   minLength={20}
                   maxLength={600}
-                  placeholder={app ? 'Describe the app in two sentences.' : 'Describe the site in two sentences.'}
+                  placeholder={app ? tx('Describe the app in two sentences.') : tx('Describe the site in two sentences.')}
                 />
               </div>
               <div className="field">
-                <label htmlFor="s-inc">What is included (one per line, optional)</label>
+                <label htmlFor="s-inc">
+                  <T s={'What is included (one per line, optional)'} />
+                </label>
                 <textarea
                   id="s-inc"
                   name="inc"
                   onChange={(e) => setIncN(e.target.value.split('\n').filter((l) => l.trim()).length)}
                   rows={3}
-                  placeholder={'Home, menu and contact pages\nBooking form with email alerts'}
+                  placeholder={tx('Home, menu and contact pages\nBooking form with email alerts')}
                 />
               </div>
 
               {app ? (
                 <div className="field">
-                  <label>{dig ? 'Pictures of your product' : 'Screenshots of your app'}</label>
+                  <label>{dig ? tx('Pictures of your product') : tx('Screenshots of your app')}</label>
                   {shotsBox(
                     dig
-                      ? 'Show what is inside: the files, the main screens, a sample result. Buyers decide from these before they pay.'
-                      : 'Show the main screens, portrait. After payment you also send the buyer a real test build.',
+                      ? tx('Show what is inside: the files, the main screens, a sample result. Buyers decide from these before they pay.')
+                      : tx('Show the main screens, portrait. After payment you also send the buyer a real test build.'),
                     <>
-                      Choose <b>3 to 6</b> screenshots
+                      <T s={'Choose'} />{' '}
+                      <b>
+                        <T s={'3 to 6'} />
+                      </b>{' '}
+                      <T s={'screenshots'} />
                     </>,
                   )}
                 </div>
               ) : (
                 <div className="field">
-                  <label>Show buyers your site</label>
-                  <div className="seg" role="group" aria-label="How to show your site">
+                  <label>
+                    <T s={'Show buyers your site'} />
+                  </label>
+                  <div className="seg" role="group" aria-label={tx('How to show your site')}>
                     <button type="button" aria-pressed={how === 'zip'} onClick={() => setHow('zip')}>
-                      Upload a zip
+                      <T s={'Upload a zip'} />
                     </button>
                     <button type="button" aria-pressed={how === 'link'} onClick={() => setHow('link')}>
-                      Link to a live demo
+                      <T s={'Link to a live demo'} />
                     </button>
                   </div>
                   {how === 'zip' ? (
@@ -700,53 +774,70 @@ export function SellForm({
                       <label htmlFor="s-zip">
                         {file ? (
                           <>
-                            <b>{file.name}</b> · {(file.size / 1024 / 1024).toFixed(1)} MB
+                            <b>{file.name}</b> <T s={'· {v0} MB'} v={{ v0: (file.size / 1024 / 1024).toFixed(1) }} />
                           </>
                         ) : (
                           <>
-                            Choose your site as a <b>.zip</b>
+                            <T s={'Choose your site as a'} />{' '}
+                            <b>
+                              <T s={'.zip'} />
+                            </b>
                           </>
                         )}
                       </label>
                       <small>
-                        Put <b>index.html</b> at the top. Up to 25 MB. We host it for you, so buyers can scroll through the real site. Scripts run in a sandbox.
+                        <T s={'Put'} />{' '}
+                        <b>
+                          <T s={'index.html'} />
+                        </b>{' '}
+                        <T s={'at the top. Up to 25 MB. We host it for you, so buyers can scroll through the real site. Scripts run in a sandbox.'} />
                       </small>
                     </div>
                   ) : (
                     <div className="drop">
                       <input id="s-demo" name="demo" type="url" required placeholder="https://demo.example.com" />
-                      <small>Your own hosted demo. Some sites refuse to be shown inside other pages. If yours does, buyers get an Open in a new tab link.</small>
+                      <small>
+                        <T s={'Your own hosted demo. Some sites refuse to be shown inside other pages. If yours does, buyers get an Open in a new tab link.'} />
+                      </small>
                     </div>
                   )}
                 </div>
               )}
               {!app && (
                 <div className="field">
-                  <label>Pictures of your site (optional)</label>
+                  <label>
+                    <T s={'Pictures of your site (optional)'} />
+                  </label>
                   {shotsBox(
-                    kept.shots ? `You sent ${kept.shots} before. Choose new ones to replace them.` : 'The first one is the cover buyers see on the list. Up to 6.',
+                    kept.shots ? tx('You sent {shots} before. Choose new ones to replace them.', { shots: kept.shots }) : tx('The first one is the cover buyers see on the list. Up to 6.'),
                     <>
-                      Choose up to <b>6</b> pictures
+                      <T s={'Choose up to'} /> <b>6</b> <T s={'pictures'} />
                     </>,
                   )}
                 </div>
               )}
 
               <div className="field">
-                <label htmlFor="s-code">{dig ? 'Link to your files' : 'Code link'}</label>
-                <input id="s-code" name="code" type="url" required placeholder="Private GitHub or Drive link" />
+                <label htmlFor="s-code">{dig ? tx('Link to your files') : tx('Code link')}</label>
+                <input id="s-code" name="code" type="url" required placeholder={tx('Private GitHub or Drive link')} />
                 <small>
                   {dig ? (
-                    'A private link. The buyer gets it only after their payment is held in escrow, through a link that expires in 24 hours, with a licence key. Every download is logged, and you are paid 7 days after they accept.'
+                    tx(
+                      'A private link. The buyer gets it only after their payment is held in escrow, through a link that expires in 24 hours, with a licence key. Every download is logged, and you are paid 7 days after they accept.',
+                    )
                   ) : (
-                    <>Only shared with buyers after they accept the {app ? 'app' : 'site'}.</>
+                    <>
+                      <T s={'Only shared with buyers after they accept the {v0}.'} v={{ v0: app ? 'app' : 'site' }} />
+                    </>
                   )}{' '}
-                  The file behind the link can be up to {CONFIG.download.maxFileMb} MB. We read it once when you submit, and a bigger file cannot be approved.
+                  <T s={'The file behind the link can be up to {maxFileMb} MB. We read it once when you submit, and a bigger file cannot be approved.'} v={{ maxFileMb: CONFIG.download.maxFileMb }} />
                 </small>
               </div>
               {dig && (
                 <div className="field">
-                  <label htmlFor="s-demo2">Demo or view-only link{needDemo ? '' : ' (optional)'}</label>
+                  <label htmlFor="s-demo2">
+                    <T s={'Demo or view-only link{v0}'} v={{ v0: needDemo ? '' : ' (optional)' }} />
+                  </label>
                   <input
                     id="s-demo2"
                     name="demo"
@@ -754,35 +845,51 @@ export function SellForm({
                     required={needDemo}
                     value={demoN}
                     onChange={(e) => setDemoN(e.target.value)}
-                    placeholder="A video walkthrough, a view-only Figma link or a sample result"
+                    placeholder={tx('A video walkthrough, a view-only Figma link or a sample result')}
                   />
                   <small>
-                    {needDemo ? 'Buyers cannot try this before they accept, so show it working. A 2-minute video is perfect. ' : 'Buyers can look before they pay. '}Do not put the real files here.
+                    <T
+                      s={'{v0}Do not put the real files here.'}
+                      v={{ v0: needDemo ? tx('Buyers cannot try this before they accept, so show it working. A 2-minute video is perfect. ') : tx('Buyers can look before they pay. ') }}
+                    />
                   </small>
                 </div>
               )}
               {dig && sampleEnabled && (
                 <div className="field">
-                  <label htmlFor="s-sample">Free sample link (optional)</label>
-                  <input id="s-sample" name="sample" type="url" placeholder="A small free piece buyers can open, for example one screen or one workflow" />
-                  <small>Public: anyone can open it before buying. Show a taste, not the whole product.</small>
+                  <label htmlFor="s-sample">
+                    <T s={'Free sample link (optional)'} />
+                  </label>
+                  <input id="s-sample" name="sample" type="url" placeholder={tx('A small free piece buyers can open, for example one screen or one workflow')} />
+                  <small>
+                    <T s={'Public: anyone can open it before buying. Show a taste, not the whole product.'} />
+                  </small>
                 </div>
               )}
               {dig && trialEnabled && needDemo && (
                 <div className="field">
-                  <label htmlFor="s-trial">Limited trial copy (optional file)</label>
+                  <label htmlFor="s-trial">
+                    <T s={'Limited trial copy (optional file)'} />
+                  </label>
                   <input id="s-trial" name="trialFile" type="file" accept=".zip,.pdf,.txt,.md,.json,.csv" />
                   <small>
-                    Upload a separate cut-down version (fewer features, a time limit or a watermark). We never trim your real file. Private: a signed-in buyer can ask for it once a week, through a
-                    link that works for one hour. Every download is logged.
+                    <T
+                      s={
+                        'Upload a separate cut-down version (fewer features, a time limit or a watermark). We never trim your real file. Private: a signed-in buyer can ask for it once a week, through a link that works for one hour. Every download is logged.'
+                      }
+                    />
                   </small>
                 </div>
               )}
               {dig && (
                 <div className="sob-strength" aria-live="polite">
                   <div className="row">
-                    <b>Listing strength</b>
-                    <span>{strength} of 4</span>
+                    <b>
+                      <T s={'Listing strength'} />
+                    </b>
+                    <span>
+                      <T s={'{strength} of 4'} v={{ strength }} />
+                    </span>
                   </div>
                   <div className="bar">
                     <i style={{ width: strength * 25 + '%' }} />
@@ -795,28 +902,37 @@ export function SellForm({
                     ))}
                   </ul>
                   <small>
-                    Listings that show it working sell more. You stay protected: escrow, a licence key per order, a log of every download, a 7-day hold before payout, and disputes that need evidence.
+                    <T
+                      s={
+                        'Listings that show it working sell more. You stay protected: escrow, a licence key per order, a log of every download, a 7-day hold before payout, and disputes that need evidence.'
+                      }
+                    />
                   </small>
                 </div>
               )}
               {dig && (
                 <label className="chk sob-clean">
                   <input type="checkbox" name="clean" required />
-                  <span>I confirm these files contain no malware or hidden code, and I have the right to sell them. We review every product before it goes live.</span>
+                  <span>
+                    <T s={'I confirm these files contain no malware or hidden code, and I have the right to sell them. We review every product before it goes live.'} />
+                  </span>
                 </label>
               )}
               {dig && NEEDS_RELEASE.includes(cat) && (
                 <label className="chk sob-clean">
                   <input type="checkbox" name="release" required />
                   <span>
-                    Everything in these files is mine or licensed to me for resale (music, footage, fonts, samples). Anyone who can be recognised, and any private place or artwork shown, has signed a
-                    release, and I can show it if asked.
+                    <T
+                      s={
+                        'Everything in these files is mine or licensed to me for resale (music, footage, fonts, samples). Anyone who can be recognised, and any private place or artwork shown, has signed a release, and I can show it if asked.'
+                      }
+                    />
                   </span>
                 </label>
               )}
               <div className="field">
                 <label htmlFor="s-price">
-                  Price <b>{money(price)}</b>
+                  <T s={'Price'} /> <b>{money(price)}</b>
                 </label>
                 <input
                   id="s-price-n"
@@ -826,140 +942,202 @@ export function SellForm({
                   max={maxPrice}
                   step={1}
                   value={price}
-                  aria-label="Your price in dollars"
+                  aria-label={tx('Your price in dollars')}
                   onChange={(e) => setPrice(Math.round(Number(e.target.value)) || 0)}
                   onBlur={() => setPrice((p) => Math.min(maxPrice, Math.max(minPrice, p)))}
                 />
                 <input id="s-price" type="range" min={minPrice} max={maxPrice} value={Math.min(price, maxPrice)} onChange={(e) => setPrice(+e.target.value)} style={{ accentColor: '#2B3DFF' }} />
                 <small>
-                  Type your own price, from {money(minPrice)} to {money(maxPrice)}. You can change it later and an admin can adjust it too.
+                  <T s={'Type your own price, from {v0} to {v1}. You can change it later and an admin can adjust it too.'} v={{ v0: money(minPrice), v1: money(maxPrice) }} />
                 </small>
               </div>
               <div className="field">
-                <label htmlFor="s-lic">License</label>
+                <label htmlFor="s-lic">
+                  <T s={'License'} />
+                </label>
                 <select id="s-lic" name="license">
-                  <option>I wrote all of it (or generated it with AI)</option>
-                  <option>Uses MIT or Apache 2.0 parts</option>
-                  <option>Uses other licensed parts</option>
+                  <option>
+                    <T s={'I wrote all of it (or generated it with AI)'} />
+                  </option>
+                  <option>
+                    <T s={'Uses MIT or Apache 2.0 parts'} />
+                  </option>
+                  <option>
+                    <T s={'Uses other licensed parts'} />
+                  </option>
                 </select>
-                <small>Sites with GPL parts need a note so buyers know their obligations.</small>
+                <small>
+                  <T s={'Sites with GPL parts need a note so buyers know their obligations.'} />
+                </small>
               </div>
               <div className="field">
-                <label htmlFor="s-ltype">What the buyer may do with it</label>
+                <label htmlFor="s-ltype">
+                  <T s={'What the buyer may do with it'} />
+                </label>
                 <select id="s-ltype" name="licenceType" defaultValue="single_project">
                   {LICENCE_TYPES.map((t) => (
                     <option key={t} value={t}>
-                      {LICENCES[t].label}
+                      {word(LICENCES[t].label)}
                     </option>
                   ))}
                 </select>
-                <small>Single project: one site, no resale. Multi project: any number of their own projects, no resale. Full transfer: they own it and you stop selling it.</small>
+                <small>
+                  <T s={'Single project: one site, no resale. Multi project: any number of their own projects, no resale. Full transfer: they own it and you stop selling it.'} />
+                </small>
               </div>
               <div className="field">
-                <label htmlFor="s-setup">Price of &quot;with setup help&quot;</label>
+                <label htmlFor="s-setup">
+                  <T s={'Price of "with setup help"'} />
+                </label>
                 <select id="s-setup" name="setupPrice" value={setupShown} onChange={(e) => setSetupP(e.target.value)}>
                   {room(CONFIG.packages.setupCents).map((c) => (
                     <option key={c} value={c / 100}>
-                      {c === 0 ? 'Not offered' : `$${c / 100} on top of the price`}
+                      {c === 0 ? tx('Not offered') : `$${c / 100} on top of the price`}
                     </option>
                   ))}
                 </select>
-                <small>Your own price for doing the setup for the buyer (their name, logo and colours, or installing and connecting it). Choose &quot;Not offered&quot; if you do not do this.</small>
+                <small>
+                  <T s={'Your own price for doing the setup for the buyer (their name, logo and colours, or installing and connecting it). Choose "Not offered" if you do not do this.'} />
+                </small>
               </div>
               <div className="field">
-                <label htmlFor="s-custom">Price of &quot;with customisation&quot;</label>
+                <label htmlFor="s-custom">
+                  <T s={'Price of "with customisation"'} />
+                </label>
                 <select id="s-custom" name="customPrice" value={customShown} onChange={(e) => setCustomP(e.target.value)}>
                   {room(CONFIG.packages.customCents).map((c) => (
                     <option key={c} value={c / 100}>
-                      {c === 0 ? 'Not offered' : `$${c / 100} on top of the price`}
+                      {c === 0 ? tx('Not offered') : `$${c / 100} on top of the price`}
                     </option>
                   ))}
                 </select>
-                <small>What you charge to change it to fit the buyer. It is paid into escrow before you start. Choose &quot;Not offered&quot; if you only sell it as it is.</small>
+                <small>
+                  <T s={'What you charge to change it to fit the buyer. It is paid into escrow before you start. Choose "Not offered" if you only sell it as it is.'} />
+                </small>
               </div>
               <div className="field">
-                <label htmlFor="s-express">24-hour express delivery (optional)</label>
+                <label htmlFor="s-express">
+                  <T s={'24-hour express delivery (optional)'} />
+                </label>
                 <select id="s-express" name="express" defaultValue="">
-                  <option value="">Not offered</option>
+                  <option value="">
+                    <T s={'Not offered'} />
+                  </option>
                   {Array.from({ length: (CONFIG.delivery.expressMaxCents - CONFIG.delivery.expressMinCents) / 500 + 1 }, (_, k) => CONFIG.delivery.expressMinCents / 100 + k * 5).map((d) => (
                     <option key={d} value={d}>
-                      Offer it for ${d}
+                      <T s={'Offer it for ${d}'} v={{ d }} />
                     </option>
                   ))}
                 </select>
                 <small>
                   {fastAlready
-                    ? `Your delivery time is already within ${CONFIG.delivery.expressHours} hours, so buyers are not offered express.`
-                    : `Buyers can pay this extra to get it within ${CONFIG.delivery.expressHours} hours. You keep it, minus the usual fee. Only choose it if you can really deliver that fast.`}
+                    ? tx('Your delivery time is already within {expressHours} hours, so buyers are not offered express.', { expressHours: CONFIG.delivery.expressHours })
+                    : tx('Buyers can pay this extra to get it within {expressHours} hours. You keep it, minus the usual fee. Only choose it if you can really deliver that fast.', {
+                        expressHours: CONFIG.delivery.expressHours,
+                      })}
                 </small>
               </div>
               <div className="field">
-                <label htmlFor="s-third">Third-party code inside (optional)</label>
-                <textarea id="s-third" name="third" rows={3} placeholder={'One per line, for example:\nDate picker - MIT\nChart helper - GPL-3.0'} />
-                <small>Licences we know: {THIRD_PARTY_LICENCES.join(', ')}. Buyers see a note when a licence comes with conditions.</small>
+                <label htmlFor="s-third">
+                  <T s={'Third-party code inside (optional)'} />
+                </label>
+                <textarea id="s-third" name="third" rows={3} placeholder={tx('One per line, for example:\nDate picker - MIT\nChart helper - GPL-3.0')} />
+                <small>
+                  <T s={'Licences we know: {v0}. Buyers see a note when a licence comes with conditions.'} v={{ v0: THIRD_PARTY_LICENCES.join(', ') }} />
+                </small>
               </div>
               {tagsEnabled && (
                 <div className="field">
-                  <label htmlFor="s-tags">Tags (optional)</label>
-                  <input id="s-tags" name="tags" maxLength={400} placeholder="For example: restaurant, online booking, dark theme" autoComplete="off" />
-                  <small>Up to {CONFIG.listing.maxTags} short words buyers might search for, separated by commas. Changing tags never sends a listing back to review.</small>
+                  <label htmlFor="s-tags">
+                    <T s={'Tags (optional)'} />
+                  </label>
+                  <input id="s-tags" name="tags" maxLength={400} placeholder={tx('For example: restaurant, online booking, dark theme')} autoComplete="off" />
+                  <small>
+                    <T s={'Up to {maxTags} short words buyers might search for, separated by commas. Changing tags never sends a listing back to review.'} v={{ maxTags: CONFIG.listing.maxTags }} />
+                  </small>
                 </div>
               )}
               {dig && (
                 <>
                   <div className="field">
-                    <label htmlFor="s-reqs">What it needs to run{needDemo ? '' : ' (optional)'}</label>
+                    <label htmlFor="s-reqs">
+                      <T s={'What it needs to run{v0}'} v={{ v0: needDemo ? '' : ' (optional)' }} />
+                    </label>
                     <textarea
                       id="s-reqs"
                       name="requirements"
                       rows={3}
                       maxLength={CONFIG.listing.requirementsMax}
-                      placeholder={'For example:\nWordPress 6.4 or newer, PHP 8.1\nNode 20 and an OpenAI key'}
+                      placeholder={tx('For example:\nWordPress 6.4 or newer, PHP 8.1\nNode 20 and an OpenAI key')}
                     />
-                    <small>Shown to buyers before they pay: versions, accounts or keys they need.</small>
+                    <small>
+                      <T s={'Shown to buyers before they pay: versions, accounts or keys they need.'} />
+                    </small>
                   </div>
                   <div className="field">
-                    <label htmlFor="s-docs">Documentation link (optional)</label>
+                    <label htmlFor="s-docs">
+                      <T s={'Documentation link (optional)'} />
+                    </label>
                     <input id="s-docs" name="docsUrl" type="url" placeholder="https://docs.example.com/my-product" />
-                    <small>A public page with the install steps or the guide. Must start with https.</small>
+                    <small>
+                      <T s={'A public page with the install steps or the guide. Must start with https.'} />
+                    </small>
                   </div>
                   <div className="field">
-                    <label htmlFor="s-support">Support after purchase</label>
+                    <label htmlFor="s-support">
+                      <T s={'Support after purchase'} />
+                    </label>
                     <select id="s-support" name="supportDays" defaultValue="0">
                       {CONFIG.listing.periodDays.map((d) => (
                         <option key={d} value={d}>
-                          {d === 0 ? 'None' : `${d} days`}
+                          {d === 0 ? tx('None') : `${d} days`}
                         </option>
                       ))}
                     </select>
-                    <small>How long you answer questions in the order chat. Counted from the purchase. Only promise what you will do.</small>
+                    <small>
+                      <T s={'How long you answer questions in the order chat. Counted from the purchase. Only promise what you will do.'} />
+                    </small>
                   </div>
                   <div className="field">
-                    <label htmlFor="s-updates">Updates after purchase</label>
+                    <label htmlFor="s-updates">
+                      <T s={'Updates after purchase'} />
+                    </label>
                     <select id="s-updates" name="updateDays" defaultValue="0">
                       {CONFIG.listing.periodDays.map((d) => (
                         <option key={d} value={d}>
-                          {d === 0 ? 'None' : `${d} days`}
+                          {d === 0 ? tx('None') : `${d} days`}
                         </option>
                       ))}
                     </select>
-                    <small>How long buyers get the new versions you publish. Counted from the purchase.</small>
+                    <small>
+                      <T s={'How long buyers get the new versions you publish. Counted from the purchase.'} />
+                    </small>
                   </div>
                 </>
               )}
               {dig && (
                 <div className="field">
-                  <label htmlFor="s-deliv">How the buyer gets it</label>
+                  <label htmlFor="s-deliv">
+                    <T s={'How the buyer gets it'} />
+                  </label>
                   <select id="s-deliv" name="delivery" defaultValue="download">
-                    <option value="download">Download link to your files</option>
-                    <option value="repo_access">Invite to a private GitHub repository</option>
+                    <option value="download">
+                      <T s={'Download link to your files'} />
+                    </option>
+                    <option value="repo_access">
+                      <T s={'Invite to a private GitHub repository'} />
+                    </option>
                   </select>
-                  <small>With a repository you invite the buyer&apos;s GitHub account after they pay, and they confirm they can open it.</small>
+                  <small>
+                    <T s={"With a repository you invite the buyer's GitHub account after they pay, and they confirm they can open it."} />
+                  </small>
                 </div>
               )}
               <label style={{ display: 'flex', gap: 10, marginTop: 20, alignItems: 'start' }}>
                 <input type="checkbox" required style={{ accentColor: '#2B3DFF', marginTop: 5 }} />
-                <span className="muted">I own the rights to sell this, and it has no copied or harmful code.</span>
+                <span className="muted">
+                  <T s={'I own the rights to sell this, and it has no copied or harmful code.'} />
+                </span>
               </label>
               {error && (
                 <p role="alert" style={{ color: '#7A2E24', marginTop: 14 }}>
@@ -969,7 +1147,7 @@ export function SellForm({
               {busy && (
                 <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                   <i style={{ width: pct + '%' }} />
-                  <span>{pct < 100 ? `Uploading ${pct}%` : 'Opening and checking your site'}</span>
+                  <span>{pct < 100 ? tx('Uploading {pct}%', { pct }) : tx('Opening and checking your site')}</span>
                 </div>
               )}
               {missing.length > 0 && (
@@ -980,7 +1158,9 @@ export function SellForm({
                       <li key={m}>{m}</li>
                     ))}
                   </ul>
-                  <small>You can still save a draft and finish later.</small>
+                  <small>
+                    <T s={'You can still save a draft and finish later.'} />
+                  </small>
                 </div>
               )}
               {note && (
@@ -990,11 +1170,11 @@ export function SellForm({
               )}
               <div className="sob-acts">
                 <button className="btn" type="submit" disabled={busy}>
-                  Check my listing
+                  <T s={'Check my listing'} />
                 </button>
                 {!editSlug && (
                   <button className="btn ghost" type="button" disabled={busy} onClick={() => go('draft')}>
-                    Save draft
+                    <T s={'Save draft'} />
                   </button>
                 )}
               </div>
@@ -1002,28 +1182,42 @@ export function SellForm({
           </>
         )}
         <aside className="sob-sum">
-          <h2 style={{ fontSize: '1.5rem' }}>What you earn</h2>
+          <h2 style={{ fontSize: '1.5rem' }}>
+            <T s={'What you earn'} />
+          </h2>
           <div className="row" style={{ marginTop: 12 }}>
-            <span>Buyer pays</span>
+            <span>
+              <T s={'Buyer pays'} />
+            </span>
             <b>{money(price)}</b>
           </div>
           <div className="row">
             <span>
-              {BRAND_NAME} commission, {percent(commissionBps)} ({planName} plan)
+              <T s={'{BRAND_NAME} commission, {v1} ({planName} plan)'} v={{ BRAND_NAME, v1: percent(commissionBps), planName }} />
             </span>
             <b>{money(fee)}</b>
           </div>
           <div className="row sob-tot">
-            <span>You earn</span>
+            <span>
+              <T s={'You earn'} />
+            </span>
             <span>{money(you)}</span>
           </div>
           <div className="sob-note-box" style={{ marginTop: 20 }}>
-            <span>Paid weekly, 7 days after the buyer accepts. Verify your email, phone and payout account before your first listing goes live.</span>
+            <span>
+              <T s={'Paid weekly, 7 days after the buyer accepts. Verify your email, phone and payout account before your first listing goes live.'} />
+            </span>
           </div>
           <ul className="sob-checks" style={{ gridTemplateColumns: '1fr', marginTop: 22 }}>
-            <li>Checked for copied content before it goes live</li>
-            <li>Sell the same site again and again</li>
-            <li>Get extra income from customisation jobs</li>
+            <li>
+              <T s={'Checked for copied content before it goes live'} />
+            </li>
+            <li>
+              <T s={'Sell the same site again and again'} />
+            </li>
+            <li>
+              <T s={'Get extra income from customisation jobs'} />
+            </li>
           </ul>
         </aside>
       </div>

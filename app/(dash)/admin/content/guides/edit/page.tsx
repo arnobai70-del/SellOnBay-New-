@@ -5,13 +5,16 @@ import { GuideEditor, type GuideFields } from '@/components/glass/GuideEditor';
 import { allPosts, postById } from '@/lib/posts';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Edit guide', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+import type { Tx } from '@/lib/i18n/tx';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit guide'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
-const CATEGORIES = ['Getting started', 'Buying a website', 'Domains', 'Selling', 'Design', 'Marketing', 'Technology'];
+const CATEGORIES = (tx: Tx) => [tx('Getting started'), tx('Buying a website'), tx('Domains'), tx('Selling'), tx('Design'), tx('Marketing'), tx('Technology')];
 
 /* The block editor for one guide (or a new one without ?id). Content admins and Super Admins. */
 export default async function EditGuide({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/admin/content/guides/edit', roles: ['admin'], scope: 'content' });
   const { id } = await searchParams;
   const p = id ? await postById(id) : null;
@@ -38,8 +41,8 @@ export default async function EditGuide({ searchParams }: { searchParams: Promis
     bodyHtml: p?.bodyHtml || '',
   };
   return (
-    <AdminShell viewer={viewer} active="guides" title={p ? 'Edit guide' : 'New guide'} subtitle="Type / for a block. Alt+Up and Alt+Down move a block. It saves by itself.">
-      <GuideEditor initial={initial} categories={[...new Set([...CATEGORIES, ...used])]} />
+    <AdminShell viewer={viewer} active="guides" title={p ? tx('Edit guide') : tx('New guide')} subtitle={tx('Type / for a block. Alt+Up and Alt+Down move a block. It saves by itself.')}>
+      <GuideEditor initial={initial} categories={[...new Set([...CATEGORIES(tx), ...used])]} />
     </AdminShell>
   );
 }

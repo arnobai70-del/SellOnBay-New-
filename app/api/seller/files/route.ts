@@ -8,6 +8,8 @@ import { getOrder } from '@/lib/orders/service';
 import { createAdminClient } from '@/lib/supabase/server';
 import { readJson } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -28,30 +30,30 @@ export async function POST(req: Request) {
   if (closed) return closed;
   const who = await sellerOnly();
   if (!who.ok) return who.res;
-  if (!(await limit(`file-upload:${who.id}`, 20, 3_600_000))) return NextResponse.json({ error: 'Too many uploads this hour. Try again later.' }, { status: 429 });
+  if (!(await limit(`file-upload:${who.id}`, 20, 3_600_000))) return jsonT({ error: tx('Too many uploads this hour. Try again later.') }, { status: 429 });
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const d = body.data;
   if (d.purpose === 'delivery') {
     const o = d.order ? await getOrder(d.order) : null;
-    if (!o || o.sellerId !== who.id || !o.quotationId) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
-    if (!['in_delivery', 'overdue', 'fix_requested'].includes(o.state)) return NextResponse.json({ error: 'This order is not waiting for your delivery.' }, { status: 409 });
+    if (!o || o.sellerId !== who.id || !o.quotationId) return jsonT({ error: tx('Order not found.') }, { status: 404 });
+    if (!['in_delivery', 'overdue', 'fix_requested'].includes(o.state)) return jsonT({ error: tx('This order is not waiting for your delivery.') }, { status: 409 });
     const r = await startUpload(who.id, { productId: o.productId, orderId: o.id, purpose: 'delivery', name: d.name, size: d.size });
-    if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+    if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
     return NextResponse.json({ ok: true, id: r.value.file.id, path: r.value.file.quarantinePath, token: r.value.token, uploadUrl: r.value.uploadUrl });
   }
   if (d.purpose === 'revision') {
     // Revised files for a revision SellOnBay assigned to this seller (lib/revisions); checked and reviewed like every file.
     const o = d.order ? await getOrder(d.order) : null;
     const open = o ? (await revisionsFor({ orderId: o.id, sellerId: who.id, statuses: ['assigned'] })).length : 0;
-    if (!o || o.sellerId !== who.id || !open) return NextResponse.json({ error: 'There is no revision waiting for your work on this order.' }, { status: 404 });
+    if (!o || o.sellerId !== who.id || !open) return jsonT({ error: tx('There is no revision waiting for your work on this order.') }, { status: 404 });
     const r = await startUpload(who.id, { productId: o.productId, orderId: o.id, purpose: 'revision', name: d.name, size: d.size });
-    if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+    if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
     return NextResponse.json({ ok: true, id: r.value.file.id, path: r.value.file.quarantinePath, token: r.value.token, uploadUrl: r.value.uploadUrl });
   }
   const { data: p } = d.product ? await createAdminClient().from('products').select('id, seller_id').eq('slug', d.product).maybeSingle() : { data: null };
-  if (!p || p.seller_id !== who.id) return NextResponse.json({ error: 'Listing not found.' }, { status: 404 });
+  if (!p || p.seller_id !== who.id) return jsonT({ error: tx('Listing not found.') }, { status: 404 });
   const r = await startUpload(who.id, { productId: p.id, purpose: d.purpose, name: d.name, size: d.size });
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  if (!r.ok) return jsonT({ error: r.error }, { status: r.status });
   return NextResponse.json({ ok: true, id: r.value.file.id, path: r.value.file.quarantinePath, token: r.value.token, uploadUrl: r.value.uploadUrl });
 }

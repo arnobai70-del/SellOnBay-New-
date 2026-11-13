@@ -12,7 +12,9 @@ import { attemptsFor, listRefunds } from '@/lib/payments/store';
 import { entitlementFor } from '@/lib/release/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Order', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Order'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
@@ -20,6 +22,7 @@ const day = (ms?: number | null) => (ms ? new Date(ms).toISOString().slice(0, 16
 
 /* One order for the admins who work on it: money, release, access, the full log and the three message channels. */
 export default async function AdminOrder({ params }: { params: Promise<{ id: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/admin/orders/${id}`, roles: ['admin'], scope: ['support', 'finance', 'delivery', 'catalog'] });
   const o = /^[0-9a-f-]{36}$/i.test(id) ? await getOrder(id) : null;
@@ -34,37 +37,59 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
               {o.title} <StateChip state={o.state} />
             </h2>
             <p className="tag">
-              {orderCode(o.id)} · {usd(o.priceCents)} · fee {usd(o.feeCents)} · {o.quotationId ? 'from a quotation' : 'old checkout'}
+              <T s={'{v0} · {v1} · fee {v2} · {v3}'} v={{ v0: orderCode(o.id), v1: usd(o.priceCents), v2: usd(o.feeCents), v3: o.quotationId ? 'from a quotation' : 'old checkout' }} />
             </p>
           </div>
         </div>
         <dl className="sob-kv">
-          <dt>Lines</dt>
+          <dt>
+            <T s={'Lines'} />
+          </dt>
           <dd>{o.lines.map(([l, c]) => `${l} ${usd(c)}`).join(' · ')}</dd>
-          <dt>Paid</dt>
-          <dd>{o.fundedAt ? `${day(o.fundedAt)} (${o.payment?.ref?.startsWith('manual:') ? 'manual, reconciled' : (o.payment?.brand ?? 'gateway')})` : 'Not yet'}</dd>
-          <dt>Work authorised</dt>
+          <dt>
+            <T s={'Paid'} />
+          </dt>
+          <dd>{o.fundedAt ? `${day(o.fundedAt)} (${o.payment?.ref?.startsWith('manual:') ? 'manual, reconciled' : (o.payment?.brand ?? 'gateway')})` : tx('Not yet')}</dd>
+          <dt>
+            <T s={'Work authorised'} />
+          </dt>
           <dd>{day(o.workAuthorisedAt)}</dd>
-          <dt>Files ready</dt>
+          <dt>
+            <T s={'Files ready'} />
+          </dt>
           <dd>{day(o.filesReadyAt)}</dd>
-          <dt>Release</dt>
-          <dd>{o.releaseApprovedAt ? `Approved ${day(o.releaseApprovedAt)}` : o.releaseDueAt ? <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} /> : 'Not waiting'}</dd>
-          <dt>Buyer access</dt>
-          <dd>{ent ? `${ent.status} · ${ent.licenceTier} (text ${ent.licenceTextVersion})${ent.statusReason ? ` · ${ent.statusReason}` : ''}` : 'None yet'}</dd>
+          <dt>
+            <T s={'Release'} />
+          </dt>
+          <dd>
+            {o.releaseApprovedAt ? (
+              tx('Approved {day}', { day: day(o.releaseApprovedAt) })
+            ) : o.releaseDueAt ? (
+              <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} />
+            ) : (
+              tx('Not waiting')
+            )}
+          </dd>
+          <dt>
+            <T s={'Buyer access'} />
+          </dt>
+          <dd>{ent ? `${ent.status} · ${ent.licenceTier} (text ${ent.licenceTextVersion})${ent.statusReason ? ` · ${ent.statusReason}` : ''}` : tx('None yet')}</dd>
         </dl>
         <p style={{ marginTop: 12 }}>
           <Link className="btn ghost sm" href="/admin/orders/releases">
-            Releases
+            <T s={'Releases'} />
           </Link>{' '}
           <Link className="btn ghost sm" href="/admin/orders/payments">
-            Payments
+            <T s={'Payments'} />
           </Link>
         </p>
       </div>
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Payments and refunds</h2>
+            <h2>
+              <T s={'Payments and refunds'} />
+            </h2>
           </div>
         </div>
         <ul className="sob-list">
@@ -72,7 +97,7 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             <li key={a.id}>
               <div className="sob-grow">
                 <b>
-                  {usd(a.amountClaimedCents)} reported, ref {a.reference} · {a.status}
+                  <T s={'{v0} reported, ref {reference} · {status}'} v={{ v0: usd(a.amountClaimedCents), reference: a.reference, status: a.status }} />
                 </b>
                 <small>
                   {a.amountReceivedCents !== null ? `received ${usd(a.amountReceivedCents)}, statement ${a.statementRef}` : ''}
@@ -85,20 +110,26 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             <li key={r.id}>
               <div className="sob-grow">
                 <b>
-                  Refund {usd(r.amountCents)} ({r.kind}) · {r.status}
+                  <T s={'Refund {v0} ({kind}) · {status}'} v={{ v0: usd(r.amountCents), kind: r.kind, status: r.status }} />
                 </b>
                 <small>{r.reason}</small>
               </div>
             </li>
           ))}
-          {!attempts.length && !refunds.length && <li className="muted">None.</li>}
+          {!attempts.length && !refunds.length && (
+            <li className="muted">
+              <T s={'None.'} />
+            </li>
+          )}
         </ul>
       </div>
-      <ConversationPanel type="order" id={o.id} me="admin" heading="Messages" />
+      <ConversationPanel type="order" id={o.id} me="admin" heading={tx('Messages')} />
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>Log</h2>
+            <h2>
+              <T s={'Log'} />
+            </h2>
           </div>
         </div>
         <ul className="sob-tl2">

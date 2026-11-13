@@ -13,6 +13,8 @@ import { idOf } from '@/lib/validate';
 import { maintenanceFor } from '@/lib/maintenance/service';
 import { gateFor } from '@/lib/release/gate';
 import { GATE_TEXT } from '@/lib/release/rules';
+import { jsonT } from '@/lib/i18n/jsonT';
+import { tx } from '@/lib/i18n/tx';
 
 export const runtime = 'nodejs';
 
@@ -22,20 +24,20 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   if (closed) return closed;
   const id = await idOf(params);
   const o = await orderFor(id);
-  if (!o) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
-  if (!isFundedState(o.state)) return NextResponse.json({ error: 'Your files are available once your payment is held in escrow.' }, { status: 403 });
+  if (!o) return jsonT({ error: tx('Order not found.') }, { status: 404 });
+  if (!isFundedState(o.state)) return jsonT({ error: tx('Your files are available once your payment is held in escrow.') }, { status: 403 });
   // The release gate (SellOnBay 2.0, D-A): nothing, not even the licence key, before an admin's release approval (or a legacy review).
   const g = await gateFor({ id: o.id, status: o.state, quotationId: o.quotationId, releaseApprovedAt: o.releaseApprovedAt });
-  if (!g.allowed) return NextResponse.json({ error: GATE_TEXT[g.reason] }, { status: 403 });
+  if (!g.allowed) return jsonT({ error: GATE_TEXT[g.reason] }, { status: 403 });
   // A seller's real files: the same checks as /api/orders/[id]/source before the licence key or a link goes out (safety hold, release delay).
   const real = !!o.productId && !!o.buyerId;
   if (real) {
-    if (await heldReason(id)) return NextResponse.json({ error: HELD_TEXT }, { status: 403 });
+    if (await heldReason(id)) return jsonT({ error: HELD_TEXT }, { status: 403 });
     let profile: { created_at: string | null; flagged: boolean | null } | null = null;
     if (supabaseConfigured) {
       const p = await createAdminClient().from('profiles').select('created_at, flagged').eq('id', o.buyerId!).maybeSingle();
       // Fail closed: without the buyer's facts the release delay for new or flagged buyers cannot be applied.
-      if (p.error) return NextResponse.json({ error: 'Your files could not be prepared just now. Try again in a minute.' }, { status: 503 });
+      if (p.error) return jsonT({ error: tx('Your files could not be prepared just now. Try again in a minute.') }, { status: 503 });
       profile = p.data;
     }
     const d = decideRelease(
@@ -49,10 +51,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       },
       releaseConfigFromEnv(),
     );
-    if (!d.allowed) return NextResponse.json({ error: 'Your files are almost ready.', availableAt: d.reason === 'delay' ? new Date(d.availableAtMs).toISOString() : undefined }, { status: 403 });
+    if (!d.allowed) return jsonT({ error: tx('Your files are almost ready.'), availableAt: d.reason === 'delay' ? new Date(d.availableAtMs).toISOString() : undefined }, { status: 403 });
   }
   if (!(await limit(`source:${o.buyerId ?? 'anon'}:${id}`, CONFIG.download.linksPerHourPerOrder, 60 * 60 * 1000)))
-    return NextResponse.json({ error: 'Too many download links requested. Try again in an hour.' }, { status: 429 });
+    return jsonT({ error: tx('Too many download links requested. Try again in an hour.') }, { status: 429 });
   const licenseKey = await ensureLicense(id);
   const ttl = ttlSeconds();
   // A seller's real files come through the real route (signed in as the buyer); only a made-up starter gets the harmless dummy file.

@@ -1,4 +1,13 @@
 /*
+ * RETIRED (2026-11-14): SellOnBay 2.0 closed the instant checkout this script starts with (/api/demo/orders answers 410; purchases begin
+ * with a request and a quotation). File release is covered by tests/unit/{delivery,delivery-chain,release}.test.ts, buy-real.spec.ts
+ * ("fake cards cannot … unlock its files") and staging-journey.spec.ts (step 6-7, release by Delivery). Kept for reference only.
+ */
+if (!process.env.RUN_RETIRED_DELIVERY_CHECK) {
+  console.log('delivery.e2e.cjs is retired (see the note at the top). File release is covered by the unit, buy-real and staging journey tests.');
+  process.exit(0);
+}
+/*
  * End-to-end check of file delivery. Run it with the app built (npm run build) and two servers up:
  *   LAUNCHBAY_DEMO=1 npx next start -p 3002     (demo mode, no database)
  *   EXAMPLE_ORDERS=1 npx next start -p 3000      (the STAGING project: keys in the environment, never .env.local, which is production)

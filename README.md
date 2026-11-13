@@ -35,7 +35,7 @@ With Supabase: run the files in `supabase/migrations/` in order (0001 to the new
 | `npm run lint` / `typecheck` / `format:check` | Code checks. `npm run format` fixes style.                             |
 | `npm test`                                    | Unit tests (`tests/unit`, Vitest). Money, orders, ledger, filters.     |
 | `npm run test:e2e`                            | Browser and API tests (`tests/e2e`, Playwright). Needs the app running |
-| `node tests/e2e/delivery.e2e.cjs`             | File-release checks against the STAGING database only.                 |
+| `node tests/e2e/delivery.e2e.cjs`             | Retired with SellOnBay 2.0 (see its header); covered by other tests.   |
 
 **Browser tests never touch the production database** (owner, 2026-11-13). `.env.local` holds the production keys, and Next reads it at
 build time (`NEXT_PUBLIC_*` are baked in) and at start-up, so a demo server needs fake keys at both steps:

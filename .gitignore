@@ -23,3 +23,7 @@ supabase/.temp/
 .next-view/
 .next-demo/
 .next-nodb/
+# every temporary build folder (.next-demo4, .next-stg6, ...) and the Hostinger zips (made by npm run package:hostinger, kept beside the
+# project for rollback, never committed)
+.next-*/
+SellOnBay-HOSTINGER*.zip

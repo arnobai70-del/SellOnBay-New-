@@ -18,7 +18,8 @@ const walk = (dir: string): string[] =>
   });
 
 describe('tx() strings', () => {
-  it('the catalogue is up to date (npm run i18n:extract)', () => {
+  // The extractor parses the whole codebase with TypeScript: about 3 s alone, longer than vitest's default 5 s under a full parallel run.
+  it('the catalogue is up to date (npm run i18n:extract)', { timeout: 60_000 }, () => {
     expect(Object.keys(extract().strings)).toEqual(Object.keys(catalog.strings));
   });
   it('every language has every string, none extra, the same placeholders', () => {

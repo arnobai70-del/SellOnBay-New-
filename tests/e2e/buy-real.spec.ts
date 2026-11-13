@@ -14,7 +14,7 @@ const env = realEnv;
 const CARD = { number: '4242424242424242', exp: '12/34', cvc: '123', name: 'Test Buyer' };
 
 test.describe('buying a seller listing', () => {
-  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
+  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs the staging keys (never .env.local, which is production)');
   const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321', env.SUPABASE_SERVICE_ROLE_KEY || 'unset', { auth: { persistSession: false } });
   const stamp = Date.now();
   const users: string[] = [];
@@ -88,7 +88,7 @@ test.describe('buying a seller listing', () => {
 
   const order = (data: object) => buyer.request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis', ...data } });
 
-  test('a visitor who is not signed in cannot buy it, and a seller account cannot buy at all', async ({ request }) => {
+  test('a visitor who is not signed in cannot buy it, and its seller cannot buy their own listing', async ({ request }) => {
     // SellOnBay 2.0: the old instant checkout is closed for everyone (410, pointing to a request), and purchases start with a request
     const closed = await request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } });
     expect(closed.status()).toBe(410);
@@ -96,9 +96,10 @@ test.describe('buying a seller listing', () => {
     const ask = { product: slug, kind: 'product', intendedUse: 'A site for my own bakery.', consent: true };
     const res = await request.post(`${REAL}/api/requests`, { data: ask });
     expect(res.status()).toBe(401);
+    // Since 2026-11-07 (owner) one account may buy and sell (mayBuy, tests/unit/accounts.test.ts), so the old "a seller cannot buy at all"
+    // no longer holds. What must hold: the listing's own seller is refused (here still without the authenticator code), never accepted.
     const mine = await own.request.post(`${REAL}/api/requests`, { data: ask });
-    expect(mine.status()).toBe(403); // only buyer accounts buy
-    expect((await mine.json()).error).toMatch(/Only a buyer account/);
+    expect([401, 403]).toContain(mine.status());
     expect((await own.request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } })).status()).toBe(410);
   });
 

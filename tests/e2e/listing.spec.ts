@@ -101,7 +101,7 @@ const totp = (secret: string) => {
 };
 
 test.describe('listing API: the server enforces the same rules', () => {
-  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs .env.local with Supabase keys');
+  test.skip(!env.SUPABASE_SERVICE_ROLE_KEY, 'needs the staging keys (never .env.local, which is production)');
   const U = env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
   const admin = createClient(U, env.SUPABASE_SERVICE_ROLE_KEY || 'unset', { auth: { persistSession: false } });
   const email = `qa-listing-${Date.now()}@launchbay.test`;
@@ -140,7 +140,8 @@ test.describe('listing API: the server enforces the same rules', () => {
     await page.locator('form:has(#a-pass) button[type=submit]').click();
     await page.locator('#mfa-code').fill(totp(en.totp.secret));
     await page.locator('form:has(#mfa-code) button[type=submit]').click();
-    await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 20_000 });
+    // the code page is /two-factor: wait until the browser has left it too, so the session is aal2 before any call
+    await page.waitForURL((u) => !u.pathname.startsWith('/login') && !u.pathname.startsWith('/two-factor'), { timeout: 20_000 });
     return c;
   }
   const post = (fields: Record<string, string>, files: Record<string, { name: string; mimeType: string; buffer: Buffer }[]> = {}) => {

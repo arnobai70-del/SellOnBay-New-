@@ -42,7 +42,11 @@ const SECTIONS: [string, string, RegExp][] = [
  */
 const PERSON_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0';
 const withChoice = async (browser: Browser, choice: 'all' | '1') =>
-  browser.newContext({ userAgent: PERSON_UA, storageState: { cookies: [], origins: [{ origin: DEMO, localStorage: [{ name: 'lb-cookies', value: choice }] }] } });
+  browser.newContext({
+    extraHTTPHeaders: { 'x-sob-e2e': '1' },
+    userAgent: PERSON_UA,
+    storageState: { cookies: [], origins: [{ origin: DEMO, localStorage: [{ name: 'lb-cookies', value: choice }] }] },
+  });
 
 test.describe.configure({ mode: 'serial' });
 test.describe('Affiliate Management', () => {

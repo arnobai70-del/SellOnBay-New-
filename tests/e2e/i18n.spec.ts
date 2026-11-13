@@ -51,7 +51,7 @@ test.describe('Languages', () => {
 
   test('an API error reaches the person in their saved language; English without a choice', async ({ playwright }) => {
     const ask = async (cookie: string) => {
-      const ctx = await playwright.request.newContext({ extraHTTPHeaders: { origin: DEMO, ...(cookie ? { cookie } : {}) } });
+      const ctx = await playwright.request.newContext({ extraHTTPHeaders: { 'x-sob-e2e': '1', origin: DEMO, ...(cookie ? { cookie } : {}) } });
       const r = await ctx.post(`${DEMO}/api/account/language`, { data: { lang: 'xx' } });
       const body = { status: r.status(), error: ((await r.json()) as { error?: string }).error };
       await ctx.dispose();
@@ -119,7 +119,7 @@ test.describe('Languages', () => {
   });
 
   test('a visitor whose browser prefers a published language is offered it once; Keep English is remembered', async ({ browser }) => {
-    const ctx = await browser.newContext({ locale: 'bn-BD', userAgent: PERSON_UA });
+    const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-sob-e2e': '1' }, locale: 'bn-BD', userAgent: PERSON_UA });
     const page = await ctx.newPage();
     await page.goto(`${DEMO}/help`);
     const offer = page.locator('[data-lang-suggest="bn"]');

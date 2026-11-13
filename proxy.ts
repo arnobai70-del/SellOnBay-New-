@@ -16,6 +16,7 @@ import { savedRedirects } from './lib/seo/redirectRead';
 import { isProtectedPath, redirectFor } from './lib/seo/redirectsCore';
 import { SITE_URL } from './lib/site';
 import { basicAuthOk, isStaging, openOnStaging, STAGING_ROBOTS, stagingProblem } from './lib/stage';
+import { GUARD_HEADER, TEST_HEADER, testGuard } from './lib/testGuard';
 import { isBot } from './lib/analyticsCore';
 import { COOKIE as I18N_COOKIE, HEADER as I18N_HEADER, SOURCE as I18N_SOURCE, isPublicPath, liveLanguages, localizedPath, splitLocale } from './lib/i18n/config';
 import { languageSettings } from './lib/i18n/settingsRead';
@@ -25,6 +26,9 @@ const STAFF = ['/dashboard/seller', '/dashboard/admin', '/admin', '/sell/new']; 
 
 /* Every visitor gets a random device id once. It is only used to spot many accounts on one device (lib/guard.ts) and is stored as a hash. */
 export async function proxy(req: NextRequest) {
+  // Tests never reach the production database (lib/testGuard.ts): checked first, before staging, maintenance or any route.
+  const refused = testGuard(process.env, req.headers.get('host'), req.headers.get(TEST_HEADER));
+  if (refused) return new NextResponse(refused.reason, { status: refused.status, headers: { [GUARD_HEADER]: 'production-db', 'cache-control': 'no-store' } });
   // Staging (lib/stage.ts): password and noindex on everything; a wrong configuration answers 503 instead of running. Production: unchanged.
   if (isStaging()) {
     const problem = stagingProblem();

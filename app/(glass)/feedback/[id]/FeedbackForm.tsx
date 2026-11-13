@@ -4,7 +4,9 @@ import { Button } from '@/components/glass/Button';
 import { Field } from '@/components/glass/Field';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 export function FeedbackForm({ orderId, reviewHref }: { orderId: string; reviewHref: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
   const [error, setError] = useState('');
   if (state === 'done')
@@ -56,7 +58,7 @@ export function FeedbackForm({ orderId, reviewHref }: { orderId: string; reviewH
       <Field as="textarea" label="What should we improve?" name="improve" maxLength={2000} error={error || undefined} />
       <div>
         <Button type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Sending' : 'Send feedback'}
+          {state === 'busy' ? tx('Sending') : tx('Send feedback')}
         </Button>
       </div>
     </form>

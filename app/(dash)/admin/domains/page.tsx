@@ -113,7 +113,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
             <T s={'Domain income'} />
           </div>
           <div className="v">$0</div>
-          <div className="s">{registrarLive() ? 'This month' : 'No registrar yet'}</div>
+          <div className="s">{registrarLive() ? tx('This month') : tx('No registrar yet')}</div>
         </div>
       </div>
       <section className="glass" style={{ padding: '8px 8px 4px' }}>
@@ -183,7 +183,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
                           '—'
                         )}
                       </td>
-                      <td>{r.pending ? '—' : days === null ? 'Not recorded' : days <= 30 ? `in ${days} days` : month(r.expires!)}</td>
+                      <td>{r.pending ? '—' : days === null ? tx('Not recorded') : days <= 30 ? `in ${days} days` : month(r.expires!)}</td>
                       <td>
                         <span className="tag" style={{ margin: 0 }}>
                           <T s={'By hand'} />
@@ -191,7 +191,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
                       </td>
                       <td>
                         {r.pending ? (
-                          <span className="status st-info">{r.asked?.decided ? 'Pending' : 'Request waiting'}</span>
+                          <span className="status st-info">{r.asked?.decided ? tx('Pending') : tx('Request waiting')}</span>
                         ) : expiring(r) ? (
                           <span className="status st-wait">
                             <T s={'Expiring'} />
@@ -227,7 +227,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
               ) : (
                 <tr>
                   <td colSpan={7} className="muted">
-                    {tab === 'transfers' ? 'No transfers: domains are registered by hand.' : 'No domains here.'}
+                    {tab === 'transfers' ? tx('No transfers: domains are registered by hand.') : tx('No domains here.')}
                   </td>
                 </tr>
               )}
@@ -311,7 +311,7 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
             </select>
           </div>
           <div className="tag" style={{ margin: 0 }}>
-            {registrarLive() ? 'Registrar connected.' : 'No registrar is connected yet: register at the registrar in the buyer’s name, then record it above.'}
+            {registrarLive() ? tx('Registrar connected.') : tx('No registrar is connected yet: register at the registrar in the buyer’s name, then record it above.')}
           </div>
         </section>
       </div>

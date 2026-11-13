@@ -284,7 +284,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 {pending.length ? (
                   pending.map((c) => (
                     <tr key={c.id}>
-                      <td style={{ fontWeight: 500 }}>{nameOf.get(c.seller_id) ?? 'Seller'}</td>
+                      <td style={{ fontWeight: 500 }}>{nameOf.get(c.seller_id) ?? tx('Seller')}</td>
                       <td>{shortDate(Date.parse(c.created_at))}</td>
                       <td>{sellerSites.get(c.seller_id) ?? 0}</td>
                       <td>
@@ -400,7 +400,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
               ) : (
                 <tr>
                   <td colSpan={6} className="muted">
-                    {bq ? 'No buyer matches that search.' : 'No buyer has ordered yet.'}
+                    {bq ? tx('No buyer matches that search.') : tx('No buyer has ordered yet.')}
                   </td>
                 </tr>
               )}

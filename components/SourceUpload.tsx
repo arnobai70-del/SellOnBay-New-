@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Listing = { slug: string; name: string };
 const MAX = 500 * 1024 * 1024;
 
@@ -12,6 +13,7 @@ const MAX = 500 * 1024 * 1024;
  * one-time link; then the server checks it (archive rules, credentials; there is no malware scan) and a SellOnBay reviewer looks at it. Nothing is public.
  */
 export function SourceUpload({ listings }: { listings: Listing[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [product, setProduct] = useState(listings[0]?.slug ?? '');
   const [purpose, setPurpose] = useState<'listing' | 'version'>('listing');
@@ -84,7 +86,7 @@ export function SourceUpload({ listings }: { listings: Listing[] }) {
       </label>
       <input id="su-file" type="file" accept=".zip,application/zip" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
       <button className="btn sm" type="submit" disabled={!!step}>
-        {step || 'Upload for checking'}
+        {step || tx('Upload for checking')}
       </button>
       {msg && (
         <p className="tag" style={{ margin: 0, color: msg.ok ? '#1A5444' : '#7A2E24' }} role={msg.ok ? 'status' : 'alert'}>

@@ -8,6 +8,7 @@ import { sellerByHandle } from '@/lib/glass/catalog';
 import { getSettings } from '@/lib/settings';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 type Props = { params: Promise<{ username: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -29,6 +30,7 @@ const initials = (n: string) =>
  * seller at checkout (the "With customisation" package), paid through escrow; in the free beta paid custom work waits until live payments.
  */
 export default async function SellerStore({ params }: Props) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const s = await sellerByHandle((await params).username);
   if (!s) notFound();
   const { paymentsMode } = await getSettings();
@@ -54,7 +56,7 @@ export default async function SellerStore({ params }: Props) {
           {(s.customAvailable || s.verified) && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13, color: '#1A5444' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3F8F77' }} />
-              {s.customAvailable ? 'Available for customization' : 'Verified seller'}
+              {s.customAvailable ? tx('Available for customization') : tx('Verified seller')}
             </div>
           )}
         </div>
@@ -110,7 +112,7 @@ export default async function SellerStore({ params }: Props) {
             <div className="glass" style={{ padding: 20, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
               <div>
                 <div style={{ fontSize: 38, fontWeight: 300 }}>{s.reviews ? s.rating.toFixed(1) : '—'}</div>
-                <div style={{ color: '#E0A93B', letterSpacing: 2 }} aria-label={s.reviews ? `${s.rating.toFixed(1)} out of 5` : 'No ratings yet'}>
+                <div style={{ color: '#E0A93B', letterSpacing: 2 }} aria-label={s.reviews ? `${s.rating.toFixed(1)} out of 5` : tx('No ratings yet')}>
                   {s.reviews ? '★'.repeat(Math.round(s.rating)) + '☆'.repeat(5 - Math.round(s.rating)) : '☆☆☆☆☆'}
                 </div>
                 <div className="tag">
@@ -125,7 +127,7 @@ export default async function SellerStore({ params }: Props) {
                   <T s={'· verified buyers only'} />
                 </span>
                 <br />
-                <span className="muted">{s.reviews ? 'Read them on each website page.' : 'No reviews yet. Only buyers who received a website can review it.'}</span>
+                <span className="muted">{s.reviews ? tx('Read them on each website page.') : tx('No reviews yet. Only buyers who received a website can review it.')}</span>
               </div>
             </div>
             <h2 style={{ fontSize: 22, marginBottom: 16 }}>
@@ -151,7 +153,7 @@ export default async function SellerStore({ params }: Props) {
               )}
             </div>
             <div className="muted" style={{ fontSize: 14, marginTop: 6 }}>
-              {beta ? 'Paid custom work is available after the beta.' : 'Paid through escrow, like a website. You pay nothing until you accept a quotation.'}
+              {beta ? tx('Paid custom work is available after the beta.') : tx('Paid through escrow, like a website. You pay nothing until you accept a quotation.')}
             </div>
           </div>
           <form action="/checkout" method="get" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

@@ -90,7 +90,7 @@ export default async function BuyerWebsites({ searchParams }: { searchParams: Pr
       ) : (
         <section className="glass card" style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ flex: '1 1 280px' }}>
-            <h2>{q ? 'No website matches that search' : 'No websites yet'}</h2>
+            <h2>{q ? tx('No website matches that search') : tx('No websites yet')}</h2>
             <div className="tag">
               <T s={'Websites you get show up here, ready to download.'} />
             </div>
@@ -104,7 +104,7 @@ export default async function BuyerWebsites({ searchParams }: { searchParams: Pr
         <section key={r.id} className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 12, borderColor: '#CFE9DF' }}>
           <div className="row">
             <div>
-              <h2>{r.kind === 'custom_dev' ? 'Customization offer' : 'Your quotation'}</h2>
+              <h2>{r.kind === 'custom_dev' ? tx('Customization offer') : tx('Your quotation')}</h2>
               <div className="tag">
                 <T s={'Pay into escrow; the money is released only when you approve the work'} />
               </div>

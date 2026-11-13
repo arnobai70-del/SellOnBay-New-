@@ -71,7 +71,7 @@ export default async function AdminRevisions() {
                     <small className="muted">
                       {s?.terms && s.terms.included > 0
                         ? `${allowanceLeft(s.terms, s.used)} of ${s.terms.included} included left (${s.terms.windowDays} days). Scope: ${s.terms.scope}`
-                        : 'No included revisions on this order.'}
+                        : tx('No included revisions on this order.')}
                     </small>
                   </div>
                   <AdminForm
@@ -141,7 +141,7 @@ export default async function AdminRevisions() {
                   <b>
                     <Link href={`/admin/orders/${r.orderId}`}>{title(r.orderId)}</Link>
                   </b>{' '}
-                  · {r.kind ? KIND_TEXT[r.kind] : ''} · {r.fileId ? 'with checked files' : 'no files (live site or repository)'}
+                  · {r.kind ? KIND_TEXT[r.kind] : ''} · {r.fileId ? tx('with checked files') : tx('no files (live site or repository)')}
                   {r.releaseDueAt && <SlaClock dueAt={r.releaseDueAt} slaHours={CONFIG.release.slaHours} />}
                   <p>
                     <T s={'Asked: {description}'} v={{ description: r.description }} />
@@ -199,7 +199,7 @@ export default async function AdminRevisions() {
             {policies.map((p) => (
               <li key={p.id}>
                 <div className="sob-grow">
-                  <b>{products.get(p.productId)?.name ?? 'Listing'}</b> <T s={'· version {version}'} v={{ version: p.version }} />
+                  <b>{products.get(p.productId)?.name ?? tx('Listing')}</b> <T s={'· version {version}'} v={{ version: p.version }} />
                   <p className="muted">
                     <T
                       s={'{included} included within {windowDays} days · extra {v2}{v3}{v4}'}

@@ -13,6 +13,7 @@ import { QUOTE_WORDS, REQUEST_WORDS, personNames, productNames, requestTitle, us
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Purchase request', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,7 @@ const why = { name: 'note', label: 'Message (the buyer sees it)', kind: 'textare
 
 /* One request for Support or Catalog: the facts, the full log, the next steps, and the quotation editor. */
 export default async function AdminRequest({ params }: { params: Promise<{ id: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/admin/orders/requests/${id}`, roles: ['admin'], scope: ['support', 'catalog'] });
   const r = /^[0-9a-f-]{36}$/i.test(id) ? await getRequest(id) : null;
@@ -70,8 +72,8 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
           </dt>
           <dd>
             {r.package}
-            {r.extras.express ? ', express' : ''}
-            {r.extras.hosting ? ', hosting' : ''}
+            {r.extras.express ? tx(', express') : ''}
+            {r.extras.hosting ? tx(', hosting') : ''}
           </dd>
           <dt>
             <T s={'Intended use'} />
@@ -93,7 +95,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
               ? Object.entries(r.delivery)
                   .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
                   .join(' · ')
-              : 'None given'}
+              : tx('None given')}
           </dd>
           <dt>
             <T s={'Business'} />
@@ -103,7 +105,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
               ? Object.entries(r.business)
                   .map(([k, v]) => `${k}: ${v}`)
                   .join(' · ')
-              : 'None given'}
+              : tx('None given')}
           </dd>
           <dt>
             <T s={'Consent'} />
@@ -116,7 +118,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
               <dt>
                 <T s={'Product file'} />
               </dt>
-              <dd>{product.latestVersionId ? 'An approved version is pinned to the quotation when it is written.' : 'No approved file version: it cannot be quoted.'}</dd>
+              <dd>{product.latestVersionId ? tx('An approved version is pinned to the quotation when it is written.') : tx('No approved file version: it cannot be quoted.')}</dd>
             </>
           )}
         </dl>
@@ -232,7 +234,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                     fixed={{ action: 'issue' }}
                     fields={[]}
                     openLabel="Issue"
-                    submit={q.priceOverride ? 'Send to Super Admin' : 'Send to the buyer'}
+                    submit={q.priceOverride ? tx('Send to Super Admin') : tx('Send to the buyer')}
                     tone="blue"
                   />
                 )}

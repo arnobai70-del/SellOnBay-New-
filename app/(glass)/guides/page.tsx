@@ -118,7 +118,7 @@ export default async function Guides({ searchParams }: { searchParams: Promise<{
             <span className="tag" style={{ margin: 0 }}>
               <T s={'More guides'} />
             </span>
-            <b style={{ fontWeight: 500, fontSize: 17, lineHeight: 1.35 }}>{posts.length ? 'No more guides on this topic yet' : 'No guides published yet'}</b>
+            <b style={{ fontWeight: 500, fontSize: 17, lineHeight: 1.35 }}>{posts.length ? tx('No more guides on this topic yet') : tx('No guides published yet')}</b>
           </div>
         )}
       </section>

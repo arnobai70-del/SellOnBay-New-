@@ -75,7 +75,7 @@ export default async function Settings() {
             <T s={'Early access bar:'} />{' '}
             <span className={s.earlyAccessOn ? 'status st-ok' : 'status'}>
               <i />
-              {s.earlyAccessOn ? 'On' : 'Off'}
+              {s.earlyAccessOn ? tx('On') : tx('Off')}
             </span>
           </b>
           <p className="muted">
@@ -106,7 +106,7 @@ export default async function Settings() {
             <T s={'Delivery in hours:'} />{' '}
             <span className={s.deliveryHoursOn ? 'status st-ok' : 'status'}>
               <i />
-              {s.deliveryHoursOn ? 'On' : 'Off'}
+              {s.deliveryHoursOn ? tx('On') : tx('Off')}
             </span>
           </b>
           <p className="muted">
@@ -152,7 +152,7 @@ export default async function Settings() {
             <T s={'Example listings:'} />{' '}
             <span className={s.showExamples ? 'status st-ok' : 'status'}>
               <i />
-              {s.showExamples ? 'Shown' : examplesAllowed() ? 'Hidden' : 'Removed'}
+              {s.showExamples ? tx('Shown') : examplesAllowed() ? tx('Hidden') : tx('Removed')}
             </span>
           </b>
           <p className="muted">

@@ -18,11 +18,13 @@ import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Edit a page', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 /* One page at a time: what Google shows (meta title and description) and what visitors read (heading, intro, policy text). */
 export default async function EditPage({ searchParams }: { searchParams: Promise<{ path?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { path = '' } = await searchParams;
   const viewer = await requireViewer({ path: `/admin/seo/pages/edit?path=${encodeURIComponent(path)}`, roles: ['admin'], scope: 'content' });
   const home = path === '/';
@@ -60,7 +62,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             </p>
           </div>
           <Link className="btn ghost sm" href={isListing ? '/admin/seo/listings' : '/admin/seo/pages'}>
-            {isListing ? 'All listings' : 'All pages'}
+            {isListing ? tx('All listings') : tx('All pages')}
           </Link>
         </div>
         <h3 className="sob-pw-h">
@@ -68,7 +70,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
         </h3>
         <div className="sob-pe-serp">
           <span className="sob-pe-st">{s.title || `${page.title} · ${SITE_NAME}`}</span>
-          <span className="sob-pe-sd">{s.description || page.description || 'The site-wide description (this page has none of its own yet).'}</span>
+          <span className="sob-pe-sd">{s.description || page.description || tx('The site-wide description (this page has none of its own yet).')}</span>
         </div>
         {home ? (
           <p className="tag">
@@ -157,12 +159,12 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             </h2>
             <p className="tag">
               {isListing
-                ? "The listing's own words (name, description, pictures) are the seller's; change them from the seller's listing form."
+                ? tx("The listing's own words (name, description, pictures) are the seller's; change them from the seller's listing form.")
                 : page.words
                   ? page.words.body
-                    ? 'The heading and the whole text of this page. Leave a box empty to keep the built-in words.'
-                    : 'The heading and the line under it. The rest of this page is built from live parts (lists, prices, forms) and stays as it is.'
-                  : 'This page is built from live parts (products, developers, counts), so only its meta title and description can be changed here.'}
+                    ? tx('The heading and the whole text of this page. Leave a box empty to keep the built-in words.')
+                    : tx('The heading and the line under it. The rest of this page is built from live parts (lists, prices, forms) and stays as it is.')
+                  : tx('This page is built from live parts (products, developers, counts), so only its meta title and description can be changed here.')}
             </p>
           </div>
         </div>

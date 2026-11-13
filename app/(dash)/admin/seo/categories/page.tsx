@@ -53,7 +53,7 @@ export default async function Categories() {
               </div>
               <span className={v.indexable ? 'status st-ok' : 'status'}>
                 <i />
-                {v.indexable ? 'In search' : 'Kept out of search'}
+                {v.indexable ? tx('In search') : tx('Kept out of search')}
               </span>
             </div>
             <p className="muted">

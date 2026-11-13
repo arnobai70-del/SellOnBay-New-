@@ -51,7 +51,7 @@ export default async function Releases() {
             <li key={o.id} data-release={o.id}>
               <div className="sob-grow">
                 <b>
-                  <Link href={`/admin/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {readyMade(o) ? 'ready-made files' : 'work order'}
+                  <Link href={`/admin/orders/${o.id}`}>{o.title}</Link> · {usd(o.priceCents)} · {readyMade(o) ? tx('ready-made files') : tx('work order')}
                 </b>
                 {o.releaseDueAt ? <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} /> : null}
                 <div className="sob-acts">

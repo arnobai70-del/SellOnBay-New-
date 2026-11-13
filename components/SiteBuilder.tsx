@@ -389,6 +389,7 @@ export function BlocksBuilder({ path, initial, listings }: { path: string; initi
 
 /* ---------- the built-in sections of the home page ---------- */
 export function SectionsBuilder({ keys, initial }: { keys: [string, string][]; initial: SectionsConfig }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const start = [...keys.map(([k]) => k)].sort((a, b) => {
     const r = (k: string) => (initial.order.includes(k) ? initial.order.indexOf(k) : initial.order.length + keys.findIndex(([x]) => x === k));
     return r(a) - r(b);
@@ -422,7 +423,7 @@ export function SectionsBuilder({ keys, initial }: { keys: [string, string][]; i
               </span>
             )}
           </div>
-          <small>{SECTIONS_LOCKED.includes(k) ? 'The Delete button is not used for this section.' : 'The Delete button here hides the section, or shows it again.'}</small>
+          <small>{SECTIONS_LOCKED.includes(k) ? tx('The Delete button is not used for this section.') : tx('The Delete button here hides the section, or shows it again.')}</small>
         </Row>
       ))}
       <div className="sob-acts">

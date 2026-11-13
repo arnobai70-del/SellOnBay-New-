@@ -21,7 +21,7 @@ export default async function LaunchCheck() {
       <div className="glass card sob-sec" data-launch>
         <div className="row sob-hd">
           <div>
-            <h2>{todo ? `${todo} thing${todo === 1 ? '' : 's'} to do before real buyers come` : 'Ready, apart from the known gaps'}</h2>
+            <h2>{todo ? `${todo} thing${todo === 1 ? '' : 's'} to do before real buyers come` : tx('Ready, apart from the known gaps')}</h2>
             <p className="tag">
               <T s={'Read from this server. Change a key in the hosting settings, then restart, and this page updates.'} />
             </p>

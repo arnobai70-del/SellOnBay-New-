@@ -2,10 +2,12 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 type Row = { provider: string; label: string; since: string | null; linked: boolean; available: boolean };
 
 /* The account's sign-in methods with Link and Remove (app/api/account/links). The server decides everything; this only sends the choice. */
 export function SignInMethods({ rows, canLink }: { rows: Row[]; canLink: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -30,11 +32,11 @@ export function SignInMethods({ rows, canLink }: { rows: Row[]; canLink: boolean
             </div>
             {r.linked && r.provider !== 'email' ? (
               <button type="button" className="btn ghost sm" disabled={!!busy} onClick={() => send('unlink', r.provider)}>
-                {busy === r.provider ? 'Removing...' : 'Remove'}
+                {busy === r.provider ? tx('Removing...') : tx('Remove')}
               </button>
             ) : !r.linked && canLink && r.available ? (
               <button type="button" className="btn sm" disabled={!!busy} onClick={() => send('link', r.provider)}>
-                {busy === r.provider ? 'Opening...' : 'Link'}
+                {busy === r.provider ? tx('Opening...') : tx('Link')}
               </button>
             ) : !r.linked ? (
               <small className="muted">Not available yet</small>

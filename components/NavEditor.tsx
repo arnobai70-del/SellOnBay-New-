@@ -3,10 +3,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Row = { key: string; label: string; locked: boolean };
 
 /* Shows, hides and reorders the category-bar entries. Hidden entries keep their pages; the server saves and refreshes every page. */
 export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string[]; order: string[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const start = [...rows].sort((a, b) => (order.indexOf(a.key) < 0 ? 999 : order.indexOf(a.key)) - (order.indexOf(b.key) < 0 ? 999 : order.indexOf(b.key)));
   const [list, setList] = useState(order.length ? start : rows);
@@ -53,7 +55,7 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
       ))}
       <div className="sob-acts">
         <button className="btn sm" type="button" disabled={busy} onClick={save}>
-          {busy ? 'One moment...' : 'Save the top bar'}
+          {busy ? tx('One moment...') : tx('Save the top bar')}
         </button>
       </div>
       {msg && (

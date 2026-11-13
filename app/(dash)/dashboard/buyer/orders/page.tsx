@@ -165,7 +165,7 @@ export default async function BuyerOrders({ searchParams }: { searchParams: Prom
               ) : (
                 <tr>
                   <td colSpan={7} className="muted">
-                    {q ? 'No order matches that search.' : 'No orders here yet.'}
+                    {q ? tx('No order matches that search.') : tx('No orders here yet.')}
                   </td>
                 </tr>
               )}

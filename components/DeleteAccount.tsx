@@ -2,8 +2,10 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 /* Asks the person to type DELETE, then sends the request. The server decides whether it can go ahead. */
 export function DeleteAccount() {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -34,7 +36,7 @@ export function DeleteAccount() {
         <input id="del-confirm" value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" />
       </div>
       <button className="btn warn sm" type="submit" disabled={busy || text !== 'DELETE'}>
-        {busy ? 'One moment...' : 'Ask us to delete my account'}
+        {busy ? tx('One moment...') : tx('Ask us to delete my account')}
       </button>
       {err && (
         <p className="sob-err" role="alert">

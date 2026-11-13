@@ -97,7 +97,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
               &rdquo;
             </h2>
             <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span className="tag">{registrarLive() ? 'Live results · first year' : 'Checked by hand when you order · first year, USD'}</span>
+              <span className="tag">{registrarLive() ? tx('Live results · first year') : tx('Checked by hand when you order · first year, USD')}</span>
               <button className="btn ghost" type="button" disabled title={tx('A domain cart is coming soon')}>
                 <T s={'Domain cart'} />
               </button>

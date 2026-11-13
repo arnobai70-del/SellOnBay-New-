@@ -252,14 +252,14 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                         </td>
                         <td>{p.orderIds.length}</td>
                         <td>{usd(p.amountCents)}</td>
-                        <td>{p.method || 'Not set'}</td>
+                        <td>{p.method || tx('Not set')}</td>
                         <td>
                           <span className={`status ${id === 'approved' ? 'st-ok' : id === 'rejected' ? 'st-bad' : 'st-wait'}`}>
-                            {id === 'approved' ? 'Verified' : id === 'rejected' ? 'Rejected' : id ? 'Pending' : 'Not sent'}
+                            {id === 'approved' ? tx('Verified') : id === 'rejected' ? tx('Rejected') : id ? tx('Pending') : tx('Not sent')}
                           </span>
                         </td>
                         <td>
-                          <span className={`status ${p.status === 'exported' ? 'st-wait' : 'st-info'}`}>{p.status === 'exported' ? 'Being sent' : 'Ready'}</span>
+                          <span className={`status ${p.status === 'exported' ? 'st-wait' : 'st-info'}`}>{p.status === 'exported' ? tx('Being sent') : tx('Ready')}</span>
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', textAlign: 'left' }}>
@@ -320,7 +320,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
       {(tab === 'ledger' || tab === 'reconciliation') && (
         <section className="glass card">
           <div className="row" style={{ marginBottom: 6 }}>
-            <h2>{tab === 'ledger' ? 'Ledger balances' : 'Reconciliation'}</h2>
+            <h2>{tab === 'ledger' ? tx('Ledger balances') : tx('Reconciliation')}</h2>
             <span className="tag" style={{ margin: 0 }}>
               <T s={'Check each line against the bank, wallet and provider statements'} />
             </span>
@@ -450,7 +450,7 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
             <span style={{ flex: 1 }}>
               <T s={'Last payment action'} />
             </span>
-            <span className="muted">{lastPay ? `${when(lastPay.at)} · ${lastPay.action.replace(/_/g, ' ')}` : 'None yet'}</span>
+            <span className="muted">{lastPay ? `${when(lastPay.at)} · ${lastPay.action.replace(/_/g, ' ')}` : tx('None yet')}</span>
           </div>
           <div className="li" style={{ fontSize: 14 }}>
             <span style={{ flex: 1 }}>

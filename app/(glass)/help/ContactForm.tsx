@@ -61,7 +61,7 @@ export function ContactForm({ siteKey }: { siteKey?: string }) {
       <Turnstile siteKey={siteKey} onToken={setToken} />
       <div style={{ alignSelf: 'flex-start' }}>
         <Button type="submit" disabled={state === 'sending'}>
-          {state === 'sending' ? 'Sending' : 'Send message'}
+          {state === 'sending' ? tx('Sending') : tx('Send message')}
         </Button>
       </div>
     </form>

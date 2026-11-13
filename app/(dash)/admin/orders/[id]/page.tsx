@@ -13,6 +13,7 @@ import { entitlementFor } from '@/lib/release/store';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Order', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,7 @@ const day = (ms?: number | null) => (ms ? new Date(ms).toISOString().slice(0, 16
 
 /* One order for the admins who work on it: money, release, access, the full log and the three message channels. */
 export default async function AdminOrder({ params }: { params: Promise<{ id: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/admin/orders/${id}`, roles: ['admin'], scope: ['support', 'finance', 'delivery', 'catalog'] });
   const o = /^[0-9a-f-]{36}$/i.test(id) ? await getOrder(id) : null;
@@ -47,7 +49,7 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
           <dt>
             <T s={'Paid'} />
           </dt>
-          <dd>{o.fundedAt ? `${day(o.fundedAt)} (${o.payment?.ref?.startsWith('manual:') ? 'manual, reconciled' : (o.payment?.brand ?? 'gateway')})` : 'Not yet'}</dd>
+          <dd>{o.fundedAt ? `${day(o.fundedAt)} (${o.payment?.ref?.startsWith('manual:') ? 'manual, reconciled' : (o.payment?.brand ?? 'gateway')})` : tx('Not yet')}</dd>
           <dt>
             <T s={'Work authorised'} />
           </dt>
@@ -59,11 +61,11 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
           <dt>
             <T s={'Release'} />
           </dt>
-          <dd>{o.releaseApprovedAt ? `Approved ${day(o.releaseApprovedAt)}` : o.releaseDueAt ? <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} /> : 'Not waiting'}</dd>
+          <dd>{o.releaseApprovedAt ? `Approved ${day(o.releaseApprovedAt)}` : o.releaseDueAt ? <SlaClock dueAt={o.releaseDueAt} slaHours={CONFIG.release.slaHours} /> : tx('Not waiting')}</dd>
           <dt>
             <T s={'Buyer access'} />
           </dt>
-          <dd>{ent ? `${ent.status} · ${ent.licenceTier} (text ${ent.licenceTextVersion})${ent.statusReason ? ` · ${ent.statusReason}` : ''}` : 'None yet'}</dd>
+          <dd>{ent ? `${ent.status} · ${ent.licenceTier} (text ${ent.licenceTextVersion})${ent.statusReason ? ` · ${ent.statusReason}` : ''}` : tx('None yet')}</dd>
         </dl>
         <p style={{ marginTop: 12 }}>
           <Link className="btn ghost sm" href="/admin/orders/releases">

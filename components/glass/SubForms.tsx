@@ -55,7 +55,7 @@ export function SubscribeButton({ planId, label, disabled }: { planId: string; l
           router.push('/dashboard/buyer/subscription');
         }}
       >
-        {busy ? 'One moment…' : label}
+        {busy ? tx('One moment…') : label}
       </button>
       <Err msg={msg} />
     </div>
@@ -126,7 +126,7 @@ export function SubPayForm({ subscriptionId, kind, methods }: { subscriptionId: 
         <input id={`on-${subscriptionId}`} className="input" type="date" value={paidOn} onChange={(e) => setPaidOn(e.target.value)} />
       </div>
       <button className="btn" type="submit" disabled={busy}>
-        {busy ? 'Sending…' : kind === 'new' ? 'Send payment for checking' : 'Send renewal payment'}
+        {busy ? tx('Sending…') : kind === 'new' ? tx('Send payment for checking') : tx('Send renewal payment')}
       </button>
       <Err msg={msg} />
     </form>
@@ -135,6 +135,7 @@ export function SubPayForm({ subscriptionId, kind, methods }: { subscriptionId: 
 
 /* Choose a website with a credit. The files then open from the new order, like any order. */
 export function PickForm({ subscriptionId, options }: { subscriptionId: string; options: { key: string; name: string }[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [key, setKey] = useState(options[0]?.key ?? '');
   const [busy, setBusy] = useState(false);
@@ -172,7 +173,7 @@ export function PickForm({ subscriptionId, options }: { subscriptionId: string; 
         </select>
       </div>
       <button className="btn" type="submit" disabled={busy || !key}>
-        {busy ? 'Adding…' : 'Add website'}
+        {busy ? tx('Adding…') : tx('Add website')}
       </button>
       <div style={{ flexBasis: '100%' }}>
         <Err msg={msg} />

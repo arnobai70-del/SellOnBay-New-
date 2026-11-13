@@ -40,7 +40,7 @@ export function ReplyForm({ id }: { id: string }) {
         </p>
       )}
       <button className="btn sm" type="submit" disabled={busy || text.trim().length < 2}>
-        {busy ? 'Sending…' : 'Reply'}
+        {busy ? tx('Sending…') : tx('Reply')}
       </button>
     </form>
   );

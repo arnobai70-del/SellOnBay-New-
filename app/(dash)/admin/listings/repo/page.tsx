@@ -46,7 +46,7 @@ export default async function RepoAccess() {
             </small>{' '}
             <span className={c.state === 'seller_done' ? 'status st-wait' : 'status st-bad'}>
               <i />
-              {c.state === 'seller_done' ? 'Seller says it is done' : 'Waiting for the seller'}
+              {c.state === 'seller_done' ? tx('Seller says it is done') : tx('Waiting for the seller')}
             </span>
             <p>
               <Link className="" href={`/orders/${c.orderId}`}>

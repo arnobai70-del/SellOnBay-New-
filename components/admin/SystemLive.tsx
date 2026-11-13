@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { SystemSnapshot, Tone } from '@/lib/admin/system';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const TONE_LABEL: Record<Tone, string> = { ok: 'Healthy', warn: 'Needs a look', bad: 'Needs attention', off: 'Not set up' };
 const OVERALL: Record<Tone, string> = { ok: 'Server healthy', warn: 'Needs a look', bad: 'Needs attention', off: 'Server healthy' };
 const when = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'never');
@@ -19,6 +20,7 @@ const meterTone = (pct: number): Tone => (pct >= 85 ? 'bad' : pct >= 70 ? 'warn'
  * 30 seconds while the tab is open, and right away when the tab is shown again. There are no buttons that change anything.
  */
 export function SystemLive({ initial }: { initial: SystemSnapshot }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [s, setS] = useState(initial);
   const [stale, setStale] = useState(false);
   useEffect(() => {
@@ -80,22 +82,22 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             <dt>Node.js</dt>
             <dd>{s.app.node}</dd>
             <dt>Build</dt>
-            <dd>{s.build.commit ? <code title={s.build.commit}>{s.build.commit.slice(0, 7)}</code> : 'Not recorded'}</dd>
+            <dd>{s.build.commit ? <code title={s.build.commit}>{s.build.commit.slice(0, 7)}</code> : tx('Not recorded')}</dd>
             <dt>Built at</dt>
-            <dd>{s.build.builtAt ? when(Date.parse(s.build.builtAt)) : 'Not recorded'}</dd>
+            <dd>{s.build.builtAt ? when(Date.parse(s.build.builtAt)) : tx('Not recorded')}</dd>
           </dl>
         </div>
         <div className="glass card sob-sec">
           <h2>Database</h2>
           <dl className="sob-sys-dl">
             <dt>Answers in</dt>
-            <dd>{s.database.latencyMs === null ? 'Not answering' : `${s.database.latencyMs} ms`}</dd>
+            <dd>{s.database.latencyMs === null ? tx('Not answering') : `${s.database.latencyMs} ms`}</dd>
             <dt>Size</dt>
-            <dd>{s.database.sizeMb === null ? 'Not recorded (migration 0073)' : `${s.database.sizeMb} MB`}</dd>
+            <dd>{s.database.sizeMb === null ? tx('Not recorded (migration 0073)') : `${s.database.sizeMb} MB`}</dd>
             <dt>Connections</dt>
             <dd>
               {conns === null ? (
-                'Not recorded (migration 0073)'
+                tx('Not recorded (migration 0073)')
               ) : (
                 <span className="sob-sys-meter">
                   <span className={`bar ${meterTone(conns)}`} style={{ width: `${Math.min(100, conns)}%` }} />
@@ -108,9 +110,9 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             <dt>Advisors</dt>
             <dd>
               {s.database.advisors === null
-                ? 'Not answering'
+                ? tx('Not answering')
                 : s.database.advisors === 'not connected'
-                  ? 'Not connected (set SUPABASE_ACCESS_TOKEN on the server)'
+                  ? tx('Not connected (set SUPABASE_ACCESS_TOKEN on the server)')
                   : `${s.database.advisors.security} security, ${s.database.advisors.performance} performance`}
             </dd>
           </dl>
@@ -175,12 +177,12 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           {s.jobs.map((j) => (
             <li key={j.job}>
               <div className="sob-grow">
-                <b>{j.job === 'orders' ? 'Orders (every few minutes)' : 'Payouts (weekly)'}</b>
+                <b>{j.job === 'orders' ? tx('Orders (every few minutes)') : tx('Payouts (weekly)')}</b>
                 <small>Last good run {ago(j.lastGoodAt, s.at)}</small>
               </div>
               <span className={`status ${j.stale ? 'st-bad' : j.lastGoodAt ? 'st-ok' : 'st-draft'}`}>
                 <i />
-                {j.stale ? 'Stopped' : j.lastGoodAt ? 'On time' : 'Not run yet'}
+                {j.stale ? tx('Stopped') : j.lastGoodAt ? tx('On time') : tx('Not run yet')}
               </span>
             </li>
           ))}
@@ -219,13 +221,13 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
         <h2>Domain and safety</h2>
         <dl className="sob-sys-dl">
           <dt>Certificate</dt>
-          <dd>{s.safety.sslDays === null ? 'Not checked (no https address)' : `${s.safety.sslDays} days left`}</dd>
+          <dd>{s.safety.sslDays === null ? tx('Not checked (no https address)') : `${s.safety.sslDays} days left`}</dd>
           <dt>Required settings</dt>
           <dd>
             {s.safety.keysSet} of {s.safety.keysTotal} set{s.safety.missingKeys.length ? `. Missing: ${s.safety.missingKeys.join(', ')}` : ''}
           </dd>
           <dt>Maintenance</dt>
-          <dd>{s.safety.closedModules.length ? `Closed now: ${s.safety.closedModules.join(', ')}` : 'Every module open'}</dd>
+          <dd>{s.safety.closedModules.length ? `Closed now: ${s.safety.closedModules.join(', ')}` : tx('Every module open')}</dd>
         </dl>
       </div>
     </>

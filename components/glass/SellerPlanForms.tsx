@@ -105,6 +105,7 @@ export function SellerSettingsForm({ enabled, display, names }: { enabled: boole
 
 /* One seller plan: saving makes its next version (running subscriptions and recorded fees keep theirs). */
 export function SellerPlanVersionForm({ plan, offered }: { plan: Version; offered: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState({
     name: plan.name,
@@ -166,7 +167,7 @@ export function SellerPlanVersionForm({ plan, offered }: { plan: Version; offere
               if (r.ok) router.refresh();
             }}
           >
-            {offered ? 'Withdraw' : 'Offer again'}
+            {offered ? tx('Withdraw') : tx('Offer again')}
           </button>
         )}
         <Status msg={msg} />

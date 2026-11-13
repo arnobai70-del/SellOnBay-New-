@@ -99,7 +99,7 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
         {msgs.map((m) => (
           <div key={m.id} className={'sob-chat2-msg ' + (m.role === me ? 'me' : 'them')}>
             <small>
-              {m.role === me ? 'You' : m.role === 'seller' ? 'Seller' : 'Buyer'} · {new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {m.role === me ? tx('You') : m.role === 'seller' ? tx('Seller') : tx('Buyer')} · {new Date(m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </small>
             <p>{m.body}</p>
           </div>
@@ -112,7 +112,7 @@ export function OrderChat({ endpoint, orderId, me, open, live }: { endpoint: str
           </label>
           <textarea id={`chat-${orderId}`} rows={2} value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} placeholder={tx('Write a message')} />
           <button className="btn sm" type="submit" disabled={busy || !text.trim()}>
-            {busy ? 'Sending...' : 'Send'}
+            {busy ? tx('Sending...') : tx('Send')}
           </button>
         </form>
       ) : (

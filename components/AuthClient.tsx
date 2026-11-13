@@ -61,13 +61,13 @@ export function AuthClient({
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }} data-auth>
       <div className="glass" style={{ width: '100%', maxWidth: 440, padding: 36, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h1 style={{ fontSize: 30 }}>{mode === 'forgot' ? 'Reset your password' : signup ? 'Create your account' : 'Welcome back'}</h1>
+        <h1 style={{ fontSize: 30 }}>{mode === 'forgot' ? tx('Reset your password') : signup ? tx('Create your account') : tx('Welcome back')}</h1>
         <div className="muted" style={{ fontSize: 14, marginTop: -6 }}>
           {mode === 'forgot'
-            ? 'Enter your email and we will send you a link to choose a new password.'
+            ? tx('Enter your email and we will send you a link to choose a new password.')
             : signup
-              ? 'Buy safely with escrow, or sell and keep your share.'
-              : 'Sign in to see your orders and messages.'}
+              ? tx('Buy safely with escrow, or sell and keep your share.')
+              : tx('Sign in to see your orders and messages.')}
         </div>
         {mode !== 'forgot' && (
           <div className="seg" role="tablist" aria-label={tx('Sign in or create an account')}>
@@ -85,7 +85,7 @@ export function AuthClient({
             <b>
               <T s={'admin area'} />
             </b>
-            . {codeRequired ? 'Sign in, then enter the code from your authenticator app.' : 'Sign in to continue.'}
+            . {codeRequired ? tx('Sign in, then enter the code from your authenticator app.') : tx('Sign in to continue.')}
           </div>
         )}
         {!signup && next?.startsWith('/dashboard/seller') && (
@@ -181,7 +181,7 @@ export function AuthClient({
                     aria-pressed={show}
                     style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 0, cursor: 'pointer', color: '#566C78', fontSize: 13 }}
                   >
-                    {show ? 'Hide' : 'Show'}
+                    {show ? tx('Hide') : tx('Show')}
                   </button>
                 </div>
                 {signup && (
@@ -202,7 +202,7 @@ export function AuthClient({
               )}
               {botCheck}
               <button className="btn" type="submit" disabled={bot && !token}>
-                {signup ? 'Create account' : 'Sign in'}
+                {signup ? tx('Create account') : tx('Sign in')}
               </button>
               {signup && (
                 <div className="tag" style={{ margin: 0 }}>

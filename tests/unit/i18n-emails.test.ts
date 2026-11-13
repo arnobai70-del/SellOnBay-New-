@@ -101,6 +101,20 @@ describe('notification emails in other languages', () => {
     const { jsonT } = await import('@/lib/i18n/jsonT');
     expect(await (await jsonT({ error: 'Sign in first.', code: 'auth' }, { status: 401 })).json()).toEqual({ error: 'Sign in first.', code: 'auth' }); // outside a request: English
   });
+  it('public pages carry only the public words; dashboards add theirs', async () => {
+    const { getI18n } = await import('@/lib/i18n/server');
+    const { clientStrings } = await import('@/lib/i18n/catalog');
+    const bn = await getI18n('bn');
+    const pub = clientStrings('public');
+    const dash = clientStrings('dash');
+    expect(pub.length + dash.length).toBe(clientStrings().length);
+    expect(pub.length).toBeLessThan(dash.length); // most client words are admin and dashboard words
+    expect(Object.keys(bn.clientDict).every((k) => pub.includes(k))).toBe(true);
+    expect(Object.keys(bn.dashDict).every((k) => dash.includes(k))).toBe(true);
+    expect(Object.keys(bn.dashDict).length).toBeGreaterThan(0);
+    const en = await getI18n('en');
+    expect([Object.keys(en.clientDict).length, Object.keys(en.dashDict).length]).toEqual([0, 0]); // an English page sends nothing
+  });
   it('a published language is used', async () => {
     expect((await renderNotification('order_funded', { title: 'Shop kit' }, 'bn'))?.subject).toBe('Shop kit-এর পেমেন্ট পাওয়া গেছে');
   });

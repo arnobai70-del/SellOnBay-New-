@@ -5,6 +5,7 @@ import { defaultRange, fileGone, SALE_STATES } from '@/lib/reports/rules';
 import { exportsBy } from '@/lib/reports/service';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
 
 /*
@@ -12,6 +13,7 @@ const when = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T'
  * Files are deleted after 24 hours; the log of what was exported stays.
  */
 export async function ReportsPanel({ me, scope, bare = false }: { me: string; scope: 'admin' | 'seller'; bare?: boolean }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const on = await isFlagOn('reports.sales_pdf');
   const mine = await exportsBy(me);
   const { from: monthAgo, to: today } = defaultRange();
@@ -19,7 +21,7 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
     <div className={bare ? undefined : 'glass card sob-sec'} style={bare ? { marginTop: 14 } : undefined} data-reports={scope}>
       <div className="row sob-hd">
         <div>
-          <h2>{scope === 'seller' ? 'Your sales as PDF' : 'Sales report (PDF)'}</h2>
+          <h2>{scope === 'seller' ? tx('Your sales as PDF') : tx('Sales report (PDF)')}</h2>
           <p className="tag">
             <T
               s={

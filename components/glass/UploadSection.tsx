@@ -29,7 +29,7 @@ export async function UploadSection({ viewer, editing = false }: { viewer: { id:
   return (
     <section id="upload" className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div className="row">
-        <h2>{editing ? 'Edit your website' : 'Upload a new website'}</h2>
+        <h2>{editing ? tx('Edit your website') : tx('Upload a new website')}</h2>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
           {['Details', 'Files', 'Checklist', 'Review'].map((s, i) => (
             <span key={s} className={i < 2 ? 'stp on' : 'stp'}>

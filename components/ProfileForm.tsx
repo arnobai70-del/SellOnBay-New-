@@ -3,8 +3,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* Changes the person's own name. The server checks the name and saves it with their own session (POST /api/account/profile). */
 export function ProfileForm({ name }: { name: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [text, setText] = useState(name);
   const [busy, setBusy] = useState(false);
@@ -41,7 +43,7 @@ export function ProfileForm({ name }: { name: string }) {
         <input id="pf-name" className="input" value={text} onChange={(e) => (setText(e.target.value), setSaved(false))} maxLength={80} autoComplete="name" required />
       </div>
       <button className="btn sm" type="submit" disabled={busy || clean.length < 2 || clean === name}>
-        {busy ? 'Saving...' : 'Save'}
+        {busy ? tx('Saving...') : tx('Save')}
       </button>
       {saved && (
         <p className="tag" style={{ margin: 0 }} role="status">

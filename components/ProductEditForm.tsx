@@ -129,7 +129,7 @@ export function ProductEditForm({
           <select id="pe-setup" value={f.setupPrice} onChange={(e) => set('setupPrice', Number(e.target.value))}>
             {setupOptions.map((c) => (
               <option key={c} value={c}>
-                {c === 0 ? 'Not offered' : `$${c}`}
+                {c === 0 ? tx('Not offered') : `$${c}`}
               </option>
             ))}
           </select>,
@@ -140,7 +140,7 @@ export function ProductEditForm({
           <select id="pe-custom" value={f.customPrice} onChange={(e) => set('customPrice', Number(e.target.value))}>
             {customOptions.map((c) => (
               <option key={c} value={c}>
-                {c === 0 ? 'Not offered' : `$${c}`}
+                {c === 0 ? tx('Not offered') : `$${c}`}
               </option>
             ))}
           </select>,
@@ -185,7 +185,7 @@ export function ProductEditForm({
         )}
         <div className="sob-acts">
           <button className="btn sm" type="submit" disabled={busy}>
-            {busy ? 'One moment...' : 'Save the listing'}
+            {busy ? tx('One moment...') : tx('Save the listing')}
           </button>
         </div>
       </form>

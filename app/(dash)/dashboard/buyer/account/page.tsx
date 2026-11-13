@@ -90,7 +90,7 @@ export default async function BuyerAccount() {
                 <T s={'An authenticator code is asked for on the seller pages'} />
               </div>
             </div>
-            <span className={viewer?.role === 'seller' ? 'status st-ok' : 'status st-draft'}>{viewer?.role === 'seller' ? 'On' : 'For sellers'}</span>
+            <span className={viewer?.role === 'seller' ? 'status st-ok' : 'status st-draft'}>{viewer?.role === 'seller' ? tx('On') : tx('For sellers')}</span>
           </div>
         </section>
       </div>
@@ -170,8 +170,8 @@ export default async function BuyerAccount() {
             </h2>
             <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, margin: '8px 0 12px' }}>
               {viewer.role === 'seller'
-                ? 'Your account sells too. Seller pages ask for your authenticator code.'
-                : 'Sell your own websites from this account and keep buying as before. Seller pages ask you to set up an authenticator code.'}
+                ? tx('Your account sells too. Seller pages ask for your authenticator code.')
+                : tx('Sell your own websites from this account and keep buying as before. Seller pages ask you to set up an authenticator code.')}
             </p>
             {viewer.role === 'seller' ? (
               <Link className="btn sm ghost" href="/dashboard/seller" prefetch={false}>

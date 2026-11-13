@@ -96,7 +96,7 @@ export function PageControlsForm({
             <T s={'Archived: a 404 for visitors, kept here'} />
           </option>
         </select>
-        <small>{locked ? 'The home page, legal and support pages always stay public.' : 'Publishing and search are separate: a published page can still be kept out of search below.'}</small>
+        <small>{locked ? tx('The home page, legal and support pages always stay public.') : tx('Publishing and search are separate: a published page can still be kept out of search below.')}</small>
       </div>
       <label className="chk">
         <input type="checkbox" checked={c.index} onChange={(e) => set('index', e.target.checked)} />
@@ -348,7 +348,7 @@ export function PageControlsForm({
           <T s={'Add a question'} />
         </button>
         <button className="btn sm" type="submit" disabled={busy || missing}>
-          {busy ? 'One moment...' : 'Save publishing, search, text and questions'}
+          {busy ? tx('One moment...') : tx('Save publishing, search, text and questions')}
         </button>
       </div>
       {msg && (

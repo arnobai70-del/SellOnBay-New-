@@ -32,8 +32,10 @@ export type I18n = {
   tx: (english: string, vars?: Record<string, string | number>) => string;
   /* A message known only at run time (an API error passed along from lib/): its translation when the catalogue has it, else as it is. */
   translate: (english: string) => string;
-  /* The words client components need, for this language only (empty for English: nothing is sent). */
+  /* The words client components need, for this language only (empty for English: nothing is sent). Public pages get these. */
   clientDict: Dict;
+  /* The words only dashboard client components use; the (dash) layout adds them on top of clientDict. */
+  dashDict: Dict;
   languages: Language[];
 };
 
@@ -43,11 +45,26 @@ export async function getI18n(lang?: string): Promise<I18n> {
   const s = await languageSettings();
   const languages = liveLanguages(s);
   if (code === SOURCE)
-    return { lang: SOURCE, dir: 'ltr', t: (k, v) => format(lookup(k, {}, {}), v), pick: (_k, english) => english, tx: (e, v) => txLookup(null, e, v), translate: (e) => e, clientDict: {}, languages };
+    return {
+      lang: SOURCE,
+      dir: 'ltr',
+      t: (k, v) => format(lookup(k, {}, {}), v),
+      pick: (_k, english) => english,
+      tx: (e, v) => txLookup(null, e, v),
+      translate: (e) => e,
+      clientDict: {},
+      dashDict: {},
+      languages,
+    };
   const [pub, bundle] = await Promise.all([publishedWords(code), bundled(code)]);
   const pick = (k: string, english: string) => (pub[k]?.trim() ? pub[k] : bundle[k]?.trim() ? bundle[k] : english);
   const word = (e: string) => (pub[TX_PREFIX + e]?.trim() ? pub[TX_PREFIX + e] : bundle[TX_PREFIX + e]?.trim() ? bundle[TX_PREFIX + e] : e);
-  const clientDict: Dict = {};
-  for (const e of clientStrings()) if (word(e) !== e) clientDict[e] = word(e);
-  return { lang: code, dir: dirOf(s, code), t: (k, v) => format(lookup(k, pub, bundle), v), pick, tx: (e, v) => txLookup({ [e]: word(e) }, e, v), translate: word, clientDict, languages };
+  const pick2 = (list: string[]) => {
+    const d: Dict = {};
+    for (const e of list) if (word(e) !== e) d[e] = word(e);
+    return d;
+  };
+  const clientDict = pick2(clientStrings('public'));
+  const dashDict = pick2(clientStrings('dash'));
+  return { lang: code, dir: dirOf(s, code), t: (k, v) => format(lookup(k, pub, bundle), v), pick, tx: (e, v) => txLookup({ [e]: word(e) }, e, v), translate: word, clientDict, dashDict, languages };
 }

@@ -5,6 +5,7 @@ import { RELEASED_STATES } from '@/lib/release/rules';
 import { allowanceLeft, KIND_TEXT, OPEN_REVISION, windowEndsAt } from '@/lib/revisions/rules';
 import { revisionSummary } from '@/lib/revisions/service';
 
+import { getI18n } from '@/lib/i18n/server';
 const STATUS_TEXT: Record<string, string> = {
   submitted: 'Waiting for SellOnBay to look at it',
   declined: 'Not possible under your terms',
@@ -21,6 +22,7 @@ const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
  * SellOnBay decides whether a request is a defect (always free, never counted), an included change, or paid work quoted separately.
  */
 export async function RevisionPanel({ orderId }: { orderId: string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const o = await getOrder(orderId);
   if (!o || !(RELEASED_STATES as readonly string[]).includes(o.state)) return null;
   const { terms, used, revisions } = await revisionSummary(orderId);
@@ -34,7 +36,7 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
           <p className="sub">
             {terms && terms.included > 0
               ? `${allowanceLeft(terms, used)} of ${terms.included} included revisions left, until ${day(windowEndsAt(releasedAt, terms))}. Included: ${terms.scope}`
-              : 'Your order has no included revisions. Changes are quoted separately.'}{' '}
+              : tx('Your order has no included revisions. Changes are quoted separately.')}{' '}
             Faults in what was delivered are always fixed free and never counted.
           </p>
         </div>

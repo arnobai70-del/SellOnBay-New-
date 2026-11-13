@@ -119,13 +119,13 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 500, fontSize: 17 }}>{s.name}</div>
                     <div className="tag" style={{ margin: 0 }}>
-                      {s.headline || (s.verified ? 'Verified seller' : 'Seller')}
+                      {s.headline || (s.verified ? tx('Verified seller') : tx('Seller'))}
                     </div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 18, fontSize: 14, flexWrap: 'wrap' }}>
                   <span>
-                    <b style={{ fontWeight: 500 }}>★ {s.reviews ? s.rating.toFixed(1) : 'New'}</b> <span className="muted">({s.reviews})</span>
+                    <b style={{ fontWeight: 500 }}>★ {s.reviews ? s.rating.toFixed(1) : tx('New')}</b> <span className="muted">({s.reviews})</span>
                   </span>
                   <span>
                     {s.websites.length} {s.websites.length === 1 ? 'website' : 'websites'}
@@ -142,7 +142,7 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
                   </div>
                 )}
                 <div className="row" style={{ marginTop: 4 }}>
-                  <span className={s.customAvailable ? 'status st-ok' : 'status st-draft'}>{s.customAvailable ? 'Available for custom work' : 'Not taking custom work'}</span>
+                  <span className={s.customAvailable ? 'status st-ok' : 'status st-draft'}>{s.customAvailable ? tx('Available for custom work') : tx('Not taking custom work')}</span>
                   <Link className="btn sm" href={`/sellers/${s.handle}`} prefetch={false}>
                     <T s={'View store'} />
                   </Link>

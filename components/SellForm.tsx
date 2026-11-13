@@ -414,7 +414,7 @@ export function SellForm({
     <div className="sob-sellform" data-sell>
       {!embedded && (
         <div className="row">
-          <h1>{editSlug ? 'Edit your listing' : 'List a site'}</h1>
+          <h1>{editSlug ? tx('Edit your listing') : tx('List a site')}</h1>
           <p>
             <T s={'Every listing uses the same form, so buyers can compare like with like. We review every listing within 24 hours, and you see it laid out before you send it.'} />
           </p>
@@ -428,7 +428,7 @@ export function SellForm({
                 <>
                   <span className="status st-ok">
                     <i />
-                    {done.status === 'live' ? 'Live' : 'Paused'}
+                    {done.status === 'live' ? tx('Live') : tx('Paused')}
                   </span>
                   <h2 style={{ marginTop: 14 }}>
                     <T s={'Changes saved.'} />
@@ -446,7 +446,7 @@ export function SellForm({
                     <i />
                     <T s={'In review'} />
                   </span>
-                  <h2 style={{ marginTop: 14 }}>{done.edited ? 'Changes sent. We\u2019ll review them within 24 hours.' : 'Submitted. We\u2019ll reply within 24 hours.'}</h2>
+                  <h2 style={{ marginTop: 14 }}>{done.edited ? tx('Changes sent. We’ll review them within 24 hours.') : tx('Submitted. We’ll reply within 24 hours.')}</h2>
                   <p className="muted" style={{ marginTop: 10 }}>
                     <T
                       s={"{v0}We look at your files and the demo. You'll get an email when the listing is live."}
@@ -530,13 +530,13 @@ export function SellForm({
                     <dt>
                       <T s={'With setup help'} />
                     </dt>
-                    <dd>{check.setup ? `${money(price + check.setup)} (${money(check.setup)} more)` : 'Not offered'}</dd>
+                    <dd>{check.setup ? `${money(price + check.setup)} (${money(check.setup)} more)` : tx('Not offered')}</dd>
                   </div>
                   <div>
                     <dt>
                       <T s={'With customisation'} />
                     </dt>
-                    <dd>{check.custom ? `${money(price + check.custom)} (${money(check.custom)} more)` : 'Not offered'}</dd>
+                    <dd>{check.custom ? `${money(price + check.custom)} (${money(check.custom)} more)` : tx('Not offered')}</dd>
                   </div>
                   <div>
                     <dt>
@@ -550,19 +550,19 @@ export function SellForm({
                         <dt>
                           <T s={'Support'} />
                         </dt>
-                        <dd>{check.support ? `${check.support} days` : 'None'}</dd>
+                        <dd>{check.support ? `${check.support} days` : tx('None')}</dd>
                       </div>
                       <div>
                         <dt>
                           <T s={'Updates'} />
                         </dt>
-                        <dd>{check.updates ? `${check.updates} days` : 'None'}</dd>
+                        <dd>{check.updates ? `${check.updates} days` : tx('None')}</dd>
                       </div>
                       <div>
                         <dt>
                           <T s={'What it needs'} />
                         </dt>
-                        <dd>{check.requirements || 'Not stated'}</dd>
+                        <dd>{check.requirements || tx('Not stated')}</dd>
                       </div>
                     </>
                   )}
@@ -603,12 +603,12 @@ export function SellForm({
                 {busy && (
                   <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                     <i style={{ width: pct + '%' }} />
-                    <span>{pct < 100 ? `Uploading ${pct}%` : 'Opening and checking your files'}</span>
+                    <span>{pct < 100 ? `Uploading ${pct}%` : tx('Opening and checking your files')}</span>
                   </div>
                 )}
                 <div className="sob-acts">
                   <button className="btn" type="button" disabled={busy} onClick={() => go('review')}>
-                    {busy ? 'Please wait' : editSlug ? 'Send changes for review' : 'Submit for review'}
+                    {busy ? tx('Please wait') : editSlug ? tx('Send changes for review') : tx('Submit for review')}
                   </button>
                   <button className="btn ghost" type="button" disabled={busy} onClick={() => setCheck(null)}>
                     <T s={'Edit'} />
@@ -661,8 +661,8 @@ export function SellForm({
                 </div>
               </div>
               <div className="field">
-                <label htmlFor="s-name">{dig ? 'Product name' : app ? 'App name' : 'Site name'}</label>
-                <input id="s-name" name="name" required minLength={3} maxLength={60} placeholder={dig ? 'Lead Capture workflow' : app ? 'HabitLoop' : 'Saffron Table'} />
+                <label htmlFor="s-name">{dig ? tx('Product name') : app ? tx('App name') : tx('Site name')}</label>
+                <input id="s-name" name="name" required minLength={3} maxLength={60} placeholder={dig ? tx('Lead Capture workflow') : app ? tx('HabitLoop') : tx('Saffron Table')} />
               </div>
               <div className="sob-grid2">
                 <div className="field">
@@ -698,7 +698,7 @@ export function SellForm({
               </div>
               {app && (
                 <div className="field">
-                  <label htmlFor="s-stack">{dig ? 'Made for' : 'Built with'}</label>
+                  <label htmlFor="s-stack">{dig ? tx('Made for') : tx('Built with')}</label>
                   <select id="s-stack" name="stack" defaultValue={DEFAULT_STACK[kind]} key={'st' + kind}>
                     {toolsFor(kind).map((x) => (
                       <option key={x}>{x}</option>
@@ -718,7 +718,7 @@ export function SellForm({
                   required
                   minLength={20}
                   maxLength={600}
-                  placeholder={app ? 'Describe the app in two sentences.' : 'Describe the site in two sentences.'}
+                  placeholder={app ? tx('Describe the app in two sentences.') : tx('Describe the site in two sentences.')}
                 />
               </div>
               <div className="field">
@@ -730,13 +730,13 @@ export function SellForm({
                   name="inc"
                   onChange={(e) => setIncN(e.target.value.split('\n').filter((l) => l.trim()).length)}
                   rows={3}
-                  placeholder={'Home, menu and contact pages\nBooking form with email alerts'}
+                  placeholder={tx('Home, menu and contact pages\nBooking form with email alerts')}
                 />
               </div>
 
               {app ? (
                 <div className="field">
-                  <label>{dig ? 'Pictures of your product' : 'Screenshots of your app'}</label>
+                  <label>{dig ? tx('Pictures of your product') : tx('Screenshots of your app')}</label>
                   {shotsBox(
                     dig
                       ? 'Show what is inside: the files, the main screens, a sample result. Buyers decide from these before they pay.'
@@ -813,11 +813,13 @@ export function SellForm({
               )}
 
               <div className="field">
-                <label htmlFor="s-code">{dig ? 'Link to your files' : 'Code link'}</label>
+                <label htmlFor="s-code">{dig ? tx('Link to your files') : tx('Code link')}</label>
                 <input id="s-code" name="code" type="url" required placeholder={tx('Private GitHub or Drive link')} />
                 <small>
                   {dig ? (
-                    'A private link. The buyer gets it only after their payment is held in escrow, through a link that expires in 24 hours, with a licence key. Every download is logged, and you are paid 7 days after they accept.'
+                    tx(
+                      'A private link. The buyer gets it only after their payment is held in escrow, through a link that expires in 24 hours, with a licence key. Every download is logged, and you are paid 7 days after they accept.',
+                    )
                   ) : (
                     <>
                       <T s={'Only shared with buyers after they accept the {v0}.'} v={{ v0: app ? 'app' : 'site' }} />
@@ -985,7 +987,7 @@ export function SellForm({
                 <select id="s-setup" name="setupPrice" value={setupShown} onChange={(e) => setSetupP(e.target.value)}>
                   {room(CONFIG.packages.setupCents).map((c) => (
                     <option key={c} value={c / 100}>
-                      {c === 0 ? 'Not offered' : `$${c / 100} on top of the price`}
+                      {c === 0 ? tx('Not offered') : `$${c / 100} on top of the price`}
                     </option>
                   ))}
                 </select>
@@ -1000,7 +1002,7 @@ export function SellForm({
                 <select id="s-custom" name="customPrice" value={customShown} onChange={(e) => setCustomP(e.target.value)}>
                   {room(CONFIG.packages.customCents).map((c) => (
                     <option key={c} value={c / 100}>
-                      {c === 0 ? 'Not offered' : `$${c / 100} on top of the price`}
+                      {c === 0 ? tx('Not offered') : `$${c / 100} on top of the price`}
                     </option>
                   ))}
                 </select>
@@ -1032,7 +1034,7 @@ export function SellForm({
                 <label htmlFor="s-third">
                   <T s={'Third-party code inside (optional)'} />
                 </label>
-                <textarea id="s-third" name="third" rows={3} placeholder={'One per line, for example:\nDate picker - MIT\nChart helper - GPL-3.0'} />
+                <textarea id="s-third" name="third" rows={3} placeholder={tx('One per line, for example:\nDate picker - MIT\nChart helper - GPL-3.0')} />
                 <small>
                   <T s={'Licences we know: {v0}. Buyers see a note when a licence comes with conditions.'} v={{ v0: THIRD_PARTY_LICENCES.join(', ') }} />
                 </small>
@@ -1059,7 +1061,7 @@ export function SellForm({
                       name="requirements"
                       rows={3}
                       maxLength={CONFIG.listing.requirementsMax}
-                      placeholder={'For example:\nWordPress 6.4 or newer, PHP 8.1\nNode 20 and an OpenAI key'}
+                      placeholder={tx('For example:\nWordPress 6.4 or newer, PHP 8.1\nNode 20 and an OpenAI key')}
                     />
                     <small>
                       <T s={'Shown to buyers before they pay: versions, accounts or keys they need.'} />
@@ -1081,7 +1083,7 @@ export function SellForm({
                     <select id="s-support" name="supportDays" defaultValue="0">
                       {CONFIG.listing.periodDays.map((d) => (
                         <option key={d} value={d}>
-                          {d === 0 ? 'None' : `${d} days`}
+                          {d === 0 ? tx('None') : `${d} days`}
                         </option>
                       ))}
                     </select>
@@ -1096,7 +1098,7 @@ export function SellForm({
                     <select id="s-updates" name="updateDays" defaultValue="0">
                       {CONFIG.listing.periodDays.map((d) => (
                         <option key={d} value={d}>
-                          {d === 0 ? 'None' : `${d} days`}
+                          {d === 0 ? tx('None') : `${d} days`}
                         </option>
                       ))}
                     </select>
@@ -1138,7 +1140,7 @@ export function SellForm({
               {busy && (
                 <div className="sob-upbar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                   <i style={{ width: pct + '%' }} />
-                  <span>{pct < 100 ? `Uploading ${pct}%` : 'Opening and checking your site'}</span>
+                  <span>{pct < 100 ? `Uploading ${pct}%` : tx('Opening and checking your site')}</span>
                 </div>
               )}
               {missing.length > 0 && (

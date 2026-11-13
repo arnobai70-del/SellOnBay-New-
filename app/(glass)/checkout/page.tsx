@@ -21,6 +21,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 import { BetaForm } from './BetaForm';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Checkout', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,7 @@ type Search = { ids?: string; id?: string; pkg?: string };
 
 /* In the free beta: the request form. With payments live: the existing request-and-quotation path, kept behind PAYMENTS_MODE (owner, 2026-11-07). */
 export default async function Checkout({ searchParams }: { searchParams: Promise<Search> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { ids, id, pkg } = await searchParams;
   const want = [...new Set(String(ids ?? id ?? '').split(','))].filter(Boolean).slice(0, BETA_CART_LIMIT);
   const query = new URLSearchParams(Object.entries({ ids, id, pkg }).filter(([, v]) => v) as [string, string][]).toString();
@@ -53,7 +55,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
         {problem || !rp ? (
           <div className="glass" style={{ padding: 26 }}>
             <p role="note" style={{ margin: 0 }}>
-              {problem ?? 'This product is not available.'}
+              {problem ?? tx('This product is not available.')}
             </p>
           </div>
         ) : (

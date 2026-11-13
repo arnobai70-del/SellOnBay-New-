@@ -224,12 +224,12 @@ export default async function BuyerSubscription() {
                       {payments.map((p) => (
                         <tr key={p.id}>
                           <td>{day(p.createdAt)}</td>
-                          <td>{p.kind === 'new' ? 'New plan' : 'Renewal'}</td>
+                          <td>{p.kind === 'new' ? tx('New plan') : tx('Renewal')}</td>
                           <td>{usd(p.amountCents)}</td>
                           <td>{p.reference}</td>
                           <td>
                             <span className={`status ${p.status === 'verified' ? 'st-ok' : p.status === 'rejected' ? 'st-bad' : 'st-wait'}`}>
-                              {p.status === 'submitted' ? 'Checking' : p.status === 'verified' ? 'Confirmed' : 'Not found'}
+                              {p.status === 'submitted' ? tx('Checking') : p.status === 'verified' ? tx('Confirmed') : tx('Not found')}
                             </span>
                           </td>
                         </tr>

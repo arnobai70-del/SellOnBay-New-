@@ -116,7 +116,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
             <T s={'Open disputes'} />
           </div>
           <div className="v">{disputes.length}</div>
-          <div className="s">{disputes.filter((d) => adminOverdue(d, now)).length ? `${disputes.filter((d) => adminOverdue(d, now)).length} past our deadline` : 'Escrow on hold'}</div>
+          <div className="s">{disputes.filter((d) => adminOverdue(d, now)).length ? `${disputes.filter((d) => adminOverdue(d, now)).length} past our deadline` : tx('Escrow on hold')}</div>
         </div>
         <div className="glass kpi">
           <div className="l">
@@ -183,7 +183,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
                     />
                   </div>
                 </div>
-                <span className={`status ${ticket.openerRole === 'seller' ? 'st-draft' : 'st-info'}`}>{ticket.openerRole === 'seller' ? 'Seller' : 'Question'}</span>
+                <span className={`status ${ticket.openerRole === 'seller' ? 'st-draft' : 'st-info'}`}>{ticket.openerRole === 'seller' ? tx('Seller') : tx('Question')}</span>
               </div>
               <ConversationPanel type="ticket" id={ticket.id} me="admin" heading="Messages" />
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -242,6 +242,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
 
 /* The open dispute: the review window, what each side said, the evidence and the decision (the old disputes tool, in the design's pane). */
 async function DisputeView({ d, now }: { d: Dispute; now: number }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const o = await getOrder(d.orderId);
   const [ev, history, people] = await Promise.all([evidenceOf(d.id), o ? orderEvents(o.id) : Promise.resolve([]), profileNames([o?.buyerId, o?.sellerId])]);
   const sellerNet = o ? split(o.lines, o.feeCents, o.sellerGrossCents).sellerNet : 0;
@@ -269,7 +270,7 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
           <span>
             <T s={'Our decision is due'} />
           </span>
-          <span className={`status ${left < DAY_MS ? 'st-bad' : 'st-wait'}`}>{left > 0 ? `${Math.round(left / 3_600_000)}h left` : 'Late'}</span>
+          <span className={`status ${left < DAY_MS ? 'st-bad' : 'st-wait'}`}>{left > 0 ? `${Math.round(left / 3_600_000)}h left` : tx('Late')}</span>
         </div>
         <div className="bar">
           <i style={{ width: `${Math.round(Math.min(1, Math.max(0, 1 - left / span)) * 100)}%`, background: '#D9A08F' }} />

@@ -66,7 +66,7 @@ export default async function ServerHealth() {
     >
       <GlassCard as="section">
         <p>
-          <StatusPill tone={TONE[worst]}>{worst === 'ok' ? 'All normal' : worst === 'warn' ? 'Something needs a look' : 'Something is critical'}</StatusPill>
+          <StatusPill tone={TONE[worst]}>{worst === 'ok' ? tx('All normal') : worst === 'warn' ? tx('Something needs a look') : tx('Something is critical')}</StatusPill>
         </p>
         <p className="tag" style={{ marginTop: 8 }}>
           <T s={'Under 80% normal, 80 to 90% warning, over 90% critical. A critical figure emails dev@ at most once an hour.'} />

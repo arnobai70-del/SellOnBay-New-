@@ -77,7 +77,7 @@ export function PageWordsForm({
           <label htmlFor="pw-intro">
             <T s={'Intro'} />
           </label>
-          <textarea id="pw-intro" rows={3} value={w.intro} onChange={set('intro')} maxLength={max.intro} placeholder={builtIn.intro ?? 'The built-in intro'} />
+          <textarea id="pw-intro" rows={3} value={w.intro} onChange={set('intro')} maxLength={max.intro} placeholder={builtIn.intro ?? tx('The built-in intro')} />
           <small>
             <T s={'The line under the heading. Empty = the built-in intro. {length} / {intro}'} v={{ length: w.intro.length, intro: max.intro }} />
           </small>
@@ -114,7 +114,7 @@ export function PageWordsForm({
       )}
       <div className="sob-acts">
         <button className="btn sm" type="submit" disabled={busy}>
-          {busy ? 'One moment...' : 'Save'}
+          {busy ? tx('One moment...') : tx('Save')}
         </button>
         <button className="btn ghost sm" type="button" onClick={() => setW({ heading: '', intro: '', body: '' })} disabled={busy}>
           <T s={'Clear all (use the built-in words)'} />

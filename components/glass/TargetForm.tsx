@@ -4,8 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* "Edit target" on the admin overview (design-reference/admin.html): saves the monthly sales target in the shop settings (Super Admin, audited). */
 export function TargetForm({ dollars }: { dollars: number }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(dollars ? String(dollars) : '');
@@ -41,7 +43,7 @@ export function TargetForm({ dollars }: { dollars: number }) {
       </label>
       <input id="target-usd" className="input" inputMode="decimal" placeholder="e.g. 2000" value={value} onChange={(e) => setValue(e.target.value.replace(/[^\d.]/g, ''))} style={{ width: 130 }} />
       <button className="btn sm" type="submit" disabled={busy}>
-        {busy ? 'Saving…' : 'Save'}
+        {busy ? tx('Saving…') : tx('Save')}
       </button>
       <button className="btn sm ghost" type="button" onClick={() => setOpen(false)}>
         <T s={'Cancel'} />

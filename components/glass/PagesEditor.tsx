@@ -92,10 +92,10 @@ export function PagesEditor({ def, initial, previewPath, hasDraft }: { def: Page
                   label={f.label}
                   value={v}
                   onChange={(e) => setText(id, e.target.value)}
-                  hint={f.default.includes('{') ? 'Keep {keep}, {fee}, {reviewHours}, {minPrice}, {payout}: they are filled from the rules.' : undefined}
+                  hint={f.default.includes('{') ? tx('Keep {keep}, {fee}, {reviewHours}, {minPrice}, {payout}: they are filled from the rules.') : undefined}
                 />
               ) : (
-                <Field key={id} label={f.label} value={v} onChange={(e) => setText(id, e.target.value)} hint={f.kind === 'link' ? 'A path like /websites or an https address.' : undefined} />
+                <Field key={id} label={f.label} value={v} onChange={(e) => setText(id, e.target.value)} hint={f.kind === 'link' ? tx('A path like /websites or an https address.') : undefined} />
               );
             })}
           </section>

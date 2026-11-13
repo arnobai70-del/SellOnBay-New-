@@ -3,11 +3,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /*
  * "POS · Manual order" of design-reference/admin-orders.html. It posts to the same cash desk as before (/api/admin/pos, Finance, live payments
  * only): the buyer's account email, the listing, the cash taken and the receipt number. The split shown is the flat fee from lib/config.ts.
  */
 export function PosForm({ items, keepBps, reviewHours, open }: { items: { key: string; name: string; priceCents: number }[]; keepBps: number; reviewHours: number; open: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [key, setKey] = useState(items[0]?.key ?? '');
@@ -38,7 +40,7 @@ export function PosForm({ items, keepBps, reviewHours, open }: { items: { key: s
         <h2>
           <T s={'POS · Manual order'} />
         </h2>
-        <div className="tag">{open ? 'For cash taken in person. Cash is held like a verified transfer.' : 'Opens when live payments are on. In the free beta nothing is charged.'}</div>
+        <div className="tag">{open ? tx('For cash taken in person. Cash is held like a verified transfer.') : tx('Opens when live payments are on. In the free beta nothing is charged.')}</div>
       </div>
       <div className="field">
         <label htmlFor="be">
@@ -121,7 +123,7 @@ export function PosForm({ items, keepBps, reviewHours, open }: { items: { key: s
         </div>
       </div>
       <button className="btn" type="button" onClick={send} disabled={!open || busy || !email || !key || !receipt}>
-        {busy ? 'One moment...' : 'Create order'}
+        {busy ? tx('One moment...') : tx('Create order')}
       </button>
       {msg && (
         <p className="tag" style={{ color: msg.ok ? '#1A5444' : '#7A2E24' }} role={msg.ok ? 'status' : 'alert'}>

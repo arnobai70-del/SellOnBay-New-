@@ -70,12 +70,12 @@ export default async function SeoAdmin() {
                   </b>
                   <small>
                     /blog/{p.slug} · {p.status === 'published' ? `published ${day(p.publishedAt)}` : 'draft'}
-                    {p.noindex ? ' · kept out of Google' : ''} · {hints.length ? `${hints.length} SEO hint${hints.length > 1 ? 's' : ''}` : 'SEO looks good'}
+                    {p.noindex ? ' · kept out of Google' : ''} · {hints.length ? `${hints.length} SEO hint${hints.length > 1 ? 's' : ''}` : tx('SEO looks good')}
                   </small>
                 </div>
                 <span className={p.status === 'published' ? 'status st-ok' : 'status'}>
                   <i />
-                  {p.status === 'published' ? 'Live' : 'Draft'}
+                  {p.status === 'published' ? tx('Live') : tx('Draft')}
                 </span>
               </li>
             );
@@ -137,7 +137,7 @@ export default async function SeoAdmin() {
                 <span key={c.slug}>
                   {i > 0 ? '; ' : ''}
                   {c.name} {c.have}/{c.need}
-                  {c.slug !== 'ecommerce' ? (c.categoryPage ? '' : ', category page waiting') : ''}
+                  {c.slug !== 'ecommerce' ? (c.categoryPage ? '' : tx(', category page waiting')) : ''}
                 </span>
               ))}
               .

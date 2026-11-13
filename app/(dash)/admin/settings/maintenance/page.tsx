@@ -142,7 +142,7 @@ export default async function MaintenanceSettings() {
             }
           />
         </p>
-        <p style={{ marginTop: 8 }}>{rows.allowIps.length ? rows.allowIps.join(', ') : 'No addresses.'}</p>
+        <p style={{ marginTop: 8 }}>{rows.allowIps.length ? rows.allowIps.join(', ') : tx('No addresses.')}</p>
         <AdminForm
           endpoint="/api/admin/maintenance/allow"
           openLabel="Change addresses"

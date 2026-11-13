@@ -6,6 +6,7 @@ import { GlassCard } from './GlassCard';
 import { StatusPill } from './StatusPill';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Props = {
   id: string;
   title: string;
@@ -19,6 +20,7 @@ type Props = {
 
 /* The buyer's view of a free beta request. There is no payment here to show: only the review by our team, then the files, the domain steps, a review and feedback. */
 export function BetaOrderView({ id, title, state, reason, domain, reviewed, feedbackDone, subscription = false }: Props) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [done, setDone] = useState(reviewed);
@@ -40,9 +42,9 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
           <h1>{title}</h1>
           <div className="row" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
             <StatusPill tone={state === 'beta_approved' ? 'ok' : state === 'beta_declined' ? 'bad' : 'wait'}>
-              {state === 'beta_approved' ? 'Approved' : state === 'beta_declined' ? 'Declined' : 'Waiting for review'}
+              {state === 'beta_approved' ? tx('Approved') : state === 'beta_declined' ? tx('Declined') : tx('Waiting for review')}
             </StatusPill>
-            <StatusPill tone="info">{subscription ? 'Subscription · included in your plan' : 'Free during beta · no payment taken'}</StatusPill>
+            <StatusPill tone="info">{subscription ? tx('Subscription · included in your plan') : tx('Free during beta · no payment taken')}</StatusPill>
           </div>
         </div>
         {state === 'beta_requested' && (
@@ -78,7 +80,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
               </p>
               <div style={{ marginTop: 14 }}>
                 <Button onClick={files} disabled={busy}>
-                  {busy ? 'Getting your link' : 'Download files'}
+                  {busy ? tx('Getting your link') : tx('Download files')}
                 </Button>
               </div>
               {note && (
@@ -94,7 +96,7 @@ export function BetaOrderView({ id, title, state, reason, domain, reviewed, feed
               <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>
                 {domain
                   ? `You asked for ${domain}. We check it by hand and register it in your own name, then email you the next step.`
-                  : 'Use a domain you already own, or find one on our domains page.'}
+                  : tx('Use a domain you already own, or find one on our domains page.')}
               </p>
             </GlassCard>
             <GlassCard rise={false}>

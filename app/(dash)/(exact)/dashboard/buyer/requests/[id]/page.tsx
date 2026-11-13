@@ -10,6 +10,7 @@ import { QUOTE_WORDS, REQUEST_WORDS, buyerQuote, buyerTimeline, productNames, re
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Your request', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ const day = (ms: number) => new Date(ms).toUTCString().replace(':00 GMT', ' UTC'
 
 /* One request: what was asked, SellOnBay's questions and answers, and the quotation with its full terms to accept or decline. */
 export default async function BuyerRequest({ params }: { params: Promise<{ id: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const { id } = await params;
   const viewer = await requireViewer({ path: `/dashboard/buyer/requests/${id}`, roles: ['buyer'] });
   const r = /^[0-9a-f-]{36}$/i.test(id) ? await getRequest(id) : null;
@@ -39,7 +41,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
                 <i />
                 {word}
               </span>{' '}
-              · {TIER_TEXT[r.licenceTier].label} · {r.package === 'asis' ? 'As is' : r.package === 'setup' ? 'With setup help' : 'With customisation'}
+              · {TIER_TEXT[r.licenceTier].label} · {r.package === 'asis' ? tx('As is') : r.package === 'setup' ? tx('With setup help') : tx('With customisation')}
             </p>
           </div>
         </div>
@@ -158,7 +160,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
               <T s={'Support and updates'} />
             </dt>
             <dd>
-              {q.terms.supportDays ? `${q.terms.supportDays} days of support` : 'No support period'} · {q.terms.updateDays ? `${q.terms.updateDays} days of updates` : 'No updates'}
+              {q.terms.supportDays ? `${q.terms.supportDays} days of support` : tx('No support period')} · {q.terms.updateDays ? `${q.terms.updateDays} days of updates` : tx('No updates')}
             </dd>
             {q.terms.note && (
               <>

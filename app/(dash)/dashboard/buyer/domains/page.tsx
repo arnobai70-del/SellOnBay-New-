@@ -51,7 +51,9 @@ export default async function BuyerDomains() {
               <section key={d.name} className="glass dc">
                 <div className="row">
                   <b style={{ fontWeight: 500, fontSize: 17 }}>{d.name}</b>
-                  <span className={`status ${d.status === 'requested' ? 'st-wait' : soon ? 'st-bad' : 'st-ok'}`}>{d.status === 'requested' ? 'Setting up' : soon ? 'Expires soon' : 'Active'}</span>
+                  <span className={`status ${d.status === 'requested' ? 'st-wait' : soon ? 'st-bad' : 'st-ok'}`}>
+                    {d.status === 'requested' ? tx('Setting up') : soon ? tx('Expires soon') : tx('Active')}
+                  </span>
                 </div>
                 <div className="tag" style={{ margin: 0 }}>
                   <T
@@ -63,7 +65,7 @@ export default async function BuyerDomains() {
                   <span style={{ flex: 1 }}>
                     <T s={'Connected to'} />
                   </span>
-                  <span className="muted">{d.site ?? 'Not connected'}</span>
+                  <span className="muted">{d.site ?? tx('Not connected')}</span>
                 </div>
                 <div className="row" style={{ fontSize: 14 }}>
                   <span>

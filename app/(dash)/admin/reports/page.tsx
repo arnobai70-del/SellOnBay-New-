@@ -196,7 +196,7 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
               <T s={'Sales by category'} />
             </h2>
             <span className="tag" style={{ margin: 0 }}>
-              {cats.some((c) => c.sales) ? 'Paid sales' : 'Orders (no paid sales yet)'}
+              {cats.some((c) => c.sales) ? tx('Paid sales') : tx('Orders (no paid sales yet)')}
             </span>
           </div>
           {cats.length ? (
@@ -250,7 +250,7 @@ export default async function AdminReports({ searchParams }: { searchParams: Pro
                 {top.length ? (
                   top.map(([id, s]) => (
                     <tr key={id}>
-                      <td style={{ fontWeight: 500 }}>{names.get(id) ?? 'Seller'}</td>
+                      <td style={{ fontWeight: 500 }}>{names.get(id) ?? tx('Seller')}</td>
                       <td>{s.n}</td>
                       <td>{usd(s.gross)}</td>
                       <td>{usd(s.gross - s.fee)}</td>

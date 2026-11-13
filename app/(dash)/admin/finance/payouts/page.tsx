@@ -295,7 +295,7 @@ export default async function Payouts({ searchParams }: { searchParams: Promise<
                     <td data-label="Verified">
                       <T s={'Email {v0}, phone {v1}, ID {v2}'} v={{ v0: m.verified.email ? 'yes' : 'no', v1: m.verified.phone ? 'yes' : 'no', v2: m.verified.id ? 'yes' : 'no' }} />
                     </td>
-                    <td data-label="Status">{m.banned ? 'Banned: payouts held' : 'Active'}</td>
+                    <td data-label="Status">{m.banned ? tx('Banned: payouts held') : tx('Active')}</td>
                   </tr>
                 ))}
               </tbody>

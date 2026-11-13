@@ -66,6 +66,7 @@ export async function DashboardShell({
   /* Draw the page's heading row (h1, subtitle, actions); a page that ports its own heading row turns it off. */
   head?: boolean;
 }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const menu = ROLE_MENUS[role];
   // The menus in the visitor's language (lib/i18n, owner 2026-11-12); a word the catalogue does not know stays in English.
   const tr = await getI18n();
@@ -135,7 +136,7 @@ export async function DashboardShell({
           <header className="glass topbar">
             <form className="gsearch" action={find.action} method="get" role="search">
               <label htmlFor="gs" className="hidden-label">
-                {role === 'admin' ? 'Search everything' : 'Search'}
+                {role === 'admin' ? tx('Search everything') : tx('Search')}
               </label>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
@@ -149,7 +150,7 @@ export async function DashboardShell({
                 {w(menu.cta.label)}
               </Link>
             )}
-            <Link className="iconbtn" href={menu.notifications} prefetch={false} aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}>
+            <Link className="iconbtn" href={menu.notifications} prefetch={false} aria-label={unread > 0 ? `Notifications, ${unread} new` : tx('Notifications')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
                 <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
                 <path d="M10 21a2 2 0 0 0 4 0" />

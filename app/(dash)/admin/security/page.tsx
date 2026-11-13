@@ -143,7 +143,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                     <tr key={h.ipHash}>
                       <td style={{ whiteSpace: 'nowrap' }}>{when(h.last)}</td>
                       <td>
-                        <span className={`status ${h.total >= 20 ? 'st-bad' : h.total >= 5 ? 'st-wait' : 'st-info'}`}>{h.total >= 20 ? 'High' : h.total >= 5 ? 'Medium' : 'Low'}</span>
+                        <span className={`status ${h.total >= 20 ? 'st-bad' : h.total >= 5 ? 'st-wait' : 'st-info'}`}>{h.total >= 20 ? tx('High') : h.total >= 5 ? tx('Medium') : tx('Low')}</span>
                       </td>
                       <td style={{ fontWeight: 500 }}>
                         {Object.entries(h.actions)
@@ -154,7 +154,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                       <td>—</td>
                       <td className="muted">{h.ipHash.slice(0, 10)}…</td>
                       <td>
-                        <span className={`status ${h.blocked ? 'st-bad' : 'st-wait'}`}>{h.blocked ? 'Blocked' : 'Open'}</span>
+                        <span className={`status ${h.blocked ? 'st-bad' : 'st-wait'}`}>{h.blocked ? tx('Blocked') : tx('Open')}</span>
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {!h.blocked && <AdminForm endpoint="/api/admin/security/block" fixed={{ kind: 'ip', key: h.ipHash }} fields={reasonField} submit="Block it" openLabel="Block" tone="line" />}
@@ -278,7 +278,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                       {m.sender_name || 'User ' + String(m.sender_id).slice(0, 8)} · {REASON[m.reason] ?? m.reason}
                     </b>
                     <span className="tag" style={{ display: 'block' }}>
-                      {m.context === 'presale' ? 'Pre-sale question' : m.context === 'presale_reply' ? 'Seller reply' : 'Order chat'}
+                      {m.context === 'presale' ? tx('Pre-sale question') : m.context === 'presale_reply' ? tx('Seller reply') : tx('Order chat')}
                       {m.product_key ? ` on ${m.product_key}` : ''}: “{(m.body ?? '').slice(0, 140)}”
                     </span>
                   </span>
@@ -326,7 +326,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
                   log.slice(0, 100).map((a) => (
                     <tr key={a.id}>
                       <td style={{ whiteSpace: 'nowrap' }}>{when(a.at)}</td>
-                      <td>{a.adminId ? (names.get(a.adminId) ?? 'Admin') : 'System'}</td>
+                      <td>{a.adminId ? (names.get(a.adminId) ?? tx('Admin')) : tx('System')}</td>
                       <td style={{ fontWeight: 500 }}>{actionText(a.action)}</td>
                       <td className="muted">
                         {a.targetType} {a.targetRef.slice(0, 24)}
@@ -361,7 +361,7 @@ export default async function AdminSecurity({ searchParams }: { searchParams: Pr
             .map((a) => (
               <div key={a.id} className="li" style={{ fontSize: 14 }}>
                 <span style={{ flex: 1 }}>
-                  {a.adminId ? (names.get(a.adminId) ?? 'Admin') : 'System'}: {actionText(a.action)}
+                  {a.adminId ? (names.get(a.adminId) ?? tx('Admin')) : tx('System')}: {actionText(a.action)}
                 </span>
                 <span className="tag" style={{ margin: 0 }}>
                   {when(a.at)}

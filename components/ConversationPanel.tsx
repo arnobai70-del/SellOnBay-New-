@@ -144,19 +144,19 @@ export function ConversationPanel({
       </div>
       <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div className="field">
-          <label htmlFor={`cv-${type}-${id}`}>{tab === 'internal' ? 'Internal note' : me === 'admin' ? 'Reply' : 'Your reply'}</label>
+          <label htmlFor={`cv-${type}-${id}`}>{tab === 'internal' ? tx('Internal note') : me === 'admin' ? tx('Reply') : tx('Your reply')}</label>
           <textarea
             id={`cv-${type}-${id}`}
             className="input"
             maxLength={4000}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={tab === 'internal' ? 'Only admins see this.' : 'Write a reply…'}
+            placeholder={tab === 'internal' ? tx('Only admins see this.') : tx('Write a reply…')}
           />
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <button className="btn" type="submit" disabled={busy || !text.trim()}>
-            {busy ? 'Sending...' : 'Send'}
+            {busy ? tx('Sending...') : tx('Send')}
           </button>
           {actions}
         </div>

@@ -9,6 +9,7 @@ import { orderCode } from '@/lib/payments/rules';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Request received', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ const NUM = { done: ['#CDEBDF', '#1A5444'], wait: ['#FBEFD9', '#6E4B12'], next: 
  * The order shows only to the person who made it.
  */
 export default async function CheckoutSuccess({ searchParams }: { searchParams: Promise<{ order?: string; n?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/checkout/success' });
   const { order, n } = await searchParams;
   const count = Math.max(1, Math.min(5, Number(n) || 1));
@@ -102,7 +104,7 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
             </div>
           )}
           <Link className="btn" href={id ? `/orders/${id}` : '/dashboard/buyer'} style={{ width: '100%' }} prefetch={false}>
-            {id ? 'Open the order' : 'Go to my dashboard'}
+            {id ? tx('Open the order') : tx('Go to my dashboard')}
           </Link>{' '}
           <Link className="btn ghost" href="/dashboard/buyer/orders" style={{ width: '100%' }} prefetch={false}>
             <T s={'All my orders'} />

@@ -77,6 +77,7 @@ test.describe('Languages', () => {
   });
 
   test('Admin › Language Management: all tabs open; an edited word is shown only after publishing', async ({ page }) => {
+    test.slow(); // five tabs, a save, a publish and an unpublish: more than the usual minute on a busy machine
     for (const [tab, words] of [
       ['languages', /Add a language/],
       ['translations', /Keep every/],
@@ -106,14 +107,71 @@ test.describe('Languages', () => {
     await expect(page.getByText('Unpublished.', { exact: true })).toBeVisible();
   });
 
-  test('Arabic fits a phone and a desktop without sideways scrolling', async ({ page }) => {
-    for (const width of [390, 1280]) {
+  test('Arabic fits 320, 390, 768, 1280 and 1920 pixels without sideways scrolling', async ({ page }) => {
+    test.slow(); // seven pages at five widths
+    for (const width of [320, 390, 768, 1280, 1920]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const path of ['/ar', '/ar/websites', '/ar/affiliates', '/ar/help']) {
+      for (const path of ['/ar', '/ar/websites', '/ar/affiliates', '/ar/help', '/ar/legal/terms', '/ar/signin', '/ar/cart']) {
         await page.goto(`${DEMO}${path}`);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${path} at ${width}px`).toBeLessThanOrEqual(width);
       }
     }
+  });
+
+  test('a visitor whose browser prefers a published language is offered it once; Keep English is remembered', async ({ browser }) => {
+    const ctx = await browser.newContext({ locale: 'bn-BD', userAgent: PERSON_UA });
+    const page = await ctx.newPage();
+    await page.goto(`${DEMO}/help`);
+    const offer = page.locator('[data-lang-suggest="bn"]');
+    await expect(offer).toBeVisible();
+    await expect(offer).toHaveAttribute('lang', 'bn');
+    await expect(page).toHaveURL(/\/help$/); // an offer, never a redirect
+    await offer.getByRole('button', { name: 'ইংরেজিতেই থাকুন' }).click(); // "Keep English"
+    await expect(offer).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('[data-lang-suggest]')).toHaveCount(0);
+    expect((await ctx.cookies()).find((c) => c.name === 'sob_lang')?.value).toBe('en');
+    await ctx.close();
+  });
+
+  test('every language: its own address, lang, dir, words, canonical, hreflang; legal text stays English with a notice', async ({ page, request }) => {
+    test.slow(); // seven languages, two pages each
+    const all = BUILTIN.filter((c) => c !== 'en');
+    expect((await setLive(request, all)).status()).toBe(200);
+    const home = { bn: 'সাহায্য', ar: 'المساعدة', hi: 'मदद', es: 'Ayuda', fr: 'Aide', de: 'Hilfe', pt: 'Ajuda' } as Record<string, string>;
+    for (const code of all) {
+      await page.goto(`${DEMO}/${code}/help`);
+      await expect(page.locator('html'), code).toHaveAttribute('lang', code);
+      await expect(page.locator('html'), code).toHaveAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
+      await expect(page.getByRole('link', { name: home[code], exact: true }).first(), code).toBeVisible(); // the menu's Help link
+      expect(await page.locator('link[rel="canonical"]').getAttribute('href'), code).toMatch(new RegExp(`/${code}/help$`));
+      expect(await page.locator('link[rel="alternate"][hreflang]').count(), code).toBe(BUILTIN.length + 1); // every language and x-default
+      await page.goto(`${DEMO}/${code}/legal/terms`);
+      await expect(page.locator('[data-legal-notice]'), code).toBeVisible();
+      await expect(page.locator('[data-page-text]'), code).toHaveAttribute('lang', 'en');
+      if (process.env.I18N_SCREENSHOTS && ['bn', 'ar'].includes(code))
+        for (const [w, h] of [
+          [390, 844],
+          [1280, 900],
+        ]) {
+          await page.setViewportSize({ width: w, height: h });
+          await page.goto(`${DEMO}/${code}`);
+          await page.screenshot({ path: `${process.env.I18N_SCREENSHOTS}/${code}-home-${w}.png` });
+          await page.setViewportSize({ width: 1280, height: 900 });
+        }
+    }
+    if (process.env.I18N_SCREENSHOTS)
+      for (const [w, h] of [
+        [390, 844],
+        [1280, 900],
+      ]) {
+        await page.setViewportSize({ width: w, height: h });
+        await page.goto(`${DEMO}/`);
+        await page.screenshot({ path: `${process.env.I18N_SCREENSHOTS}/en-home-${w}.png` });
+      }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(`${DEMO}/legal/terms`);
+    await expect(page.locator('[data-legal-notice]')).toHaveCount(0); // English: no notice
   });
 
   test('unpublishing a language closes its addresses at once', async ({ request }) => {

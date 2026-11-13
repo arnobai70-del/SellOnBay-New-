@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 type Ready = { id: string; name: string };
 
 /*
@@ -22,6 +23,7 @@ export function DeliveryForm({
   /* Set for revised work on a revision (lib/revisions) instead of the order's first delivery. */
   revisionId?: string;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [fileId, setFileId] = useState(approvedFiles[0]?.id ?? '');
@@ -110,7 +112,7 @@ export function DeliveryForm({
       </label>
       <textarea id={`df-note-${revisionId ?? orderId}`} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
       <button type="button" className="btn sm" disabled={!!busy || note.trim().length < 10} onClick={send}>
-        {busy || 'Send for release'}
+        {busy || tx('Send for release')}
       </button>
       {msg && (
         <p className={msg.ok ? 'sob-note-box' : 'sob-note-box warn'} role={msg.ok ? 'status' : 'alert'}>

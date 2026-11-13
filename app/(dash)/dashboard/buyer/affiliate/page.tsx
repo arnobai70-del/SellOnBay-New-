@@ -88,7 +88,7 @@ export default async function AffiliateDashboard() {
           <section className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
               <div>
-                <h2>{d.affiliate.displayName || 'Your affiliate account'}</h2>
+                <h2>{d.affiliate.displayName || tx('Your affiliate account')}</h2>
                 <div className="tag">
                   <T s={'Code {code} · joined {v1} · terms {termsVersion}'} v={{ code: d.affiliate.code, v1: day(d.affiliate.createdAt), termsVersion: d.affiliate.termsVersion }} />
                 </div>
@@ -227,7 +227,7 @@ export default async function AffiliateDashboard() {
                       <td>{usd(c.amountCents)}</td>
                       <td>
                         <span className={`status ${c.status === 'approved' ? 'st-ok' : c.status === 'reversed' ? 'st-bad' : 'st-wait'}`}>
-                          {c.status === 'pending' ? `Pending${c.approveAfter ? ` until ${day(c.approveAfter)}` : ''}` : c.status === 'approved' ? 'Approved' : 'Reversed (refund)'}
+                          {c.status === 'pending' ? `Pending${c.approveAfter ? ` until ${day(c.approveAfter)}` : ''}` : c.status === 'approved' ? tx('Approved') : tx('Reversed (refund)')}
                         </span>
                       </td>
                     </tr>
@@ -256,10 +256,10 @@ export default async function AffiliateDashboard() {
                     {w.status === 'paid'
                       ? `Paid${w.payoutReference ? ` · ${w.payoutReference}` : ''}`
                       : w.status === 'requested'
-                        ? 'Waiting for review'
+                        ? tx('Waiting for review')
                         : w.status === 'approved'
-                          ? 'Approved, not paid yet'
-                          : 'Rejected'}
+                          ? tx('Approved, not paid yet')
+                          : tx('Rejected')}
                   </span>
                 </div>
               ))}

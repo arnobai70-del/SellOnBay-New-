@@ -64,7 +64,7 @@ export default async function SeoCheck() {
                 </div>
                 <span className={fix ? 'status st-bad' : f.length ? 'status st-wait' : 'status st-ok'}>
                   <i />
-                  {fix ? 'Fix' : f.length ? 'Improve' : 'Good'}
+                  {fix ? tx('Fix') : f.length ? tx('Improve') : tx('Good')}
                 </span>
                 {f.length > 0 && (
                   <Link className="btn ghost sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(r.path)}`}>

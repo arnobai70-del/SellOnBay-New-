@@ -217,7 +217,7 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
           <dt>
             <T s={'Listed price for this choice'} />
           </dt>
-          <dd>{tier === 'single_project' ? money(listed) : 'Quoted by SellOnBay'}</dd>
+          <dd>{tier === 'single_project' ? money(listed) : tx('Quoted by SellOnBay')}</dd>
           <dt>
             <T s={'Delivery'} />
           </dt>
@@ -233,7 +233,7 @@ export function RequestForm({ p, initialPkg }: { p: RequestProduct; initialPkg: 
           </p>
         )}
         <button className="btn" type="submit" disabled={busy || !consent}>
-          {busy ? 'Sending...' : 'Send request'}
+          {busy ? tx('Sending...') : tx('Send request')}
         </button>
       </section>
     </form>

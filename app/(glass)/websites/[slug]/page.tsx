@@ -189,7 +189,7 @@ export default async function Website({ params }: Props) {
                 <T s={'Need this website customized?'} />
               </div>
               <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-                {beta ? 'Paid custom work is available after the beta.' : 'Work with the seller, paid through escrow.'}
+                {beta ? tx('Paid custom work is available after the beta.') : tx('Work with the seller, paid through escrow.')}
               </div>
             </div>
             {!beta && custom ? (
@@ -266,7 +266,7 @@ export default async function Website({ params }: Props) {
                 </span>
               </span>
               <span className="tag" style={{ margin: 0 }}>
-                {beta ? 'After beta' : 'Quotation'}
+                {beta ? tx('After beta') : tx('Quotation')}
               </span>
             </Link>{' '}
             {p.demo && (

@@ -102,7 +102,7 @@ export default async function LanguagesAdmin({ searchParams }: { searchParams: P
                   {l.name} ({l.native})
                 </td>
                 <td>
-                  <span className={`status ${l.enabled && l.published ? 'st-ok' : 'st-draft'}`}>{!l.enabled ? 'Off' : l.published ? 'Published' : 'Draft (hidden)'}</span>
+                  <span className={`status ${l.enabled && l.published ? 'st-ok' : 'st-draft'}`}>{!l.enabled ? tx('Off') : l.published ? tx('Published') : tx('Draft (hidden)')}</span>
                 </td>
                 <td>{total}</td>
                 <td>{edits}</td>

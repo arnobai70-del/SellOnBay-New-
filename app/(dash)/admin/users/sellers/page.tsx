@@ -98,7 +98,7 @@ export default async function Sellers() {
                     <td data-label="Yearly">{money(p.yearlyCents / 100)}</td>
                     <td data-label="Commission">{p.commissionBps / 100}%</td>
                     <td data-label="Published listings">{p.listingLimit}</td>
-                    <td data-label="Featured">{p.featured ? 'Yes' : 'No'}</td>
+                    <td data-label="Featured">{p.featured ? tx('Yes') : tx('No')}</td>
                   </tr>
                 );
               })}
@@ -130,7 +130,7 @@ export default async function Sellers() {
               <li key={s.id} data-sub={s.id}>
                 <div className="sob-grow">
                   <b>
-                    {names.get(s.sellerId) ?? 'Seller'}: {plan?.name ?? 'Plan'} ({s.billing}, {money(s.priceCents / 100)})
+                    {names.get(s.sellerId) ?? tx('Seller')}: {plan?.name ?? tx('Plan')} ({s.billing}, {money(s.priceCents / 100)})
                   </b>
                   <small>
                     <T s={'{v0} · period {v1} to {v2}'} v={{ v0: s.status.replace('_', ' '), v1: day(s.periodStart), v2: day(s.periodEnd) }} />

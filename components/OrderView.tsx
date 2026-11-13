@@ -6,6 +6,7 @@ import { DEMO, type OrderView as View } from '@/lib/commerce/types';
 import { hoursText, promiseHours } from '@/lib/deliveryTime';
 import { ACCEPT_TEXT } from '@/lib/consentText';
 
+import { useTx } from '@/components/i18n/TxProvider';
 type Kind = 'web' | 'host' | 'store' | 'installer' | 'hire' | 'download' | 'repo';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const day = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -23,6 +24,7 @@ const NOTE: Record<string, [string, string]> = {
 };
 
 export function OrderView({ initial, kind, paidNow, files = [], realtime = false }: { initial: View; kind: Kind; paidNow: boolean; files?: [string, string][]; realtime?: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [o, setO] = useState(initial);
   const [skew, setSkew] = useState(() => initial.now - Date.now());
   const [now, setNow] = useState(initial.now);
@@ -167,7 +169,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
       extra:
         invited && rank < 3 ? (
           <button className="btn sm" disabled={busy === 'confirm-access'} onClick={() => act('confirm-access')}>
-            {busy === 'confirm-access' ? 'One moment...' : 'I can open the repository'}
+            {busy === 'confirm-access' ? tx('One moment...') : tx('I can open the repository')}
           </button>
         ) : null,
     });
@@ -277,7 +279,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                     <span>{live}</span>
                   </div>
                   <div className="sob-ord-live-b">
-                    <b>{kind === 'host' ? 'Your app is live' : 'Your site is live'}</b>
+                    <b>{kind === 'host' ? tx('Your app is live') : tx('Your site is live')}</b>
                     <p>Open it, click around, and make sure it is what you paid for.</p>
                     <Link className="btn sm" href={`/preview/${o.productId}`} target="_blank">
                       Open the site
@@ -286,7 +288,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 </>
               ) : (
                 <div className="sob-ord-live-b">
-                  <b>{hire ? 'Your delivery' : dl ? 'Your files' : kind === 'store' ? 'Your test build' : 'Your installers'}</b>
+                  <b>{hire ? tx('Your delivery') : dl ? tx('Your files') : kind === 'store' ? tx('Your test build') : tx('Your installers')}</b>
                   {dl && files.length > 0 && (
                     <ul className="sob-ord-files">
                       {files.map(([n, sz]) => (
@@ -300,11 +302,11 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                   )}
                   <p>
                     {hire
-                      ? 'Files and notes are shared in messages.'
+                      ? tx('Files and notes are shared in messages.')
                       : dl
-                        ? 'Your files are ready now. The download link works for 24 hours, and you can get a new one any time. Keep your licence key.'
+                        ? tx('Your files are ready now. The download link works for 24 hours, and you can get a new one any time. Keep your licence key.')
                         : kind === 'store'
-                          ? 'Install it from the test link in messages. After you accept, the seller sends it to the store.'
+                          ? tx('Install it from the test link in messages. After you accept, the seller sends it to the store.')
                           : `Download links for ${(o.oses ?? []).join(', ') || 'your computers'} are in messages.`}
                   </p>
                   {dl && (
@@ -321,12 +323,12 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                         </>
                       ) : null}
                       <button className="btn ghost sm" type="button" disabled={busy === 'files'} onClick={getFiles}>
-                        {busy === 'files' ? 'One moment…' : dlink ? 'Get a new link' : 'Get my files'}
+                        {busy === 'files' ? tx('One moment…') : dlink ? tx('Get a new link') : tx('Get my files')}
                       </button>
                     </div>
                   )}
                   <Link className={dl ? 'sob-link' : 'btn sm'} href="/messages">
-                    {dl ? 'Ask the seller a question' : 'Open messages'}
+                    {dl ? tx('Ask the seller a question') : tx('Open messages')}
                   </Link>
                 </div>
               )}
@@ -340,7 +342,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <span className="muted">{ACCEPT_TEXT}</span>
               </label>
               <button className="btn" disabled={busy === 'accept' || !agreed} onClick={() => act('accept')}>
-                {busy === 'accept' ? 'Accepting…' : 'Accept and release payment'}
+                {busy === 'accept' ? tx('Accepting…') : tx('Accept and release payment')}
               </button>
               <Link className="btn ghost" href="/help#refunds">
                 Something is wrong
@@ -364,7 +366,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               <p>{NOTE[o.state][1]}</p>
               {o.state === 'overdue' && (
                 <button className="btn ghost sm" disabled={busy === 'cancel'} onClick={() => act('cancel')}>
-                  {busy === 'cancel' ? 'Cancelling...' : 'Cancel and get a full refund'}
+                  {busy === 'cancel' ? tx('Cancelling...') : tx('Cancel and get a full refund')}
                 </button>
               )}
             </div>
@@ -382,7 +384,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               {o.repo.invitedAt && o.state === 'in_delivery' && (
                 <p>
                   {o.repo.expired
-                    ? 'The GitHub invite has run out. Ask the seller to send it again in the order chat.'
+                    ? tx('The GitHub invite has run out. Ask the seller to send it again in the order chat.')
                     : `Accept the GitHub invite before ${day(o.repo.expiresAt!)}. GitHub removes an invite that is not accepted in time. Then confirm here that you can open it.`}
                 </p>
               )}
@@ -391,10 +393,10 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <p data-revoke={o.repo.revoke}>
                   <b>Access removal:</b>{' '}
                   {o.repo.revoke === 'pending'
-                    ? 'This order ended, so the seller was asked to remove your access to the repository.'
+                    ? tx('This order ended, so the seller was asked to remove your access to the repository.')
                     : o.repo.revoke === 'seller_done'
-                      ? 'The seller says your access was removed. Our team is checking it.'
-                      : 'Confirmed by our team: you no longer have access to the repository.'}
+                      ? tx('The seller says your access was removed. Our team is checking it.')
+                      : tx('Confirmed by our team: you no longer have access to the repository.')}
                 </p>
               )}
             </div>
@@ -405,7 +407,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               <dl className="sob-list">
                 <div>
                   <dt>What it needs</dt>
-                  <dd>{o.info.requirements ?? 'No special requirements listed.'}</dd>
+                  <dd>{o.info.requirements ?? tx('No special requirements listed.')}</dd>
                 </div>
                 <div>
                   <dt>Documentation</dt>
@@ -415,13 +417,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                         Read the guide
                       </a>
                     ) : (
-                      'No separate guide.'
+                      tx('No separate guide.')
                     )}
                   </dd>
                 </div>
                 <div>
                   <dt>Support</dt>
-                  <dd>{o.info.supportUntil ? `Until ${day(o.info.supportUntil)}, in the order chat${o.info.supportUntil < now ? ' (ended)' : ''}` : 'None. You got the product as it is.'}</dd>
+                  <dd>{o.info.supportUntil ? `Until ${day(o.info.supportUntil)}, in the order chat${o.info.supportUntil < now ? ' (ended)' : ''}` : tx('None. You got the product as it is.')}</dd>
                 </div>
                 {o.info.versions.isNew && (
                   <div data-new-version>
@@ -434,7 +436,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 )}
                 <div>
                   <dt>Updates</dt>
-                  <dd>{o.info.updateUntil ? `New versions until ${day(o.info.updateUntil)}${o.info.updateUntil < now ? ' (ended)' : ''}` : 'None. You got the version you bought.'}</dd>
+                  <dd>{o.info.updateUntil ? `New versions until ${day(o.info.updateUntil)}${o.info.updateUntil < now ? ' (ended)' : ''}` : tx('None. You got the version you bought.')}</dd>
                 </div>
               </dl>
               {o.info.versions.list.length > 0 && (
@@ -487,7 +489,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 <textarea id="rv-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} />
               </div>
               <button className="btn sm" type="button" disabled={busy === 'review'} onClick={sendReview}>
-                {busy === 'review' ? 'Sending...' : 'Post review'}
+                {busy === 'review' ? tx('Sending...') : tx('Post review')}
               </button>
             </div>
           )}
@@ -501,13 +503,13 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
           )}
           {o.dispute && (
             <div className="sob-ord-done" role="status">
-              <b>{o.dispute.status === 'decided' ? 'Problem decided' : 'Problem reported'}</b>
+              <b>{o.dispute.status === 'decided' ? tx('Problem decided') : tx('Problem reported')}</b>
               <p>
                 {o.dispute.status === 'decided'
                   ? `Decision: ${(o.dispute.decision ?? '').replace(/_/g, ' ')}.`
                   : o.dispute.status === 'seller_replied'
-                    ? 'The seller replied. An admin is looking at it and decides within 5 days. Payment is held.'
-                    : 'The seller has 48 hours to reply, then an admin decides within 5 days. Payment is held.'}
+                    ? tx('The seller replied. An admin is looking at it and decides within 5 days. Payment is held.')
+                    : tx('The seller has 48 hours to reply, then an admin decides within 5 days. Payment is held.')}
               </p>
             </div>
           )}
@@ -536,7 +538,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
               </div>
               <div className="sob-ord-extra-btns">
                 <button className="btn sm" type="button" disabled={busy === 'dispute' || detail.trim().length < 20} onClick={openDispute}>
-                  {busy === 'dispute' ? 'Sending...' : 'Send report'}
+                  {busy === 'dispute' ? tx('Sending...') : tx('Send report')}
                 </button>
                 <button className="btn ghost sm" type="button" onClick={() => setShowDispute(false)}>
                   Cancel
@@ -601,7 +603,7 @@ export function OrderView({ initial, kind, paidNow, files = [], realtime = false
                 </button>
               )}
               <button className="btn ghost sm" disabled={busy === 'skip'} onClick={() => act('skip')}>
-                {stage === 'delivered' ? 'Skip the 48 hours' : 'Skip to delivery'}
+                {stage === 'delivered' ? tx('Skip the 48 hours') : tx('Skip to delivery')}
               </button>
             </div>
           )}

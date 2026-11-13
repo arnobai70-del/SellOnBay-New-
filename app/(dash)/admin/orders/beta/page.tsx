@@ -46,7 +46,7 @@ export default async function BetaRequests() {
             <p style={{ fontSize: 14 }}>{r.useFor}</p>
             {r.decidedAt ? (
               <p className="muted" style={{ fontSize: 14 }}>
-                {r.declineReason ? `Declined: ${r.declineReason}` : 'Approved'}
+                {r.declineReason ? `Declined: ${r.declineReason}` : tx('Approved')}
               </p>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>

@@ -51,7 +51,7 @@ export default async function Robots() {
           <h3>
             <T s={'Extra paths kept out'} />
           </h3>
-          <p className="muted">{extra.length ? extra.join('  ') : 'None.'}</p>
+          <p className="muted">{extra.length ? extra.join('  ') : tx('None.')}</p>
           <AdminForm
             endpoint="/api/admin/seo/robots"
             open

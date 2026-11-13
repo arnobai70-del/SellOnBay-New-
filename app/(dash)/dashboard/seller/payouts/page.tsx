@@ -127,7 +127,7 @@ export default async function SellerPayouts() {
                   <T s={'Identity'} />
                 </h2>
                 <span className={`status ${ver.status === 'approved' ? 'st-ok' : ver.status === 'pending' ? 'st-wait' : ver.status === 'rejected' ? 'st-bad' : 'st-draft'}`}>
-                  {ver.status === 'approved' ? 'Verified' : ver.status === 'pending' ? 'Being checked' : ver.status === 'rejected' ? 'Not accepted' : 'Not sent'}
+                  {ver.status === 'approved' ? tx('Verified') : ver.status === 'pending' ? tx('Being checked') : ver.status === 'rejected' ? tx('Not accepted') : tx('Not sent')}
                 </span>
               </div>
               <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
@@ -136,21 +136,21 @@ export default async function SellerPayouts() {
               {ver.status === 'approved' || ver.status === 'pending' ? (
                 <div className="grid2" style={{ gap: 10 }}>
                   <div style={DROP}>
-                    {ver.docType ? DOC[ver.docType] : 'Document'}
+                    {ver.docType ? DOC[ver.docType] : tx('Document')}
                     <div className="tag">
                       <T s={'Uploaded ✓'} />
                     </div>
                   </div>
                   <div style={DROP}>
                     <T s={'Check'} />
-                    <div className="tag">{ver.status === 'approved' ? 'Done ✓' : 'We will tell you when it is done'}</div>
+                    <div className="tag">{ver.status === 'approved' ? tx('Done ✓') : tx('We will tell you when it is done')}</div>
                   </div>
                 </div>
               ) : (
                 <>
                   {ver.status === 'rejected' && (
                     <div className="tag" style={{ color: '#7A2E24' }}>
-                      {ver.note ?? 'Please send a clearer picture.'}
+                      {ver.note ?? tx('Please send a clearer picture.')}
                     </div>
                   )}
                   <VerificationForm />
@@ -272,7 +272,7 @@ export default async function SellerPayouts() {
                         <td>{p.method}</td>
                         <td>
                           <span className={`status ${p.status === 'paid' ? 'st-ok' : p.status === 'failed' ? 'st-bad' : 'st-info'}`}>
-                            {p.status === 'paid' ? 'Paid' : p.status === 'failed' ? 'Failed' : p.status === 'exported' ? 'Being sent' : 'Scheduled'}
+                            {p.status === 'paid' ? tx('Paid') : p.status === 'failed' ? tx('Failed') : p.status === 'exported' ? tx('Being sent') : tx('Scheduled')}
                           </span>
                         </td>
                         <td style={{ textAlign: 'right' }} className="tag">

@@ -5,8 +5,10 @@ import { Button } from './Button';
 import { Field } from './Field';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* Country, phone and company for invoices and domain registration (POST /api/account/details). */
 export function DetailsForm({ country, phone, company }: { country: string; phone: string; company: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [state, setState] = useState<'idle' | 'busy' | 'saved'>('idle');
   const [error, setError] = useState('');
   return (
@@ -41,7 +43,7 @@ export function DetailsForm({ country, phone, company }: { country: string; phon
       <Field label="Company (for invoices)" name="company" defaultValue={company} maxLength={120} autoComplete="organization" error={error || undefined} />
       <div className="row" style={{ justifyContent: 'flex-start' }}>
         <Button type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Saving' : 'Save details'}
+          {state === 'busy' ? tx('Saving') : tx('Save details')}
         </Button>
         {state === 'saved' && (
           <span className="tag" role="status">

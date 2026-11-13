@@ -106,7 +106,7 @@ export default async function GuidePage(props: Params) {
       <article>
         <header className="pagehead" style={{ paddingTop: 24 }}>
           <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-            {p.category || 'Guide'}
+            {p.category || tx('Guide')}
           </span>
           <h1>{p.title}</h1>
           <p className="tag">

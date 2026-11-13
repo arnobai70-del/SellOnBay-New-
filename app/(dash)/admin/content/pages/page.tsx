@@ -22,7 +22,7 @@ export default async function PagesAdmin() {
             <span style={{ flex: 1 }}>
               <b>{p.label}</b>
               <span className="tag" style={{ display: 'block' }}>
-                {p.legal ? 'Versioned legal document, published by a Super Admin' : p.path.startsWith('/') ? p.path : `${p.label}, on every page`}
+                {p.legal ? tx('Versioned legal document, published by a Super Admin') : p.path.startsWith('/') ? p.path : `${p.label}, on every page`}
               </span>
             </span>
             {p.legal ? (

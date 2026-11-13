@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 type Method = { id: string; label: string; kind: string; instructions: string; currency: string };
 
 /*
@@ -9,6 +10,7 @@ type Method = { id: string; label: string; kind: string; instructions: string; c
  * the money that actually arrived before the order counts as paid. The server checks every field again.
  */
 export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: string; methods: Method[]; dueCents: number; code: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [methodId, setMethodId] = useState(methods[0]?.id ?? '');
   const [reference, setReference] = useState('');
@@ -80,7 +82,7 @@ export function ManualPayForm({ orderId, methods, dueCents, code }: { orderId: s
       <label htmlFor="mp-proof">Receipt or screenshot (PNG, JPEG, WebP or PDF, up to 5 MB; optional)</label>
       <input id="mp-proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => setProof(e.target.files?.[0] ?? null)} />
       <button className="btn sm" type="submit" disabled={busy}>
-        {busy ? 'Sending...' : 'Send payment report'}
+        {busy ? tx('Sending...') : tx('Send payment report')}
       </button>
       {msg && (
         <p className={msg.ok ? 'note' : 'note warn'} role={msg.ok ? 'status' : 'alert'}>

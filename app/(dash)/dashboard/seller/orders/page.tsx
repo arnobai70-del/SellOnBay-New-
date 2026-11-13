@@ -101,7 +101,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
             <T s={'Open problems'} />
           </div>
           <div className="v">{problems.length}</div>
-          <div className="s">{problems.length ? 'Payment on hold' : 'None'}</div>
+          <div className="s">{problems.length ? tx('Payment on hold') : tx('None')}</div>
         </div>
         <div className="glass kpi">
           <div className="l">
@@ -159,7 +159,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                       )}
                     </td>
                     <td>{o.domain?.name ?? (o.githubUsername ? `GitHub: ${o.githubUsername}` : '-')}</td>
-                    <td>{held ? 'Paused for a safety check' : timeLeft(o.dueAt, now)}</td>
+                    <td>{held ? tx('Paused for a safety check') : timeLeft(o.dueAt, now)}</td>
                     <td>{usd(earnCents)}</td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
@@ -194,7 +194,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                           <AdminForm
                             endpoint={o.state === 'funded' ? `/api/orders/${o.id}/handover` : `/api/orders/${o.id}/resend-invite`}
                             fields={[]}
-                            submit={o.state === 'funded' ? 'I sent the invite' : 'Send the invite again'}
+                            submit={o.state === 'funded' ? tx('I sent the invite') : tx('Send the invite again')}
                             openLabel={o.state === 'funded' ? 'I sent the invite' : 'Send the invite again'}
                             tone="line"
                           />
@@ -276,7 +276,7 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                       <td>{usd(o.priceCents)}</td>
                       <td>{usd(Math.max(0, share(o)))}</td>
                       <td>
-                        <span className={`status ${o.state === 'disputed' ? 'st-bad' : TONE[st.tone]}`}>{o.state === 'disputed' ? 'Problem reported' : st.label}</span>
+                        <span className={`status ${o.state === 'disputed' ? 'st-bad' : TONE[st.tone]}`}>{o.state === 'disputed' ? tx('Problem reported') : st.label}</span>
                       </td>
                       <td style={{ minWidth: 130 }}>
                         {left !== null && left > 0 ? (
@@ -293,9 +293,9 @@ export default async function SellerOrders({ searchParams }: { searchParams: Pro
                             {RELEASED.includes(o.state) && o.acceptedAt
                               ? `Released ${shortDate(o.acceptedAt)}`
                               : o.state === 'refunded'
-                                ? 'Refunded'
+                                ? tx('Refunded')
                                 : o.state === 'disputed' || o.state === 'fix_requested'
-                                  ? 'On hold'
+                                  ? tx('On hold')
                                   : '—'}
                           </span>
                         )}

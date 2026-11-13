@@ -59,7 +59,7 @@ export default async function SeoPages() {
               </div>
               <span className={seo.homeTitle || seo.homeDescription ? 'status st-ok' : 'status'}>
                 <i />
-                {seo.homeTitle || seo.homeDescription ? 'Changed' : 'Built-in'}
+                {seo.homeTitle || seo.homeDescription ? tx('Changed') : tx('Built-in')}
               </span>
             </div>
             <p className="muted">
@@ -91,12 +91,12 @@ export default async function SeoPages() {
                   </div>
                   <span className={isChanged ? 'status st-ok' : 'status'}>
                     <i />
-                    {isChanged ? 'Changed' : 'Built-in'}
+                    {isChanged ? tx('Changed') : tx('Built-in')}
                   </span>
                 </div>
                 <p className="muted">
-                  {isPublic(p.path, ctl) ? 'Published' : ctl.status === 'draft' ? 'Draft' : 'Archived'} · {ctl.index ? 'Indexable' : 'Noindex'} ·{' '}
-                  {inSitemap(p.path, ctl) ? 'In sitemap' : 'Not in sitemap'} · {ctl.faqs.filter((f) => !f.draft).length} <T s={'questions'} />
+                  {isPublic(p.path, ctl) ? tx('Published') : ctl.status === 'draft' ? tx('Draft') : tx('Archived')} · {ctl.index ? tx('Indexable') : tx('Noindex')} ·{' '}
+                  {inSitemap(p.path, ctl) ? tx('In sitemap') : tx('Not in sitemap')} · {ctl.faqs.filter((f) => !f.draft).length} <T s={'questions'} />
                 </p>
                 <div className="sob-pe-serp">
                   <span className="sob-pe-st">{shownTitle}</span>
@@ -128,7 +128,7 @@ export default async function SeoPages() {
                   tone="line"
                 />
                 <Link className="btn sm" href={`/admin/seo/pages/edit?path=${encodeURIComponent(p.path)}`} style={{ justifySelf: 'start' }}>
-                  {p.words ? (p.words.body ? 'Edit page: words and text' : 'Edit page: heading and intro') : 'Edit page'}
+                  {p.words ? (p.words.body ? tx('Edit page: words and text') : tx('Edit page: heading and intro')) : tx('Edit page')}
                 </Link>
               </div>
             );

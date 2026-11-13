@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* The reset link already signed this person in, so they only need to choose a new password. */
 export function ResetClient() {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [pw, setPw] = useState('');
   const [again, setAgain] = useState('');
   const [show, setShow] = useState(false);
@@ -84,7 +86,7 @@ export function ResetClient() {
                   fontSize: 14,
                 }}
               >
-                {show ? 'Hide' : 'Show'}
+                {show ? tx('Hide') : tx('Show')}
               </button>
             </div>
             <small>
@@ -103,7 +105,7 @@ export function ResetClient() {
             </p>
           )}
           <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
-            {busy ? 'Saving' : 'Save password'}
+            {busy ? tx('Saving') : tx('Save password')}
           </button>
         </form>
       </section>

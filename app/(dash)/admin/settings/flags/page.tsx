@@ -53,7 +53,7 @@ export default async function Flags() {
                     {f.label}{' '}
                     <span className={f.on ? 'status st-ok' : 'status'}>
                       <i />
-                      {f.on ? 'On' : 'Off'}
+                      {f.on ? tx('On') : tx('Off')}
                     </span>
                   </b>
                   {locked && !f.on && (
@@ -71,7 +71,7 @@ export default async function Flags() {
                       endpoint="/api/admin/flags"
                       fixed={{ key: f.key, on: !f.on }}
                       fields={[why]}
-                      submit={f.on ? 'Turn off' : 'Turn on'}
+                      submit={f.on ? tx('Turn off') : tx('Turn on')}
                       openLabel={f.on ? 'Turn off' : 'Turn on'}
                       tone="line"
                     />

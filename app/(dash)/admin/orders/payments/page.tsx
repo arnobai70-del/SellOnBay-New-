@@ -182,7 +182,7 @@ export default async function PaymentsReview() {
             <li key={m.id}>
               <div className="sob-grow">
                 <b>
-                  {m.label} ({m.kind.replace('_', ' ')}, {m.currency}) · {m.active ? 'shown to buyers' : 'hidden'}
+                  {m.label} ({m.kind.replace('_', ' ')}, {m.currency}) · {m.active ? tx('shown to buyers') : 'hidden'}
                 </b>
                 <small style={{ whiteSpace: 'pre-wrap' }}>{m.instructions}</small>
                 <AdminForm

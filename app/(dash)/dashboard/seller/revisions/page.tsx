@@ -66,7 +66,7 @@ export default async function SellerRevisions() {
               return (
                 <li key={r.id}>
                   <div className="sob-grow">
-                    <b>{o?.title ?? 'Order'}</b> <T s={'· {v0} · asked {v1}'} v={{ v0: r.kind ? KIND_TEXT[r.kind] : '', v1: day(r.createdAt) }} />
+                    <b>{o?.title ?? tx('Order')}</b> <T s={'· {v0} · asked {v1}'} v={{ v0: r.kind ? KIND_TEXT[r.kind] : '', v1: day(r.createdAt) }} />
                     <p>{r.description}</p>
                     {r.decisionNote && (
                       <p className="muted">
@@ -129,7 +129,7 @@ export default async function SellerRevisions() {
                   <p className="muted">
                     {approved
                       ? `Approved: ${approved.included} included within ${approved.windowDays} days · extra ${usd(approved.extraPriceCents)}${approved.scope ? ` · ${approved.scope}` : ''}`
-                      : 'No approved terms: quotations include no revisions unless SellOnBay writes them in.'}
+                      : tx('No approved terms: quotations include no revisions unless SellOnBay writes them in.')}
                     {proposed ? ' · New terms waiting for approval.' : ''}
                     {!proposed && rejected && rejected.decisionReason ? ` · Last proposal rejected: ${rejected.decisionReason}` : ''}
                   </p>

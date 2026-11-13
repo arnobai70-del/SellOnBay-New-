@@ -99,14 +99,14 @@ export default async function Risk() {
             <b>{s.label}</b>{' '}
             <span className={s.enabled ? 'status st-bad' : 'status st-ok'}>
               <i />
-              {s.enabled ? 'On, new buyers are stopped' : 'Off'}
+              {s.enabled ? tx('On, new buyers are stopped') : tx('Off')}
             </span>
             {s.reason && <p className="muted">{s.reason}</p>}
             <AdminForm
               endpoint="/api/admin/risk/switch"
               fixed={{ key: s.key, state: s.enabled ? 'off' : 'on' }}
               fields={[{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
-              submit={s.enabled ? 'Turn it off' : 'Turn it on'}
+              submit={s.enabled ? tx('Turn it off') : tx('Turn it on')}
               openLabel={s.enabled ? 'Turn off' : 'Turn on'}
               tone={s.enabled ? 'line' : 'dark'}
             />
@@ -137,7 +137,7 @@ export default async function Risk() {
         )}
         {holds.map((h) => (
           <div className="sob-item" key={h.orderId}>
-            <b>{h.title || 'Order'}</b>{' '}
+            <b>{h.title || tx('Order')}</b>{' '}
             <small className="muted">
               <T s={'{v0} · {v1} · {v2} UTC'} v={{ v0: money(h.priceCents), v1: h.orderId.slice(0, 8), v2: new Date(h.createdAt).toISOString().slice(0, 16).replace('T', ' ') }} />
             </small>

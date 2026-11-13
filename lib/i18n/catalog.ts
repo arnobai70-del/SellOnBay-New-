@@ -20,10 +20,14 @@ export function englishCatalog(): Catalog {
   english = out;
   return out;
 }
-/* The strings client components use (sent to the browser for a non-English page; nothing else is). */
-export const clientStrings = (): string[] =>
-  Object.entries(STRINGS.strings as Record<string, { client: boolean }>)
-    .filter(([, v]) => v.client)
+/*
+ * The strings client components use (sent to the browser for a non-English page; nothing else is). "public" are the ones a public page can
+ * reach (the root layout sends them), "dash" the ones only dashboards use (the (dash) layout adds them); no area means all of them.
+ */
+export type ClientArea = 'public' | 'dash';
+export const clientStrings = (area?: ClientArea): string[] =>
+  Object.entries(STRINGS.strings as Record<string, { client: boolean; area?: ClientArea }>)
+    .filter(([, v]) => v.client && (!area || v.area === area))
     .map(([k]) => k);
 
 const STRING_LOADERS: Record<string, () => Promise<{ default: Record<string, string> }>> = {

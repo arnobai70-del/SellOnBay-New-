@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Line } from '@/lib/commerce/types';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 
 /* The real payment page: what the buyer pays for, then PayPal. The price shown is the one the server holds; PayPal gets it from the server too. */
 export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: string; title: string; lines: Line[]; totalCents: number; back: string; notice?: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(notice ?? '');
@@ -61,7 +63,7 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
       )}
       <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
         <button className="btn" type="button" onClick={pay} disabled={busy}>
-          {busy ? 'Opening PayPal…' : 'Pay with PayPal'}
+          {busy ? tx('Opening PayPal…') : tx('Pay with PayPal')}
         </button>
         <Link className="btn ghost" href={back}>
           Back

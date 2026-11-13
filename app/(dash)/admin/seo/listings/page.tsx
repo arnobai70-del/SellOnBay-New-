@@ -55,7 +55,7 @@ export default async function SeoListings() {
                 </div>
                 <span className={r.changed ? 'status st-ok' : 'status'}>
                   <i />
-                  {r.changed ? 'Changed' : 'Automatic'}
+                  {r.changed ? tx('Changed') : tx('Automatic')}
                 </span>
               </div>
               <div className="sob-pe-serp">

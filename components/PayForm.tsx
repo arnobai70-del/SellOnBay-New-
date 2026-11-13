@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { DEMO_OTP, TEST_CARDS } from '@/lib/commerce/testcards';
 import type { Line } from '@/lib/commerce/types';
 
+import { useTx } from '@/components/i18n/TxProvider';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const group = (v: string) =>
   v
@@ -18,6 +19,7 @@ const expFmt = (v: string) => {
 };
 
 export function PayForm({ id, title, lines, totalCents, back }: { id: string; title: string; lines: Line[]; totalCents: number; back: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [num, setNum] = useState('');
   const [exp, setExp] = useState('');
@@ -136,7 +138,7 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
             </p>
           )}
           <button className="btn" type="submit" disabled={busy}>
-            {busy ? 'Processing…' : step === 'otp' ? 'Confirm and pay ' + money(totalCents) : 'Pay ' + money(totalCents)}
+            {busy ? tx('Processing…') : step === 'otp' ? 'Confirm and pay ' + money(totalCents) : 'Pay ' + money(totalCents)}
           </button>
           <p className="sob-pay-fine">Demo only. We refuse real card numbers.</p>
         </form>

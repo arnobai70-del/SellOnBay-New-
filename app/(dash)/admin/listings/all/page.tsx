@@ -91,7 +91,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                     <T s={'by {seller} · {platform} · {v2}'} v={{ seller: r.seller, platform: r.platform, v2: money(r.priceCents) }} />
                   </small>
                   {r.status === 'live' && (
-                    <small>{shownIn(r.slug) ? `Shown in ${shownIn(r.slug)}` : 'Not shown on the site: its category is full or hidden. Change it under SEO and blog > Categories.'}</small>
+                    <small>{shownIn(r.slug) ? `Shown in ${shownIn(r.slug)}` : tx('Not shown on the site: its category is full or hidden. Change it under SEO and blog > Categories.')}</small>
                   )}
                 </div>
                 <Link className="btn ghost sm" href={`/admin/seo/product?slug=${encodeURIComponent(r.slug)}`}>

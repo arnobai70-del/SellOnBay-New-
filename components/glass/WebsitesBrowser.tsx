@@ -137,7 +137,7 @@ export async function WebsitesBrowser({ raw, category }: { raw: Raw; category?: 
       <div style={{ flex: '999 1 560px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
           <div className="muted" style={{ fontSize: 14 }} role="status">
-            {r.total} {r.total === 1 ? 'website' : 'websites'} · {hub ? hub.name.replace(/ Websites$/, '') : 'All websites'}
+            {r.total} {r.total === 1 ? 'website' : 'websites'} · {hub ? hub.name.replace(/ Websites$/, '') : tx('All websites')}
           </div>
           <form action="/websites" method="get" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#3D5563' }}>
             {Object.entries({

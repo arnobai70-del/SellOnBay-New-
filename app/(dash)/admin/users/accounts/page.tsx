@@ -116,7 +116,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                     </td>
                     <td data-label="State">
                       {u.banned ? 'banned' : u.suspendedUntil && u.suspendedUntil > now ? `suspended until ${new Date(u.suspendedUntil).toISOString().slice(0, 10)}` : 'active'}
-                      {u.flagged ? ', flagged' : ''}
+                      {u.flagged ? tx(', flagged') : ''}
                     </td>
                     <td data-label="Strikes">{u.strikes}</td>
                     <td data-label="Action">

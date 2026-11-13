@@ -2,8 +2,10 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 /* A buyer or seller opens a support ticket with SellOnBay (/api/tickets). The server checks the words (no contact details) and who may see it. */
 export function TicketForm({ base, orders }: { base: string; orders: { id: string; title: string }[] }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -52,7 +54,7 @@ export function TicketForm({ base, orders }: { base: string; orders: { id: strin
       </div>
       <div>
         <button className="btn" type="submit" disabled={busy}>
-          {busy ? 'Sending...' : 'Open ticket'}
+          {busy ? tx('Sending...') : tx('Open ticket')}
         </button>
       </div>
       {error && (

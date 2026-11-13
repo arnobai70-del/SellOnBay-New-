@@ -98,7 +98,7 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
     <SellerShell viewer={viewer} active="overview" file="seller-dashboard" title={tx('Seller overview')} head={false} handle={store?.username ? store.handle : undefined}>
       <div className="row">
         <div>
-          <h1>{first ? `Hi ${first}, here's your shop` : 'Your shop'}</h1>
+          <h1>{first ? `Hi ${first}, here's your shop` : tx('Your shop')}</h1>
           <div className="tag">
             <T s={'You keep {PLAN_KEEP_TEXT} of every sale · {PAYOUT_TEXT}'} v={{ PLAN_KEEP_TEXT, PAYOUT_TEXT }} />
           </div>
@@ -154,7 +154,7 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
                 <T s={'Store views'} />
               </div>
               <div className="v">{views.toLocaleString('en-US')}</div>
-              <div className="s">{views ? `${((buys / views) * 100).toFixed(1)}% buy · 30 days` : 'Last 30 days'}</div>
+              <div className="s">{views ? `${((buys / views) * 100).toFixed(1)}% buy · 30 days` : tx('Last 30 days')}</div>
             </div>
           </div>
           {(v.reserveCents > 0 || v.debtCents > 0) && (
@@ -253,19 +253,19 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
                 <span style={{ flex: 1 }}>
                   <T s={'On-time delivery'} />
                 </span>
-                <b style={{ fontWeight: 500 }}>{v.health.onTime === null ? 'No deliveries yet' : `${Math.round(v.health.onTime * 100)}%`}</b>
+                <b style={{ fontWeight: 500 }}>{v.health.onTime === null ? tx('No deliveries yet') : `${Math.round(v.health.onTime * 100)}%`}</b>
               </div>
               <div className="li" style={{ fontSize: 14 }}>
                 <span style={{ flex: 1 }}>
                   <T s={'Average rating'} />
                 </span>
-                <b style={{ fontWeight: 500 }}>{v.health.rating ? `${v.health.rating} (${v.health.ratingCount})` : 'No reviews yet'}</b>
+                <b style={{ fontWeight: 500 }}>{v.health.rating ? `${v.health.rating} (${v.health.ratingCount})` : tx('No reviews yet')}</b>
               </div>
               <div className="li" style={{ fontSize: 14 }}>
                 <span style={{ flex: 1 }}>
                   <T s={'Orders with a dispute'} />
                 </span>
-                <b style={{ fontWeight: 500 }}>{v.health.disputeRate === null ? 'No orders yet' : `${Math.round(v.health.disputeRate * 1000) / 10}%`}</b>
+                <b style={{ fontWeight: 500 }}>{v.health.disputeRate === null ? tx('No orders yet') : `${Math.round(v.health.disputeRate * 1000) / 10}%`}</b>
               </div>
               <div className="li" style={{ fontSize: 14 }}>
                 <span style={{ flex: 1 }}>

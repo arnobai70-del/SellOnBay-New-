@@ -61,7 +61,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
   return (
     <AdminShell viewer={viewer} active="affiliates" file="admin-finance" title={tx('Affiliate Management')} subtitle="The affiliate program: accounts, commissions, tracking, payouts and settings.">
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
-        <span className={`status ${s.enabled ? 'st-ok' : 'st-draft'}`}>{s.enabled ? 'Program on' : 'Program off'}</span>
+        <span className={`status ${s.enabled ? 'st-ok' : 'st-draft'}`}>{s.enabled ? tx('Program on') : tx('Program off')}</span>
         <Link className="btn sm ghost" href="/affiliates" prefetch={false}>
           <T s={'Public page'} />
         </Link>
@@ -128,7 +128,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                 {(sp.status ? affs.filter((a) => a.status === sp.status) : affs).map((a) => (
                   <tr key={a.id}>
                     <td>
-                      {a.displayName || 'Unnamed'}
+                      {a.displayName || tx('Unnamed')}
                       <div className="tag">
                         <T s={'{code} · joined {v1} · terms {termsVersion}'} v={{ code: a.code, v1: day(a.createdAt), termsVersion: a.termsVersion }} />
                       </div>
@@ -137,7 +137,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                       <span className={`status ${STATUS_TONE[a.status]}`}>{STATUS_LABEL[a.status]}</span>
                     </td>
                     <td>{a.status === 'qualified' ? `Verified ${day(a.verifiedAt)}` : `Ends ${day(a.qualificationEndsAt)}${a.qualificationEndsAt < now ? ' (ended)' : ''}`}</td>
-                    <td>{a.feeWaived ? 'Waived' : usd(a.feeCents)}</td>
+                    <td>{a.feeWaived ? tx('Waived') : usd(a.feeCents)}</td>
                     <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {ADMIN_MOVES[a.status].map((to) => (
                         <ActionButton
@@ -416,6 +416,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
 }
 
 async function Tracking({ settingsForm, who }: { settingsForm: React.ReactNode; who: (id: string) => string }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [clicks, attrs] = await Promise.all([clicksOf(), allAttributions()]);
   const byProduct = new Map<string, number>();
   for (const c of clicks) byProduct.set(c.productKey || '(general link)', (byProduct.get(c.productKey || '(general link)') ?? 0) + 1);
@@ -467,7 +468,9 @@ async function Tracking({ settingsForm, who }: { settingsForm: React.ReactNode; 
                 <span className="tag" style={{ margin: 0, minWidth: 86 }}>
                   {day(x.createdAt)}
                 </span>
-                <span style={{ flex: 1 }}>{x.kind === 'signup' ? 'Sign-up' : x.kind === 'order' ? 'Website order' : x.kind === 'buyer_sub' ? 'Buyer subscription' : 'Seller subscription'}</span>
+                <span style={{ flex: 1 }}>
+                  {x.kind === 'signup' ? tx('Sign-up') : x.kind === 'order' ? tx('Website order') : x.kind === 'buyer_sub' ? tx('Buyer subscription') : tx('Seller subscription')}
+                </span>
                 <span className="tag" style={{ margin: 0 }}>
                   {who(x.affiliateId)}
                 </span>
@@ -480,6 +483,7 @@ async function Tracking({ settingsForm, who }: { settingsForm: React.ReactNode; 
 }
 
 async function Leaders({ publicOn }: { publicOn: boolean }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const rows = await leaderboard();
   return (
     <section className="glass" style={{ padding: '8px 8px 4px' }}>
@@ -487,7 +491,7 @@ async function Leaders({ publicOn }: { publicOn: boolean }) {
         <h2>
           <T s={'This month'} />
         </h2>
-        <span className={`status ${publicOn ? 'st-ok' : 'st-draft'}`}>{publicOn ? 'Public top 5 shown' : 'Public board hidden'}</span>
+        <span className={`status ${publicOn ? 'st-ok' : 'st-draft'}`}>{publicOn ? tx('Public top 5 shown') : tx('Public board hidden')}</span>
       </div>
       <div className="tbl" style={{ overflowX: 'auto' }}>
         <table>
@@ -524,7 +528,7 @@ async function Leaders({ publicOn }: { publicOn: boolean }) {
                 <td>{r.name}</td>
                 <td>{r.sales}</td>
                 <td>{usd(r.netCents)}</td>
-                <td>{r.public ? 'Yes' : 'Hidden by affiliate'}</td>
+                <td>{r.public ? tx('Yes') : tx('Hidden by affiliate')}</td>
               </tr>
             ))}
           </tbody>
@@ -535,6 +539,7 @@ async function Leaders({ publicOn }: { publicOn: boolean }) {
 }
 
 async function Fraud() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const rows = await fraudSignals();
   return (
     <section className="glass card">
@@ -552,7 +557,7 @@ async function Fraud() {
       {rows.map((r) => (
         <div key={r.affiliate.id} className="li" style={{ fontSize: 14 }}>
           <span style={{ flex: 1 }}>
-            {r.affiliate.displayName || 'Unnamed'} · {r.affiliate.code}
+            {r.affiliate.displayName || tx('Unnamed')} · {r.affiliate.code}
           </span>
           <span className="tag" style={{ margin: 0 }}>
             <T s={'{clicks} clicks · {sales} sales · {reversed} reversed · {signups} sign-ups'} v={{ clicks: r.clicks, sales: r.sales, reversed: r.reversed, signups: r.signups }} />

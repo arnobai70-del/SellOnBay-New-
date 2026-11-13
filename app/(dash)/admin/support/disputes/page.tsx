@@ -49,7 +49,7 @@ export default async function Disputes() {
           return (
             <div className="sob-item" key={d.id}>
               <h3>
-                {o?.title ?? 'Order'} · {REASON_LABEL[d.reason]}
+                {o?.title ?? tx('Order')} · {REASON_LABEL[d.reason]}
               </h3>
               <div className="meta">
                 <span>

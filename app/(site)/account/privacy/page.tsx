@@ -3,10 +3,12 @@ import { DeleteAccount } from '@/components/DeleteAccount';
 import { myRequests } from '@/lib/privacy';
 import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
 
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Your data', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function YourData() {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   await requireViewer({ path: '/account/privacy' });
   const id = await getViewerId();
   const requests = id ? await myRequests(id) : [];
@@ -38,7 +40,7 @@ export default async function YourData() {
             <ul>
               {requests.map((r) => (
                 <li key={r.id}>
-                  {r.kind === 'export' ? 'Copy of your data' : 'Account deletion'}: {r.status}
+                  {r.kind === 'export' ? tx('Copy of your data') : tx('Account deletion')}: {r.status}
                   {r.note ? ` (${r.note})` : ''}, {new Date(r.createdAt).toLocaleDateString('en-US')}
                 </li>
               ))}

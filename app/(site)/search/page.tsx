@@ -5,6 +5,7 @@ import { SearchBox } from '@/components/glass/SearchBox';
 import { smartSearch, type Result } from '@/lib/glass/search';
 import { highlight } from '@/lib/searchCore';
 
+import { getI18n } from '@/lib/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Search', robots: { index: false, follow: true } };
 
@@ -22,6 +23,7 @@ function Marked({ text, q }: { text: string; q: string }) {
 
 /* Every result of the smart search, grouped by type (owner, 2026-11-08). Server-rendered, so it works without JavaScript. */
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string; kind?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const sp = await searchParams;
   const q = (typeof sp.q === 'string' ? sp.q : '').trim().slice(0, 80);
   const r = await smartSearch(q, 30);
@@ -37,7 +39,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <div className="sob-stack">
       <div className="sob-head">
-        <h1>{q ? <>Results for &ldquo;{q}&rdquo;</> : 'Search'}</h1>
+        <h1>{q ? <>Results for &ldquo;{q}&rdquo;</> : tx('Search')}</h1>
         <div className="glass sob-search">
           <SearchBox defaultValue={q} />
         </div>

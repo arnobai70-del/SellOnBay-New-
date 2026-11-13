@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 /* Asks for a short download link to a released revision file and opens it. The server checks the release gate every time. */
 export function RevisionDownload({ orderId, revisionId }: { orderId: string; revisionId: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   async function go() {
@@ -20,7 +22,7 @@ export function RevisionDownload({ orderId, revisionId }: { orderId: string; rev
   return (
     <span>
       <button type="button" className="btn ghost sm" onClick={go} disabled={busy}>
-        {busy ? 'Getting the link...' : 'Download the revised files'}
+        {busy ? tx('Getting the link...') : tx('Download the revised files')}
       </button>
       {err && (
         <span className="sob-err" role="alert">

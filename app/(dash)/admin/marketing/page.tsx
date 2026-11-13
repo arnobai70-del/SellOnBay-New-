@@ -69,7 +69,7 @@ export default async function AdminMarketing() {
             <T s={'Discount given'} />
           </div>
           <div className="v">$0</div>
-          <div className="s">{settings.paymentsMode === 'beta_free' ? 'Free beta: nothing is charged' : 'From coupons'}</div>
+          <div className="s">{settings.paymentsMode === 'beta_free' ? tx('Free beta: nothing is charged') : tx('From coupons')}</div>
         </div>
         <div className="glass kpi">
           <div className="l">
@@ -133,8 +133,8 @@ export default async function AdminMarketing() {
                       <td>
                         <T s={'All websites'} />
                       </td>
-                      <td>{c.maxUses ?? 'No limit'}</td>
-                      <td>{c.endsOn ? (c.endsOn < today ? 'Ended' : nice(c.endsOn)) : 'No end'}</td>
+                      <td>{c.maxUses ?? tx('No limit')}</td>
+                      <td>{c.endsOn ? (c.endsOn < today ? tx('Ended') : nice(c.endsOn)) : tx('No end')}</td>
                       <td>
                         <CouponSwitch code={c.code} on={c.active} />
                       </td>

@@ -224,7 +224,7 @@ export function QuoteEditor({
         </>
       )}
       <button type="button" className="btn sm" onClick={save} disabled={busy}>
-        {busy ? 'Saving...' : 'Save draft quotation'}
+        {busy ? tx('Saving...') : tx('Save draft quotation')}
       </button>
       {msg && (
         <p className={msg.ok ? 'sob-note-box' : 'sob-note-box warn'} role={msg.ok ? 'status' : 'alert'}>

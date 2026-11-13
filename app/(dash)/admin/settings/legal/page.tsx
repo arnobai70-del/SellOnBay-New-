@@ -54,7 +54,7 @@ export default async function Legal() {
                 <p className="tag">
                   {pub
                     ? `Version ${pub.version} published ${day(pub.publishedAt)}${pub.lawyerReviewed ? `, reviewed: ${pub.reviewedNote}` : ', not yet reviewed by a lawyer'}.`
-                    : 'No version published: the built-in text shows.'}{' '}
+                    : tx('No version published: the built-in text shows.')}{' '}
                   {path && (
                     <Link href={path}>
                       <T s={'Open the page'} />

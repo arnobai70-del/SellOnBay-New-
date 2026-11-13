@@ -50,7 +50,7 @@ export default async function Subscriptions() {
           <T s={'More websites, one yearly plan'} />
         </h1>
         <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
-          {settings.intro || 'Choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.'}
+          {settings.intro || tx('Choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.')}
         </p>
       </section>
 
@@ -134,14 +134,14 @@ export default async function Subscriptions() {
                       <T s={'Support'} />
                     </td>
                     {plans.map((p) => (
-                      <td key={p.id}>{p.supportDays ? `${p.supportDays} days` : 'No'}</td>
+                      <td key={p.id}>{p.supportDays ? `${p.supportDays} days` : tx('No')}</td>
                     ))}
                   </tr>
                   {featureRows.map((k) => (
                     <tr key={k}>
                       <td>{FEATURE_LABEL[k]}</td>
                       {plans.map((p) => (
-                        <td key={p.id}>{p.features[k] ? 'Yes' : '–'}</td>
+                        <td key={p.id}>{p.features[k] ? tx('Yes') : '–'}</td>
                       ))}
                     </tr>
                   ))}

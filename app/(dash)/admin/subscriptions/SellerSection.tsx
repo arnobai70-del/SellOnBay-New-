@@ -5,6 +5,7 @@ import { givesBenefits, PLAN_CODES } from '@/lib/plans/rules';
 import { listSubscriptions } from '@/lib/plans/store';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
 
 /*
@@ -13,6 +14,7 @@ const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFracti
  * (Users › Sellers, the same actions and log).
  */
 export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const [settings, versions, subs] = await Promise.all([sellerSubSettings(), planVersions(), listSubscriptions().catch(() => [])]);
   const now = offeredNow(versions);
   const names = Object.fromEntries(PLAN_CODES.map((c) => [c, now[c]?.name ?? versions.find((v) => v.code === c)?.name ?? c]));
@@ -42,7 +44,7 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
             <h2>
               <T s={'Seller switch and plan words'} />
             </h2>
-            <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? 'Open' : 'Off'}</span>
+            <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? tx('Open') : tx('Off')}</span>
           </div>
           <SellerSettingsForm enabled={settings.enabled} display={settings.display} names={names} />
         </section>
@@ -67,7 +69,7 @@ export async function SellerSection({ superAdmin }: { superAdmin: boolean }) {
                 <h3 style={{ fontSize: 18 }}>
                   {current.name} <span className="tag">v{current.version}</span>
                 </h3>
-                <span className={`status ${now[code] ? 'st-ok' : 'st-draft'}`}>{now[code] ? 'Offered' : 'Withdrawn'}</span>
+                <span className={`status ${now[code] ? 'st-ok' : 'st-draft'}`}>{now[code] ? tx('Offered') : tx('Withdrawn')}</span>
               </div>
               <div className="tag" style={{ margin: 0 }}>
                 <T

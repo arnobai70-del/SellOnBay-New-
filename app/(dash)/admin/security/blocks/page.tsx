@@ -43,7 +43,7 @@ export default async function Security() {
         {groups.map((g) => (
           <div className="sob-item" key={g.kind + g.key}>
             <b>
-              {g.kind === 'ip' ? 'Connection' : 'Device'} {g.key.slice(0, 8)}
+              {g.kind === 'ip' ? tx('Connection') : tx('Device')} {g.key.slice(0, 8)}
             </b>{' '}
             <small className="muted">
               <T s={'{length} accounts, last seen {v1} UTC'} v={{ length: g.accounts.length, v1: when(g.last) }} />
@@ -149,7 +149,7 @@ export default async function Security() {
         {blocks.map((b) => (
           <div className="sob-item" key={b.id}>
             <b>
-              {b.kind === 'ip' ? 'Connection' : b.kind === 'email' ? 'Email' : 'Device'} {b.key.slice(0, 8)}
+              {b.kind === 'ip' ? tx('Connection') : b.kind === 'email' ? tx('Email') : tx('Device')} {b.key.slice(0, 8)}
             </b>{' '}
             <small className="muted">
               <T s={'since {v0} UTC'} v={{ v0: when(b.createdAt) }} />

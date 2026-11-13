@@ -115,7 +115,7 @@ export function CouponForm() {
           }
         }}
       >
-        {busy ? 'One moment...' : 'Create coupon'}
+        {busy ? tx('One moment...') : tx('Create coupon')}
       </button>
       {msg && (
         <p className="tag" style={{ margin: 0, color: msg.ok ? '#1A5444' : '#7A2E24' }} role={msg.ok ? 'status' : 'alert'}>

@@ -218,7 +218,7 @@ export function PlanEditor({ plan, categories, onDone }: { plan: Plan | null; ca
           <input type="checkbox" checked={f.visible} onChange={set('visible')} /> <T s={'Shown on the pricing page'} />
         </label>
         <button className="btn sm" type="submit" disabled={busy}>
-          {busy ? 'Saving…' : plan ? 'Save plan' : 'Create plan'}
+          {busy ? tx('Saving…') : plan ? tx('Save plan') : tx('Create plan')}
         </button>
         {msg && (
           <span role="status" className="tag" style={{ margin: 0 }}>

@@ -80,7 +80,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           <h1>
             <T s={'Orders & payments'} />
           </h1>
-          <div className="tag">{beta_ ? 'Free beta: nothing is charged. Approve a request to release its files.' : 'Every website and domain order, its payment and its escrow state'}</div>
+          <div className="tag">{beta_ ? tx('Free beta: nothing is charged. Approve a request to release its files.') : tx('Every website and domain order, its payment and its escrow state')}</div>
         </div>
         <Link className="btn ghost" href="/admin/reports" prefetch={false}>
           <T s={'Export orders'} />
@@ -101,7 +101,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             <T s={'Awaiting payment check'} />
           </div>
           <div className="v">{attempts.length + waiting.length}</div>
-          <div className="s">{beta_ ? `${waiting.length} free beta requests` : 'Manual methods'}</div>
+          <div className="s">{beta_ ? `${waiting.length} free beta requests` : tx('Manual methods')}</div>
         </div>
         <div className="glass kpi">
           <div className="l">
@@ -184,11 +184,11 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       </td>
                       <td>
                         {plainWords(o.title)}
-                        <div className="tag">{o.domain ? `Website · ${o.domain.name}` : 'Website'}</div>
+                        <div className="tag">{o.domain ? `Website · ${o.domain.name}` : tx('Website')}</div>
                       </td>
                       <td>{names.get(o.buyerId ?? '') ?? '—'}</td>
                       <td>{names.get(o.sellerId ?? '') ?? (o.sellerId ? '—' : 'SellOnBay')}</td>
-                      <td>{o.payment?.ref === 'subscription' ? 'Subscription' : o.state.startsWith('beta_') ? 'Free beta' : (o.payment?.brand ?? (o.demo ? 'Test card' : '—'))}</td>
+                      <td>{o.payment?.ref === 'subscription' ? tx('Subscription') : o.state.startsWith('beta_') ? tx('Free beta') : (o.payment?.brand ?? (o.demo ? tx('Test card') : '—'))}</td>
                       <td>{usd(o.priceCents)}</td>
                       <td>
                         <span className={`status ${TONE[s.tone]}`}>{s.label}</span>
@@ -215,7 +215,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
               ) : (
                 <tr>
                   <td colSpan={8} className="muted">
-                    {q ? 'No order matches that filter.' : 'No orders in the last 30 days.'}
+                    {q ? tx('No order matches that filter.') : tx('No orders in the last 30 days.')}
                   </td>
                 </tr>
               )}
@@ -233,7 +233,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
         />
         <section className="glass" style={{ flex: '999 1 440px', minWidth: 0, padding: '8px 8px 4px' }}>
           <div className="row" style={{ padding: '14px 14px 4px' }}>
-            <h2>{beta_ ? 'Requests and payments to verify' : 'Payments to verify'}</h2>
+            <h2>{beta_ ? tx('Requests and payments to verify') : tx('Payments to verify')}</h2>
             <span className="tag" style={{ margin: 0 }}>
               <T s={'Match the reference with your bank or wallet statement'} />
             </span>
@@ -312,7 +312,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                           <T s={'{v0} · due {v1}'} v={{ v0: plainWords(o?.title ?? 'Order'), v1: o ? usd(o.priceCents) : '?' }} />
                         </div>
                       </td>
-                      <td>{methodName.get(a.methodId ?? '') ?? 'Transfer'}</td>
+                      <td>{methodName.get(a.methodId ?? '') ?? tx('Transfer')}</td>
                       <td>
                         <T s={'Ref {reference}'} v={{ reference: a.reference }} />
                         <div className="tag">
@@ -391,7 +391,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             const f = feedback.find((x) => x.orderId === r.orderId);
             return (
               <div key={r.orderId} className="li" style={{ alignItems: 'flex-start' }}>
-                <span className={r.declineReason ? 'status st-bad' : 'status st-ok'}>{r.declineReason ? 'Declined' : 'Approved'}</span>
+                <span className={r.declineReason ? 'status st-bad' : 'status st-ok'}>{r.declineReason ? tx('Declined') : tx('Approved')}</span>
                 <div style={{ flex: 1, minWidth: 0, fontSize: 14 }}>
                   <Link href={`/admin/orders/${r.orderId}`} prefetch={false}>
                     {plainWords(byId.get(r.orderId)?.title ?? r.productKey)}
@@ -429,7 +429,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           {refunds.length ? (
             refunds.map((r) => (
               <div key={r.id} className="li" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <span className={r.status === 'approved' ? 'status st-info' : 'status st-wait'}>{r.status === 'approved' ? 'Approved' : 'Requested'}</span>
+                <span className={r.status === 'approved' ? 'status st-info' : 'status st-wait'}>{r.status === 'approved' ? tx('Approved') : tx('Requested')}</span>
                 <div style={{ flex: '1 1 200px', minWidth: 0, fontSize: 14 }}>
                   <T s={'{v0} to the buyer of {v1} ({kind})'} v={{ v0: usd(r.amountCents), v1: plainWords(byId.get(r.orderId)?.title ?? 'an order'), kind: r.kind }} />
                   <div className="tag">{r.reason}</div>

@@ -18,17 +18,51 @@ const walk = (dir) =>
       })
     : [];
 
+/*
+ * Which files a public page can reach through its imports (app/ outside the (dash) group: the storefront, sign-in, legal, errors). A client
+ * string used only by files that no public page reaches is a dashboard word ("dash"): the (dash) layout sends those, the root layout only the
+ * "public" ones, so a visitor's page carries no admin words (i18n phase 2, performance).
+ */
+const IMPORT = /(?:^|[\s;])(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)|^\s*import\s+['"]([^'"]+)['"]/gm;
+function resolveImport(from, spec) {
+  const base = spec.startsWith('@/') ? spec.slice(2) : spec.startsWith('.') ? path.join(path.dirname(from), spec) : null;
+  if (base === null) return null;
+  for (const c of [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts'), path.join(base, 'index.tsx')]) if (fs.existsSync(c) && fs.statSync(c).isFile()) return path.normalize(c);
+  return null;
+}
+function publicReach(files) {
+  const deps = new Map();
+  for (const f of files) {
+    const src = fs.readFileSync(f, 'utf8');
+    deps.set(path.normalize(f), [...src.matchAll(IMPORT)].map((m) => resolveImport(f, m[1] ?? m[2] ?? m[3])).filter(Boolean));
+  }
+  const dash = `app${path.sep}(dash)${path.sep}`;
+  const seen = new Set();
+  const stack = files.map((f) => path.normalize(f)).filter((f) => f.startsWith(`app${path.sep}`) && !f.startsWith(dash) && !f.startsWith(`app${path.sep}api${path.sep}`));
+  while (stack.length) {
+    const f = stack.pop();
+    if (seen.has(f)) continue;
+    seen.add(f);
+    for (const d of deps.get(f) ?? []) if (!seen.has(d)) stack.push(d);
+  }
+  return seen;
+}
+
 export function extract() {
   const strings = {};
-  for (const file of ROOTS.flatMap(walk)) {
+  const all = ROOTS.flatMap(walk);
+  const reach = publicReach(all);
+  for (const file of all) {
     if (file.includes(`${path.sep}i18n${path.sep}tx.ts`)) continue;
     const src = fs.readFileSync(file, 'utf8');
     const client = /^\s*['"]use client['"]/.test(src);
     for (const m of [...src.matchAll(CALL), ...src.matchAll(T_PROP).map((x) => Object.assign(x, { t: true }))]) {
       const text = m[2].replace(/\\(['"\\])/g, '$1').replace(/\\n/g, '\n');
       if (!text.trim()) continue;
-      const e = (strings[text] ??= { client: false, files: [] });
-      e.client ||= client || !!m.t; // <T> is a client component: its words go to the browser
+      const e = (strings[text] ??= { client: false, pub: false, files: [] });
+      const isClient = client || !!m.t; // <T> is a client component: its words go to the browser
+      e.client ||= isClient;
+      e.pub ||= isClient && reach.has(path.normalize(file));
       const rel = file.split(path.sep).join('/');
       if (!e.files.includes(rel)) e.files.push(rel);
     }
@@ -36,7 +70,7 @@ export function extract() {
   const sorted = Object.fromEntries(
     Object.keys(strings)
       .sort()
-      .map((k) => [k, { client: strings[k].client, files: strings[k].files.sort() }]),
+      .map((k) => [k, { client: strings[k].client, ...(strings[k].client ? { area: strings[k].pub ? 'public' : 'dash' } : {}), files: strings[k].files.sort() }]),
   );
   return { strings: sorted };
 }

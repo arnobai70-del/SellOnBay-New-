@@ -142,7 +142,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                             prefetch={false}
                             aria-label={`Edit ${plainWords(l.name)}`}
                           >
-                            {l.status === 'rejected' ? 'Fix & resubmit' : 'Edit'}
+                            {l.status === 'rejected' ? tx('Fix & resubmit') : tx('Edit')}
                           </Link>
                           {l.status === 'live' && (
                             <Link className="btn sm ghost" href={`/websites/${encodeURIComponent(l.slug)}`} prefetch={false}>
@@ -193,7 +193,7 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                 {!listings.length && !drafts.length && (
                   <tr>
                     <td colSpan={9} className="muted">
-                      {q ? 'No listing matches that search.' : 'No listings yet. Upload your first website below to start selling.'}
+                      {q ? tx('No listing matches that search.') : tx('No listings yet. Upload your first website below to start selling.')}
                     </td>
                   </tr>
                 )}

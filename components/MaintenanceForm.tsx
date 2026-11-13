@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { T } from '@/components/i18n/T';
+import { useTx } from '@/components/i18n/TxProvider';
 /* One module's maintenance switch in the Maintenance Manager. The server checks and records everything; this only collects the choice. */
 const local = (ms: number | null) => {
   if (!ms) return '';
@@ -30,6 +31,7 @@ export function MaintenanceForm({
   max: number;
   othersClosed: number;
 }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [on, setOn] = useState(enabled);
   const [text, setText] = useState(message);
@@ -88,7 +90,7 @@ export function MaintenanceForm({
         </span>
       </div>
       <button className="btn sm" type="submit" disabled={busy}>
-        {busy ? 'Saving…' : 'Save'}
+        {busy ? tx('Saving…') : tx('Save')}
       </button>
       {msg && (
         <p className={msg.ok ? 'sob-ok' : 'sob-err'} role={msg.ok ? 'status' : 'alert'}>

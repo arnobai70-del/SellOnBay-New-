@@ -57,7 +57,7 @@ export function AffJoinForm({ termsVersion, feeText }: { termsVersion: string; f
         {feeText}
       </div>
       <button className="btn" type="submit" disabled={busy || !accept} style={{ alignSelf: 'flex-start' }}>
-        {busy ? 'Joining…' : 'Join the affiliate program'}
+        {busy ? tx('Joining…') : tx('Join the affiliate program')}
       </button>
       <Msg text={msg} bad />
     </form>
@@ -118,6 +118,7 @@ export function AffLinkGenerator({ code, base, sites }: { code: string; base: st
 }
 
 export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, payoutMasked }: { displayName: string; publicLeaderboard: boolean; payoutMethod: string; payoutMasked: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [f, setF] = useState({ displayName, publicLeaderboard, payoutMethod, payoutDetails: '' });
   const [msg, setMsg] = useState('');
@@ -171,7 +172,7 @@ export function AffProfileForm({ displayName, publicLeaderboard, payoutMethod, p
           maxLength={200}
           value={f.payoutDetails}
           onChange={(e) => setF({ ...f, payoutDetails: e.target.value })}
-          placeholder={payoutMasked ? 'Leave empty to keep the saved details' : 'e.g. you@example.com'}
+          placeholder={payoutMasked ? tx('Leave empty to keep the saved details') : tx('e.g. you@example.com')}
           autoComplete="off"
         />
       </div>

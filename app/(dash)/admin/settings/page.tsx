@@ -65,7 +65,7 @@ export default async function AdminSettings() {
           <h2>
             <T s={'Payment gateways'} />
           </h2>
-          <span className={`status ${live ? 'st-ok' : 'st-info'}`}>{live ? 'Live payments' : 'Free beta: nothing is charged'}</span>
+          <span className={`status ${live ? 'st-ok' : 'st-info'}`}>{live ? tx('Live payments') : tx('Free beta: nothing is charged')}</span>
         </div>
         <div className="gw">
           <span className="gico" style={{ background: '#E8EEF2' }} aria-hidden="true">
@@ -107,10 +107,10 @@ export default async function AdminSettings() {
               <T s={'Card and PayPal'} />
             </b>
             <div className="tag">
-              {paypal ? `PayPal · ${process.env.PAYPAL_ENV === 'live' ? 'live' : 'sandbox'} · automatic confirmation` : 'Test cards only until the PayPal keys are set on the server'}
+              {paypal ? `PayPal · ${process.env.PAYPAL_ENV === 'live' ? 'live' : 'sandbox'} · automatic confirmation` : tx('Test cards only until the PayPal keys are set on the server')}
             </div>
           </div>
-          <span className={`status ${paypal ? 'st-ok' : 'st-draft'}`}>{paypal ? (process.env.PAYPAL_ENV === 'live' ? 'Live' : 'Test') : 'Not set'}</span>
+          <span className={`status ${paypal ? 'st-ok' : 'st-draft'}`}>{paypal ? (process.env.PAYPAL_ENV === 'live' ? tx('Live') : tx('Test')) : tx('Not set')}</span>
           <Link className="btn sm ghost" href="/admin/settings/launch" prefetch={false}>
             <T s={'Keys & account'} />
           </Link>
@@ -119,7 +119,7 @@ export default async function AdminSettings() {
         {methods.map((m) => (
           <div key={m.id} className="gw">
             <span className="gico" style={{ background: m.kind === 'bank_transfer' ? '#DCF0E7' : '#F6E0EA' }} aria-hidden="true">
-              {m.kind === 'bank_transfer' ? 'BANK' : 'WAL'}
+              {m.kind === 'bank_transfer' ? tx('BANK') : tx('WAL')}
             </span>
             <div style={{ flex: '1 1 200px', minWidth: 0 }}>
               <b style={{ fontWeight: 500 }}>{m.label}</b>
@@ -231,7 +231,7 @@ export default async function AdminSettings() {
         </div>
         <div className="row" style={{ fontSize: 14 }}>
           <span>
-            <T s={'Countries buyers may order from:'} /> <b style={{ fontWeight: 500 }}>{s.allowedCountries.trim() ? s.allowedCountries : 'Everywhere'}</b>
+            <T s={'Countries buyers may order from:'} /> <b style={{ fontWeight: 500 }}>{s.allowedCountries.trim() ? s.allowedCountries : tx('Everywhere')}</b>
           </span>
           <AdminForm
             endpoint="/api/admin/settings"
@@ -455,7 +455,9 @@ export default async function AdminSettings() {
         {checks.map((c) => (
           <div key={c.name} className="li" style={{ fontSize: 14 }}>
             <span style={{ flex: 1 }}>{c.name}</span>
-            <span className={`status ${c.state === 'ok' ? 'st-ok' : c.state === 'warn' ? 'st-wait' : 'st-bad'}`}>{c.state === 'ok' ? 'Set' : c.state === 'warn' ? 'Check' : 'Missing'}</span>
+            <span className={`status ${c.state === 'ok' ? 'st-ok' : c.state === 'warn' ? 'st-wait' : 'st-bad'}`}>
+              {c.state === 'ok' ? tx('Set') : c.state === 'warn' ? tx('Check') : tx('Missing')}
+            </span>
           </div>
         ))}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>

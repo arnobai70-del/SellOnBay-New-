@@ -68,7 +68,7 @@ export default async function BuyerOverview() {
     <BuyerShell viewer={viewer} active="overview" file="buyer" title={tx('Overview')} head={false}>
       <div className="row">
         <div>
-          <h1>{first ? `Welcome back, ${first}` : 'Welcome back'}</h1>
+          <h1>{first ? `Welcome back, ${first}` : tx('Welcome back')}</h1>
           <div className="tag">
             <T s={'Your websites, orders and domains in one place'} />
           </div>
@@ -82,28 +82,28 @@ export default async function BuyerOverview() {
                 <T s={'Websites owned'} />
               </div>
               <div className="v">{v.owned}</div>
-              <div className="s">{v.owned ? 'Ready to download' : 'None yet'}</div>
+              <div className="s">{v.owned ? tx('Ready to download') : tx('None yet')}</div>
             </div>
             <div className="glass kpi">
               <div className="l">
                 <T s={'In review'} />
               </div>
               <div className="v">{v.inReview}</div>
-              <div className="s">{review ? `${hoursLeft}h left to approve` : 'Waiting on you or on us'}</div>
+              <div className="s">{review ? `${hoursLeft}h left to approve` : tx('Waiting on you or on us')}</div>
             </div>
             <div className="glass kpi">
               <div className="l">
                 <T s={'Domains'} />
               </div>
               <div className="v">{v.domains.length}</div>
-              <div className="s">{soon.length ? `${soon.length} expires soon` : v.domains.some((d) => d.status === 'requested') ? 'Some being registered' : 'In your own name'}</div>
+              <div className="s">{soon.length ? `${soon.length} expires soon` : v.domains.some((d) => d.status === 'requested') ? tx('Some being registered') : tx('In your own name')}</div>
             </div>
             <div className="glass kpi">
               <div className="l">
                 <T s={'Open tickets'} />
               </div>
               <div className="v">{v.openTickets}</div>
-              <div className="s">{v.openTickets ? 'We are on it' : 'All quiet'}</div>
+              <div className="s">{v.openTickets ? tx('We are on it') : tx('All quiet')}</div>
             </div>
           </div>
 
@@ -253,7 +253,7 @@ export default async function BuyerOverview() {
                         </td>
                         <td>{plainWords(o.title)}</td>
                         <td>{usd(o.priceCents)}</td>
-                        <td>{o.payment?.ref === 'subscription' ? 'Subscription' : o.state.startsWith('beta_') ? 'Free beta' : (o.payment?.brand ?? '—')}</td>
+                        <td>{o.payment?.ref === 'subscription' ? tx('Subscription') : o.state.startsWith('beta_') ? tx('Free beta') : (o.payment?.brand ?? '—')}</td>
                         <td>
                           <span className={`status ${TONE[buyerStatus(o.state).tone]}`}>{buyerStatus(o.state).label}</span>
                         </td>

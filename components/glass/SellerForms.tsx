@@ -16,6 +16,7 @@ const post = async (url: string, body: unknown) => {
 
 /* "Offer this website free during beta" on one listing. */
 export function BetaSwitch({ slug, name, on }: { slug: string; name: string; on: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [value, setValue] = useState(on);
   const [error, setError] = useState('');
   return (
@@ -34,7 +35,7 @@ export function BetaSwitch({ slug, name, on }: { slug: string; name: string; on:
         }}
       />
       <span className="tag" role={error ? 'alert' : undefined}>
-        {error || (value ? 'On' : 'Off')}
+        {error || (value ? tx('On') : tx('Off'))}
       </span>
     </span>
   );
@@ -42,6 +43,7 @@ export function BetaSwitch({ slug, name, on }: { slug: string; name: string; on:
 
 /* "Switch to selling" for a buyer: the account becomes a seller that can still buy, then the seller pages ask for the authenticator code. */
 export function SellSwitch() {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -61,7 +63,7 @@ export function SellSwitch() {
           }
         }}
       >
-        {busy ? 'Switching' : 'Switch to selling'}
+        {busy ? tx('Switching') : tx('Switch to selling')}
       </Button>
       {error && (
         <div className="tag" style={{ color: '#7A2E24' }} role="alert">
@@ -146,7 +148,7 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
       )}
       <div className="row" style={{ justifyContent: 'flex-start' }}>
         <Button type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Saving' : 'Save profile'}
+          {state === 'busy' ? tx('Saving') : tx('Save profile')}
         </Button>
         {state === 'saved' && (
           <span className="tag" role="status">
@@ -160,6 +162,7 @@ export function StoreForm({ initial }: { initial: StoreValues }) {
 
 /* The government ID upload (passport, national ID or driver licence, and the country). */
 export function VerificationForm() {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -202,7 +205,7 @@ export function VerificationForm() {
       <Field label="Back (if your ID has one)" name="back" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" error={error || undefined} />
       <div>
         <Button type="submit" disabled={busy}>
-          {busy ? 'Sending' : 'Send for verification'}
+          {busy ? tx('Sending') : tx('Send for verification')}
         </Button>
       </div>
     </form>

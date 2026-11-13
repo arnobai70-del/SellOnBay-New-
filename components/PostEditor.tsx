@@ -230,7 +230,7 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
                   </button>
                 ))}
                 <button type="button" title={tx('Upload a picture')} aria-label={tx('Upload a picture')} disabled={uploading} onClick={() => file.current?.click()}>
-                  {uploading ? 'Uploading…' : 'Upload picture'}
+                  {uploading ? tx('Uploading…') : tx('Upload picture')}
                 </button>
                 <button type="button" title={tx('Picture from a link')} aria-label={tx('Picture from a link')} onClick={addImageLink}>
                   <T s={'Picture link'} />
@@ -278,10 +278,10 @@ export function PostEditor({ post, siteUrl, siteName }: { post: (Draft & { id: s
         </label>
         <div className="sob-acts">
           <button className="btn sm" type="button" disabled={busy} onClick={() => save('published')}>
-            {d.status === 'published' ? 'Save changes' : 'Publish'}
+            {d.status === 'published' ? tx('Save changes') : tx('Publish')}
           </button>
           <button className="btn ghost sm" type="button" disabled={busy} onClick={() => save('draft')}>
-            {d.status === 'published' ? 'Unpublish (back to draft)' : 'Save draft'}
+            {d.status === 'published' ? tx('Unpublish (back to draft)') : tx('Save draft')}
           </button>
           {post && d.status === 'published' && (
             <a className="btn ghost sm" href={`/blog/${d.slug}`} target="_blank" rel="noopener">

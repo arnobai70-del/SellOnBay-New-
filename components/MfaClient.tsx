@@ -43,7 +43,7 @@ export function MfaClient({ next }: { next: string }) {
           <T s={'Enter your code'} />
         </h1>
         <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-          {qr ? 'Scan this with an authenticator app, then enter the 6-digit code.' : 'Open your authenticator app and enter the 6-digit code.'}
+          {qr ? tx('Scan this with an authenticator app, then enter the 6-digit code.') : tx('Open your authenticator app and enter the 6-digit code.')}
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {qr && <img src={qr} alt={tx('QR code for your authenticator app')} width={180} height={180} style={{ marginTop: 20 }} />}

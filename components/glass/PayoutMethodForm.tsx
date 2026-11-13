@@ -66,7 +66,7 @@ export function PayoutMethodForm({ methods, current }: { methods: [string, strin
           router.refresh();
         }}
       >
-        {busy ? 'Saving' : 'Save payout method'}
+        {busy ? tx('Saving') : tx('Save payout method')}
       </button>
       {msg && (
         <p className="tag" style={{ margin: 0, color: msg.ok ? '#1A5444' : '#7A2E24' }} role={msg.ok ? 'status' : 'alert'}>

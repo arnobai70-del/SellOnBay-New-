@@ -1,6 +1,8 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { localizedPath, splitLocale } from '@/lib/i18n/config';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
@@ -9,6 +11,7 @@ export function HeroSearch({ placeholder }: { placeholder: string }) {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const [tab, setTab] = useState<'websites' | 'domains'>('websites');
   const sites = tab === 'websites';
+  const lang = splitLocale(usePathname() ?? '/').lang ?? 'en'; // the results open in the page's language
   return (
     <>
       <div
@@ -27,13 +30,13 @@ export function HeroSearch({ placeholder }: { placeholder: string }) {
       <form
         className="glass search-glow"
         style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 680, padding: '8px 8px 8px 22px', borderRadius: 999, boxSizing: 'border-box' }}
-        action={sites ? '/websites' : '/domains'}
+        action={localizedPath(sites ? '/websites' : '/domains', lang)}
         method="get"
         role="search"
         data-track="hero-search"
       >
         <label htmlFor="q" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-          {sites ? 'Search websites' : 'Search a domain'}
+          {sites ? tx('Search websites') : tx('Search a domain')}
         </label>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
@@ -46,8 +49,8 @@ export function HeroSearch({ placeholder }: { placeholder: string }) {
           style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter), Inter, sans-serif', color: '#2B4250', outline: 'none', minHeight: 44 }}
         />{' '}
         <button className="btn" type="submit">
-          <T s={'Search'} />
-          <span className="sob-hide-sm">{sites ? ' websites' : ' domains'}</span>
+          <span className="sob-hide-sm">{sites ? tx('Search websites') : tx('Search domains')}</span>
+          <span className="sob-show-sm">{tx('Search')}</span>
         </button>
       </form>
     </>

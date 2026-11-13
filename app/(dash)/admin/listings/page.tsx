@@ -95,7 +95,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
             <T s={'Waiting for review'} />
           </div>
           <div className="v">{queue.length}</div>
-          <div className="s">{oldest ? `Oldest ${ago(oldest, now).replace(' ago', '')}` : 'None waiting'}</div>
+          <div className="s">{oldest ? `Oldest ${ago(oldest, now).replace(' ago', '')}` : tx('None waiting')}</div>
         </div>
         <div className="glass kpi">
           <div className="l">
@@ -241,7 +241,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
 
       {tab !== 'waiting' && (
         <section className="glass card">
-          <h2>{tab === 'changes' ? 'Sent back or declined' : 'Recently approved'}</h2>
+          <h2>{tab === 'changes' ? tx('Sent back or declined') : tx('Recently approved')}</h2>
           {(tab === 'changes' ? changes : recentlyApproved).length ? (
             (tab === 'changes' ? changes : recentlyApproved).slice(0, 50).map((l) => (
               <div key={l.slug} className="li">
@@ -277,7 +277,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                 href={f ? `/admin/listings?tab=${tab}&status=${f}` : `/admin/listings?tab=${tab}`}
                 prefetch={false}
               >
-                {f ? (STATUS[f]?.[0] ?? f) : 'All'}
+                {f ? (STATUS[f]?.[0] ?? f) : tx('All')}
               </Link>
             ))}
           </div>

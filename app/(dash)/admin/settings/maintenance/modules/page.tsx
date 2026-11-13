@@ -26,7 +26,7 @@ export default async function MaintenanceManager() {
       <div className="glass card sob-sec">
         <div className="row sob-hd">
           <div>
-            <h2>{closed.length ? `In maintenance now: ${closed.map((m) => MODULES[m.key].label).join(', ')}` : 'Every part of the site is open'}</h2>
+            <h2>{closed.length ? `In maintenance now: ${closed.map((m) => MODULES[m.key].label).join(', ')}` : tx('Every part of the site is open')}</h2>
             <p className="tag">
               <T
                 s={
@@ -57,12 +57,12 @@ export default async function MaintenanceManager() {
                 </div>
                 <span className={m.active ? 'status st-bad' : m.enabled ? 'status st-wait' : 'status st-ok'}>
                   <i />
-                  {m.active ? 'In maintenance' : m.enabled ? 'Planned' : 'Open'}
+                  {m.active ? tx('In maintenance') : m.enabled ? tx('Planned') : tx('Open')}
                 </span>
               </div>
               {(m.startAt || m.endAt) && (
                 <small className="muted">
-                  {m.startAt ? `From ${when(m.startAt)}` : 'From now'}
+                  {m.startAt ? `From ${when(m.startAt)}` : tx('From now')}
                   {m.endAt ? ` until ${when(m.endAt)}` : ' until turned off'}
                 </small>
               )}
@@ -102,7 +102,7 @@ export default async function MaintenanceManager() {
               <li key={`${h.key}-${h.updatedAt}-${i}`}>
                 <div className="sob-grow">
                   <b>
-                    {MODULES[h.key].label}: {h.enabled ? 'maintenance on' : 'open again'}
+                    {MODULES[h.key].label}: {h.enabled ? tx('maintenance on') : tx('open again')}
                   </b>
                   <small>
                     {when(h.updatedAt)}

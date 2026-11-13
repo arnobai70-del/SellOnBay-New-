@@ -97,17 +97,17 @@ export default async function Cms({ searchParams }: { searchParams: Promise<{ do
           <div>
             <h2>{label}</h2>
             <p className="tag">
-              {pub ? `Published version ${pub.version}, ${when(pub.publishedAt)}.` : 'Nothing published: the built-in text shows.'}{' '}
-              {draft ? `Draft saved ${when(draft.editedAt)}${draft.editedBy === me ? ' by you' : ''}.` : 'No draft.'}
+              {pub ? `Published version ${pub.version}, ${when(pub.publishedAt)}.` : tx('Nothing published: the built-in text shows.')}{' '}
+              {draft ? `Draft saved ${when(draft.editedAt)}${draft.editedBy === me ? ' by you' : ''}.` : tx('No draft.')}
             </p>
           </div>
         </div>
         <p className="muted">
           {doc === 'faq'
-            ? 'Write "# Group title" to start a group, then "Q: question" and "A: answer" lines. Plain text only.'
+            ? tx('Write "# Group title" to start a group, then "Q: question" and "A: answer" lines. Plain text only.')
             : doc === 'how_it_works'
-              ? 'Two sections, "Buyers" and "Sellers", each with exactly three lines: "Title | what happens".'
-              : 'Plain text. Values from the notification go in as {{name}}, for example {{title}} or {{note}}; an unknown name stays empty.'}
+              ? tx('Two sections, "Buyers" and "Sellers", each with exactly three lines: "Title | what happens".')
+              : tx('Plain text. Values from the notification go in as {{name}}, for example {{title}} or {{note}}; an unknown name stays empty.')}
         </p>
         <AdminForm
           endpoint="/api/admin/cms/docs"
@@ -127,7 +127,7 @@ export default async function Cms({ searchParams }: { searchParams: Promise<{ do
             {mayPublish ? (
               <AdminForm endpoint="/api/admin/cms/docs" fixed={{ action: 'publish', doc }} fields={[]} submit="Publish the draft" tone="dark" />
             ) : (
-              <small className="muted">{docScopes(doc).publish === 'super' ? 'A Super Admin publishes email templates.' : 'Another admin checks and publishes your draft.'}</small>
+              <small className="muted">{docScopes(doc).publish === 'super' ? tx('A Super Admin publishes email templates.') : tx('Another admin checks and publishes your draft.')}</small>
             )}
             <AdminForm endpoint="/api/admin/cms/docs" fixed={{ action: 'discard', doc }} fields={[]} submit="Discard the draft" tone="line" />
           </div>

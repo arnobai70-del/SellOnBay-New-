@@ -5,18 +5,20 @@ import { UploadSection } from '@/components/glass/UploadSection';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
 export const metadata: Metadata = { title: 'Upload a website', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
 /* The upload wizard on its own page (edits and drafts open here with ?edit= and ?draft=), the same section as on My websites. /sell/new keeps working. */
 export default async function UploadWebsite({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
+  const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
   const viewer = await requireViewer({ path: '/dashboard/seller/websites/new', roles: ['seller', 'admin'] });
   const { edit } = await searchParams;
   return (
-    <SellerShell viewer={viewer} active="websites" file="seller-websites" title={edit ? 'Edit your website' : 'Upload a website'} head={false}>
+    <SellerShell viewer={viewer} active="websites" file="seller-websites" title={edit ? tx('Edit your website') : tx('Upload a website')} head={false}>
       <div className="row">
         <div>
-          <h1>{edit ? 'Edit your website' : 'Upload a website'}</h1>
+          <h1>{edit ? tx('Edit your website') : tx('Upload a website')}</h1>
           <div className="tag">
             <T s={'A person checks every listing before it goes live. A change to a link or a file sends it back for review.'} />
           </div>

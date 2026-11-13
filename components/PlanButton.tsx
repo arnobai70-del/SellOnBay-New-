@@ -2,8 +2,10 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useTx } from '@/components/i18n/TxProvider';
 /* Makes this week's payout batch and says who was left out and why. */
 export function PlanButton({ week }: { week: string }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string[]>([]);
@@ -28,7 +30,7 @@ export function PlanButton({ week }: { week: string }) {
           router.refresh();
         }}
       >
-        {busy ? 'One moment...' : `Make this week's batch (${week})`}
+        {busy ? tx('One moment...') : `Make this week's batch (${week})`}
       </button>
       {msg.map((m) => (
         <p key={m} className="muted" role="status" style={{ margin: '6px 0 0' }}>

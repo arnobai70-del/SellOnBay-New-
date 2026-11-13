@@ -71,7 +71,7 @@ export default async function SellerStore() {
                 <T s={'Buy clicks'} />
               </div>
               <div className="v">{total.buys}</div>
-              <div className="s">{total.people ? `${Math.round((total.buys / total.people) * 100)}% of visitors` : 'No visitors yet'}</div>
+              <div className="s">{total.people ? `${Math.round((total.buys / total.people) * 100)}% of visitors` : tx('No visitors yet')}</div>
             </div>
             <div className="glass kpi">
               <div className="l">
@@ -87,7 +87,7 @@ export default async function SellerStore() {
                 <T s={'Avg. rating'} />
               </div>
               <div className="v">{v.health.rating ?? '—'}</div>
-              <div className="s">{v.health.ratingCount ? `From ${v.health.ratingCount} buyers` : 'No reviews yet'}</div>
+              <div className="s">{v.health.ratingCount ? `From ${v.health.ratingCount} buyers` : tx('No reviews yet')}</div>
             </div>
           </div>
           <div className="grid2">
@@ -180,7 +180,7 @@ export default async function SellerStore() {
                 {initials(viewer?.name ?? 'Seller')}
               </span>
               <span className="tag" style={{ margin: 0 }}>
-                {store.username ? `sellonbay.com/sellers/${store.handle}` : 'Choose a store name below to get your public page'}
+                {store.username ? `sellonbay.com/sellers/${store.handle}` : tx('Choose a store name below to get your public page')}
               </span>
             </div>
             <StoreForm

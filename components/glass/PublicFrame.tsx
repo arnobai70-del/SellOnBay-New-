@@ -1,3 +1,4 @@
+import { LanguageSuggest, type Suggestion } from '@/components/i18n/LanguageSuggest';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { pageCopy } from '@/lib/content/copy';
 import { FOOTER_COLUMNS, PUBLIC_LINKS } from '@/lib/glass/nav';
@@ -25,6 +26,25 @@ export async function PublicFrame({ file, children, chrome = true }: { file: str
     );
   const [{ paymentsMode }, routes, social, nav, foot, i] = await Promise.all([getSettings(), contactRoutes(), savedSocial(), pageCopy('nav'), pageCopy('footer'), getI18n()]);
   const links = localizeNav(PUBLIC_LINKS, i.t, i.lang, (l) => nav.t('links', l.href.slice(1), l.label)); // includes Affiliate, always shown (owner, 2026-11-12)
+  // On an English page, the offer of a published language the browser prefers, worded in that language (nothing while only English is live).
+  const suggestions: Suggestion[] =
+    i.lang === 'en'
+      ? await Promise.all(
+          i.languages
+            .filter((l) => l.code !== 'en')
+            .map(async (l) => {
+              const { tx } = await getI18n(l.code);
+              return {
+                code: l.code,
+                native: l.native,
+                dir: l.dir,
+                message: tx('This page is also in {language}.', { language: l.native }),
+                yes: tx('Switch to {language}', { language: l.native }),
+                no: tx('Keep English'),
+              };
+            }),
+        )
+      : [];
   const switcher = (id: string) => <LanguageSwitcher id={id} languages={i.languages.map((l) => ({ code: l.code, native: l.native }))} current={i.lang} label={i.t('lang.label')} />;
   return (
     <GlassPage file={file}>
@@ -34,6 +54,7 @@ export async function PublicFrame({ file, children, chrome = true }: { file: str
         </p>
       )}
       <MaintenanceBanner />
+      <LanguageSuggest suggestions={suggestions} />
       <div className="wrap">
         <PublicNav
           links={links}

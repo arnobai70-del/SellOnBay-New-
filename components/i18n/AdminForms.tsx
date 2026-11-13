@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Language } from '@/lib/i18n/config';
 
+import { useTx } from '@/components/i18n/TxProvider';
 /* Admin › Language Management forms (owner, 2026-11-12), all through POST /api/admin/languages. */
 async function post(body: Record<string, unknown>) {
   const r = await fetch('/api/admin/languages', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
@@ -155,6 +156,7 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
 export type Row = { key: string; english: string; value: string; source: 'published' | 'draft' | 'bundled' | 'missing' };
 /* The translation editor: English beside each word; edits are saved as a draft, then published together. */
 export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: string; rows: Row[]; hasDraft: boolean; multiline?: boolean }) {
+  const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
   const router = useRouter();
   const [vals, setVals] = useState<Record<string, string>>(Object.fromEntries(rows.map((r) => [r.key, r.value])));
   const [msg, setMsg] = useState('');
@@ -174,7 +176,7 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
             <code style={{ fontSize: 12 }}>{r.key}</code>
             <span className={`status ${r.source === 'missing' ? 'st-bad' : r.source === 'published' ? 'st-ok' : 'st-wait'}`}>
-              {r.source === 'bundled' ? 'machine draft' : r.source === 'missing' ? 'missing (English shown)' : r.source}
+              {r.source === 'bundled' ? tx('machine draft') : r.source === 'missing' ? tx('missing (English shown)') : r.source}
             </span>
           </div>
           <div className="muted" style={{ fontSize: 13, whiteSpace: 'pre-wrap' }} lang="en">

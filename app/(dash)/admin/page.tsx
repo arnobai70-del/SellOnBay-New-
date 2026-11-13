@@ -100,7 +100,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               <T s={'Gross sales'} />
             </div>
             <div className="v">{money(o.gross)}</div>
-            <div className="s">{o.paymentsMode === 'beta_free' ? 'Free beta: nothing is charged' : PERIODS[period]}</div>
+            <div className="s">{o.paymentsMode === 'beta_free' ? tx('Free beta: nothing is charged') : PERIODS[period]}</div>
           </div>
           <div className="glass kpi widget">
             <div className="l">
@@ -121,16 +121,16 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
             </div>
           </div>
           <div className="glass kpi widget">
-            <div className="l">{o.paymentsMode === 'beta_free' ? 'Requests to decide' : 'Payments to verify'}</div>
+            <div className="l">{o.paymentsMode === 'beta_free' ? tx('Requests to decide') : tx('Payments to verify')}</div>
             <div className="v">{o.paymentsMode === 'beta_free' ? o.beta : o.toVerify}</div>
-            <div className="s">{o.paymentsMode === 'beta_free' ? 'Free beta requests' : 'Bank and wallet transfers'}</div>
+            <div className="s">{o.paymentsMode === 'beta_free' ? tx('Free beta requests') : tx('Bank and wallet transfers')}</div>
           </div>
           <div className="glass kpi widget">
             <div className="l">
               <T s={'Open disputes'} />
             </div>
             <div className="v">{o.disputes}</div>
-            <div className="s">{o.oldestDispute ? `Oldest ${ageText(o.oldestDispute, now)}` : 'None open'}</div>
+            <div className="s">{o.oldestDispute ? `Oldest ${ageText(o.oldestDispute, now)}` : tx('None open')}</div>
           </div>
           <div className="glass kpi widget">
             <div className="l">
@@ -193,7 +193,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
             )}
           </section>
           <section className="glass card widget" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Ring share={share} text={target > 0 ? `${Math.round(share * 100)}%` : '–'} label={target > 0 ? `${Math.round(share * 100)}% of the monthly target` : 'No monthly target set'} />
+            <Ring share={share} text={target > 0 ? `${Math.round(share * 100)}%` : '–'} label={target > 0 ? `${Math.round(share * 100)}% of the monthly target` : tx('No monthly target set')} />
             <div style={{ flex: '1 1 180px' }}>
               <h2>
                 <T s={'Monthly target'} />
@@ -201,7 +201,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               <div className="muted" style={{ fontSize: 14, marginTop: 6, lineHeight: 1.6 }}>
                 <T s={'{v0} this month · {dayOfMonth} days in'} v={{ v0: money(o.monthSales), dayOfMonth: o.dayOfMonth }} />
               </div>
-              <div className="tag">{target > 0 ? `Target ${money(target)} this month` : 'No monthly target is set yet.'}</div>
+              <div className="tag">{target > 0 ? `Target ${money(target)} this month` : tx('No monthly target is set yet.')}</div>
               {viewer && hasScope(viewer.scopes ?? [], 'super') && <TargetForm dollars={target / 100} />}
             </div>
           </section>

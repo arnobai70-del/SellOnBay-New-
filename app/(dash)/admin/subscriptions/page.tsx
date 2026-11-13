@@ -82,7 +82,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                 <h2>
                   <T s={'Feature and pricing page'} />
                 </h2>
-                <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? 'Open' : 'Off'}</span>
+                <span className={`status ${settings.enabled ? 'st-ok' : 'st-draft'}`}>{settings.enabled ? tx('Open') : tx('Off')}</span>
               </div>
               <SubSettingsForm
                 enabled={settings.enabled}
@@ -161,7 +161,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                       </td>
                       <td>
                         <span className={`status ${p.archivedAt ? 'st-draft' : p.active && p.visible ? 'st-ok' : 'st-wait'}`}>
-                          {p.archivedAt ? 'Archived' : !p.active ? 'Inactive' : !p.visible ? 'Hidden' : 'On sale'}
+                          {p.archivedAt ? tx('Archived') : !p.active ? tx('Inactive') : !p.visible ? tx('Hidden') : tx('On sale')}
                         </span>
                       </td>
                       {superAdmin && (
@@ -173,9 +173,9 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                           <ActionButton
                             endpoint={API}
                             body={{ action: 'archivePlan', id: p.id, archived: !p.archivedAt }}
-                            label={p.archivedAt ? 'Restore' : 'Delete'}
+                            label={p.archivedAt ? tx('Restore') : tx('Delete')}
                             tone="line"
-                            confirm={p.archivedAt ? undefined : 'Delete this plan? It is archived: hidden and not for sale, and running subscriptions keep working.'}
+                            confirm={p.archivedAt ? undefined : tx('Delete this plan? It is archived: hidden and not for sale, and running subscriptions keep working.')}
                           />
                         </td>
                       )}
@@ -189,7 +189,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
           {superAdmin && sp.edit && (
             <section className="glass card" id="plan-editor">
               <div className="row" style={{ marginBottom: 8 }}>
-                <h2>{editing ? `Edit ${editing.name}` : 'New plan'}</h2>
+                <h2>{editing ? `Edit ${editing.name}` : tx('New plan')}</h2>
                 <Link className="btn sm ghost" href="/admin/subscriptions" prefetch={false}>
                   <T s={'Close'} />
                 </Link>
@@ -271,7 +271,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                         {waiting.map((p) => (
                           <div key={p.id} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 }}>
                             <span className="tag" style={{ margin: 0 }}>
-                              {p.kind === 'new' ? 'New' : 'Renewal'} {usd(p.amountCents)} · {p.methodLabel || 'manual'} · {p.reference}
+                              {p.kind === 'new' ? tx('New') : tx('Renewal')} {usd(p.amountCents)} · {p.methodLabel || 'manual'} · {p.reference}
                               {p.paidOn ? ` · ${p.paidOn}` : ''}
                             </span>
                             <ActionButton endpoint={API} body={{ action: 'payment', id: p.id, verified: true }} label="Verify" />
@@ -287,7 +287,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                         {paid.map((p) => (
                           <div key={p.id} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 }}>
                             <span className="tag" style={{ margin: 0 }}>
-                              {p.kind === 'new' ? 'New' : 'Renewal'} {usd(p.amountCents)} · {p.refundedAt ? `refunded ${day(p.refundedAt)}` : 'verified'}
+                              {p.kind === 'new' ? tx('New') : tx('Renewal')} {usd(p.amountCents)} · {p.refundedAt ? `refunded ${day(p.refundedAt)}` : 'verified'}
                             </span>
                             {!p.refundedAt && (
                               <ActionButton
@@ -308,7 +308,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                             key={to}
                             endpoint={API}
                             body={{ action: 'move', id: sub.id, to }}
-                            label={to === 'active' ? (sub.startsAt ? 'Reactivate' : 'Approve') : to === 'suspended' ? 'Suspend' : to === 'cancelled' ? 'Cancel' : 'Reject'}
+                            label={to === 'active' ? (sub.startsAt ? tx('Reactivate') : tx('Approve')) : to === 'suspended' ? tx('Suspend') : to === 'cancelled' ? tx('Cancel') : tx('Reject')}
                             tone={to === 'active' ? 'blue' : 'line'}
                             note={to === 'active' ? undefined : { label: 'Reason (kept in the history)', required: true }}
                           />

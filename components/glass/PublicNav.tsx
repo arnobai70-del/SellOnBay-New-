@@ -86,6 +86,12 @@ export function PublicNav({
         <span aria-hidden="true" />
       </button>
       <div id="sob-navlinks" className={menu ? 'navlinks open' : 'navlinks'}>
+        {/* phones: the bar has no room for the search box, so it opens with the menu (shown by app/sob-parts.css only there) */}
+        {search && (
+          <div className="sob-sheet-search">
+            <SearchBox placeholder={words.search} />
+          </div>
+        )}
         {links.map((l) => (
           <Link key={l.href} className={isHere(path, l.href) ? 'cur' : undefined} href={l.href} prefetch={false} aria-current={isHere(path, l.href) ? 'page' : undefined}>
             {l.label}

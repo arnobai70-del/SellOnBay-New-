@@ -1,14 +1,17 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import { highlight } from '@/lib/searchCore';
+import { localizedPath, splitLocale } from '@/lib/i18n/config';
 
 import { T } from '@/components/i18n/T';
 import { useTx } from '@/components/i18n/TxProvider';
 /*
- * The smart search box (owner, 2026-11-08) for the top bar, the home hero and /websites. It is a real form (GET to `action`), so it works without
- * JavaScript. With JavaScript: results after 2 characters (200 ms after typing stops), grouped by type, the matched part highlighted, up and down
- * to move, Enter to open, Escape to close, recent searches (in this browser only), and "no results" with suggestions and popular categories.
+ * The smart search box (owner, 2026-11-08) for the top bar, the home hero, /websites and /help. It is a real form (GET to `action`), so it works
+ * without JavaScript. With JavaScript: results after 2 characters (200 ms after typing stops), grouped by type, the matched part highlighted, up
+ * and down to move, Enter to open, Escape to close, recent searches (in this browser only), and "no results" with suggestions and popular
+ * categories. Two looks (owner, 2026-11-14: every search box suggests while typing): `bar` (the top bar's input) and `pill` (the big glass
+ * search of the hero, /websites and /help, with its icon and button). Links open in the page's language.
  */
 type Result = { href: string; title: string; sub?: string };
 type Grouped = { q: string; websites: Result[]; sellers: Result[]; domain: Result | null; guides: Result[]; help: Result[]; total: number; didYouMean: string[]; popular: Result[] };
@@ -48,8 +51,16 @@ export function SearchBox({
   compact = false,
   track,
   hidden = {},
+  variant = 'bar',
+  inputId,
+  button,
+  maxWidth,
 }: {
   hidden?: Record<string, string>;
+  variant?: 'bar' | 'pill';
+  inputId?: string; // a fixed id for the input (pages and tests address the big boxes as #q, #s, #hs)
+  button?: React.ReactNode; // the pill's button text (default "Search")
+  maxWidth?: number;
   action?: string;
   label?: string;
   placeholder?: string;
@@ -62,6 +73,9 @@ export function SearchBox({
   const placeholder = placeholderGiven ?? tx('Search websites, sellers, guides');
   const router = useRouter();
   const id = useId();
+  const qId = inputId ?? `${id}-q`;
+  const lang = splitLocale(usePathname() ?? '/').lang ?? 'en';
+  const here = (href: string) => (href.startsWith('/') ? localizedPath(href, lang) : href); // results open in the page's language
   const [q, setQ] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<Grouped | null>(null);
@@ -95,11 +109,11 @@ export function SearchBox({
   const groups: [string, Result[]][] = shown
     ? (
         [
-          ['Websites', shown.websites],
-          ['Sellers', shown.sellers],
-          ['Domains', shown.domain ? [shown.domain] : []],
-          ['Guides', shown.guides],
-          ['Help', shown.help],
+          [tx('Websites'), shown.websites],
+          [tx('Sellers'), shown.sellers],
+          [tx('Domains'), shown.domain ? [shown.domain] : []],
+          [tx('Guides'), shown.guides],
+          [tx('Help'), shown.help],
         ] as [string, Result[]][]
       ).filter(([, l]) => l.length)
     : [];
@@ -112,12 +126,12 @@ export function SearchBox({
     : typed.length < 2 && recentResults.length
       ? [[tx('Recent searches'), recentResults]]
       : [];
-  const seeAll = shown ? [{ href: `/search?q=${encodeURIComponent(typed)}`, title: tx('See all results') }] : [];
+  const seeAll = shown ? [{ href: `${action}?q=${encodeURIComponent(typed)}`, title: tx('See all results') }] : [];
   const all = [...sections.flatMap(([, l]) => l), ...seeAll];
   const go = (href: string) => {
     if (typed) saveRecent(typed);
     setOpen(false);
-    router.push(href);
+    router.push(here(href));
   };
   let n = -1;
   const item = (r: Result, key: string) => {
@@ -126,7 +140,7 @@ export function SearchBox({
     return (
       <li key={key} id={`${id}-o${i}`} role="option" aria-selected={active === i} className={active === i ? 'on' : undefined}>
         <a
-          href={r.href}
+          href={here(r.href)}
           onMouseDown={(e) => e.preventDefault()}
           onClick={(e) => {
             e.preventDefault();
@@ -143,9 +157,10 @@ export function SearchBox({
   };
 
   return (
-    <div className={`sob-sx${compact ? ' sob-sx-compact' : ''}`} ref={box}>
+    <div className={`sob-sx${compact ? ' sob-sx-compact' : ''}${variant === 'pill' ? ' sob-sx-pill' : ''}`} ref={box} style={maxWidth ? { maxWidth } : undefined}>
       <form
-        action={action}
+        className={variant === 'pill' ? 'glass search-glow' : undefined}
+        action={here(action)}
         method="get"
         role="search"
         data-track={track}
@@ -156,12 +171,18 @@ export function SearchBox({
           } else if (typed) saveRecent(typed);
         }}
       >
-        <label className="hidden-label" htmlFor={`${id}-q`}>
+        <label className="hidden-label" htmlFor={qId}>
           {label}
         </label>
+        {variant === 'pill' && (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        )}
         <input
-          id={`${id}-q`}
-          className="input"
+          id={qId}
+          className={variant === 'pill' ? 'sob-sx-in' : 'input'}
           name="q"
           type="search"
           autoComplete="off"
@@ -199,8 +220,8 @@ export function SearchBox({
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-        <button className="btn sm" type="submit">
-          <T s={'Search'} />
+        <button className={variant === 'pill' ? 'btn' : 'btn sm'} type="submit">
+          {button ?? <T s={'Search'} />}
         </button>
       </form>
       {open && all.length > 0 && (

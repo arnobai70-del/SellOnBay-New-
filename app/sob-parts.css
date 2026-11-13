@@ -2304,3 +2304,95 @@
     padding-right: 9px;
   }
 }
+
+/* Search suggestions everywhere (owner, 2026-11-14: typing should show what matches on the site).
+   - the big glass search (hero, /websites, /help: SearchBox variant "pill") keeps its look; its list opens under it, full width */
+:is(.sob-p, .sob-d) .sob-sx-pill {
+  width: 100%;
+}
+:is(.sob-p, .sob-d) .sob-sx-pill form {
+  width: 100%;
+  padding: 8px 8px 8px 20px;
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+:is(.sob-p, .sob-d) .sob-sx-pill .sob-sx-in {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font: 15px var(--font-inter), Inter, sans-serif;
+  color: #2b4250;
+  outline: none;
+}
+:is(.sob-p, .sob-d) .sob-sx-pill .sob-sx-in::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+:is(.sob-p, .sob-d) .sob-sx-pill .sob-sx-pop {
+  top: calc(100% + 8px);
+  text-align: start;
+  box-shadow: 0 18px 40px rgba(15, 19, 48, 0.12);
+}
+/* - the top bar's small box: its list is wide enough to read and opens towards the page, never off screen */
+:is(.sob-p, .sob-d) .sob-sx-compact .sob-sx-pop {
+  left: auto;
+  right: auto;
+  inset-inline-end: 0;
+  width: min(380px, calc(100vw - 32px));
+  box-shadow: 0 18px 40px rgba(15, 19, 48, 0.12);
+}
+/* - phones: the search sits at the top of the menu sheet (hidden everywhere else, the bar has its own box) */
+:is(.sob-p, .sob-d) .sob-sheet-search {
+  display: none;
+}
+@media (max-width: 760px) {
+  .sob-p[data-sob] .nav .navlinks .sob-sheet-search {
+    display: block;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  .sob-p[data-sob] .nav .navlinks .sob-sheet-search .sob-sx-pop {
+    position: static;
+    margin-top: 6px;
+    max-height: 50vh;
+  }
+  .sob-p[data-sob] .nav .navlinks .sob-sheet-search .sob-sx-pop a {
+    min-height: 44px;
+  }
+  /* the big search on phones: icon, words and button stay on one line */
+  :is(.sob-p, .sob-d) .sob-sx-pill form {
+    padding: 6px 6px 6px 14px;
+  }
+}
+/* - the list appears at once and crisp (the design's glass entrance blurs for a second), above the chips and cards that follow it */
+:is(.sob-p, .sob-d) .sob-sx-pop {
+  animation: none !important;
+  filter: none !important;
+}
+:is(.sob-p, .sob-d) .sob-sx-pill {
+  position: relative;
+  z-index: 30;
+}
+.sob-p[data-sob] .nav .navlinks .sob-sheet-search .sob-sx-pop {
+  text-align: start;
+}
+/* - while a list is open, the section holding the search rises above the sections after it (the hero is its own layer, so the list's
+     z-index alone cannot beat the animated cards below); closed, nothing changes */
+:is(.sob-p, .sob-d) :is(section, header):has(.sob-sx-pop) {
+  position: relative;
+  z-index: 35;
+}
+/* - a solid list (the chips and cards behind must not show through; the design's glass rules for phones would make it see-through) */
+:is(.sob-p, .sob-d) .sob-sx-pop {
+  background: #fff !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* - in the phone menu sheet the suggestions read left to right like everywhere else (the sheet's own link style centers them) */
+.sob-p[data-sob] .nav .navlinks .sob-sheet-search .sob-sx-pop li a {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 10px;
+  text-align: start;
+}

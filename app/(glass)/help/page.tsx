@@ -1,3 +1,4 @@
+import { SearchBox } from '@/components/glass/SearchBox';
 import { ContactForm } from './ContactForm';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -11,7 +12,6 @@ import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
 import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 
-import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
 export const revalidate = 300;
 export const generateMetadata = () => pageMetadata('/help', { alternates: { canonical: '/help' } });
@@ -50,30 +50,8 @@ export default async function Help() {
             {intro}
           </p>
         )}
-        <form
-          className="glass search-glow"
-          action="/search"
-          method="get"
-          role="search"
-          style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 640, padding: '8px 8px 8px 20px', borderRadius: 999, boxSizing: 'border-box' }}
-        >
-          <label htmlFor="hs" className="hidden-label">
-            <T s={'Search help'} />
-          </label>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <input
-            id="hs"
-            name="q"
-            placeholder={tx('e.g. payment, refund, connect domain')}
-            style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
-          />{' '}
-          <button className="btn" type="submit">
-            <T s={'Search'} />
-          </button>
-        </form>
+        {/* suggests while typing (SearchBox, owner 2026-11-14); a GET form without JavaScript */}
+        <SearchBox variant="pill" inputId="hs" action="/search" maxWidth={640} label={tx('Search help')} placeholder={tx('e.g. payment, refund, connect domain')} />
       </section>
       <section className="grid3" style={{ paddingTop: 24 }}>
         {groups.map((g, i) => (

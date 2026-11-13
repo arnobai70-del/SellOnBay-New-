@@ -6298,7 +6298,8 @@
     "app/(dash)/admin/users/page.tsx",
     "app/(dash)/dashboard/buyer/domains/page.tsx",
     "app/(dash)/dashboard/buyer/page.tsx",
-    "components/glass/HeroSearch.tsx"
+    "components/glass/HeroSearch.tsx",
+    "components/glass/SearchBox.tsx"
    ]
   },
   "Domains are registered with these details. Sellers never see your phone or email.": {
@@ -8979,7 +8980,8 @@
    "files": [
     "app/(dash)/admin/content/guides/page.tsx",
     "app/(glass)/guides/[slug]/page.tsx",
-    "app/(glass)/guides/page.tsx"
+    "app/(glass)/guides/page.tsx",
+    "components/glass/SearchBox.tsx"
    ]
   },
   "Guides & pages": {
@@ -9083,7 +9085,8 @@
    "client": true,
    "area": "public",
    "files": [
-    "components/MaintenanceNotice.tsx"
+    "components/MaintenanceNotice.tsx",
+    "components/glass/SearchBox.tsx"
    ]
   },
   "Help center": {
@@ -19489,9 +19492,7 @@
     "app/(dash)/admin/languages/page.tsx",
     "app/(dash)/admin/search/page.tsx",
     "app/(dash)/admin/users/accounts/page.tsx",
-    "app/(glass)/help/page.tsx",
     "app/(glass)/sellers/page.tsx",
-    "app/(glass)/websites/page.tsx",
     "app/(site)/search/page.tsx",
     "components/glass/DashboardShell.tsx",
     "components/glass/HeroSearch.tsx",
@@ -19569,8 +19570,7 @@
    ]
   },
   "Search help": {
-   "client": true,
-   "area": "public",
+   "client": false,
    "files": [
     "app/(glass)/help/page.tsx"
    ]
@@ -20137,9 +20137,10 @@
   },
   "Sellers": {
    "client": true,
-   "area": "dash",
+   "area": "public",
    "files": [
-    "app/(dash)/admin/users/page.tsx"
+    "app/(dash)/admin/users/page.tsx",
+    "components/glass/SearchBox.tsx"
    ]
   },
   "Sellers and SellOnBay": {
@@ -26003,7 +26004,8 @@
     "app/(glass)/sellers/[username]/page.tsx",
     "app/(glass)/websites/[slug]/page.tsx",
     "app/(glass)/websites/category/[category]/page.tsx",
-    "components/glass/HeroSearch.tsx"
+    "components/glass/HeroSearch.tsx",
+    "components/glass/SearchBox.tsx"
    ]
   },
   "Websites are free during the beta; no payment is taken": {

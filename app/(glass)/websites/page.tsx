@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
+import { SearchBox } from '@/components/glass/SearchBox';
 import { WebsitesBrowser } from '@/components/glass/WebsitesBrowser';
 import { pageCopy } from '@/lib/content/copy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
@@ -24,26 +25,16 @@ export default async function Websites({ searchParams }: { searchParams: Promise
     <PublicFrame file="websites">
       <header style={{ padding: '56px 0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <h1 style={{ fontSize: 40, fontWeight: 300 }}>{copy.t('head', 'heading', words.heading)}</h1>
-        <form action="/websites" method="get" role="search" className="glass" style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 8px 8px 20px', borderRadius: 999 }}>
-          {typeof raw.category === 'string' && raw.category && <input type="hidden" name="category" value={raw.category} />}
-          <label htmlFor="s" className="hidden-label">
-            <T s={'Search websites'} />
-          </label>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#566C78" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <input
-            id="s"
-            name="q"
-            defaultValue={q}
-            placeholder={tx('Search full-stack websites…')}
-            style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 44 }}
-          />{' '}
-          <button className="btn" type="submit">
-            <T s={'Search'} />
-          </button>
-        </form>
+        {/* suggests while typing (SearchBox, owner 2026-11-14); a GET form without JavaScript */}
+        <SearchBox
+          variant="pill"
+          inputId="s"
+          action="/websites"
+          defaultValue={q}
+          label={tx('Search websites')}
+          placeholder={tx('Search full-stack websites…')}
+          hidden={typeof raw.category === 'string' && raw.category ? { category: raw.category } : {}}
+        />
         {domain && (
           <div className="tag" role="status" style={{ margin: 0 }}>
             <T s={'Pick a website for'} /> <b style={{ fontWeight: 500 }}>{domain}</b>

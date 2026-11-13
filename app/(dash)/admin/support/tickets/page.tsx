@@ -9,7 +9,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Support tickets', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Support tickets'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Support answers buyers' and sellers' tickets. Buyers and sellers never see each other's tickets. */
@@ -46,7 +46,7 @@ export default async function AdminSupport({ searchParams }: { searchParams: Pro
               fields={[
                 {
                   name: 'status',
-                  label: 'Status',
+                  label: tx('Status'),
                   kind: 'select',
                   options: [
                     ['open', 'Waiting for SellOnBay'],

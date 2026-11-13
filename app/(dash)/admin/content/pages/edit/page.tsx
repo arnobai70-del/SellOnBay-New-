@@ -7,7 +7,8 @@ import { EMPTY_DOC, pageByKey, type PageDoc } from '@/lib/content/registry';
 import { publicWebsites } from '@/lib/glass/catalog';
 import { requireViewer } from '@/lib/supabase/viewer';
 
-export const metadata: Metadata = { title: 'Edit page', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit page'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* One page in the Pages editor: the draft if there is one, else the published words, else the built-in words. */

@@ -9,7 +9,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'robots.txt', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('robots.txt'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The robots.txt file: the private parts are always kept out; an admin can add more paths. */
@@ -55,7 +55,7 @@ export default async function Robots() {
           <AdminForm
             endpoint="/api/admin/seo/robots"
             open
-            fields={[{ name: 'paths', label: 'Paths, one per line', kind: 'textarea', value: extra.join('\n'), max: 4000, hint: 'For example /internal-tools/' }]}
+            fields={[{ name: 'paths', label: tx('Paths, one per line'), kind: 'textarea', value: extra.join('\n'), max: 4000, hint: tx('For example /internal-tools/') }]}
             submit="Save robots.txt"
           />
         </div>

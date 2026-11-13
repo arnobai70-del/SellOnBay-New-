@@ -9,7 +9,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Top bar categories', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Top bar categories'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Which categories the top bar shows and in what order. Hiding one removes it from the bar only; its pages and links keep working. */

@@ -14,7 +14,7 @@ import { SellerSection } from './SellerSection';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Buyer subscriptions', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Buyer subscriptions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 })}`;
@@ -295,7 +295,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                                 body={{ action: 'refund', id: p.id }}
                                 label="Record refund"
                                 tone="line"
-                                note={{ label: 'Refund reason (after you refunded by hand; kept in the history)', required: true }}
+                                note={{ label: tx('Refund reason (after you refunded by hand; kept in the history)'), required: true }}
                               />
                             )}
                           </div>
@@ -310,7 +310,7 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                             body={{ action: 'move', id: sub.id, to }}
                             label={to === 'active' ? (sub.startsAt ? tx('Reactivate') : tx('Approve')) : to === 'suspended' ? tx('Suspend') : to === 'cancelled' ? tx('Cancel') : tx('Reject')}
                             tone={to === 'active' ? 'blue' : 'line'}
-                            note={to === 'active' ? undefined : { label: 'Reason (kept in the history)', required: true }}
+                            note={to === 'active' ? undefined : { label: tx('Reason (kept in the history)'), required: true }}
                           />
                         ))}
                         {sub.status !== 'cancelled' && paid.some((p) => !p.refundedAt) && (
@@ -319,11 +319,11 @@ export default async function AdminSubscriptions({ searchParams }: { searchParam
                             body={{ action: 'cancelRefund', id: sub.id }}
                             label="Cancel with refund"
                             tone="line"
-                            note={{ label: 'Reason (after you refunded the latest payment by hand)', required: true }}
+                            note={{ label: tx('Reason (after you refunded the latest payment by hand)'), required: true }}
                           />
                         )}
                         {sub.expiresAt && (
-                          <ActionButton endpoint={API} body={{ action: 'extend', id: sub.id }} label="Extend" tone="line" note={{ label: 'Days to add (1 to 3650)', required: true, rows: 1 }} />
+                          <ActionButton endpoint={API} body={{ action: 'extend', id: sub.id }} label="Extend" tone="line" note={{ label: tx('Days to add (1 to 3650)'), required: true, rows: 1 }} />
                         )}
                       </td>
                     </tr>

@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Source files', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Source files'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const size = (b: number | null) => (b === null ? '?' : b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
@@ -101,7 +101,7 @@ export default async function Files() {
                     fields={[
                       {
                         name: 'decision',
-                        label: 'Decision',
+                        label: tx('Decision'),
                         kind: 'select',
                         options: [
                           ['approve', 'Approve this exact file'],
@@ -109,9 +109,9 @@ export default async function Files() {
                         ],
                       },
                       ...Object.entries(REVIEW_CHECKLIST).map(([k, label]) => ({ name: k, label, kind: 'checkbox' as const, showWhen: { field: 'decision', equals: 'approve' } })),
-                      { name: 'label', label: 'Version label, like 1.0', kind: 'text', showWhen: { field: 'decision', equals: 'approve' } },
-                      { name: 'changelog', label: 'What is in this version (shown to buyers)', kind: 'textarea', showWhen: { field: 'decision', equals: 'approve' } },
-                      { name: 'note', label: 'Note (needed to reject; sent to the seller)', kind: 'textarea' },
+                      { name: 'label', label: tx('Version label, like 1.0'), kind: 'text', showWhen: { field: 'decision', equals: 'approve' } },
+                      { name: 'changelog', label: tx('What is in this version (shown to buyers)'), kind: 'textarea', showWhen: { field: 'decision', equals: 'approve' } },
+                      { name: 'note', label: tx('Note (needed to reject; sent to the seller)'), kind: 'textarea' },
                     ]}
                   />
                 </div>

@@ -20,7 +20,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Orders and payments', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Orders and payments'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The design's status tabs, with the order states each one holds. */
@@ -296,7 +296,13 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                           <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Approve" body={{ decision: 'approve' }} />
-                          <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Decline" tone="line" body={{ decision: 'decline' }} note={{ label: 'Reason for the buyer', required: true }} />
+                          <ActionButton
+                            endpoint={`/api/admin/beta/${r.orderId}`}
+                            label="Decline"
+                            tone="line"
+                            body={{ decision: 'decline' }}
+                            note={{ label: tx('Reason for the buyer'), required: true }}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -345,10 +351,10 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                             submit="Reconcile"
                             tone="blue"
                             fields={[
-                              { name: 'amountReceived', label: 'Amount that actually arrived (in the method currency)', kind: 'text', required: true },
-                              { name: 'statementRef', label: 'Reference on your statement', kind: 'text', required: true },
-                              { name: 'receivedOn', label: 'Date it arrived (YYYY-MM-DD)', kind: 'text', required: true },
-                              { name: 'note', label: 'Note (optional)', kind: 'textarea' },
+                              { name: 'amountReceived', label: tx('Amount that actually arrived (in the method currency)'), kind: 'text', required: true },
+                              { name: 'statementRef', label: tx('Reference on your statement'), kind: 'text', required: true },
+                              { name: 'receivedOn', label: tx('Date it arrived (YYYY-MM-DD)'), kind: 'text', required: true },
+                              { name: 'note', label: tx('Note (optional)'), kind: 'textarea' },
                             ]}
                           />
                           <AdminForm
@@ -357,7 +363,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                             openLabel="Reject"
                             submit="Reject"
                             tone="line"
-                            fields={[{ ...why, label: 'Why (the buyer sees it)' }]}
+                            fields={[{ ...why, label: tx('Why (the buyer sees it)') }]}
                           />
                         </div>
                       </td>
@@ -444,8 +450,8 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                       submit="Record"
                       tone="blue"
                       fields={[
-                        { name: 'method', label: 'How the money was sent back', kind: 'text', required: true },
-                        { name: 'reference', label: 'Reference of the refund payment', kind: 'text', required: true },
+                        { name: 'method', label: tx('How the money was sent back'), kind: 'text', required: true },
+                        { name: 'reference', label: tx('Reference of the refund payment'), kind: 'text', required: true },
                       ]}
                     />
                   )}
@@ -471,7 +477,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             openLabel="Refund an order"
             submit="Refund"
             tone="line"
-            fields={[{ name: 'orderId', label: 'Order id', kind: 'text', required: true }, why]}
+            fields={[{ name: 'orderId', label: tx('Order id'), kind: 'text', required: true }, why]}
           />
         </section>
       </div>

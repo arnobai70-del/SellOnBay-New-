@@ -8,7 +8,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Legal documents', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Legal documents'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number | null) => (ms ? new Date(ms).toISOString().slice(0, 10) : '–');
@@ -60,7 +60,7 @@ export default async function Legal() {
                       <T s={'Open the page'} />
                     </Link>
                   )}
-                  {k === 'licences' && ' Quotations record the published version number.'}
+                  {k === 'licences' && tx(' Quotations record the published version number.')}
                 </p>
               </div>
             </div>
@@ -78,9 +78,9 @@ export default async function Legal() {
                   openLabel="Edit the draft"
                   submit="Save the draft"
                   fields={[
-                    { name: 'title', label: 'Title', kind: 'text', required: true, value: draft.title, max: 160 },
-                    { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: draft.body, max: 200_000, hint: 'Saving clears a recorded review.' },
-                    { name: 'summary', label: 'What changed', kind: 'text', value: draft.summary, max: 500 },
+                    { name: 'title', label: tx('Title'), kind: 'text', required: true, value: draft.title, max: 160 },
+                    { name: 'body', label: tx('Text (Markdown)'), kind: 'textarea', required: true, value: draft.body, max: 200_000, hint: tx('Saving clears a recorded review.') },
+                    { name: 'summary', label: tx('What changed'), kind: 'text', value: draft.summary, max: 500 },
                   ]}
                 />
                 {isSuper && (
@@ -91,7 +91,7 @@ export default async function Legal() {
                       openLabel="Record the lawyer's review"
                       submit="Record review"
                       tone="line"
-                      fields={[{ name: 'note', label: 'Who reviewed it, and when', kind: 'text', required: true, max: 500 }]}
+                      fields={[{ name: 'note', label: tx('Who reviewed it, and when'), kind: 'text', required: true, max: 500 }]}
                     />
                     <AdminForm
                       endpoint="/api/admin/legal"
@@ -99,7 +99,7 @@ export default async function Legal() {
                       openLabel="Publish this version"
                       submit="Publish"
                       tone="dark"
-                      fields={[{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
+                      fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
                     />
                   </>
                 )}
@@ -112,9 +112,9 @@ export default async function Legal() {
                 openLabel="Start a new version"
                 submit="Save as draft"
                 fields={[
-                  { name: 'title', label: 'Title', kind: 'text', required: true, value: pub?.title ?? LEGAL_DOCS[k].title, max: 160 },
-                  { name: 'body', label: 'Text (Markdown)', kind: 'textarea', required: true, value: pub?.body ?? '', max: 200_000 },
-                  { name: 'summary', label: 'What changed', kind: 'text', max: 500 },
+                  { name: 'title', label: tx('Title'), kind: 'text', required: true, value: pub?.title ?? LEGAL_DOCS[k].title, max: 160 },
+                  { name: 'body', label: tx('Text (Markdown)'), kind: 'textarea', required: true, value: pub?.body ?? '', max: 200_000 },
+                  { name: 'summary', label: tx('What changed'), kind: 'text', max: 500 },
                 ]}
               />
             )}

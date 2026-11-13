@@ -6,7 +6,9 @@ import { checkPageDoc, pageByKey, type PageDoc } from '../content/registry';
  * CMS documents with draft, preview, approval and publish (SellOnBay 2.0 Phase 12). Pure, tested.
  *   faq            the FAQ page groups (question and answer)
  *   how_it_works   the three steps for buyers and the three for sellers (each step has its own picture)
- *   email:<kind>   the subject and text of one notification email, with {{placeholders}} filled from the notification
+ *   email:<kind>   the subject and text of one notification email, with {{placeholders}} filled from the notification (English)
+ *   email:<kind>@<lang>  the same email in another language (bn, ar, hi, es, fr, de, pt): a reader gets the template of their own language,
+ *                  else the built-in text in their language; the English template never stands in for another language
  * A Content admin saves a draft; publishing needs a second person (four eyes): the admin who publishes may not be the one who last edited
  * the draft, unless they are a Super Admin. Email templates are published by a Super Admin only. Nothing saved = the built-in text shows.
  * Text is plain (no HTML); answers and email text may hold simple links written as https addresses.
@@ -17,7 +19,14 @@ export type HowDoc = { buy: Step[]; sell: Step[] };
 export type EmailDoc = { subject: string; text: string };
 export type DocName = 'faq' | 'how_it_works' | `email:${string}` | `page:${string}`;
 
-export const isEmailDoc = (n: string): n is `email:${string}` => /^email:[a-z_]{3,40}$/.test(n);
+export const EMAIL_LANGS = ['bn', 'ar', 'hi', 'es', 'fr', 'de', 'pt'] as const;
+export const isEmailDoc = (n: string): n is `email:${string}` => /^email:[a-z_]{3,40}(@(bn|ar|hi|es|fr|de|pt))?$/.test(n);
+/* The notification kind and the language of an email document ("en" for the plain one). */
+export const emailDocParts = (n: string): { kind: string; lang: string } => {
+  const [kind, lang] = n.slice(6).split('@');
+  return { kind, lang: lang ?? 'en' };
+};
+export const emailDocName = (kind: string, lang: string): `email:${string}` => (lang === 'en' ? `email:${kind}` : `email:${kind}@${lang}`);
 /* One public page's words (owner, 2026-11-08; lib/content/registry.ts), by the page's key. */
 export const isPageDoc = (n: string): n is `page:${string}` => /^page:[a-z-]{2,40}$/.test(n) && !!pageByKey(n.slice(5)) && !pageByKey(n.slice(5))!.legal;
 export const isDocName = (n: string): n is DocName => n === 'faq' || n === 'how_it_works' || isEmailDoc(n) || isPageDoc(n);

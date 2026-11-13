@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Settings', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Settings'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
@@ -46,8 +46,8 @@ export default async function Settings() {
           <AdminForm
             endpoint="/api/admin/settings"
             fields={[
-              { name: 'priceMinCents', label: 'Lowest price in dollars', kind: 'text', required: true },
-              { name: 'priceMaxCents', label: 'Highest price in dollars (with setup help or customisation)', kind: 'text', required: true },
+              { name: 'priceMinCents', label: tx('Lowest price in dollars'), kind: 'text', required: true },
+              { name: 'priceMaxCents', label: tx('Highest price in dollars (with setup help or customisation)'), kind: 'text', required: true },
               why,
             ]}
             submit="Save the range"
@@ -64,7 +64,7 @@ export default async function Settings() {
           </p>
           <AdminForm
             endpoint="/api/admin/settings"
-            fields={[{ name: 'holdNewBuyerMinCents', label: 'Size in dollars (0 = never)', kind: 'text', required: true }, why]}
+            fields={[{ name: 'holdNewBuyerMinCents', label: tx('Size in dollars (0 = never)'), kind: 'text', required: true }, why]}
             submit="Save"
             openLabel="Change it"
             tone="line"
@@ -86,14 +86,14 @@ export default async function Settings() {
             fields={[
               {
                 name: 'earlyAccessOn',
-                label: 'The bar',
+                label: tx('The bar'),
                 kind: 'select',
                 options: [
                   ['on', 'Show it'],
                   ['off', 'Hide it'],
                 ],
               },
-              { name: 'earlyAccessText', label: 'Own words (empty = the standard words with the price range)', kind: 'text' },
+              { name: 'earlyAccessText', label: tx('Own words (empty = the standard words with the price range)'), kind: 'text' },
               why,
             ]}
             submit="Save"
@@ -126,7 +126,7 @@ export default async function Settings() {
             fields={[
               {
                 name: 'deliveryHoursOn',
-                label: 'Delivery in hours',
+                label: tx('Delivery in hours'),
                 kind: 'select',
                 options: [
                   ['on', 'Sellers may promise hours'],
@@ -168,7 +168,7 @@ export default async function Settings() {
               fields={[
                 {
                   name: 'showExamples',
-                  label: 'Example listings',
+                  label: tx('Example listings'),
                   kind: 'select',
                   options: [
                     ['on', 'Show them'],

@@ -18,7 +18,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Finance and payouts', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Finance and payouts'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TABS = [
@@ -283,14 +283,14 @@ export default async function AdminFinance({ searchParams }: { searchParams: Pro
                                   openLabel="Mark paid"
                                   submit="I sent it"
                                   tone="blue"
-                                  fields={[{ name: 'reference', label: 'Transfer reference from Wise, Payoneer or the bank', kind: 'text', required: true }]}
+                                  fields={[{ name: 'reference', label: tx('Transfer reference from Wise, Payoneer or the bank'), kind: 'text', required: true }]}
                                 />
                                 <AdminForm
                                   endpoint={`/api/admin/payouts/${p.id}/fail`}
                                   openLabel="Failed"
                                   submit="Mark failed"
                                   tone="line"
-                                  fields={[{ name: 'note', label: 'What went wrong', kind: 'textarea' }]}
+                                  fields={[{ name: 'note', label: tx('What went wrong'), kind: 'textarea' }]}
                                 />
                               </>
                             )}

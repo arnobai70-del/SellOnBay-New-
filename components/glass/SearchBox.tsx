@@ -110,7 +110,7 @@ export function SearchBox({
     : typed.length < 2 && recentResults.length
       ? [['Recent searches', recentResults]]
       : [];
-  const seeAll = shown ? [{ href: `/search?q=${encodeURIComponent(typed)}`, title: 'See all results' }] : [];
+  const seeAll = shown ? [{ href: `/search?q=${encodeURIComponent(typed)}`, title: tx('See all results') }] : [];
   const all = [...sections.flatMap(([, l]) => l), ...seeAll];
   const go = (href: string) => {
     if (typed) saveRecent(typed);

@@ -13,7 +13,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Template categories', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Template categories'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The five template categories and which real listings each shows. Examples never appear. Everything here is a setting, not code. */
@@ -71,7 +71,7 @@ export default async function Categories() {
             <AdminForm
               endpoint="/api/admin/seo/alloc"
               fixed={{ hub: v.hub.slug }}
-              fields={[{ name: 'limit', label: 'How many listings this category shows', kind: 'text', value: String(v.limit), hint: `1 to 12. Default ${HUB_LIMIT}.` }]}
+              fields={[{ name: 'limit', label: tx('How many listings this category shows'), kind: 'text', value: String(v.limit), hint: `1 to 12. Default ${HUB_LIMIT}.` }]}
               submit="Save"
               openLabel="Change how many"
               tone="line"
@@ -82,7 +82,7 @@ export default async function Categories() {
               fields={[
                 {
                   name: 'slug',
-                  label: 'Address ending (SEO slug)',
+                  label: tx('Address ending (SEO slug)'),
                   kind: 'text',
                   value: hubPublicSlug(v.hub, a),
                   max: 61,
@@ -143,7 +143,7 @@ export default async function Categories() {
                 fields={[
                   {
                     name: 'to',
-                    label: 'Category',
+                    label: tx('Category'),
                     kind: 'select',
                     options: [['auto', 'Automatic (by its own category)'], ...HUBS.map((h): [string, string] => [h.slug, h.name]), ['none', 'None']],
                     value: a.assign[p.id] ?? 'auto',

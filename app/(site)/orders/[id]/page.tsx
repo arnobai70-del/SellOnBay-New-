@@ -17,7 +17,9 @@ import { orderEvents } from '@/lib/orders/service';
 import { ConversationPanel } from '@/components/ConversationPanel';
 import { RevisionPanel } from '@/components/RevisionPanel';
 
-export const metadata: Metadata = { title: 'Your order', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Your order'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Order({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string }> }) {
@@ -61,7 +63,7 @@ export default async function Order({ params, searchParams }: { params: Promise<
           {o.fundedAt && (
             <p>
               <a className="btn ghost sm" href={`/api/orders/${o.id}/receipt`}>
-                Download receipt (PDF)
+                <T s={'Download receipt (PDF)'} />
               </a>
             </p>
           )}

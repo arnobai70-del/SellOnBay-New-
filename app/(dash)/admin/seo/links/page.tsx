@@ -7,7 +7,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Link check', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Link check'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Opens every sitemap address and top-bar link once and shows which ones do not answer 200. */

@@ -7,7 +7,7 @@ import { SITE_NAME, SITE_URL } from '@/lib/site';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Write a post', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Write a post'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function PostPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {

@@ -5,7 +5,7 @@ import { sellerNotes } from '@/lib/glass/seller';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Notifications', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Notifications'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const SHOWN: Group[] = ['all', 'orders', 'websites', 'support', 'payouts'];

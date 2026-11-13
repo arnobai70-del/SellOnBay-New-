@@ -18,7 +18,7 @@ const isHere = (path: string, href: string) => path === href || path.startsWith(
  */
 export function PublicNav({
   links = PUBLIC_LINKS,
-  account = { label: 'Sign in', href: '/signin' },
+  account = { label: 'Sign in', href: '/signin' }, // callers pass the translated words
   showCart = true,
   search = true,
   home = '/',

@@ -5,7 +5,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Sales reports', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Sales reports'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* A seller's own sales as PDF: date, product, quoted amount, commission, plan, net and status. No buyer personal data. */

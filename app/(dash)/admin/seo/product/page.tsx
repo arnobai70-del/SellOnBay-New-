@@ -12,7 +12,8 @@ import { WEB_CATS, webCatLabel } from '@/lib/webCategories';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
-export const metadata: Metadata = { title: 'Edit a listing', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit a listing'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* An admin edits a seller's listing: words, category, price, delivery, links, extras and screenshots. Its page settings (search, picture, questions) are on its Edit page. */

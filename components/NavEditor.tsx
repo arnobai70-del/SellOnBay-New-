@@ -40,7 +40,7 @@ export function NavEditor({ rows, hidden, order }: { rows: Row[]; hidden: string
             <input type="checkbox" checked={!off.includes(x.key)} disabled={x.locked} onChange={(e) => setOff((p) => (e.target.checked ? p.filter((k) => k !== x.key) : [...p, x.key]))} />
             <span>
               {x.label}
-              {x.locked ? ' (always shown)' : ''}
+              {x.locked ? tx(' (always shown)') : ''}
             </span>
           </label>
           <div className="sob-acts">

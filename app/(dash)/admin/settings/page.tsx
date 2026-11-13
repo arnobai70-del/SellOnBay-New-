@@ -15,7 +15,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Settings', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Settings'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };
@@ -87,7 +87,7 @@ export default async function AdminSettings() {
             fields={[
               {
                 name: 'paymentsMode',
-                label: 'Payments mode',
+                label: tx('Payments mode'),
                 kind: 'select',
                 options: [
                   [s.paymentsMode, s.paymentsMode === 'beta_free' ? 'Free beta' : 'Live'],
@@ -134,12 +134,12 @@ export default async function AdminSettings() {
               submit="Save"
               tone="line"
               fields={[
-                { name: 'label', label: 'Name', kind: 'text', value: m.label, required: true },
-                { name: 'instructions', label: 'Instructions buyers see', kind: 'textarea', value: m.instructions, required: true },
-                { name: 'currency', label: 'Currency', kind: 'text', value: m.currency, required: true },
+                { name: 'label', label: tx('Name'), kind: 'text', value: m.label, required: true },
+                { name: 'instructions', label: tx('Instructions buyers see'), kind: 'textarea', value: m.instructions, required: true },
+                { name: 'currency', label: tx('Currency'), kind: 'text', value: m.currency, required: true },
                 {
                   name: 'active',
-                  label: 'Shown to buyers',
+                  label: tx('Shown to buyers'),
                   kind: 'select',
                   options: [
                     [m.active ? 'on' : 'off', m.active ? 'Shown' : 'Hidden'],
@@ -178,19 +178,19 @@ export default async function AdminSettings() {
             fields={[
               {
                 name: 'kind',
-                label: 'Kind',
+                label: tx('Kind'),
                 kind: 'select',
                 options: [
                   ['bank_transfer', 'Business bank transfer'],
                   ['local_wallet', 'Local wallet'],
                 ],
               },
-              { name: 'label', label: 'Name', kind: 'text', required: true },
-              { name: 'instructions', label: 'Instructions buyers see (account details)', kind: 'textarea', required: true },
-              { name: 'currency', label: 'Currency', kind: 'text', value: 'USD', required: true },
+              { name: 'label', label: tx('Name'), kind: 'text', required: true },
+              { name: 'instructions', label: tx('Instructions buyers see (account details)'), kind: 'textarea', required: true },
+              { name: 'currency', label: tx('Currency'), kind: 'text', value: 'USD', required: true },
               {
                 name: 'active',
-                label: 'Shown to buyers',
+                label: tx('Shown to buyers'),
                 kind: 'select',
                 options: [
                   ['off', 'Hidden for now'],
@@ -238,7 +238,7 @@ export default async function AdminSettings() {
             openLabel="Change"
             submit="Save countries"
             tone="line"
-            fields={[{ name: 'allowedCountries', label: 'Two-letter codes, like US, GB, DE (empty = everywhere)', kind: 'text', value: s.allowedCountries, max: 800 }, why]}
+            fields={[{ name: 'allowedCountries', label: tx('Two-letter codes, like US, GB, DE (empty = everywhere)'), kind: 'text', value: s.allowedCountries, max: 800 }, why]}
           />
         </div>
       </section>

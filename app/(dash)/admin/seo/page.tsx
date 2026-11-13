@@ -19,7 +19,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'SEO and blog', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('SEO and blog'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (t?: number) => (t ? new Date(t).toISOString().slice(0, 10) : '');
@@ -70,7 +70,7 @@ export default async function SeoAdmin() {
                   </b>
                   <small>
                     /blog/{p.slug} · {p.status === 'published' ? `published ${day(p.publishedAt)}` : 'draft'}
-                    {p.noindex ? ' · kept out of Google' : ''} · {hints.length ? `${hints.length} SEO hint${hints.length > 1 ? 's' : ''}` : tx('SEO looks good')}
+                    {p.noindex ? tx(' · kept out of Google') : ''} · {hints.length ? `${hints.length} SEO hint${hints.length > 1 ? 's' : ''}` : tx('SEO looks good')}
                   </small>
                 </div>
                 <span className={p.status === 'published' ? 'status st-ok' : 'status'}>
@@ -256,8 +256,8 @@ export default async function SeoAdmin() {
           <AdminForm
             endpoint="/api/admin/seo"
             fields={[
-              { name: 'homeTitle', label: 'Title (about 60 characters)', kind: 'text', hint: 'Empty = the built-in title.' },
-              { name: 'homeDescription', label: 'Description (about 150 to 160 characters)', kind: 'textarea', hint: 'Empty = the built-in description.' },
+              { name: 'homeTitle', label: tx('Title (about 60 characters)'), kind: 'text', hint: tx('Empty = the built-in title.') },
+              { name: 'homeDescription', label: tx('Description (about 150 to 160 characters)'), kind: 'textarea', hint: tx('Empty = the built-in description.') },
             ]}
             submit="Save"
             openLabel="Change them"
@@ -288,7 +288,7 @@ export default async function SeoAdmin() {
           </b>
           <AdminForm
             endpoint="/api/admin/seo"
-            fields={[{ name: 'googleVerification', label: 'Tag or code from Google (empty removes it)', kind: 'text' }]}
+            fields={[{ name: 'googleVerification', label: tx('Tag or code from Google (empty removes it)'), kind: 'text' }]}
             submit="Save"
             openLabel="Set the code"
             tone="line"
@@ -300,7 +300,7 @@ export default async function SeoAdmin() {
           </b>
           <AdminForm
             endpoint="/api/admin/seo"
-            fields={[{ name: 'bingVerification', label: 'Tag or code from Bing (empty removes it)', kind: 'text' }]}
+            fields={[{ name: 'bingVerification', label: tx('Tag or code from Bing (empty removes it)'), kind: 'text' }]}
             submit="Save"
             openLabel="Set the code"
             tone="line"

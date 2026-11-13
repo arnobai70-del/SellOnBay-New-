@@ -17,7 +17,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'My websites', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('My websites'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const STATUS: Record<string, [string, string]> = { live: ['Live', 'st-ok'], in_review: ['In review', 'st-info'], rejected: ['Changes requested', 'st-wait'], paused: ['Paused', 'st-draft'] };
@@ -156,9 +156,9 @@ export default async function SellerWebsites({ searchParams }: { searchParams: P
                               submit="Send for review"
                               tone="line"
                               fields={[
-                                { name: 'version', label: 'Version number, for example 1.1', kind: 'text', required: true },
-                                { name: 'changelog', label: 'What changed (buyers see this)', kind: 'textarea', required: true },
-                                { name: 'fileUrl', label: 'Private link to the new files (https)', kind: 'text', required: true },
+                                { name: 'version', label: tx('Version number, for example 1.1'), kind: 'text', required: true },
+                                { name: 'changelog', label: tx('What changed (buyers see this)'), kind: 'textarea', required: true },
+                                { name: 'fileUrl', label: tx('Private link to the new files (https)'), kind: 'text', required: true },
                               ]}
                             />
                           )}

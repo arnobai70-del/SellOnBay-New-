@@ -5,7 +5,8 @@ import { ResetClient } from '@/components/ResetClient';
 import { supabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Choose a new password' };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Choose a new password') });
 
 export default async function ResetPassword() {
   // Demo mode has no accounts, so there is no password to reset.

@@ -15,7 +15,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Listing review', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Listing review'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const STATUS: Record<string, [string, string]> = { live: ['Live', 'st-ok'], in_review: ['In review', 'st-info'], rejected: ['Changes requested', 'st-bad'], paused: ['Paused', 'st-draft'] };
@@ -197,8 +197,8 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                     endpoint={`/api/admin/listings/${l.slug}/decide`}
                     fixed={{ decision: 'approve' }}
                     fields={[
-                      { name: 'note', label: 'Note for the seller (optional)', kind: 'textarea' },
-                      ...(l.digital ? [{ name: 'filesChecked', label: 'I opened the files in a sandbox and they are clean (needed for a digital product)', kind: 'checkbox' as const }] : []),
+                      { name: 'note', label: tx('Note for the seller (optional)'), kind: 'textarea' },
+                      ...(l.digital ? [{ name: 'filesChecked', label: tx('I opened the files in a sandbox and they are clean (needed for a digital product)'), kind: 'checkbox' as const }] : []),
                     ]}
                     submit="Approve and publish"
                     openLabel="Approve"
@@ -207,7 +207,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                   <AdminForm
                     endpoint={`/api/admin/listings/${l.slug}/decide`}
                     fixed={{ decision: 'changes' }}
-                    fields={[{ name: 'note', label: 'What should the seller change? (at least 5 characters)', kind: 'textarea', required: true }]}
+                    fields={[{ name: 'note', label: tx('What should the seller change? (at least 5 characters)'), kind: 'textarea', required: true }]}
                     submit="Send back"
                     openLabel="Request changes"
                     tone="line"
@@ -215,7 +215,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                   <AdminForm
                     endpoint={`/api/admin/listings/${l.slug}/decide`}
                     fixed={{ decision: 'reject' }}
-                    fields={[{ name: 'note', label: 'Why is it declined? The seller reads this (at least 5 characters)', kind: 'textarea', required: true }]}
+                    fields={[{ name: 'note', label: tx('Why is it declined? The seller reads this (at least 5 characters)'), kind: 'textarea', required: true }]}
                     submit="Decline"
                     openLabel="Reject"
                     tone="line"

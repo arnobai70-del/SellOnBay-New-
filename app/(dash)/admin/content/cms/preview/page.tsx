@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Preview', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Preview'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* A draft shown with the same components the public page uses. Only admins with the Content permission see it; it is never indexed. */

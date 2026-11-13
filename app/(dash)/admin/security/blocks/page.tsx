@@ -7,7 +7,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Security', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Security'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const when = (t: number) => new Date(t).toISOString().slice(0, 16).replace('T', ' ');
@@ -123,7 +123,7 @@ export default async function Security() {
         <AdminForm
           endpoint="/api/admin/security/block"
           fixed={{ kind: 'email' }}
-          fields={[{ name: 'email', label: 'Email address', kind: 'text', required: true }, ...reasonField]}
+          fields={[{ name: 'email', label: tx('Email address'), kind: 'text', required: true }, ...reasonField]}
           submit="Block it"
           openLabel="Block an email"
           tone="dark"
@@ -157,7 +157,7 @@ export default async function Security() {
             <p>{b.reason}</p>
             <AdminForm
               endpoint={`/api/admin/security/blocks/${b.id}/lift`}
-              fields={[{ name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
+              fields={[{ name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
               submit="Lift it"
               openLabel="Lift the block"
               tone="line"

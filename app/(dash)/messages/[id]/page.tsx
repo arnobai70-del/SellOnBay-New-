@@ -13,7 +13,7 @@ import { idParam } from '@/lib/validate';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Order chat', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Order chat'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The chat of one order, for the buyer or the seller of that order (anybody else gets a 404). */

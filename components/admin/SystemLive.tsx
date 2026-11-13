@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { SystemSnapshot, Tone } from '@/lib/admin/system';
 
 import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 const TONE_LABEL: Record<Tone, string> = { ok: 'Healthy', warn: 'Needs a look', bad: 'Needs attention', off: 'Not set up' };
 const OVERALL: Record<Tone, string> = { ok: 'Server healthy', warn: 'Needs a look', bad: 'Needs attention', off: 'Server healthy' };
 const when = (t: number | null) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'never');
@@ -51,11 +52,11 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           {OVERALL[s.overall]}
         </span>
         <small role="status">
-          Updated {new Date(s.at).toISOString().slice(11, 19)} UTC{stale ? ' · could not refresh, showing the last reading' : ''} · refreshes every 30 seconds
+          <T s={'Updated {v0} UTC{v1} · refreshes every 30 seconds'} v={{ v0: new Date(s.at).toISOString().slice(11, 19), v1: stale ? ' · could not refresh, showing the last reading' : '' }} />
         </small>
       </div>
 
-      <div className="sob-sys-grid" aria-label="Services">
+      <div className="sob-sys-grid" aria-label={tx('Services')}>
         {s.services.map((v) => (
           <div key={v.key} className={`sob-sys-tile ${v.tone}`}>
             <span className="sob-sys-tile-h">
@@ -70,31 +71,59 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
 
       <div className="sob-sys-two">
         <div className="glass card sob-sec">
-          <h2>This app</h2>
-          <p className="tag">The site&apos;s own process. Shared hosting does not show the host&apos;s CPU, load or disk, so they are not listed.</p>
+          <h2>
+            <T s={'This app'} />
+          </h2>
+          <p className="tag">
+            <T s={"The site's own process. Shared hosting does not show the host's CPU, load or disk, so they are not listed."} />
+          </p>
           <dl className="sob-sys-dl">
-            <dt>Memory in use</dt>
-            <dd>{s.app.rssMb} MB</dd>
-            <dt>JavaScript heap</dt>
-            <dd>{s.app.heapMb} MB</dd>
-            <dt>Running for</dt>
+            <dt>
+              <T s={'Memory in use'} />
+            </dt>
+            <dd>
+              <T s={'{rssMb} MB'} v={{ rssMb: s.app.rssMb }} />
+            </dd>
+            <dt>
+              <T s={'JavaScript heap'} />
+            </dt>
+            <dd>
+              <T s={'{heapMb} MB'} v={{ heapMb: s.app.heapMb }} />
+            </dd>
+            <dt>
+              <T s={'Running for'} />
+            </dt>
             <dd>{span(s.app.uptimeS)}</dd>
-            <dt>Node.js</dt>
+            <dt>
+              <T s={'Node.js'} />
+            </dt>
             <dd>{s.app.node}</dd>
-            <dt>Build</dt>
+            <dt>
+              <T s={'Build'} />
+            </dt>
             <dd>{s.build.commit ? <code title={s.build.commit}>{s.build.commit.slice(0, 7)}</code> : tx('Not recorded')}</dd>
-            <dt>Built at</dt>
+            <dt>
+              <T s={'Built at'} />
+            </dt>
             <dd>{s.build.builtAt ? when(Date.parse(s.build.builtAt)) : tx('Not recorded')}</dd>
           </dl>
         </div>
         <div className="glass card sob-sec">
-          <h2>Database</h2>
+          <h2>
+            <T s={'Database'} />
+          </h2>
           <dl className="sob-sys-dl">
-            <dt>Answers in</dt>
+            <dt>
+              <T s={'Answers in'} />
+            </dt>
             <dd>{s.database.latencyMs === null ? tx('Not answering') : `${s.database.latencyMs} ms`}</dd>
-            <dt>Size</dt>
+            <dt>
+              <T s={'Size'} />
+            </dt>
             <dd>{s.database.sizeMb === null ? tx('Not recorded (migration 0073)') : `${s.database.sizeMb} MB`}</dd>
-            <dt>Connections</dt>
+            <dt>
+              <T s={'Connections'} />
+            </dt>
             <dd>
               {conns === null ? (
                 tx('Not recorded (migration 0073)')
@@ -102,12 +131,14 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
                 <span className="sob-sys-meter">
                   <span className={`bar ${meterTone(conns)}`} style={{ width: `${Math.min(100, conns)}%` }} />
                   <span>
-                    {s.database.connections} of {s.database.maxConnections} ({conns}%)
+                    <T s={'{connections} of {maxConnections} ({conns}%)'} v={{ connections: s.database.connections, maxConnections: s.database.maxConnections, conns }} />
                   </span>
                 </span>
               )}
             </dd>
-            <dt>Advisors</dt>
+            <dt>
+              <T s={'Advisors'} />
+            </dt>
             <dd>
               {s.database.advisors === null
                 ? tx('Not answering')
@@ -120,20 +151,24 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
       </div>
 
       <div className="glass card sob-sec">
-        <h2>Errors</h2>
+        <h2>
+          <T s={'Errors'} />
+        </h2>
         {!s.errors ? (
-          <p className="tag">Not recorded yet: apply migration 0072.</p>
+          <p className="tag">
+            <T s={'Not recorded yet: apply migration 0072.'} />
+          </p>
         ) : (
           <>
             <div className="sob-sys-nums">
               <span>
-                <b>{s.errors.counts.lastHour}</b> last hour
+                <b>{s.errors.counts.lastHour}</b> <T s={'last hour'} />
               </span>
               <span>
-                <b>{s.errors.counts.lastDay}</b> last 24 hours
+                <b>{s.errors.counts.lastDay}</b> <T s={'last 24 hours'} />
               </span>
               <span>
-                <b>{s.errors.counts.lastWeek}</b> last 7 days
+                <b>{s.errors.counts.lastWeek}</b> <T s={'last 7 days'} />
               </span>
             </div>
             <div className="sob-sys-chart" role="img" aria-label={`Errors per hour over the last 24 hours, ${s.errors.counts.lastDay} in all`}>
@@ -146,10 +181,18 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
                 <table className="">
                   <thead>
                     <tr>
-                      <th>Where</th>
-                      <th>Message</th>
-                      <th>Times</th>
-                      <th>Last seen</th>
+                      <th>
+                        <T s={'Where'} />
+                      </th>
+                      <th>
+                        <T s={'Message'} />
+                      </th>
+                      <th>
+                        <T s={'Times'} />
+                      </th>
+                      <th>
+                        <T s={'Last seen'} />
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -172,13 +215,17 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
       </div>
 
       <div className="glass card sob-sec">
-        <h2>Scheduled jobs</h2>
+        <h2>
+          <T s={'Scheduled jobs'} />
+        </h2>
         <ul className="sob-list">
           {s.jobs.map((j) => (
             <li key={j.job}>
               <div className="sob-grow">
                 <b>{j.job === 'orders' ? tx('Orders (every few minutes)') : tx('Payouts (weekly)')}</b>
-                <small>Last good run {ago(j.lastGoodAt, s.at)}</small>
+                <small>
+                  <T s={'Last good run {v0}'} v={{ v0: ago(j.lastGoodAt, s.at) }} />
+                </small>
               </div>
               <span className={`status ${j.stale ? 'st-bad' : j.lastGoodAt ? 'st-ok' : 'st-draft'}`}>
                 <i />
@@ -188,16 +235,26 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
           ))}
         </ul>
         {s.runs === null ? (
-          <p className="tag">Run history is not recorded yet: apply migration 0071.</p>
+          <p className="tag">
+            <T s={'Run history is not recorded yet: apply migration 0071.'} />
+          </p>
         ) : s.runs.length > 0 ? (
           <div className="tbl">
             <table className="">
               <thead>
                 <tr>
-                  <th>Job</th>
-                  <th>Started</th>
-                  <th>Took</th>
-                  <th>Result</th>
+                  <th>
+                    <T s={'Job'} />
+                  </th>
+                  <th>
+                    <T s={'Started'} />
+                  </th>
+                  <th>
+                    <T s={'Took'} />
+                  </th>
+                  <th>
+                    <T s={'Result'} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -213,20 +270,33 @@ export function SystemLive({ initial }: { initial: SystemSnapshot }) {
             </table>
           </div>
         ) : (
-          <p className="tag">No runs recorded yet.</p>
+          <p className="tag">
+            <T s={'No runs recorded yet.'} />
+          </p>
         )}
       </div>
 
       <div className="glass card sob-sec">
-        <h2>Domain and safety</h2>
+        <h2>
+          <T s={'Domain and safety'} />
+        </h2>
         <dl className="sob-sys-dl">
-          <dt>Certificate</dt>
+          <dt>
+            <T s={'Certificate'} />
+          </dt>
           <dd>{s.safety.sslDays === null ? tx('Not checked (no https address)') : `${s.safety.sslDays} days left`}</dd>
-          <dt>Required settings</dt>
+          <dt>
+            <T s={'Required settings'} />
+          </dt>
           <dd>
-            {s.safety.keysSet} of {s.safety.keysTotal} set{s.safety.missingKeys.length ? `. Missing: ${s.safety.missingKeys.join(', ')}` : ''}
+            <T
+              s={'{keysSet} of {keysTotal} set{v2}'}
+              v={{ keysSet: s.safety.keysSet, keysTotal: s.safety.keysTotal, v2: s.safety.missingKeys.length ? `. Missing: ${s.safety.missingKeys.join(', ')}` : '' }}
+            />
           </dd>
-          <dt>Maintenance</dt>
+          <dt>
+            <T s={'Maintenance'} />
+          </dt>
           <dd>{s.safety.closedModules.length ? `Closed now: ${s.safety.closedModules.join(', ')}` : tx('Every module open')}</dd>
         </dl>
       </div>

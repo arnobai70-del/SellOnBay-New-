@@ -7,7 +7,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Redirects', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Redirects'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Address changes: an old address sends visitors and search engines to a new one. Account, checkout, payment, admin and download addresses cannot be redirected. */
@@ -43,11 +43,11 @@ export default async function Redirects() {
             endpoint="/api/admin/seo/redirects"
             open
             fields={[
-              { name: 'from', label: 'Old address', kind: 'text', required: true, hint: 'A path, for example /old-page' },
-              { name: 'to', label: 'New address', kind: 'text', required: true, hint: 'A path like /new-page, or an https address' },
+              { name: 'from', label: tx('Old address'), kind: 'text', required: true, hint: tx('A path, for example /old-page') },
+              { name: 'to', label: tx('New address'), kind: 'text', required: true, hint: tx('A path like /new-page, or an https address') },
               {
                 name: 'code',
-                label: 'Kind',
+                label: tx('Kind'),
                 kind: 'select',
                 options: [
                   ['301', '301: moved for good'],

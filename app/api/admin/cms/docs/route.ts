@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminOnly } from '@/lib/admin/guard';
 import { AuditError } from '@/lib/admin/audit';
-import { isDocName, isEmailDoc, parseFaqText, parseHowText, type DocName } from '@/lib/cms/docs';
+import { emailDocParts, isDocName, isEmailDoc, parseFaqText, parseHowText, type DocName } from '@/lib/cms/docs';
 import { discardDraft, publishDraft, saveDraft } from '@/lib/cms/docStore';
 import { TEMPLATES } from '@/emails/templates';
 import { readJson } from '@/lib/validate';
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const { action, doc, text = '', subject = '' } = body.data;
-  if (!isDocName(doc) || (isEmailDoc(doc) && !Object.hasOwn(TEMPLATES, doc.slice(6)))) return jsonT({ error: tx('Unknown document.') }, { status: 404 });
+  if (!isDocName(doc) || (isEmailDoc(doc) && !Object.hasOwn(TEMPLATES, emailDocParts(doc).kind))) return jsonT({ error: tx('Unknown document.') }, { status: 404 });
   const name = doc as DocName;
   try {
     const r =

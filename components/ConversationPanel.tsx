@@ -135,7 +135,7 @@ export function ConversationPanel({
         {shown.map((m) => (
           <div key={m.id} className={bubble(m)}>
             <div className="tag" style={{ margin: '0 0 4px' }}>
-              {m.channel === 'internal' ? 'Internal note · ' : ''}
+              {m.channel === 'internal' ? tx('Internal note · ') : ''}
               {who(m)} · {new Date(m.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </div>
             <span style={{ whiteSpace: 'pre-wrap' }}>{m.body}</span>

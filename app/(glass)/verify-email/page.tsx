@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 
 import { T } from '@/components/i18n/T';
-export const metadata: Metadata = { title: 'Check your inbox', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Check your inbox'), robots: { index: false } });
 
 /* The "Verify email" card of design-reference/account-access.html. Supabase confirms an email with a link, not a typed code, so this screen says that. */
 export default function VerifyEmail() {

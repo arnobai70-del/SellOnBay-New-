@@ -18,7 +18,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Disputes and support', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Disputes and support'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TABS = [
@@ -200,7 +200,7 @@ export default async function AdminSupportHub({ searchParams }: { searchParams: 
                   fields={[
                     {
                       name: 'status',
-                      label: 'Status',
+                      label: tx('Status'),
                       kind: 'select',
                       options: [
                         ['open', 'Waiting for SellOnBay'],
@@ -324,7 +324,7 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
           fields={[
             {
               name: 'decision',
-              label: 'Decision',
+              label: tx('Decision'),
               kind: 'select',
               options: [
                 ['refund_full', 'Refund the buyer in full'],
@@ -341,7 +341,7 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
             },
             {
               name: 'liability',
-              label: 'Whose fault was it? (recorded on the dispute)',
+              label: tx('Whose fault was it? (recorded on the dispute)'),
               kind: 'select',
               options: [
                 ['platform', 'Us or nobody'],
@@ -349,8 +349,8 @@ async function DisputeView({ d, now }: { d: Dispute; now: number }) {
                 ['buyer_fraud', 'The buyer (fraud): the buyer is flagged'],
               ],
             },
-            { name: 'feeCents', label: 'What the dispute cost, in dollars (empty for none). Taken from the seller only when the seller was at fault.', kind: 'dollars' },
-            { name: 'note', label: 'Note (both sides see the decision; keep contact details out)', kind: 'textarea' },
+            { name: 'feeCents', label: tx('What the dispute cost, in dollars (empty for none). Taken from the seller only when the seller was at fault.'), kind: 'dollars' },
+            { name: 'note', label: tx('Note (both sides see the decision; keep contact details out)'), kind: 'textarea' },
           ]}
         />
         <Link className="btn ghost" href={`/orders/${d.orderId}`} prefetch={false}>

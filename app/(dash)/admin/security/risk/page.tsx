@@ -11,7 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Risk', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Risk'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
@@ -105,7 +105,7 @@ export default async function Risk() {
             <AdminForm
               endpoint="/api/admin/risk/switch"
               fixed={{ key: s.key, state: s.enabled ? 'off' : 'on' }}
-              fields={[{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
+              fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
               submit={s.enabled ? tx('Turn it off') : tx('Turn it on')}
               openLabel={s.enabled ? 'Turn off' : 'Turn on'}
               tone={s.enabled ? 'line' : 'dark'}
@@ -147,7 +147,7 @@ export default async function Risk() {
               fields={[
                 {
                   name: 'decision',
-                  label: 'Decision',
+                  label: tx('Decision'),
                   kind: 'select',
                   options: [
                     ['release', 'Release: work and files go ahead'],
@@ -202,9 +202,9 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/reserve"
             fields={[
-              { name: 'sellerId', label: 'Seller account id (from the Accounts page)', kind: 'text', required: true },
-              { name: 'percent', label: 'Percent kept back (0 to 100)', kind: 'text', required: true },
-              { name: 'days', label: 'For how many days (0 to 180)', kind: 'text', required: true },
+              { name: 'sellerId', label: tx('Seller account id (from the Accounts page)'), kind: 'text', required: true },
+              { name: 'percent', label: tx('Percent kept back (0 to 100)'), kind: 'text', required: true },
+              { name: 'days', label: tx('For how many days (0 to 180)'), kind: 'text', required: true },
               why,
             ]}
             submit="Save the rule"
@@ -236,7 +236,7 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'account' }}
-            fields={[{ name: 'id', label: 'Account id (from the Accounts page)', kind: 'text', required: true }, why]}
+            fields={[{ name: 'id', label: tx('Account id (from the Accounts page)'), kind: 'text', required: true }, why]}
             submit="Remove the account"
             openLabel="Remove an account"
             tone="dark"
@@ -249,7 +249,7 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'reviews_by' }}
-            fields={[{ name: 'id', label: 'Account id (from the Accounts page)', kind: 'text', required: true }, why]}
+            fields={[{ name: 'id', label: tx('Account id (from the Accounts page)'), kind: 'text', required: true }, why]}
             submit="Remove the reviews"
             openLabel="Remove reviews by an account"
             tone="line"
@@ -262,7 +262,7 @@ export default async function Risk() {
           <AdminForm
             endpoint="/api/admin/risk/clean"
             fixed={{ what: 'review' }}
-            fields={[{ name: 'id', label: 'Order id of the review', kind: 'text', required: true }, why]}
+            fields={[{ name: 'id', label: tx('Order id of the review'), kind: 'text', required: true }, why]}
             submit="Remove the review"
             openLabel="Remove a review"
             tone="line"

@@ -16,7 +16,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Domains', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Domains'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TABS = [
@@ -211,8 +211,8 @@ export default async function AdminDomains({ searchParams }: { searchParams: Pro
                             tone="line"
                             fixed={{ orderId: r.orderId, name: r.name }}
                             fields={[
-                              { name: 'expiresAt', label: 'Expires on (YYYY-MM-DD)', kind: 'text', required: true },
-                              { name: 'registrarRef', label: 'Registrar reference (optional)', kind: 'text' },
+                              { name: 'expiresAt', label: tx('Expires on (YYYY-MM-DD)'), kind: 'text', required: true },
+                              { name: 'registrarRef', label: tx('Registrar reference (optional)'), kind: 'text' },
                             ]}
                           />
                         ) : (

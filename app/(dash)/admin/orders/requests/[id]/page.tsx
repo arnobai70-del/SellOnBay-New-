@@ -14,7 +14,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Purchase request', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Purchase request'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number) => new Date(ms).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
@@ -65,7 +65,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
           </dt>
           <dd>
             {TIER_TEXT[r.licenceTier].label}
-            {r.licenceTier === 'exclusive_review' ? ' (needs special admin and legal/IP review, F-10)' : ''}
+            {r.licenceTier === 'exclusive_review' ? tx(' (needs special admin and legal/IP review, F-10)') : ''}
           </dd>
           <dt>
             <T s={'Package and extras'} />
@@ -134,7 +134,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
             <AdminForm
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'set_expiry' }}
-              fields={[{ name: 'expiresInDays', label: 'Expire this request after how many days (0 = never)', kind: 'text', required: true }]}
+              fields={[{ name: 'expiresInDays', label: tx('Expire this request after how many days (0 = never)'), kind: 'text', required: true }]}
               openLabel="Set expiry"
               submit="Save"
               tone="line"
@@ -144,7 +144,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
             <AdminForm
               endpoint={`/api/admin/requests/${r.id}`}
               fixed={{ action: 'propose_requirements' }}
-              fields={[{ name: 'requirements', label: 'Written requirement set for the buyer to confirm', kind: 'textarea', required: true, value: r.verifiedRequirements ?? '', max: 8000 }]}
+              fields={[{ name: 'requirements', label: tx('Written requirement set for the buyer to confirm'), kind: 'textarea', required: true, value: r.verifiedRequirements ?? '', max: 8000 }]}
               openLabel="Write requirements"
               submit="Send to the buyer"
               tone="line"
@@ -161,7 +161,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
               <AdminForm
                 endpoint={`/api/admin/requests/${r.id}`}
                 fixed={{ action: 'assign' }}
-                fields={[{ name: 'sellerId', label: 'Seller account id (leave empty for SellOnBay)', kind: 'text', value: r.assignedSellerId ?? '', max: 36 }]}
+                fields={[{ name: 'sellerId', label: tx('Seller account id (leave empty for SellOnBay)'), kind: 'text', value: r.assignedSellerId ?? '', max: 36 }]}
                 openLabel="Assign a developer"
                 submit="Assign"
                 tone="line"
@@ -185,7 +185,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
           </div>
           <QuoteEditor
             requestId={r.id}
-            start={(listed ?? [{ label: r.kind === 'custom_dev' ? 'Custom development' : title, cents: 0, kind: r.kind === 'custom_dev' ? 'custom' : 'product' }]).map((l) => ({
+            start={(listed ?? [{ label: r.kind === 'custom_dev' ? tx('Custom development') : title, cents: 0, kind: r.kind === 'custom_dev' ? 'custom' : 'product' }]).map((l) => ({
               label: l.label,
               cents: l.cents,
               kind: l.kind,
@@ -224,7 +224,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                 {q.lines.map((l) => `${l.label} ${usd(l.cents)}`).join(' · ')}
                 {q.priceOverride ? ` · differs from listed ${q.listedCents === null ? '(none)' : usd(q.listedCents)}: ${q.overrideReason}` : ''}
                 {q.validUntil ? ` · valid until ${day(q.validUntil)}` : ''}
-                {q.orderId ? ' · order created' : ''}
+                {q.orderId ? tx(' · order created') : ''}
               </small>
               <small className="muted">{(qEvents.get(q.id) ?? []).map((e) => `${e.event} ${day(e.at)}`).join(' · ')}</small>
               <div className="sob-acts">
@@ -242,7 +242,7 @@ export default async function AdminRequest({ params }: { params: Promise<{ id: s
                   <AdminForm
                     endpoint={`/api/admin/quotations/${q.id}`}
                     fixed={{ action: 'withdraw' }}
-                    fields={[{ name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true }]}
+                    fields={[{ name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true }]}
                     openLabel="Withdraw"
                     submit="Withdraw"
                     tone="line"

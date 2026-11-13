@@ -11,7 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Maintenance', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Maintenance'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The areas the owner listed first (2026-11-08), then the older modules. */
@@ -127,7 +127,7 @@ export default async function MaintenanceSettings() {
             openLabel="Close a page"
             submit="Save"
             tone="line"
-            fields={[{ name: 'path', label: 'Page address, starting with /', kind: 'text', required: true }, ...fields({ enabled: true, message: '', startAt: null, endAt: null })]}
+            fields={[{ name: 'path', label: tx('Page address, starting with /'), kind: 'text', required: true }, ...fields({ enabled: true, message: '', startAt: null, endAt: null })]}
           />
         </div>
       </GlassCard>
@@ -148,7 +148,7 @@ export default async function MaintenanceSettings() {
           openLabel="Change addresses"
           submit="Save"
           tone="line"
-          fields={[{ name: 'ips', label: 'Addresses, one per line', kind: 'textarea', value: rows.allowIps.join('\n') }]}
+          fields={[{ name: 'ips', label: tx('Addresses, one per line'), kind: 'textarea', value: rows.allowIps.join('\n') }]}
         />
       </GlassCard>
     </AdminShell>

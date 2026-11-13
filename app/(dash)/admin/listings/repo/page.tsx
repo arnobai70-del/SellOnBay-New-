@@ -7,7 +7,7 @@ import { checklist } from '@/lib/repoAccess';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Repository access', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Repository access'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const when = (t: number) => new Date(t).toISOString().slice(0, 16).replace('T', ' ');
@@ -56,7 +56,7 @@ export default async function RepoAccess() {
             <AdminForm
               endpoint={`/api/admin/repo/${c.orderId}`}
               fixed={{ action: 'confirm' }}
-              fields={[{ name: 'note', label: 'How you checked that the access is gone (goes in the audit log)', kind: 'textarea', required: true }]}
+              fields={[{ name: 'note', label: tx('How you checked that the access is gone (goes in the audit log)'), kind: 'textarea', required: true }]}
               submit="Confirm removed"
               openLabel="Confirm removed"
               tone="dark"

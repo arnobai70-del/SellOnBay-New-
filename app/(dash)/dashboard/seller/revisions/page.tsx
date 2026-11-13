@@ -15,7 +15,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Revisions', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Revisions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
@@ -130,7 +130,7 @@ export default async function SellerRevisions() {
                     {approved
                       ? `Approved: ${approved.included} included within ${approved.windowDays} days · extra ${usd(approved.extraPriceCents)}${approved.scope ? ` · ${approved.scope}` : ''}`
                       : tx('No approved terms: quotations include no revisions unless SellOnBay writes them in.')}
-                    {proposed ? ' · New terms waiting for approval.' : ''}
+                    {proposed ? tx(' · New terms waiting for approval.') : ''}
                     {!proposed && rejected && rejected.decisionReason ? ` · Last proposal rejected: ${rejected.decisionReason}` : ''}
                   </p>
                 </div>
@@ -141,11 +141,11 @@ export default async function SellerRevisions() {
                   submit="Send for approval"
                   tone="line"
                   fields={[
-                    { name: 'included', label: 'Included revisions (0 to 50)', kind: 'text', required: true, value: String(proposed?.included ?? approved?.included ?? 1), max: 2 },
-                    { name: 'windowDays', label: 'For how many days after delivery', kind: 'text', required: true, value: String(proposed?.windowDays ?? approved?.windowDays ?? 14), max: 3 },
-                    { name: 'scope', label: 'What counts as a revision', kind: 'textarea', value: proposed?.scope ?? approved?.scope ?? '', max: 1000 },
-                    { name: 'extraPrice', label: 'Price of an extra revision in dollars (empty: quoted each time)', kind: 'text', value: '', max: 12 },
-                    { name: 'supportTerms', label: 'Support you give after delivery', kind: 'textarea', value: proposed?.supportTerms ?? approved?.supportTerms ?? '', max: 1000 },
+                    { name: 'included', label: tx('Included revisions (0 to 50)'), kind: 'text', required: true, value: String(proposed?.included ?? approved?.included ?? 1), max: 2 },
+                    { name: 'windowDays', label: tx('For how many days after delivery'), kind: 'text', required: true, value: String(proposed?.windowDays ?? approved?.windowDays ?? 14), max: 3 },
+                    { name: 'scope', label: tx('What counts as a revision'), kind: 'textarea', value: proposed?.scope ?? approved?.scope ?? '', max: 1000 },
+                    { name: 'extraPrice', label: tx('Price of an extra revision in dollars (empty: quoted each time)'), kind: 'text', value: '', max: 12 },
+                    { name: 'supportTerms', label: tx('Support you give after delivery'), kind: 'textarea', value: proposed?.supportTerms ?? approved?.supportTerms ?? '', max: 1000 },
                   ]}
                 />
               </li>

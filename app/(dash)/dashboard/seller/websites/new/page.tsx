@@ -6,7 +6,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Upload a website', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Upload a website'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* The upload wizard on its own page (edits and drafts open here with ?edit= and ?draft=), the same section as on My websites. /sell/new keeps working. */

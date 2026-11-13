@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { Line } from '@/lib/commerce/types';
 
 import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 
 /* The real payment page: what the buyer pays for, then PayPal. The price shown is the one the server holds; PayPal gets it from the server too. */
@@ -35,7 +36,9 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
   };
   return (
     <div className="wrap" style={{ paddingBlock: 60, maxWidth: 640 }}>
-      <h1>Pay for your order</h1>
+      <h1>
+        <T s={'Pay for your order'} />
+      </h1>
       <p className="muted" style={{ marginTop: 12 }}>
         {title}
       </p>
@@ -48,13 +51,15 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
         ))}
         <li>
           <div className="sob-grow">
-            <b>Total</b>
+            <b>
+              <T s={'Total'} />
+            </b>
           </div>
           <b>{money(totalCents)}</b>
         </li>
       </ul>
       <p className="muted" style={{ marginTop: 12 }}>
-        You pay with PayPal. The money is held until you accept the work, and only then is it released to the seller.
+        <T s={'You pay with PayPal. The money is held until you accept the work, and only then is it released to the seller.'} />
       </p>
       {err && (
         <p className="sob-err" role="alert" style={{ marginTop: 12 }}>
@@ -66,7 +71,7 @@ export function PayPalPay({ id, title, lines, totalCents, back, notice }: { id: 
           {busy ? tx('Opening PayPal…') : tx('Pay with PayPal')}
         </button>
         <Link className="btn ghost" href={back}>
-          Back
+          <T s={'Back'} />
         </Link>
       </div>
     </div>

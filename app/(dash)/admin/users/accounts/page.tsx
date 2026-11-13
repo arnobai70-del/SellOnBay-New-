@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Accounts', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Accounts'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Users({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
@@ -128,7 +128,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                         fields={[
                           {
                             name: 'action',
-                            label: 'Action',
+                            label: tx('Action'),
                             kind: 'select',
                             options: [
                               ['ban', 'Ban'],
@@ -137,7 +137,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                               ['clear_flag', 'Clear the flag'],
                             ],
                           },
-                          { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                          { name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
                         ]}
                       />
                       {u.role === 'admin' && scopes && u.id !== viewer?.id && (
@@ -154,7 +154,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                               value: (scopes.get(u.id) ?? []).join(', '),
                               required: true,
                             },
-                            { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                            { name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
                           ]}
                         />
                       )}

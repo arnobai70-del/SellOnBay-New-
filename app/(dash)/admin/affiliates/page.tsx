@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Affiliate Management', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Affiliate Management'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -146,7 +146,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                           body={{ action: 'move', id: a.id, to }}
                           label={STATUS_LABEL[to]}
                           tone="line"
-                          note={to === 'suspended' || to === 'rejected' ? { label: 'Reason (kept in the audit log)', required: true } : undefined}
+                          note={to === 'suspended' || to === 'rejected' ? { label: tx('Reason (kept in the audit log)'), required: true } : undefined}
                         />
                       ))}
                       {a.status === 'pending' && (
@@ -156,7 +156,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                             body={{ action: 'qualification', id: a.id, mode: 'extend' }}
                             label="Extend"
                             tone="line"
-                            note={{ label: 'Days to add (1 to 365)', required: true }}
+                            note={{ label: tx('Days to add (1 to 365)'), required: true }}
                           />
                           <ActionButton
                             endpoint={API}
@@ -255,7 +255,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                       </td>
                       <td>
                         {c.status !== 'reversed' && (
-                          <ActionButton endpoint={API} body={{ action: 'reverse', id: c.id }} label="Reverse" tone="line" note={{ label: 'Why (kept in the audit log)', required: true }} />
+                          <ActionButton endpoint={API} body={{ action: 'reverse', id: c.id }} label="Reverse" tone="line" note={{ label: tx('Why (kept in the audit log)'), required: true }} />
                         )}
                       </td>
                     </tr>
@@ -359,7 +359,7 @@ export default async function AdminAffiliates({ searchParams }: { searchParams: 
                             body={{ action: 'withdrawal', id: w.id, decision: 'paid' }}
                             label="Mark paid"
                             tone="line"
-                            note={{ label: 'Payout reference (after you have paid by hand)', required: true }}
+                            note={{ label: tx('Payout reference (after you have paid by hand)'), required: true }}
                           />
                           <ActionButton
                             endpoint={API}

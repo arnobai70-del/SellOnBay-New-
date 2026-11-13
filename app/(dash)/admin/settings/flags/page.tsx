@@ -7,7 +7,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Feature flags', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Feature flags'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const why = { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea' as const, required: true };

@@ -11,7 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Guides', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Guides'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TONE: Record<Post['status'], [string, PillTone]> = { draft: ['Draft', 'draft'], scheduled: ['Scheduled', 'info'], published: ['Published', 'ok'], unpublished: ['Unpublished', 'wait'] };
@@ -40,12 +40,12 @@ export default async function GuidesAdmin() {
           rowKey={(p) => p.id}
           empty="No guides yet. Write the first one."
           columns={[
-            { key: 'title', label: 'Title', cell: (p) => <Link href={`/admin/content/guides/edit?id=${p.id}`}>{p.title}</Link> },
-            { key: 'cat', label: 'Category', cell: (p) => p.category || '-' },
-            { key: 'updated', label: 'Changed', cell: (p) => shortDate(p.updatedAt) },
+            { key: 'title', label: tx('Title'), cell: (p) => <Link href={`/admin/content/guides/edit?id=${p.id}`}>{p.title}</Link> },
+            { key: 'cat', label: tx('Category'), cell: (p) => p.category || '-' },
+            { key: 'updated', label: tx('Changed'), cell: (p) => shortDate(p.updatedAt) },
             {
               key: 'state',
-              label: 'State',
+              label: tx('State'),
               cell: (p) => (
                 <StatusPill tone={TONE[p.status][1]}>
                   {TONE[p.status][0]}

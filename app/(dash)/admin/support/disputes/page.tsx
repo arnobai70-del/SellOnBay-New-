@@ -9,7 +9,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Disputes', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Disputes'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
@@ -126,7 +126,7 @@ export default async function Disputes() {
                 fields={[
                   {
                     name: 'decision',
-                    label: 'Decision',
+                    label: tx('Decision'),
                     kind: 'select',
                     options: [
                       ['refund_full', 'Refund the buyer in full'],
@@ -143,7 +143,7 @@ export default async function Disputes() {
                   },
                   {
                     name: 'liability',
-                    label: 'Whose fault was it? (recorded on the dispute)',
+                    label: tx('Whose fault was it? (recorded on the dispute)'),
                     kind: 'select',
                     options: [
                       ['platform', 'Us or nobody'],
@@ -153,10 +153,10 @@ export default async function Disputes() {
                   },
                   {
                     name: 'feeCents',
-                    label: 'What the dispute cost, in dollars (for example the payment provider fee; empty for none). Taken from the seller only when the seller was at fault.',
+                    label: tx('What the dispute cost, in dollars (for example the payment provider fee; empty for none). Taken from the seller only when the seller was at fault.'),
                     kind: 'dollars',
                   },
-                  { name: 'note', label: 'Note (both sides see the decision; keep contact details out)', kind: 'textarea' },
+                  { name: 'note', label: tx('Note (both sides see the decision; keep contact details out)'), kind: 'textarea' },
                 ]}
               />
               <small className="muted">

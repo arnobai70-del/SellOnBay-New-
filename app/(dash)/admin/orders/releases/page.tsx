@@ -11,7 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Releases', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Releases'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
@@ -189,10 +189,10 @@ export default async function Releases() {
           submit="Save"
           tone="line"
           fields={[
-            { name: 'orderId', label: 'Order id', kind: 'text', required: true },
+            { name: 'orderId', label: tx('Order id'), kind: 'text', required: true },
             {
               name: 'action',
-              label: 'Change',
+              label: tx('Change'),
               kind: 'select',
               options: [
                 ['suspend', 'Suspend'],

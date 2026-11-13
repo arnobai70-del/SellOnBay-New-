@@ -30,6 +30,40 @@ const PROPS = new Set([
   'busyText',
   'doneText',
 ]);
+// With --props, also `{ label: 'Subject' }` style text keys inside a component (field lists, table columns, menus built in the component).
+const TEXT_KEYS = new Set([
+  'label',
+  'title',
+  'heading',
+  'placeholder',
+  'hint',
+  'help',
+  'submit',
+  'empty',
+  'subtitle',
+  'description',
+  'note',
+  'lead',
+  'intro',
+  'confirm',
+  'cta',
+  'tip',
+  'caption',
+  'sub',
+  'desc',
+  'what',
+  'detail',
+]);
+const propsMode = process.argv.includes('--props');
+// Values that leave the page (sent to an API, kept as data) are never translated.
+const sentAway = (n) => {
+  for (let p = n.parent; p; p = p.parent) {
+    if (ts.isParameter(p)) return true; // a default value: the component's hook does not exist yet there
+    if (ts.isCallExpression(p) && /JSON\.stringify|fetch|\.post|send|FormData|append|setItem|track/.test(p.expression.getText())) return true;
+    if (ts.isJsxAttribute(p) && /^(fixed|data|value|defaultValue|name|id|key|href|action)$/.test(p.name.getText())) return true;
+  }
+  return false;
+};
 const SKIP_TAGS = new Set(['code', 'pre', 'script', 'style', 'T', 'kbd', 'samp']);
 const dry = process.argv.includes('--dry');
 const targets = process.argv.slice(2).filter((a) => !a.startsWith('--'));
@@ -80,7 +114,7 @@ for (const file of targets.flatMap(walk)) {
   const wrap = (lit) => {
     const text = lit.text;
     if (!translatable(text)) return;
-    if (text !== text.trim()) return void report.left.push(`${file}: spaced ${JSON.stringify(text)}`);
+    // spaced fragments such as " · draft" keep their spaces: the translations keep them too
     const comp = enclosingComponent(lit);
     const isAsync = comp?.modifiers?.some((m) => m.kind === ts.SyntaxKind.AsyncKeyword);
     if (!comp || !ts.isBlock(comp.body) || !(client || isAsync)) return void report.left.push(`${file}: ${JSON.stringify(text)}`);
@@ -95,6 +129,7 @@ for (const file of targets.flatMap(walk)) {
         results(node.expression).forEach(wrap); // a child
       else if (ts.isJsxAttribute(parent) && PROPS.has(parent.name.getText())) results(node.expression).forEach(wrap); // a text prop
     }
+    if (propsMode && ts.isPropertyAssignment(node) && TEXT_KEYS.has(node.name.getText().replace(/['"]/g, '')) && !inSkippedTag(node) && !sentAway(node)) results(node.initializer).forEach(wrap);
     node.forEachChild(visit);
   };
   visit(sf);

@@ -6,6 +6,7 @@ import { allowanceLeft, KIND_TEXT, OPEN_REVISION, windowEndsAt } from '@/lib/rev
 import { revisionSummary } from '@/lib/revisions/service';
 
 import { getI18n } from '@/lib/i18n/server';
+import { T } from '@/components/i18n/T';
 const STATUS_TEXT: Record<string, string> = {
   submitted: 'Waiting for SellOnBay to look at it',
   declined: 'Not possible under your terms',
@@ -32,12 +33,19 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
     <section className="sob-dp" aria-labelledby={`rev-${orderId}`} data-revisions={orderId}>
       <div className="hd">
         <div>
-          <h2 id={`rev-${orderId}`}>Changes and fixes</h2>
+          <h2 id={`rev-${orderId}`}>
+            <T s={'Changes and fixes'} />
+          </h2>
           <p className="sub">
-            {terms && terms.included > 0
-              ? `${allowanceLeft(terms, used)} of ${terms.included} included revisions left, until ${day(windowEndsAt(releasedAt, terms))}. Included: ${terms.scope}`
-              : tx('Your order has no included revisions. Changes are quoted separately.')}{' '}
-            Faults in what was delivered are always fixed free and never counted.
+            <T
+              s={'{v0} Faults in what was delivered are always fixed free and never counted.'}
+              v={{
+                v0:
+                  terms && terms.included > 0
+                    ? `${allowanceLeft(terms, used)} of ${terms.included} included revisions left, until ${day(windowEndsAt(releasedAt, terms))}. Included: ${terms.scope}`
+                    : tx('Your order has no included revisions. Changes are quoted separately.'),
+              }}
+            />
           </p>
         </div>
       </div>
@@ -46,11 +54,18 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
           {[...revisions].reverse().map((r) => (
             <li key={r.id} data-rev={r.status}>
               <div className="sob-grow">
-                <b>{STATUS_TEXT[r.status]}</b> · asked {day(r.createdAt)}
-                {r.kind ? ` · ${KIND_TEXT[r.kind]}` : ''}
+                <b>{STATUS_TEXT[r.status]}</b> <T s={'· asked {v0}{v1}'} v={{ v0: day(r.createdAt), v1: r.kind ? ` · ${KIND_TEXT[r.kind]}` : '' }} />
                 <p className="muted">{r.description}</p>
-                {r.decisionNote && <p>SellOnBay: {r.decisionNote}</p>}
-                {r.status === 'delivered' && r.deliveryNote && <p>What changed: {r.deliveryNote}</p>}
+                {r.decisionNote && (
+                  <p>
+                    <T s={'SellOnBay: {decisionNote}'} v={{ decisionNote: r.decisionNote }} />
+                  </p>
+                )}
+                {r.status === 'delivered' && r.deliveryNote && (
+                  <p>
+                    <T s={'What changed: {deliveryNote}'} v={{ deliveryNote: r.deliveryNote }} />
+                  </p>
+                )}
               </div>
               {r.status === 'delivered' && (
                 <div className="sob-act-row">
@@ -66,7 +81,7 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
                   <AdminForm
                     endpoint={`/api/orders/${orderId}/revisions/${r.id}`}
                     fixed={{ action: 'answer', answer: 'not_done' }}
-                    fields={[{ name: 'note', label: 'What is still not done', kind: 'textarea', required: true, max: 2000 }]}
+                    fields={[{ name: 'note', label: tx('What is still not done'), kind: 'textarea', required: true, max: 2000 }]}
                     openLabel="It is not done"
                     submit="Send it back"
                     tone="line"
@@ -78,7 +93,9 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
         </ul>
       )}
       {open ? (
-        <p className="muted">One change request at a time: this one needs to finish first.</p>
+        <p className="muted">
+          <T s={'One change request at a time: this one needs to finish first.'} />
+        </p>
       ) : (
         <AdminForm
           endpoint={`/api/orders/${orderId}/revisions`}
@@ -87,7 +104,7 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
           fields={[
             {
               name: 'hint',
-              label: 'What is it?',
+              label: tx('What is it?'),
               kind: 'select',
               options: [
                 ['change', 'A change I would like'],
@@ -95,8 +112,8 @@ export async function RevisionPanel({ orderId }: { orderId: string }) {
               ],
               required: true,
             },
-            { name: 'description', label: 'Describe it', kind: 'textarea', required: true, max: 4000, hint: 'No emails, phone numbers or links: SellOnBay passes it on.' },
-            { name: 'consent', label: 'I agree that paid changes are quoted first and paid into escrow before work starts.', kind: 'checkbox', required: true },
+            { name: 'description', label: tx('Describe it'), kind: 'textarea', required: true, max: 4000, hint: tx('No emails, phone numbers or links: SellOnBay passes it on.') },
+            { name: 'consent', label: tx('I agree that paid changes are quoted first and paid into escrow before work starts.'), kind: 'checkbox', required: true },
           ]}
         />
       )}

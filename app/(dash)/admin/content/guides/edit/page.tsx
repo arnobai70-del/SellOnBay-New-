@@ -6,7 +6,7 @@ import { allPosts, postById } from '@/lib/posts';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Edit guide', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit guide'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const CATEGORIES = ['Getting started', 'Buying a website', 'Domains', 'Selling', 'Design', 'Marketing', 'Technology'];

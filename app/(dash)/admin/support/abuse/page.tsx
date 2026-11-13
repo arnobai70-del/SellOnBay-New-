@@ -6,7 +6,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Abuse reports', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Abuse reports'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Abuse() {
@@ -37,7 +37,7 @@ export default async function Abuse() {
             <p>{r.reason}</p>
             <small className="muted">
               {new Date(r.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-              {r.slug ? ` · listing ${r.slug} · ${r.reporters} different ${r.reporters === 1 ? 'reporter' : 'reporters'}, ${r.verifiedReporters} verified` : ' · not a listing on this site'}
+              {r.slug ? ` · listing ${r.slug} · ${r.reporters} different ${r.reporters === 1 ? 'reporter' : 'reporters'}, ${r.verifiedReporters} verified` : tx(' · not a listing on this site')}
             </small>
             <AdminForm
               endpoint={`/api/admin/abuse/${r.id}/decide`}
@@ -47,7 +47,7 @@ export default async function Abuse() {
               fields={[
                 {
                   name: 'decision',
-                  label: 'Decision',
+                  label: tx('Decision'),
                   kind: 'select',
                   options: [
                     ['suspend', 'Suspend the site'],
@@ -55,7 +55,7 @@ export default async function Abuse() {
                     ['reinstate', 'Put the site back (it was paused)'],
                   ],
                 },
-                { name: 'note', label: 'Note', kind: 'textarea' },
+                { name: 'note', label: tx('Note'), kind: 'textarea' },
               ]}
             />
           </div>

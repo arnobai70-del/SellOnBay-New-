@@ -8,7 +8,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Beta requests', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Beta requests'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Free beta requests and the feedback that comes back. This screen moves into Orders & payments with the admin redesign (Phase 6). */
@@ -51,7 +51,7 @@ export default async function BetaRequests() {
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
                 <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Approve" body={{ decision: 'approve' }} />
-                <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Decline" tone="line" body={{ decision: 'decline' }} note={{ label: 'Reason for the buyer', required: true }} />
+                <ActionButton endpoint={`/api/admin/beta/${r.orderId}`} label="Decline" tone="line" body={{ decision: 'decline' }} note={{ label: tx('Reason for the buyer'), required: true }} />
               </div>
             )}
             {f && (

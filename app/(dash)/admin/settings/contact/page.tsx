@@ -5,7 +5,7 @@ import { contactRoutes, savedSocial } from '@/lib/site/contentStore';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Contact and social', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Contact and social'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Admin › Settings › Contact & social (owner, 2026-11-08). Super Admin; every change is in the audit log. */

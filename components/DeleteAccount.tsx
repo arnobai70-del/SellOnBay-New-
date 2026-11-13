@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 /* Asks the person to type DELETE, then sends the request. The server decides whether it can go ahead. */
 export function DeleteAccount() {
   const tx = useTx(); // words in the page's language (lib/i18n/tx.ts)
@@ -32,7 +33,9 @@ export function DeleteAccount() {
       }}
     >
       <div className="field">
-        <label htmlFor="del-confirm">Type DELETE to confirm</label>
+        <label htmlFor="del-confirm">
+          <T s={'Type DELETE to confirm'} />
+        </label>
         <input id="del-confirm" value={text} onChange={(e) => setText(e.target.value)} autoComplete="off" />
       </div>
       <button className="btn warn sm" type="submit" disabled={busy || text !== 'DELETE'}>

@@ -126,7 +126,7 @@ export function GuideEditor({ initial, categories }: { initial: GuideFields; cat
       Figure,
       Youtube.configure({ nocookie: true, width: 640, height: 360 }),
       CharacterCount,
-      Placeholder.configure({ placeholder: 'Write, or type / for a block' }),
+      Placeholder.configure({ placeholder: tx('Write, or type / for a block') }),
       Callout,
       Cta,
       Gallery,

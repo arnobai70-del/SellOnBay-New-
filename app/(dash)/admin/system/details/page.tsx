@@ -5,7 +5,7 @@ import { systemSnapshot } from '@/lib/admin/system';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Server and system', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Server and system'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Read only: how the site, the database, the cache, email, payments and the scheduled jobs are doing. Super Admin with the authenticator code. */

@@ -4,7 +4,7 @@ import { audit, auditStrict } from '../admin/audit';
 import { hasScope, type AdminScope } from '../admin/scopes';
 import { orderStore } from '../orders/store';
 import { createAdminClient } from '../supabase/server';
-import { checkDoc, docScopes, publishProblem, type DocName, type EmailDoc, type FaqDoc, type HowDoc } from './docs';
+import { checkDoc, docScopes, emailDocName, publishProblem, type DocName, type EmailDoc, type FaqDoc, type HowDoc } from './docs';
 import { recordRevision } from './history';
 
 /*
@@ -113,4 +113,5 @@ export async function publishValue(adminId: string | null, name: DocName, value:
 /* What public pages and emails read. */
 export const publishedFaq = async () => (await publishedOf<FaqDoc>('faq'))?.data ?? null;
 export const publishedHow = async () => (await publishedOf<HowDoc>('how_it_works'))?.data ?? null;
-export const publishedEmail = async (kind: string) => (await publishedOf<EmailDoc>(`email:${kind}`))?.data ?? null;
+/* The published template of one email in one language (English by default). */
+export const publishedEmail = async (kind: string, lang = 'en') => (await publishedOf<EmailDoc>(emailDocName(kind, lang)))?.data ?? null;

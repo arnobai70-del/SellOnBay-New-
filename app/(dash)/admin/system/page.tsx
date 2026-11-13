@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Server health', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Server health'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TONE: Record<Level, 'ok' | 'wait' | 'bad' | 'draft'> = { ok: 'ok', warn: 'wait', bad: 'bad', off: 'draft' };

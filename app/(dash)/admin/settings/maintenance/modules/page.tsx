@@ -8,7 +8,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Maintenance Manager', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Maintenance Manager'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const when = (ms: number | null) => (ms ? new Date(ms).toUTCString().replace(/:\d\d GMT$/, ' UTC') : '');
@@ -63,7 +63,7 @@ export default async function MaintenanceManager() {
               {(m.startAt || m.endAt) && (
                 <small className="muted">
                   {m.startAt ? `From ${when(m.startAt)}` : tx('From now')}
-                  {m.endAt ? ` until ${when(m.endAt)}` : ' until turned off'}
+                  {m.endAt ? ` until ${when(m.endAt)}` : tx(' until turned off')}
                 </small>
               )}
               <MaintenanceForm

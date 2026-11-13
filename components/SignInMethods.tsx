@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 type Row = { provider: string; label: string; since: string | null; linked: boolean; available: boolean };
 
 /* The account's sign-in methods with Link and Remove (app/api/account/links). The server decides everything; this only sends the choice. */
@@ -28,7 +29,16 @@ export function SignInMethods({ rows, canLink }: { rows: Row[]; canLink: boolean
         {rows.map((r) => (
           <li key={r.provider}>
             <div className="sob-grow">
-              <b>{r.label}</b> {r.linked ? <span className="muted">· linked{r.since ? ` since ${r.since}` : ''}</span> : <span className="muted">· not linked</span>}
+              <b>{r.label}</b>{' '}
+              {r.linked ? (
+                <span className="muted">
+                  <T s={'· linked{v0}'} v={{ v0: r.since ? ` since ${r.since}` : '' }} />
+                </span>
+              ) : (
+                <span className="muted">
+                  <T s={'· not linked'} />
+                </span>
+              )}
             </div>
             {r.linked && r.provider !== 'email' ? (
               <button type="button" className="btn ghost sm" disabled={!!busy} onClick={() => send('unlink', r.provider)}>
@@ -39,7 +49,9 @@ export function SignInMethods({ rows, canLink }: { rows: Row[]; canLink: boolean
                 {busy === r.provider ? tx('Opening...') : tx('Link')}
               </button>
             ) : !r.linked ? (
-              <small className="muted">Not available yet</small>
+              <small className="muted">
+                <T s={'Not available yet'} />
+              </small>
             ) : null}
           </li>
         ))}

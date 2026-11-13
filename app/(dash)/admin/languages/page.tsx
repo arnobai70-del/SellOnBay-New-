@@ -13,7 +13,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Language Management', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Language Management'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TABS = [
@@ -173,7 +173,7 @@ export default async function LanguagesAdmin({ searchParams }: { searchParams: P
             <select className="input" name="lang" defaultValue={lang}>
               {others.map((l) => (
                 <option key={l.code} value={l.code}>
-                  {l.name} ({l.native}){l.enabled && l.published ? '' : ' · draft'}
+                  {l.name} ({l.native}){l.enabled && l.published ? '' : tx(' · draft')}
                 </option>
               ))}
             </select>

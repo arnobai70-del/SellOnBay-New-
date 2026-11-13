@@ -6,7 +6,8 @@ import { requireViewer } from '@/lib/supabase/viewer';
 import { FeedbackForm } from './FeedbackForm';
 
 import { T } from '@/components/i18n/T';
-export const metadata: Metadata = { title: 'Your feedback', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Your feedback'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Feedback({ params }: { params: Promise<{ id: string }> }) {

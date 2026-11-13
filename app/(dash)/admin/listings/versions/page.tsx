@@ -6,7 +6,7 @@ import { reviewQueue } from '@/lib/versions';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'New versions', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('New versions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Versions() {
@@ -57,15 +57,15 @@ export default async function Versions() {
               fields={[
                 {
                   name: 'decision',
-                  label: 'Decision',
+                  label: tx('Decision'),
                   kind: 'select',
                   options: [
                     ['approve', 'Approve and tell the buyers'],
                     ['reject', 'Reject'],
                   ],
                 },
-                { name: 'note', label: 'Note for the seller (needed to reject)', kind: 'textarea' },
-                { name: 'filesChecked', label: 'I opened the new files in a sandbox and they are clean (needed to approve)', kind: 'checkbox' },
+                { name: 'note', label: tx('Note for the seller (needed to reject)'), kind: 'textarea' },
+                { name: 'filesChecked', label: tx('I opened the new files in a sandbox and they are clean (needed to approve)'), kind: 'checkbox' },
               ]}
             />
           </div>

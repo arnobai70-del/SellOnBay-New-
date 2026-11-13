@@ -9,7 +9,7 @@ import { getViewerId, requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Messages', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Messages'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Messages({ searchParams }: { searchParams: Promise<{ view?: string }> }) {

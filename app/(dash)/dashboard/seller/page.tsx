@@ -12,7 +12,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Seller overview', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Seller overview'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const PERIODS = { '7d': ['7 days', 7], '30d': ['30 days', 30], '1y': ['1 year', 365] } as const;
@@ -50,16 +50,16 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
   const paidYear = v ? v.payouts.filter((p) => p.status === 'paid' && (p.paidAt ?? 0) >= yearFrom).reduce((s, p) => s + p.amountCents, 0) : 0;
   const steps = v
     ? [
-        { done: !!store?.username, label: 'Store', text: 'Choose your store name', href: '/dashboard/seller/store', act: 'Set' },
-        { done: !!v.health.payoutLabel, label: 'Payout', text: 'Add where we send your earnings', href: '/dashboard/seller/payouts', act: 'Add' },
+        { done: !!store?.username, label: tx('Store'), text: 'Choose your store name', href: '/dashboard/seller/store', act: 'Set' },
+        { done: !!v.health.payoutLabel, label: tx('Payout'), text: 'Add where we send your earnings', href: '/dashboard/seller/payouts', act: 'Add' },
         {
           done: data!.verification.status === 'approved' || data!.verification.status === 'pending',
-          label: 'Identity',
+          label: tx('Identity'),
           text: 'Verify your identity',
           href: '/dashboard/seller/payouts#verify',
           act: 'Verify',
         },
-        { done: v.listings.length > 0, label: 'Listing', text: 'Upload your first website', href: '/dashboard/seller/websites/new', act: 'Upload' },
+        { done: v.listings.length > 0, label: tx('Listing'), text: 'Upload your first website', href: '/dashboard/seller/websites/new', act: 'Upload' },
       ]
     : [];
   const todo = v
@@ -70,7 +70,7 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
           .map((l) => ({
             key: l.slug,
             tone: 'st-wait',
-            label: 'Listing',
+            label: tx('Listing'),
             text: `${plainWords(l.name)}: ${l.reviewNote ?? 'sent back for changes'}`,
             href: `/dashboard/seller/websites/new?edit=${encodeURIComponent(l.slug)}`,
             act: 'Fix',
@@ -78,16 +78,16 @@ export default async function SellerOverview({ searchParams }: { searchParams: P
         ...v.toDeliver.map(({ order: o }) => ({
           key: o.id,
           tone: 'st-info',
-          label: 'Deliver',
+          label: tx('Deliver'),
           text: `${plainWords(o.title)}${o.dueAt ? ` · due ${new Date(o.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}`,
           href: `/orders/${o.id}`,
           act: 'Deliver',
         })),
-        ...data!.questions.filter((q) => !q.reply).map((q) => ({ key: q.id, tone: 'st-info', label: 'Question', text: `A buyer asked about ${q.product_key}`, href: '#questions', act: 'Reply' })),
+        ...data!.questions.filter((q) => !q.reply).map((q) => ({ key: q.id, tone: 'st-info', label: tx('Question'), text: `A buyer asked about ${q.product_key}`, href: '#questions', act: 'Reply' })),
         ...v.extras.map(({ order: o, request: r }) => ({
           key: r.id,
           tone: 'st-wait',
-          label: 'Extra',
+          label: tx('Extra'),
           text: `Extra work on ${plainWords(o.title)} waits for the buyer`,
           href: `/orders/${o.id}`,
           act: 'Open',

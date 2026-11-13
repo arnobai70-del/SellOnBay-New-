@@ -11,7 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Your request', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Your request'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* An issued quotation can be accepted until its end (the server checks again on accept). */
@@ -59,7 +59,9 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
             </>
           )}
         </dl>
-        {r.status === 'needs_info' && <ActionButton endpoint={`/api/requests/${r.id}`} body={{ action: 'answer' }} label="Answer SellOnBay" note={{ label: 'Your answer', required: true, rows: 4 }} />}
+        {r.status === 'needs_info' && (
+          <ActionButton endpoint={`/api/requests/${r.id}`} body={{ action: 'answer' }} label="Answer SellOnBay" note={{ label: tx('Your answer'), required: true, rows: 4 }} />
+        )}
         {r.kind === 'custom_dev' && r.verifiedRequirements && (
           <div className="glass card sob-sec" style={{ marginTop: 16 }} data-requirements>
             <h3>
@@ -180,7 +182,7 @@ export default async function BuyerRequest({ params }: { params: Promise<{ id: s
                 confirm={`You accept this exact quotation (${usd(q.totalCents)}) and its terms. An order is created and SellOnBay sends payment instructions. Files are released only after your payment is verified and approved.`}
                 goTo={(j) => (typeof j.order === 'string' ? `/orders/${j.order}` : null)}
               />
-              <ActionButton endpoint={`/api/quotations/${q.id}`} body={{ action: 'reject' }} label="Decline or ask for changes" tone="line" note={{ label: 'What should change? (optional)' }} />
+              <ActionButton endpoint={`/api/quotations/${q.id}`} body={{ action: 'reject' }} label="Decline or ask for changes" tone="line" note={{ label: tx('What should change? (optional)') }} />
             </div>
           )}
           {q.status === 'accepted' && q.orderId && (

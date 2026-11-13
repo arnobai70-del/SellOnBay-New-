@@ -8,7 +8,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Payments to check', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Payments to check'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
@@ -75,10 +75,10 @@ export default async function PaymentsReview() {
                       submit="Reconcile"
                       tone="blue"
                       fields={[
-                        { name: 'amountReceived', label: 'Amount that actually arrived (in the method currency)', kind: 'text', required: true },
-                        { name: 'statementRef', label: 'Reference on your statement', kind: 'text', required: true },
-                        { name: 'receivedOn', label: 'Date it arrived (YYYY-MM-DD)', kind: 'text', required: true },
-                        { name: 'note', label: 'Note (optional)', kind: 'textarea' },
+                        { name: 'amountReceived', label: tx('Amount that actually arrived (in the method currency)'), kind: 'text', required: true },
+                        { name: 'statementRef', label: tx('Reference on your statement'), kind: 'text', required: true },
+                        { name: 'receivedOn', label: tx('Date it arrived (YYYY-MM-DD)'), kind: 'text', required: true },
+                        { name: 'note', label: tx('Note (optional)'), kind: 'textarea' },
                       ]}
                     />
                     <AdminForm
@@ -87,7 +87,7 @@ export default async function PaymentsReview() {
                       openLabel="Not received"
                       submit="Reject"
                       tone="line"
-                      fields={[{ ...why, label: 'Why (the buyer sees it)' }]}
+                      fields={[{ ...why, label: tx('Why (the buyer sees it)') }]}
                     />
                   </div>
                 </div>
@@ -133,8 +133,8 @@ export default async function PaymentsReview() {
                       submit="Record"
                       tone="blue"
                       fields={[
-                        { name: 'method', label: 'How the money was sent back', kind: 'text', required: true },
-                        { name: 'reference', label: 'Reference of the refund payment', kind: 'text', required: true },
+                        { name: 'method', label: tx('How the money was sent back'), kind: 'text', required: true },
+                        { name: 'reference', label: tx('Reference of the refund payment'), kind: 'text', required: true },
                       ]}
                     />
                   )}
@@ -162,7 +162,7 @@ export default async function PaymentsReview() {
           openLabel="Refund an order"
           submit="Refund"
           tone="line"
-          fields={[{ name: 'orderId', label: 'Order id', kind: 'text', required: true }, why]}
+          fields={[{ name: 'orderId', label: tx('Order id'), kind: 'text', required: true }, why]}
         />
       </div>
 
@@ -192,12 +192,12 @@ export default async function PaymentsReview() {
                   submit="Save"
                   tone="line"
                   fields={[
-                    { name: 'label', label: 'Name', kind: 'text', value: m.label, required: true },
-                    { name: 'instructions', label: 'Instructions buyers see', kind: 'textarea', value: m.instructions, required: true },
-                    { name: 'currency', label: 'Currency', kind: 'text', value: m.currency, required: true },
+                    { name: 'label', label: tx('Name'), kind: 'text', value: m.label, required: true },
+                    { name: 'instructions', label: tx('Instructions buyers see'), kind: 'textarea', value: m.instructions, required: true },
+                    { name: 'currency', label: tx('Currency'), kind: 'text', value: m.currency, required: true },
                     {
                       name: 'active',
-                      label: 'Shown to buyers',
+                      label: tx('Shown to buyers'),
                       kind: 'select',
                       options: [
                         ['off', 'Hidden'],
@@ -219,19 +219,19 @@ export default async function PaymentsReview() {
           fields={[
             {
               name: 'kind',
-              label: 'Kind',
+              label: tx('Kind'),
               kind: 'select',
               options: [
                 ['bank_transfer', 'Business bank transfer'],
                 ['local_wallet', 'Local wallet'],
               ],
             },
-            { name: 'label', label: 'Name', kind: 'text', required: true },
-            { name: 'instructions', label: 'Instructions buyers see (account details)', kind: 'textarea', required: true },
-            { name: 'currency', label: 'Currency', kind: 'text', value: 'USD', required: true },
+            { name: 'label', label: tx('Name'), kind: 'text', required: true },
+            { name: 'instructions', label: tx('Instructions buyers see (account details)'), kind: 'textarea', required: true },
+            { name: 'currency', label: tx('Currency'), kind: 'text', value: 'USD', required: true },
             {
               name: 'active',
-              label: 'Shown to buyers',
+              label: tx('Shown to buyers'),
               kind: 'select',
               options: [
                 ['off', 'Hidden for now'],

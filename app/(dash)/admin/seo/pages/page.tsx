@@ -13,7 +13,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Page titles and descriptions', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Page titles and descriptions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const LAYOUT_DESCRIPTION = 'The site-wide description';
@@ -108,7 +108,7 @@ export default async function SeoPages() {
                   fields={[
                     {
                       name: 'title',
-                      label: 'Meta title',
+                      label: tx('Meta title'),
                       kind: 'text',
                       value: s.title,
                       max: PAGE_SEO_MAX.title,
@@ -116,7 +116,7 @@ export default async function SeoPages() {
                     },
                     {
                       name: 'description',
-                      label: 'Meta description',
+                      label: tx('Meta description'),
                       kind: 'textarea',
                       value: s.description,
                       max: PAGE_SEO_MAX.description,

@@ -16,7 +16,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Users and roles', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Users and roles'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const DOC: Record<string, string> = { passport: 'Passport', national_id: 'National ID card', driver_licence: 'Driver licence' };
@@ -307,7 +307,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                             label="Reject"
                             tone="line"
                             body={{ decision: 'reject' }}
-                            note={{ label: 'Reason for the seller', required: true }}
+                            note={{ label: tx('Reason for the seller'), required: true }}
                           />
                         </div>
                       </td>
@@ -485,7 +485,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                             fields={[
                               {
                                 name: 'action',
-                                label: 'What to do',
+                                label: tx('What to do'),
                                 kind: 'select',
                                 options: [
                                   [u.banned ? 'unban' : 'ban', u.banned ? 'Unban' : 'Ban'],
@@ -493,7 +493,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                                   ['clear_flag', 'Clear the flag'],
                                 ],
                               },
-                              { name: 'note', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                              { name: 'note', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
                             ]}
                           />
                         )}
@@ -540,7 +540,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                   fields={[
                     {
                       name: 'decision',
-                      label: 'Decision',
+                      label: tx('Decision'),
                       kind: 'select',
                       options: [
                         ['approve', 'Approve and publish'],
@@ -548,7 +548,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                         ['reject', 'Reject'],
                       ],
                     },
-                    { name: 'note', label: 'Note for the developer (needed unless you approve)', kind: 'textarea' },
+                    { name: 'note', label: tx('Note for the developer (needed unless you approve)'), kind: 'textarea' },
                   ]}
                 />
               </div>

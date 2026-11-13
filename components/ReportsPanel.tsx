@@ -46,16 +46,16 @@ export async function ReportsPanel({ me, scope, bare = false }: { me: string; sc
           openLabel="Export"
           submit="Make the PDF"
           fields={[
-            { name: 'from', label: 'From (YYYY-MM-DD, by payment date)', kind: 'text', value: monthAgo, max: 10, required: true },
-            { name: 'to', label: 'To (YYYY-MM-DD)', kind: 'text', value: today, max: 10, required: true },
-            { name: 'statuses', label: 'Status', kind: 'select', options: [['', 'All'], ...SALE_STATES.map((s) => [s, s.replace(/_/g, ' ')] as [string, string])] },
+            { name: 'from', label: tx('From (YYYY-MM-DD, by payment date)'), kind: 'text', value: monthAgo, max: 10, required: true },
+            { name: 'to', label: tx('To (YYYY-MM-DD)'), kind: 'text', value: today, max: 10, required: true },
+            { name: 'statuses', label: tx('Status'), kind: 'select', options: [['', 'All'], ...SALE_STATES.map((s) => [s, s.replace(/_/g, ' ')] as [string, string])] },
             ...(scope === 'admin'
               ? [
-                  { name: 'sellerId', label: 'Seller account id (optional)', kind: 'text' as const, max: 36 },
-                  { name: 'productId', label: 'Product id (optional)', kind: 'text' as const, max: 36 },
+                  { name: 'sellerId', label: tx('Seller account id (optional)'), kind: 'text' as const, max: 36 },
+                  { name: 'productId', label: tx('Product id (optional)'), kind: 'text' as const, max: 36 },
                   {
                     name: 'ownerType',
-                    label: 'Owner',
+                    label: tx('Owner'),
                     kind: 'select' as const,
                     options: [
                       ['', 'Sellers and SellOnBay'],

@@ -9,7 +9,8 @@ import { METRICS, METRIC_LABEL } from '@/lib/metrics';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
-export const metadata: Metadata = { title: 'Daily report', robots: { index: false } };
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Daily report'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function DailyReport({ searchParams }: { searchParams: Promise<{ day?: string }> }) {

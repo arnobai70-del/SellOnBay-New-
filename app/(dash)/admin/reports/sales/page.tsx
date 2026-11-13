@@ -4,7 +4,7 @@ import { ReportsPanel } from '@/components/ReportsPanel';
 import { requireViewer } from '@/lib/supabase/viewer';
 
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Sales reports', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Sales reports'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Finance (and Super) export all sales as PDFs. Other admin permissions have no financial exports (Blueprint 8.2). */

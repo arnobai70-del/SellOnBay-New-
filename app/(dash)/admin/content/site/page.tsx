@@ -16,7 +16,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Site builder', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Site builder'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TABS: [string, string][] = [
@@ -81,7 +81,7 @@ export default async function SiteBuilderPage({ searchParams }: { searchParams: 
               fixed={{ kind: 'social' }}
               open
               submit="Save social links"
-              fields={[{ name: 'value', label: 'Social links', kind: 'textarea', max: 3000, value: (await savedSocial(0)).map((l) => `${l.network} ${l.url}`).join('\n') }]}
+              fields={[{ name: 'value', label: tx('Social links'), kind: 'textarea', max: 3000, value: (await savedSocial(0)).map((l) => `${l.network} ${l.url}`).join('\n') }]}
             />
           </div>
         )}

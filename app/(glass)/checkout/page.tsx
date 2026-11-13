@@ -22,7 +22,7 @@ import { BetaForm } from './BetaForm';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Checkout', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Checkout'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 type Search = { ids?: string; id?: string; pkg?: string };

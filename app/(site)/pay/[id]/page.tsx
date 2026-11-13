@@ -10,7 +10,9 @@ import { ManualPayForm } from '@/components/ManualPayForm';
 import { orderCode } from '@/lib/payments/rules';
 import { attemptsFor, listMethods } from '@/lib/payments/store';
 
-export const metadata: Metadata = { title: 'Pay', robots: { index: false } };
+import { T } from '@/components/i18n/T';
+import { getI18n } from '@/lib/i18n/server';
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Pay'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 export default async function Pay({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ failed?: string; cancelled?: string; pending?: string }> }) {
@@ -37,11 +39,16 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
     };
     return (
       <div className="wrap" style={{ paddingBlock: 40, maxWidth: 760 }} data-manual-pay-page>
-        <h1>Pay for {o.title}</h1>
+        <h1>
+          <T s={'Pay for {title}'} v={{ title: o.title }} />
+        </h1>
         <p className="muted" style={{ marginTop: 8 }}>
-          Total {(o.priceCents / 100).toFixed(2)} {o.currency}
-          {received > 0 ? `; received so far ${(received / 100).toFixed(2)}; still due ${(due / 100).toFixed(2)}` : ''}. Your order reference is <b>{orderCode(o.id)}</b>. Your files are released only
-          after your payment is verified and SellOnBay approves the release.
+          <T
+            s={'Total {v0} {currency}{v2}. Your order reference is'}
+            v={{ v0: (o.priceCents / 100).toFixed(2), currency: o.currency, v2: received > 0 ? `; received so far ${(received / 100).toFixed(2)}; still due ${(due / 100).toFixed(2)}` : '' }}
+          />{' '}
+          <b>{orderCode(o.id)}</b>
+          <T s={'. Your files are released only after your payment is verified and SellOnBay approves the release.'} />
         </p>
         {attempts.length > 0 && (
           <ul className="sob-lst" style={{ marginTop: 16 }}>
@@ -49,7 +56,7 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
               <li key={a.id}>
                 <div className="sob-grow">
                   <b>
-                    {(a.amountClaimedCents / 100).toFixed(2)} {a.currency}, reference {a.reference}
+                    <T s={'{v0} {currency}, reference {reference}'} v={{ v0: (a.amountClaimedCents / 100).toFixed(2), currency: a.currency, reference: a.reference }} />
                   </b>
                   <small>
                     {words[a.status] ?? a.status}
@@ -62,7 +69,9 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
         )}
         {o.state === 'payment_review' ? (
           <p className="note" role="status" style={{ marginTop: 16 }}>
-            <span>Finance is checking your payment. You will be told as soon as it is confirmed.</span>
+            <span>
+              <T s={'Finance is checking your payment. You will be told as soon as it is confirmed.'} />
+            </span>
           </p>
         ) : (
           <div style={{ marginTop: 16 }}>
@@ -90,16 +99,21 @@ export default async function Pay({ params, searchParams }: { params: Promise<{ 
   if (!canUseDemoPayment(o)) {
     return (
       <div className="wrap" style={{ paddingBlock: 80, maxWidth: 700 }}>
-        <h1>Checkout is not available yet</h1>
+        <h1>
+          <T s={'Checkout is not available yet'} />
+        </h1>
         <p className="muted" style={{ marginTop: 16 }}>
-          This is a real seller or developer order. SellOnBay does not yet have a verified payment provider connected. Test cards cannot be used to pay for real orders, and no money has been
-          collected.
+          <T
+            s={
+              'This is a real seller or developer order. SellOnBay does not yet have a verified payment provider connected. Test cards cannot be used to pay for real orders, and no money has been collected.'
+            }
+          />
         </p>
         <p className="muted" style={{ marginTop: 12 }}>
-          Your order is awaiting payment and will not be delivered or funded until a real checkout is available.
+          <T s={'Your order is awaiting payment and will not be delivered or funded until a real checkout is available.'} />
         </p>
         <Link href={back} className="btn" style={{ marginTop: 24 }}>
-          Return to listing
+          <T s={'Return to listing'} />
         </Link>
       </div>
     );

@@ -7,7 +7,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Promotions', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Promotions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
@@ -62,7 +62,7 @@ export default async function AdminPromotions() {
                     openLabel="Reject"
                     submit="Reject"
                     tone="line"
-                    fields={[{ name: 'note', label: 'What to change', kind: 'textarea', required: true, max: 500 }]}
+                    fields={[{ name: 'note', label: tx('What to change'), kind: 'textarea', required: true, max: 500 }]}
                   />
                 </div>
               </li>

@@ -9,7 +9,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Purchase requests', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Purchase requests'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const age = (ms: number) => {
@@ -67,14 +67,14 @@ export default async function Requests() {
                       fields={[
                         {
                           name: 'action',
-                          label: 'Decision',
+                          label: tx('Decision'),
                           kind: 'select',
                           options: [
                             ['approve_override', 'Approve this price and send it to the buyer'],
                             ['decline_override', 'Send it back as a draft'],
                           ],
                         },
-                        { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                        { name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
                       ]}
                     />
                   ) : (

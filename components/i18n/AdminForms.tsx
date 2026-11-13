@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { Language } from '@/lib/i18n/config';
 
 import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 /* Admin › Language Management forms (owner, 2026-11-12), all through POST /api/admin/languages. */
 async function post(body: Record<string, unknown>) {
   const r = await fetch('/api/admin/languages', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
@@ -51,14 +52,30 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
         <table>
           <thead>
             <tr>
-              <th>Order</th>
-              <th>Code</th>
-              <th>Name</th>
-              <th>Shown as</th>
-              <th>Direction</th>
-              <th>On</th>
-              <th>Published</th>
-              <th>Default</th>
+              <th>
+                <T s={'Order'} />
+              </th>
+              <th>
+                <T s={'Code'} />
+              </th>
+              <th>
+                <T s={'Name'} />
+              </th>
+              <th>
+                <T s={'Shown as'} />
+              </th>
+              <th>
+                <T s={'Direction'} />
+              </th>
+              <th>
+                <T s={'On'} />
+              </th>
+              <th>
+                <T s={'Published'} />
+              </th>
+              <th>
+                <T s={'Default'} />
+              </th>
               <th />
             </tr>
           </thead>
@@ -67,10 +84,10 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
               <tr key={l.code}>
                 <td style={{ whiteSpace: 'nowrap' }}>
                   <button type="button" className="btn sm ghost" aria-label={`Move ${l.name} up`} onClick={() => move(i, -1)} disabled={i === 0}>
-                    Up
+                    <T s={'Up'} />
                   </button>{' '}
                   <button type="button" className="btn sm ghost" aria-label={`Move ${l.name} down`} onClick={() => move(i, 1)} disabled={i === list.length - 1}>
-                    Down
+                    <T s={'Down'} />
                   </button>
                 </td>
                 <td>{l.code}</td>
@@ -82,8 +99,12 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
                 </td>
                 <td>
                   <select aria-label={`${l.code} direction`} className="input" value={l.dir} onChange={(e) => up(l.code, { dir: e.target.value === 'rtl' ? 'rtl' : 'ltr' })} disabled={l.code === 'en'}>
-                    <option value="ltr">Left to right</option>
-                    <option value="rtl">Right to left</option>
+                    <option value="ltr">
+                      <T s={'Left to right'} />
+                    </option>
+                    <option value="rtl">
+                      <T s={'Right to left'} />
+                    </option>
                   </select>
                 </td>
                 <td>
@@ -98,7 +119,7 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
                 <td>
                   {!builtin.includes(l.code) && (
                     <button type="button" className="btn sm ghost" onClick={() => setList(list.filter((x) => x.code !== l.code))}>
-                      Remove
+                      <T s={'Remove'} />
                     </button>
                   )}
                 </td>
@@ -108,24 +129,30 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
         </table>
       </div>
       <fieldset style={{ border: '1px solid #DCE7EC', borderRadius: 14, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <legend className="tag">Add a language</legend>
+        <legend className="tag">
+          <T s={'Add a language'} />
+        </legend>
         <label className="field">
-          Code (like it or zh-tw)
+          <T s={'Code (like it or zh-tw)'} />
           <input className="input" value={add.code} maxLength={5} onChange={(e) => setAdd({ ...add, code: e.target.value.toLowerCase() })} style={{ width: 110 }} />
         </label>
         <label className="field">
-          Name
+          <T s={'Name'} />
           <input className="input" value={add.name} maxLength={40} onChange={(e) => setAdd({ ...add, name: e.target.value })} />
         </label>
         <label className="field">
-          Shown as
+          <T s={'Shown as'} />
           <input className="input" value={add.native} maxLength={40} onChange={(e) => setAdd({ ...add, native: e.target.value })} />
         </label>
         <label className="field">
-          Direction
+          <T s={'Direction'} />
           <select className="input" value={add.dir} onChange={(e) => setAdd({ ...add, dir: e.target.value === 'rtl' ? 'rtl' : 'ltr' })}>
-            <option value="ltr">Left to right</option>
-            <option value="rtl">Right to left</option>
+            <option value="ltr">
+              <T s={'Left to right'} />
+            </option>
+            <option value="rtl">
+              <T s={'Right to left'} />
+            </option>
           </select>
         </label>
         <button
@@ -137,15 +164,15 @@ export function LanguagesForm({ initial, defaultLang, builtin }: { initial: Lang
             setAdd({ code: '', name: '', native: '', dir: 'ltr' });
           }}
         >
-          + Add
+          <T s={'+ Add'} />
         </button>
       </fieldset>
       <div className="tag" style={{ margin: 0 }}>
-        A language reaches visitors only when it is on and published. Built-in languages can be turned off, not removed. English is always on.
+        <T s={'A language reaches visitors only when it is on and published. Built-in languages can be turned off, not removed. English is always on.'} />
       </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <button className="btn sm" type="submit">
-          Save
+          <T s={'Save'} />
         </button>
         <Msg text={msg} bad={bad} />
       </div>
@@ -170,7 +197,11 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {rows.length === 0 && <p className="muted">Nothing to show with this filter.</p>}
+      {rows.length === 0 && (
+        <p className="muted">
+          <T s={'Nothing to show with this filter.'} />
+        </p>
+      )}
       {rows.map((r) => (
         <div key={r.key} className="glass" style={{ padding: 12, display: 'grid', gap: 6 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
@@ -200,7 +231,7 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
           disabled={!changed.length}
           onClick={() => act({ action: 'draft', lang, words: Object.fromEntries(changed.map((r) => [r.key, vals[r.key] ?? ''])) }, `Saved ${changed.length} as a draft. Publish to show them.`)}
         >
-          Save draft{changed.length ? ` (${changed.length})` : ''}
+          <T s={'Save draft{v0}'} v={{ v0: changed.length ? ` (${changed.length})` : '' }} />
         </button>
         <button
           type="button"
@@ -208,7 +239,7 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
           disabled={!hasDraft}
           onClick={() => window.confirm('Publish the draft words of this language?') && act({ action: 'publish', lang, mode: 'publish' }, 'Published.')}
         >
-          Publish draft
+          <T s={'Publish draft'} />
         </button>
         <button
           type="button"
@@ -217,7 +248,7 @@ export function TranslationEditor({ lang, rows, hasDraft, multiline }: { lang: s
             window.confirm('Take back every published edit of this language? The machine draft and English are shown instead.') && act({ action: 'publish', lang, mode: 'unpublish' }, 'Unpublished.')
           }
         >
-          Unpublish edits
+          <T s={'Unpublish edits'} />
         </button>
         <Msg text={msg} bad={bad} />
       </div>

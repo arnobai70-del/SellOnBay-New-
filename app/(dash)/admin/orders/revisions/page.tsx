@@ -13,7 +13,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Revisions', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Revisions'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const day = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
@@ -82,7 +82,7 @@ export default async function AdminRevisions() {
                     fields={[
                       {
                         name: 'kind',
-                        label: 'What is it?',
+                        label: tx('What is it?'),
                         kind: 'select',
                         options: [
                           ['defect', KIND_TEXT.defect],
@@ -92,17 +92,17 @@ export default async function AdminRevisions() {
                           ['decline', 'Decline (outside the accepted terms)'],
                         ],
                       },
-                      { name: 'note', label: 'Note for the buyer', kind: 'textarea', required: true, max: 2000 },
+                      { name: 'note', label: tx('Note for the buyer'), kind: 'textarea', required: true, max: 2000 },
                       {
                         name: 'requirements',
-                        label: 'Written requirement set the buyer will confirm (50 characters or more)',
+                        label: tx('Written requirement set the buyer will confirm (50 characters or more)'),
                         kind: 'textarea',
                         max: 8000,
                         showWhen: { field: 'kind', equals: 'paid' },
                       },
                       {
                         name: 'requirements',
-                        label: 'Written requirement set the buyer will confirm (50 characters or more)',
+                        label: tx('Written requirement set the buyer will confirm (50 characters or more)'),
                         kind: 'textarea',
                         max: 8000,
                         showWhen: { field: 'kind', equals: 'feature' },
@@ -157,7 +157,7 @@ export default async function AdminRevisions() {
                     openLabel="Release"
                     submit="Release to the buyer"
                     tone="dark"
-                    fields={[{ name: 'note', label: 'What you checked', kind: 'textarea', max: 1000 }]}
+                    fields={[{ name: 'note', label: tx('What you checked'), kind: 'textarea', max: 1000 }]}
                   />
                   <AdminForm
                     endpoint={`/api/admin/revisions/${r.id}`}
@@ -165,7 +165,7 @@ export default async function AdminRevisions() {
                     openLabel="Return to seller"
                     submit="Return"
                     tone="line"
-                    fields={[{ name: 'reason', label: 'What the seller must fix', kind: 'textarea', required: true, max: 1000 }]}
+                    fields={[{ name: 'reason', label: tx('What the seller must fix'), kind: 'textarea', required: true, max: 1000 }]}
                   />
                 </div>
               </li>
@@ -215,7 +215,7 @@ export default async function AdminRevisions() {
                     openLabel="Reject"
                     submit="Reject"
                     tone="line"
-                    fields={[{ name: 'reason', label: 'Why (the seller sees this)', kind: 'textarea', required: true, max: 500 }]}
+                    fields={[{ name: 'reason', label: tx('Why (the seller sees this)'), kind: 'textarea', required: true, max: 500 }]}
                   />
                 </div>
               </li>

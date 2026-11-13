@@ -6,8 +6,9 @@ import { smartSearch, type Result } from '@/lib/glass/search';
 import { highlight } from '@/lib/searchCore';
 
 import { getI18n } from '@/lib/i18n/server';
+import { T } from '@/components/i18n/T';
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Search', robots: { index: false, follow: true } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Search'), robots: { index: false, follow: true } });
 
 function Marked({ text, q }: { text: string; q: string }) {
   const out: React.ReactNode[] = [];
@@ -39,17 +40,27 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <div className="sob-stack">
       <div className="sob-head">
-        <h1>{q ? <>Results for &ldquo;{q}&rdquo;</> : tx('Search')}</h1>
+        <h1>
+          {q ? (
+            <>
+              <T s={'Results for “{q}”'} v={{ q }} />
+            </>
+          ) : (
+            tx('Search')
+          )}
+        </h1>
         <div className="glass sob-search">
           <SearchBox defaultValue={q} />
         </div>
       </div>
       {q.length >= 2 && !r.total && (
         <GlassCard as="section">
-          <h2>No results for &ldquo;{q}&rdquo;</h2>
+          <h2>
+            <T s={'No results for “{q}”'} v={{ q }} />
+          </h2>
           {r.didYouMean.length > 0 && (
             <p style={{ marginTop: 8 }}>
-              Did you mean{' '}
+              <T s={'Did you mean'} />{' '}
               {r.didYouMean.map((s, i) => (
                 <span key={s}>
                   {i > 0 && ', '}
@@ -82,7 +93,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </GlassCard>
       ))}
       <GlassCard as="section">
-        <h2>Popular categories</h2>
+        <h2>
+          <T s={'Popular categories'} />
+        </h2>
         <div className="sob-chips" style={{ justifyContent: 'flex-start', marginTop: 10 }}>
           {r.popular.map((c) => (
             <Link key={c.href} className="sob-chip" href={c.href}>

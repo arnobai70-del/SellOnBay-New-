@@ -13,7 +13,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Visitors', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Visitors'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const trend = (n: number | null) => (n === null ? 'No earlier figure' : `${n >= 0 ? 'Up' : 'Down'} ${Math.abs(n)}% on the period before`);

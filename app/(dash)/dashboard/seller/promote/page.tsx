@@ -9,7 +9,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Promote a product', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Promote a product'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
@@ -65,13 +65,13 @@ export default async function Promote() {
             fields={[
               {
                 name: 'platform',
-                label: 'Where',
+                label: tx('Where'),
                 kind: 'select',
                 options: (Object.keys(AD_PLATFORMS) as AdPlatform[]).filter((p) => open[p]).map((p) => [p, AD_PLATFORMS[p].label] as [string, string]),
               },
-              { name: 'productSlug', label: 'Listing', kind: 'select', options: live.map((l) => [l.slug, l.name] as [string, string]) },
-              { name: 'headline', label: 'Headline', kind: 'text', required: true, max: CONFIG.ads.headlineMax },
-              { name: 'text', label: 'Text', kind: 'textarea', required: true, max: CONFIG.ads.textMax },
+              { name: 'productSlug', label: tx('Listing'), kind: 'select', options: live.map((l) => [l.slug, l.name] as [string, string]) },
+              { name: 'headline', label: tx('Headline'), kind: 'text', required: true, max: CONFIG.ads.headlineMax },
+              { name: 'text', label: tx('Text'), kind: 'textarea', required: true, max: CONFIG.ads.textMax },
               { name: 'dailyBudget', label: `Daily budget in dollars (${usd(CONFIG.ads.minDailyCents)} to ${usd(CONFIG.ads.maxDailyCents)})`, kind: 'dollars', required: true },
               { name: 'days', label: `Days (1 to ${CONFIG.ads.maxDays})`, kind: 'text', required: true, value: '7', max: 2 },
             ]}

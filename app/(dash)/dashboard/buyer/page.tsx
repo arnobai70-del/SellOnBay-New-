@@ -10,7 +10,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Buyer overview', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Buyer overview'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const TONE = { ok: 'st-ok', wait: 'st-wait', bad: 'st-bad', info: 'st-info', draft: 'st-draft' } as const;
@@ -36,7 +36,7 @@ export default async function BuyerOverview() {
           .map((o) => ({
             key: o.id,
             tone: 'st-info',
-            label: 'Review',
+            label: tx('Review'),
             text: `Approve or report ${plainWords(o.title)}${o.reviewEndsAt ? ` · ${Math.max(0, Math.round((o.reviewEndsAt - now) / 3_600_000))}h left` : ''}`,
             href: `/orders/${o.id}`,
             act: 'Check',
@@ -46,18 +46,18 @@ export default async function BuyerOverview() {
           .map((o) => ({
             key: o.id + 'p',
             tone: 'st-wait',
-            label: 'Payment',
+            label: tx('Payment'),
             text: o.state === 'payment_review' ? `Payment for ${plainWords(o.title)} is being verified` : `Pay for ${plainWords(o.title)}`,
             href: `/orders/${o.id}`,
             act: 'View',
           })),
         ...v.orders
           .filter((o) => o.state === 'beta_requested')
-          .map((o) => ({ key: o.id + 'b', tone: 'st-wait', label: 'Request', text: `${plainWords(o.title)} is waiting for our review`, href: `/orders/${o.id}`, act: 'View' })),
+          .map((o) => ({ key: o.id + 'b', tone: 'st-wait', label: tx('Request'), text: `${plainWords(o.title)} is waiting for our review`, href: `/orders/${o.id}`, act: 'View' })),
         ...soon.map((d) => ({
           key: d.name,
           tone: 'st-bad',
-          label: 'Domain',
+          label: tx('Domain'),
           text: `${d.name} expires in ${Math.ceil((Date.parse(d.expires!) - now) / DAY_MS)} days`,
           href: '/dashboard/buyer/domains',
           act: 'Renew',

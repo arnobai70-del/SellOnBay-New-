@@ -19,7 +19,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Edit a page', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Edit a page'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* One page at a time: what Google shows (meta title and description) and what visitors read (heading, intro, policy text). */
@@ -88,7 +88,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
             fields={[
               {
                 name: 'title',
-                label: 'Meta title',
+                label: tx('Meta title'),
                 kind: 'text',
                 value: s.title,
                 max: PAGE_SEO_MAX.title,
@@ -96,7 +96,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
               },
               {
                 name: 'description',
-                label: 'Meta description',
+                label: tx('Meta description'),
                 kind: 'textarea',
                 value: s.description,
                 max: PAGE_SEO_MAX.description,
@@ -144,7 +144,7 @@ export default async function EditPage({ searchParams }: { searchParams: Promise
           <AdminForm
             endpoint="/api/admin/seo/slug"
             fixed={{ slug: product.id }}
-            fields={[{ name: 'newSlug', label: 'New address ending', kind: 'text', value: product.id, max: 61, hint: 'Lowercase letters, numbers and dashes.' }]}
+            fields={[{ name: 'newSlug', label: tx('New address ending'), kind: 'text', value: product.id, max: 61, hint: tx('Lowercase letters, numbers and dashes.') }]}
             submit="Change the address"
             openLabel="Change the address"
             tone="line"

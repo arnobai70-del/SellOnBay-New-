@@ -6,6 +6,7 @@ import { DEMO_OTP, TEST_CARDS } from '@/lib/commerce/testcards';
 import type { Line } from '@/lib/commerce/types';
 
 import { useTx } from '@/components/i18n/TxProvider';
+import { T } from '@/components/i18n/T';
 const money = (c: number) => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 });
 const group = (v: string) =>
   v
@@ -64,13 +65,17 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
     <div className="pay">
       <div className="sob-pay-bar">
         <Link href={back} className="sob-pay-back">
-          &lsaquo; Back
+          <T s={'&lsaquo; Back'} />
         </Link>
-        <span className="sob-pay-test">Demo gateway. No real money moves.</span>
+        <span className="sob-pay-test">
+          <T s={'Demo gateway. No real money moves.'} />
+        </span>
       </div>
       <div className="sob-pay-grid">
-        <aside className="sob-pay-sum" aria-label="Order summary">
-          <p className="sob-pay-for">Pay SellOnBay</p>
+        <aside className="sob-pay-sum" aria-label={tx('Order summary')}>
+          <p className="sob-pay-for">
+            <T s={'Pay SellOnBay'} />
+          </p>
           <p className="sob-pay-total">{money(totalCents)}</p>
           <h1>{title}</h1>
           <ul>
@@ -85,14 +90,20 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
             </svg>
-            <span>Example only: payment and escrow are simulated. No real money or seller payout occurs.</span>
+            <span>
+              <T s={'Example only: payment and escrow are simulated. No real money or seller payout occurs.'} />
+            </span>
           </div>
         </aside>
 
         <form className="sob-pay-form" onSubmit={pay} noValidate>
-          <h2>Pay with card</h2>
-          <div className="sob-pay-tests" role="group" aria-label="Test cards">
-            <span>Try a test card</span>
+          <h2>
+            <T s={'Pay with card'} />
+          </h2>
+          <div className="sob-pay-tests" role="group" aria-label={tx('Test cards')}>
+            <span>
+              <T s={'Try a test card'} />
+            </span>
             {Object.entries(TEST_CARDS).map(([n, t]) => (
               <button key={n} type="button" onClick={() => fill(n)} title={t.note}>
                 {t.label}
@@ -102,33 +113,53 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
           {step === 'card' ? (
             <>
               <label className="field">
-                <span>Card number</span>
-                <input inputMode="numeric" autoComplete="off" placeholder="4242 4242 4242 4242" value={num} onChange={(e) => setNum(group(e.target.value))} aria-label="Card number" />
+                <span>
+                  <T s={'Card number'} />
+                </span>
+                <input inputMode="numeric" autoComplete="off" placeholder="4242 4242 4242 4242" value={num} onChange={(e) => setNum(group(e.target.value))} aria-label={tx('Card number')} />
               </label>
               <div className="two">
                 <label className="field">
-                  <span>Expiry</span>
-                  <input inputMode="numeric" autoComplete="off" placeholder="MM / YY" value={exp} onChange={(e) => setExp(expFmt(e.target.value))} aria-label="Expiry" />
+                  <span>
+                    <T s={'Expiry'} />
+                  </span>
+                  <input inputMode="numeric" autoComplete="off" placeholder={tx('MM / YY')} value={exp} onChange={(e) => setExp(expFmt(e.target.value))} aria-label={tx('Expiry')} />
                 </label>
                 <label className="field">
-                  <span>Security code</span>
-                  <input inputMode="numeric" autoComplete="off" placeholder="123" maxLength={4} value={cvc} onChange={(e) => setCvc(e.target.value.replace(/\D/g, ''))} aria-label="Security code" />
+                  <span>
+                    <T s={'Security code'} />
+                  </span>
+                  <input
+                    inputMode="numeric"
+                    autoComplete="off"
+                    placeholder="123"
+                    maxLength={4}
+                    value={cvc}
+                    onChange={(e) => setCvc(e.target.value.replace(/\D/g, ''))}
+                    aria-label={tx('Security code')}
+                  />
                 </label>
               </div>
               <label className="field">
-                <span>Name on card</span>
-                <input autoComplete="off" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} aria-label="Name on card" />
+                <span>
+                  <T s={'Name on card'} />
+                </span>
+                <input autoComplete="off" placeholder={tx('Full name')} value={name} onChange={(e) => setName(e.target.value)} aria-label={tx('Name on card')} />
               </label>
             </>
           ) : (
             <div className="sob-pay-otp">
-              <b>Confirm with your bank</b>
+              <b>
+                <T s={'Confirm with your bank'} />
+              </b>
               <p>
-                Your bank sent a code. In this demo the code is <code>{DEMO_OTP}</code>.
+                <T s={'Your bank sent a code. In this demo the code is'} /> <code>{DEMO_OTP}</code>.
               </p>
               <label className="field">
-                <span>Code</span>
-                <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} aria-label="Bank code" autoFocus />
+                <span>
+                  <T s={'Code'} />
+                </span>
+                <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} aria-label={tx('Bank code')} autoFocus />
               </label>
             </div>
           )}
@@ -140,7 +171,9 @@ export function PayForm({ id, title, lines, totalCents, back }: { id: string; ti
           <button className="btn" type="submit" disabled={busy}>
             {busy ? tx('Processing…') : step === 'otp' ? 'Confirm and pay ' + money(totalCents) : 'Pay ' + money(totalCents)}
           </button>
-          <p className="sob-pay-fine">Demo only. We refuse real card numbers.</p>
+          <p className="sob-pay-fine">
+            <T s={'Demo only. We refuse real card numbers.'} />
+          </p>
         </form>
       </div>
     </div>

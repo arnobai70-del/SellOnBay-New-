@@ -12,7 +12,7 @@ import { TargetForm } from '@/components/glass/TargetForm';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Admin overview', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Admin overview'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 /* Money as the design writes it: $4,820 (cents only when there are some). */
@@ -49,16 +49,23 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
   const attention = [
     {
       tone: 'st-wait',
-      label: 'Payments',
+      label: tx('Payments'),
       text: o.paymentsMode === 'beta_free' ? `${o.beta} free beta requests waiting for a decision` : `${o.toVerify} payments waiting for verification`,
       href: '/admin/orders',
       act: 'Verify',
       n: o.paymentsMode === 'beta_free' ? o.beta : o.toVerify,
     },
-    { tone: 'st-info', label: 'Listings', text: `${o.counts.listings} new websites waiting for review`, href: '/admin/listings', act: 'Review', n: o.counts.listings },
-    { tone: 'st-bad', label: 'Dispute', text: o.disputes ? `${o.disputes} open · oldest ${ageText(o.oldestDispute, now)}` : 'No open disputes', href: '/admin/support', act: 'Open', n: o.disputes },
-    { tone: 'st-ok', label: 'Payouts', text: `${o.payoutSellers} sellers ready for Thursday payout`, href: '/admin/finance', act: 'Pay', n: o.payoutSellers },
-    { tone: 'st-draft', label: 'Domains', text: `${o.domainsSoon} domains expire in the next 7 days`, href: '/admin/domains', act: 'Remind', n: o.domainsSoon },
+    { tone: 'st-info', label: tx('Listings'), text: `${o.counts.listings} new websites waiting for review`, href: '/admin/listings', act: 'Review', n: o.counts.listings },
+    {
+      tone: 'st-bad',
+      label: tx('Dispute'),
+      text: o.disputes ? `${o.disputes} open · oldest ${ageText(o.oldestDispute, now)}` : 'No open disputes',
+      href: '/admin/support',
+      act: 'Open',
+      n: o.disputes,
+    },
+    { tone: 'st-ok', label: tx('Payouts'), text: `${o.payoutSellers} sellers ready for Thursday payout`, href: '/admin/finance', act: 'Pay', n: o.payoutSellers },
+    { tone: 'st-draft', label: tx('Domains'), text: `${o.domainsSoon} domains expire in the next 7 days`, href: '/admin/domains', act: 'Remind', n: o.domainsSoon },
   ];
   // The work queues of the permissions this admin has (purchase requests, releases, revisions, files, tickets, renewals).
   const scopes = viewer?.scopes ?? ['super'];

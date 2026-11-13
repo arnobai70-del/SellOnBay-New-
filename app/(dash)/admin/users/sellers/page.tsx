@@ -11,7 +11,7 @@ import { requireViewer } from '@/lib/supabase/viewer';
 
 import { T } from '@/components/i18n/T';
 import { getI18n } from '@/lib/i18n/server';
-export const metadata: Metadata = { title: 'Seller plans', robots: { index: false } };
+export const generateMetadata = async (): Promise<Metadata> => ({ title: (await getI18n()).tx('Seller plans'), robots: { index: false } });
 export const dynamic = 'force-dynamic';
 
 const ACTION_LABEL: Record<(typeof ADMIN_SUB_ACTIONS)[number], string> = {
@@ -142,10 +142,10 @@ export default async function Sellers() {
                       submit="Save"
                       tone="line"
                       fields={[
-                        { name: 'action', label: 'Step', kind: 'select', options: actions.map((a) => [a, ACTION_LABEL[a]] as [string, string]) },
-                        { name: 'paymentRef', label: 'Reconciled payment reference (to start or renew)', kind: 'text' },
-                        { name: 'periodDays', label: 'Paid period in days (to start or renew)', kind: 'text' },
-                        { name: 'reason', label: 'Why (goes in the audit log)', kind: 'textarea', required: true },
+                        { name: 'action', label: tx('Step'), kind: 'select', options: actions.map((a) => [a, ACTION_LABEL[a]] as [string, string]) },
+                        { name: 'paymentRef', label: tx('Reconciled payment reference (to start or renew)'), kind: 'text' },
+                        { name: 'periodDays', label: tx('Paid period in days (to start or renew)'), kind: 'text' },
+                        { name: 'reason', label: tx('Why (goes in the audit log)'), kind: 'textarea', required: true },
                       ]}
                     />
                   )}

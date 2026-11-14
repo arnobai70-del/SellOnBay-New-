@@ -63,7 +63,8 @@ describe('languages and addresses (owner, 2026-11-12)', () => {
 });
 
 describe('the catalogue', () => {
-  it('every bundled language has exactly the English words, none extra, none empty, the same placeholders', async () => {
+  // reads every dictionary: give it the time a full parallel run needs (vitest's default 5 s is too short there)
+  it('every bundled language has exactly the English words, none extra, none empty, the same placeholders', { timeout: 60_000 }, async () => {
     const en = englishCatalog();
     expect(Object.keys(en).length).toBeGreaterThan(150);
     for (const code of CODES) {

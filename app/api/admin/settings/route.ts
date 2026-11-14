@@ -1,3 +1,5 @@
+import { tx } from '@/lib/i18n/tx';
+import { paypalConfigured } from '@/lib/providers/payment';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminOnly } from '@/lib/admin/guard';
@@ -39,6 +41,9 @@ export async function POST(req: Request) {
   const body = await readJson(req, schema);
   if (!body.ok) return body.res;
   const { reason, ...patch } = body.data;
+  // Turning the free beta off opens paid checkout: without a payment provider nobody could buy anything, so it waits for the PayPal keys.
+  if (patch.paymentsMode === 'live' && !paypalConfigured())
+    return jsonT({ error: tx('Connect a payment provider first (the PayPal keys on the server): with the beta off, buyers have to pay, and nobody could.') }, { status: 409 });
   const r = await setSettings(a.id, patch, reason);
   return r.ok ? NextResponse.json({ ok: true }) : jsonT({ error: r.error }, { status: r.status });
 }

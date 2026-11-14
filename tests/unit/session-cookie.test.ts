@@ -65,7 +65,8 @@ describe('Supabase session cookie options (lib/supabase/cookieOptions.ts)', () =
       expect(l).toMatch(/;\s*Path=\//i);
     }
   });
-  it('the launch check flags a site address that is not https', async () => {
+  // imports lib/launchCheck (a large part of the app): under a full parallel run that import alone can pass vitest's default 5 s
+  it('the launch check flags a site address that is not https', { timeout: 60_000 }, async () => {
     const { siteAddressOk } = await import('@/lib/launchCheck');
     expect(siteAddressOk('http://sellonbay.com', true)).toBe(false);
     expect(siteAddressOk('https://sellonbay.com', true)).toBe(true);

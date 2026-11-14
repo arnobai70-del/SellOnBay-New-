@@ -61,43 +61,50 @@ export default async function AdminSettings() {
         </Link>
       </div>
 
+      {/* Free beta on / off (owner, 2026-11-14): one clear switch for the payments mode (Super Admin, a reason, the audit log). On: buyers
+          request websites for free and an admin approves; off: new requests are paid, which needs a payment provider (the API refuses
+          otherwise). Paid orders carry on either way. */}
+      <section className="glass card" data-beta-switch style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+        <span className={`status ${live ? 'st-info' : 'st-ok'}`} style={{ fontSize: 15, padding: '8px 16px' }}>
+          {live ? tx('Free beta: OFF') : tx('Free beta: ON')}
+        </span>
+        <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+          <h2 style={{ fontSize: 20, margin: 0 }}>
+            <T s={'Free beta'} />
+          </h2>
+          <div className="tag" style={{ marginTop: 4 }}>
+            {live
+              ? tx('Off: buyers pay for new requests. Turn it on to make websites free again; paid orders carry on.')
+              : tx('On: buyers request websites for free, an admin approves each one, and nothing is charged.')}
+          </div>
+          {!live && !paypal && (
+            <div className="tag" style={{ marginTop: 4, color: '#8A5A12' }}>
+              {tx('To turn it off, connect a payment provider first (the PayPal keys on the server): with the beta off, buyers have to pay.')}
+            </div>
+          )}
+        </div>
+        {live || paypal ? (
+          <AdminForm
+            endpoint="/api/admin/settings"
+            openLabel={live ? tx('Turn the beta on') : tx('Turn the beta off')}
+            submit={live ? tx('Turn the beta on') : tx('Turn the beta off')}
+            tone={live ? 'blue' : 'line'}
+            fixed={{ paymentsMode: live ? 'beta_free' : 'live' }}
+            fields={[why(tx)]}
+          />
+        ) : (
+          <button className="btn sm ghost" type="button" disabled title={tx('Connect a payment provider first')} style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+            {tx('Turn the beta off')}
+          </button>
+        )}
+      </section>
+
       <section className="glass card">
         <div className="row" style={{ marginBottom: 4 }}>
           <h2>
             <T s={'Payment gateways'} />
           </h2>
           <span className={`status ${live ? 'st-ok' : 'st-info'}`}>{live ? tx('Live payments') : tx('Free beta: nothing is charged')}</span>
-        </div>
-        <div className="gw">
-          <span className="gico" style={{ background: '#E8EEF2' }} aria-hidden="true">
-            <T s={'MODE'} />
-          </span>
-          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-            <b style={{ fontWeight: 500 }}>
-              <T s={'Payments mode'} />
-            </b>
-            <div className="tag">
-              <T s={'Live needs a payment provider and its keys on the server. Going back to the beta stops new paid checkouts; paid orders carry on.'} />
-            </div>
-          </div>
-          <AdminForm
-            endpoint="/api/admin/settings"
-            openLabel={tx('Change')}
-            submit={tx('Save payments mode')}
-            tone="line"
-            fields={[
-              {
-                name: 'paymentsMode',
-                label: tx('Payments mode'),
-                kind: 'select',
-                options: [
-                  [s.paymentsMode, s.paymentsMode === 'beta_free' ? tx('Free beta') : 'Live'],
-                  [s.paymentsMode === 'beta_free' ? 'live' : 'beta_free', s.paymentsMode === 'beta_free' ? 'Live' : tx('Free beta')],
-                ],
-              },
-              why(tx),
-            ]}
-          />
         </div>
         <div className="gw">
           <span className="gico" style={{ background: '#DDEAF6' }} aria-hidden="true">

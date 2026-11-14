@@ -4447,6 +4447,18 @@
     "app/(dash)/admin/visitors/page.tsx"
    ]
   },
+  "Connect a payment provider first": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
+   ]
+  },
+  "Connect a payment provider first (the PayPal keys on the server): with the beta off, buyers have to pay, and nobody could.": {
+   "client": false,
+   "files": [
+    "app/api/admin/settings/route.ts"
+   ]
+  },
   "Connect domain": {
    "client": true,
    "area": "dash",
@@ -8439,6 +8451,18 @@
     "app/(dash)/admin/page.tsx"
    ]
   },
+  "Free beta: OFF": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
+   ]
+  },
+  "Free beta: ON": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
+   ]
+  },
   "Free beta: nothing is charged": {
    "client": false,
    "files": [
@@ -11012,13 +11036,6 @@
     "app/(dash)/admin/seo/categories/page.tsx"
    ]
   },
-  "Live needs a payment provider and its keys on the server. Going back to the beta stops new paid checkouts; paid orders carry on.": {
-   "client": true,
-   "area": "dash",
-   "files": [
-    "app/(dash)/admin/settings/page.tsx"
-   ]
-  },
   "Live on your domain": {
    "client": true,
    "area": "dash",
@@ -11133,13 +11150,6 @@
    "area": "public",
    "files": [
     "components/PayForm.tsx"
-   ]
-  },
-  "MODE": {
-   "client": true,
-   "area": "dash",
-   "files": [
-    "app/(dash)/admin/settings/page.tsx"
    ]
   },
   "Machine drafts and unpublished edits": {
@@ -13868,6 +13878,12 @@
     "components/glass/SellerForms.tsx"
    ]
   },
+  "Off: buyers pay for new requests. Turn it on to make websites free again; paid orders carry on.": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
+   ]
+  },
   "Offer again": {
    "client": true,
    "area": "dash",
@@ -13995,6 +14011,12 @@
    "area": "dash",
    "files": [
     "app/(dash)/dashboard/seller/page.tsx"
+   ]
+  },
+  "On: buyers request websites for free, an admin approves each one, and nothing is charged.": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
    ]
   },
   "Once approved, you get the files and the domain steps": {
@@ -15685,13 +15707,6 @@
    "area": "dash",
    "files": [
     "app/(dash)/admin/orders/[id]/page.tsx"
-   ]
-  },
-  "Payments mode": {
-   "client": true,
-   "area": "dash",
-   "files": [
-    "app/(dash)/admin/settings/page.tsx"
    ]
   },
   "Payments to check": {
@@ -19121,12 +19136,6 @@
    "area": "public",
    "files": [
     "components/ResetClient.tsx"
-   ]
-  },
-  "Save payments mode": {
-   "client": false,
-   "files": [
-    "app/(dash)/admin/settings/page.tsx"
    ]
   },
   "Save payout method": {
@@ -24184,6 +24193,12 @@
     "app/(dash)/admin/seo/page.tsx"
    ]
   },
+  "To turn it off, connect a payment provider first (the PayPal keys on the server): with the beta off, buyers have to pay.": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
+   ]
+  },
   "To {v0}. Check your GitHub notifications.": {
    "client": true,
    "area": "public",
@@ -24559,6 +24574,18 @@
    "area": "dash",
    "files": [
     "app/(dash)/admin/settings/flags/page.tsx"
+   ]
+  },
+  "Turn the beta off": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
+   ]
+  },
+  "Turn the beta on": {
+   "client": false,
+   "files": [
+    "app/(dash)/admin/settings/page.tsx"
    ]
   },
   "Two minutes of your time helps us make SellOnBay better.": {

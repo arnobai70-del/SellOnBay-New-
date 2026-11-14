@@ -33,6 +33,7 @@ describe('robots.txt', () => {
   it('always keeps the private parts out and lets an admin add paths, but never pages crawlers must read', async () => {
     expect(robotsDisallow([])).toEqual(BASE_DISALLOW);
     for (const p of ['/dashboard', '/checkout', '/orders', '/api/']) expect(BASE_DISALLOW).toContain(p);
+    expect(BASE_DISALLOW).not.toContain('/signin'); // noindex and linked from every page: crawlers must be able to read its noindex
     for (const bad of ['/', '/*', '/sitemap.xml', '/robots.txt', '/_next/static', '/blog/post', '/templates/saas', '/product/x', 'no-slash', '/<script>'])
       expect(robotsPathProblem(bad), bad).toBeTruthy();
     expect(robotsPathProblem('/internal-tools/')).toBeNull();

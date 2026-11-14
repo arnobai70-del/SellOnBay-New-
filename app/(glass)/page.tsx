@@ -1,3 +1,4 @@
+import { localizeMetadata } from '@/lib/i18n/seo';
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import Link from 'next/link';
@@ -29,7 +30,8 @@ const HOME_DESCRIPTION = `Buy ready-made full-stack websites with escrow protect
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeo();
   const description = seo.homeDescription || HOME_DESCRIPTION;
-  return applyControls(
+  // Each language's home names itself as canonical (/bn, /de) and lists the others (hreflang); English keeps "/" exactly as before.
+  const meta = applyControls(
     '/',
     {
       title: { absolute: seo.homeTitle || `${SITE_NAME}: full-stack websites, domains and a seller marketplace` },
@@ -43,6 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     await pageControls('/'),
   );
+  return localizeMetadata('/', meta);
 }
 // Static, refreshed every 5 minutes; it renders on request only in Draft Mode, which an admin's preview turns on (app/api/admin/preview).
 export const revalidate = 300;

@@ -81,8 +81,11 @@ export async function pageMetadata(path: string, extra: Metadata = {}): Promise<
   // The share card falls back to the saved meta words when no share words are set.
   const out = applyControls(path, base, { ...ctl, ogTitle: ctl.ogTitle || (ctl.ogImage || ctl.ogDescription ? title : ''), ogDescription: ctl.ogDescription });
   if (preview) return { ...out, robots: { index: false, follow: false } };
-  // Each language's own address, hreflang and translated SEO words (lib/i18n/seo.ts).
-  const local = await localizeMetadata(path, out);
+  // Each language's own address, hreflang and translated SEO words (lib/i18n/seo.ts), built on the page's public address: a category's
+  // settings live under /templates/<slug>, which only redirects, so its own canonical (/websites/category/<ending>) is used for the links.
+  const own = extra.alternates?.canonical;
+  const address = typeof own === 'string' && own.startsWith('/') ? own : path;
+  const local = await localizeMetadata(path, out, address);
   // Outside the five categories (legal pages, help, the seller page) a page stays reachable but is not offered to search engines.
   return !isHubPath(path) && !INDEXED_PAGES.includes(path) ? { ...local, robots: { index: false, follow: true } } : local;
 }

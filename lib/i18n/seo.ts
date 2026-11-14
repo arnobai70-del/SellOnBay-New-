@@ -17,12 +17,16 @@ export function alternateLanguages(path: string, languages: Language[]): Record<
   return out;
 }
 
-/* A public page's metadata in the request's language: its own canonical, the alternates, the share card's locale, and translated SEO words. */
-export async function localizeMetadata(path: string, meta: Metadata): Promise<Metadata> {
+/*
+ * A public page's metadata in the request's language: its own canonical, the alternates, the share card's locale, and translated SEO words.
+ * `address` is the page's public address when its words are kept under another key (a category's words live under /templates/<slug>, its
+ * page is /websites/category/<ending>): the canonical and hreflang links always use the public address, never a redirecting key.
+ */
+export async function localizeMetadata(path: string, meta: Metadata, address: string = path): Promise<Metadata> {
   const i = await getI18n();
-  const languages = alternateLanguages(path, i.languages);
+  const languages = alternateLanguages(address, i.languages);
   if (i.lang === SOURCE) return Object.keys(languages).length ? { ...meta, alternates: { ...meta.alternates, languages } } : meta;
-  const canonical = localizedPath(path, i.lang);
+  const canonical = localizedPath(address, i.lang);
   const title = i.pick(`seo.${path}.title`, '');
   const description = i.pick(`seo.${path}.description`, '');
   return {

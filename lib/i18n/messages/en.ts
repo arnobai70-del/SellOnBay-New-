@@ -22,6 +22,7 @@ export const EN_UI = {
   'footer.help': 'Help',
   'footer.legal': 'Legal',
   'footer.guides': 'Guides',
+  'footer.blog': 'Blog',
   'footer.sellOn': 'Sell on SellOnBay',
   'footer.affiliate': 'Affiliate program',
   'footer.sellerAgreement': 'Seller agreement',

@@ -17,6 +17,7 @@ const hi: Record<string, string> = {
   'footer.help': 'मदद',
   'footer.legal': 'कानूनी',
   'footer.guides': 'गाइड',
+  'footer.blog': 'ब्लॉग',
   'footer.sellOn': 'SellOnBay पर बेचें',
   'footer.affiliate': 'एफ़िलिएट प्रोग्राम',
   'footer.sellerAgreement': 'विक्रेता अनुबंध',

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { BrandMark } from '@/components/glass/BrandMark';
-import { BRAND_NAME } from '@/lib/brand';
+import { BRAND_DOMAIN, BRAND_NAME } from '@/lib/brand';
 import { EMAIL_ROUTES } from '@/lib/emailRouting';
 import type { ContactRoutes } from '@/lib/site/contact';
 import type { SocialLink } from '@/lib/site/social';
@@ -45,7 +45,6 @@ export async function PublicFooter({
         <p className="muted" style={{ fontSize: 13, margin: '10px 0 0', lineHeight: 1.6 }}>
           {tagline}
         </p>
-        <SocialRow links={social} label={tx('Follow SellOnBay')} />
         {langSwitch && <div style={{ marginTop: 12 }}>{langSwitch}</div>}
       </div>
       {columns.map((c) => (
@@ -70,18 +69,39 @@ export async function PublicFooter({
           {routes.report}
         </a>
       </div>
-      {/* The credit line (owner, 2026-11-12): who built and looks after the site. The address comes from lib/emailRouting.ts. */}
-      <div className="muted" style={{ gridColumn: '1 / -1', fontSize: 13, paddingTop: 16, borderTop: '1px solid #E3ECF1', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <span>
-          © {new Date().getFullYear()} {BRAND_NAME}
-        </span>
-        <span aria-hidden="true">·</span>
-        <span>
-          {createdBy}{' '}
-          <a href={`mailto:${EMAIL_ROUTES.dev}`} style={A}>
-            {EMAIL_ROUTES.dev}
-          </a>
-        </span>
+      {/*
+       * The bottom bar (owner, 2026-11-14, like a big marketplace's): the credit line on the left, the social icons on the right. The credit names
+       * the site, never an email address. The icons are the links saved at Admin › Settings › Contact & social; none saved, none shown.
+       */}
+      <div
+        className="muted"
+        style={{
+          gridColumn: '1 / -1',
+          fontSize: 13,
+          paddingTop: 16,
+          borderTop: '1px solid #E3ECF1',
+          display: 'flex',
+          gap: 12,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <span>
+            © {new Date().getFullYear()} {BRAND_NAME}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {createdBy}{' '}
+            <Link href={home} style={A} prefetch={false}>
+              {BRAND_DOMAIN}
+            </Link>
+          </span>
+        </div>
+        <div className="sob-foot-social">
+          <SocialRow links={social} label={tx('Follow SellOnBay')} />
+        </div>
       </div>
     </footer>
   );

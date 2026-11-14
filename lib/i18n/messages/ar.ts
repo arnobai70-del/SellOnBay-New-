@@ -17,6 +17,7 @@ const ar: Record<string, string> = {
   'footer.help': 'المساعدة',
   'footer.legal': 'قانوني',
   'footer.guides': 'الأدلة',
+  'footer.blog': 'المدونة',
   'footer.sellOn': 'بِع على SellOnBay',
   'footer.affiliate': 'برنامج التسويق بالعمولة',
   'footer.sellerAgreement': 'اتفاقية البائع',

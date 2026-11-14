@@ -50,5 +50,5 @@ export const localizeNav = (links: NavLink[], t: T, lang: string, label?: (l: Na
 export const localizeFooter = (columns: FooterColumn[], t: T, lang: string): FooterColumn[] =>
   columns.map((c) => ({
     title: word(t, COLUMN_KEYS[c.title], c.title),
-    links: c.links.map((l) => ({ href: href(l.href, lang), label: word(t, LINK_KEYS[l.href], l.label) })),
+    links: c.links.map((l) => ({ href: href(l.href, lang), label: word(t, l.key ?? LINK_KEYS[l.href], l.label) })),
   }));

@@ -17,6 +17,7 @@ const bn: Record<string, string> = {
   'footer.help': 'সাহায্য',
   'footer.legal': 'আইনি',
   'footer.guides': 'গাইড',
+  'footer.blog': 'ব্লগ',
   'footer.sellOn': 'SellOnBay-তে বিক্রি করুন',
   'footer.affiliate': 'অ্যাফিলিয়েট প্রোগ্রাম',
   'footer.sellerAgreement': 'বিক্রেতা চুক্তি',

@@ -2,7 +2,7 @@
  * The menus of the glass UI, as plain data so a test can check them. Addresses are the ones in SELLONBAY_REDESIGN.md; a page that has not moved yet is built
  * in its phase, and nothing here is on the live site until then.
  */
-export type NavLink = { label: string; href: string };
+export type NavLink = { label: string; href: string; key?: string }; // key: its word in lib/i18n/messages when two links share an address
 export type FooterColumn = { title: string; links: NavLink[] };
 
 export const PUBLIC_LINKS: NavLink[] = [
@@ -39,6 +39,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { label: 'Help center', href: '/help' },
       { label: 'Buyer protection', href: '/buyer-protection' },
       { label: 'Contact us', href: '/help#contact' },
+      { label: 'Blog', href: '/guides', key: 'footer.blog' }, // the posts written at Admin › SEO › Blog are published at /guides (owner, 2026-11-14)
     ],
   },
   {

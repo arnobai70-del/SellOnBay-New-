@@ -17,6 +17,7 @@ const pt: Record<string, string> = {
   'footer.help': 'Ajuda',
   'footer.legal': 'Jurídico',
   'footer.guides': 'Guias',
+  'footer.blog': 'Blog',
   'footer.sellOn': 'Vender no SellOnBay',
   'footer.affiliate': 'Programa de afiliados',
   'footer.sellerAgreement': 'Contrato do vendedor',

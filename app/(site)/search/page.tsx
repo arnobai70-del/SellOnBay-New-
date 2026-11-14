@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -39,20 +40,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   ).filter(([, l]) => l.length);
   return (
     <div className="sob-stack">
-      <div className="sob-head">
-        <h1>
-          {q ? (
-            <>
-              <T s={'Results for “{q}”'} v={{ q }} />
-            </>
-          ) : (
-            tx('Search')
-          )}
-        </h1>
-        <div className="glass sob-search">
-          <SearchBox defaultValue={q} />
-        </div>
-      </div>
+      <TopBand title={q ? <T s={'Results for “{q}”'} v={{ q }} /> : tx('Search')}>
+        <SearchBox variant="pill" defaultValue={q} maxWidth={640} />
+      </TopBand>
       {q.length >= 2 && !r.total && (
         <GlassCard as="section">
           <h2>

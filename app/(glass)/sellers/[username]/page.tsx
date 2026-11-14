@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -45,7 +46,8 @@ export default async function SellerStore({ params }: Props) {
   const first = s.name.split(/\s+/)[0];
   return (
     <PublicFrame file="seller">
-      <section className="glass" style={{ marginTop: 40, padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+      <TopBand eyebrow={<T s={'Seller'} />} title={s.name} intro={s.headline || undefined} />
+      <section className="glass" style={{ padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
         <span
           style={{ width: 96, height: 96, borderRadius: '50%', background: '#E6E2F4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 400, flex: 'none' }}
           aria-hidden="true"
@@ -53,12 +55,7 @@ export default async function SellerStore({ params }: Props) {
           {initials(s.name)}
         </span>
         <div style={{ flex: '1 1 300px' }}>
-          <h1 style={{ fontSize: 32 }}>{s.name}</h1>
-          {s.headline && (
-            <div className="muted" style={{ marginTop: 6 }}>
-              {s.headline}
-            </div>
-          )}
+          <div style={{ fontSize: 22, fontWeight: 500 }}>{s.name}</div>
           {(s.customAvailable || s.verified) && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13, color: '#1A5444' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3F8F77' }} />

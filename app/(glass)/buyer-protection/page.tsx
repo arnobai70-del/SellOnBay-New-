@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -29,32 +30,9 @@ export default async function BuyerProtection() {
   const [words, copy] = await Promise.all([pageWords('/buyer-protection'), pageCopy('buyer-protection')]);
   const heading = copy.t('head', 'heading', words.heading);
   const intro = copy.t('head', 'intro', words.intro ?? '');
-  const [first, ...rest] = heading.split(/(?<=\.)\s+/);
   return (
     <PublicFrame file="buyer-protection">
-      <header className="pagehead" style={{ alignItems: 'center', textAlign: 'center', paddingTop: 80 }}>
-        <span className="badge fade-in">
-          <T s={'Buyer protection'} />
-        </span>
-        <h1>
-          <span className="hl">
-            <span>{first}</span>
-          </span>
-          {rest.length > 0 && (
-            <>
-              {' '}
-              <span className="hl">
-                <span style={{ animationDelay: '.15s' }}>{rest.join(' ')}</span>
-              </span>
-            </>
-          )}
-        </h1>
-        {intro && (
-          <p className="muted fade-in" style={{ margin: 0, maxWidth: 620, lineHeight: 1.6, animationDelay: '.3s' }}>
-            {intro}
-          </p>
-        )}
-      </header>
+      <TopBand eyebrow={<T s={'Buyer protection'} />} title={heading} intro={intro || undefined} />
       <section className="sec" style={{ paddingTop: 32 }}>
         <h2 style={{ fontSize: 28, marginBottom: 18 }}>
           <T s={'How buying works'} />

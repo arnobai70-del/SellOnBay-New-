@@ -93,13 +93,14 @@ test.describe('buying a seller listing', () => {
     const closed = await request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } });
     expect(closed.status()).toBe(410);
     expect((await closed.json()).error).toMatch(/Request to buy/);
-    const ask = { product: slug, kind: 'product', intendedUse: 'A site for my own bakery.', consent: true };
+    const ask = { product: slug, kind: 'product', licenceTier: 'single_project', intendedUse: 'A site for my own bakery.', consent: true };
     const res = await request.post(`${REAL}/api/requests`, { data: ask });
     expect(res.status()).toBe(401);
     // Since 2026-11-07 (owner) one account may buy and sell (mayBuy, tests/unit/accounts.test.ts), so the old "a seller cannot buy at all"
-    // no longer holds. What must hold: the listing's own seller is refused (here still without the authenticator code), never accepted.
+    // no longer holds. What must hold: the listing's own seller is refused (lib/requests/service.ts), never accepted.
     const mine = await own.request.post(`${REAL}/api/requests`, { data: ask });
-    expect([401, 403]).toContain(mine.status());
+    // refused, never accepted: 400 (own product) for a public website, 404 here because this QA listing is a digital product, not a website
+    expect([400, 404]).toContain(mine.status());
     expect((await own.request.post(`${REAL}/api/demo/orders`, { data: { productId: slug, pkg: 'asis' } })).status()).toBe(410);
   });
 

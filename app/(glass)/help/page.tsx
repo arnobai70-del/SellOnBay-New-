@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import { SearchBox } from '@/components/glass/SearchBox';
 import { ContactForm } from './ContactForm';
 import { PageExtras } from '@/components/PageExtras';
@@ -39,20 +40,10 @@ export default async function Help() {
   const intro = copy.t('head', 'intro', words.intro ?? '');
   return (
     <PublicFrame file="help">
-      <section style={{ padding: '80px 0 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 18 }}>
-        <h1 style={{ fontSize: 'clamp(36px,5vw,54px)', fontWeight: 300 }}>
-          <span className="hl">
-            <span>{copy.t('head', 'heading', words.heading)}</span>
-          </span>
-        </h1>
-        {intro && (
-          <p className="muted fade-in" style={{ margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
-            {intro}
-          </p>
-        )}
+      <TopBand title={copy.t('head', 'heading', words.heading)} intro={intro || undefined}>
         {/* suggests while typing (SearchBox, owner 2026-11-14); a GET form without JavaScript */}
         <SearchBox variant="pill" inputId="hs" action="/search" maxWidth={640} label={tx('Search help')} placeholder={tx('e.g. payment, refund, connect domain')} />
-      </section>
+      </TopBand>
       <section className="grid3" style={{ paddingTop: 24 }}>
         {groups.map((g, i) => (
           <a key={g.title} className="glass cat" href={`#${groupId(g.title)}`}>

@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -35,24 +36,21 @@ export default async function CheckoutSuccess({ searchParams }: { searchParams: 
   ] as const;
   return (
     <PublicFrame file="order-success">
-      <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14, padding: '76px 0 28px' }}>
-        <span className="okc" style={{ background: '#CDEBDF' }} aria-hidden="true">
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1A5444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12l5 5L20 7" />
-          </svg>
-        </span>
-        <h1 style={{ fontSize: 'clamp(32px,4.4vw,46px)', fontWeight: 300 }}>
-          <T s={'Thank you, your request is in.'} />
-        </h1>
-        <p className="muted" style={{ margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
-          <T s={'{v0} with our team. Websites are free for early users during the beta, and nothing was charged.'} v={{ v0: count > 1 ? `${count} requests are` : tx('Your request is') }} />
-        </p>
+      <TopBand
+        eyebrow={
+          <>
+            <span aria-hidden="true">✓</span> <T s={'Request received'} />
+          </>
+        }
+        title={<T s={'Thank you, your request is in.'} />}
+        intro={<T s={'{v0} with our team. Websites are free for early users during the beta, and nothing was charged.'} v={{ v0: count > 1 ? `${count} requests are` : tx('Your request is') }} />}
+      >
         {id && (
           <div className="tag">
             <T s={'Order {v0} · we email you when it is reviewed'} v={{ v0: orderCode(id) }} />
           </div>
         )}
-      </section>
+      </TopBand>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'center' }}>
         <section className="glass card" style={{ flex: '1 1 380px', maxWidth: 560 }}>
           <h2 style={{ fontSize: 20, marginBottom: 6 }}>

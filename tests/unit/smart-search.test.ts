@@ -57,7 +57,7 @@ describe('search plumbing', () => {
   it('the API is rate limited and the box is a real form with keyboard support', () => {
     expect(src('app/api/search/route.ts')).toMatch(/limit\(`search:/);
     const box = src('components/glass/SearchBox.tsx');
-    expect(box).toMatch(/<form\s+action=\{action\}\s+method="get"/);
+    expect(box).toMatch(/<form\s+(?:className=\{[^}]*\}\s+)?action=\{(?:here\()?action\)?\}\s+method="get"/); // a real GET form (its action in the page's language)
     expect(box).toMatch(/ArrowDown/);
     expect(box).toMatch(/Escape/);
     expect(box).toMatch(/setTimeout\([\s\S]*?200\)/);

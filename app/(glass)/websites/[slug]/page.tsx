@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -106,21 +107,38 @@ export default async function Website({ params }: Props) {
   return (
     <PublicFrame file="website">
       <TrackView id={p.id} />
-      <div className="muted" style={{ fontSize: 13, padding: '32px 0 20px' }}>
-        <Link href="/websites" style={{ color: '#566C78' }} prefetch={false}>
-          <T s={'Websites'} />
-        </Link>
-        {hub && (
-          <>
-            {' / '}
-            <Link href={categoryPath(hub.slug)} style={{ color: '#566C78' }} prefetch={false}>
-              {hub.name.replace(/ Websites$/, '')}
+      <TopBand
+        crumbs={
+          <nav className="tag" aria-label={tx('Breadcrumb')}>
+            <Link href="/websites" prefetch={false}>
+              <T s={'Websites'} />
             </Link>
+            {hub && (
+              <>
+                {' / '}
+                <Link href={categoryPath(hub.slug)} prefetch={false}>
+                  {hub.name.replace(/ Websites$/, '')}
+                </Link>
+              </>
+            )}
+            {' / '}
+            <span className="sob-band-here" aria-current="page">
+              {p.name}
+            </span>
+          </nav>
+        }
+        title={p.name}
+        intro={
+          <>
+            <span className="sob-band-price">
+              <PriceTag p={live} />
+            </span>
+            {[p.stack, seller ? `by ${seller.name}` : null, deliveryText({ days: p.days, hours: p.hours })].filter(Boolean).map((x) => (
+              <span key={x}> · {x}</span>
+            ))}
           </>
-        )}
-        {' / '}
-        <span style={{ color: '#2B4250' }}>{p.name}</span>
-      </div>
+        }
+      />
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '999 1 560px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <ShotGallery shots={p.shots ?? []} name={p.name} tint={tint} />
@@ -235,12 +253,7 @@ export default async function Website({ params }: Props) {
         </div>
         <aside style={{ flex: '1 1 320px', maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="glass" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <h1 style={{ fontSize: 26 }}>{p.name}</h1>
-              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-                {[p.stack, seller ? `by ${seller.name}` : null, deliveryText({ days: p.days, hours: p.hours })].filter(Boolean).join(' · ')}
-              </div>
-            </div>
+            <div style={{ fontSize: 17, fontWeight: 500 }}>{p.name}</div>
             <div style={{ fontSize: 40, fontWeight: 300 }}>
               <PriceTag p={live} big />
             </div>

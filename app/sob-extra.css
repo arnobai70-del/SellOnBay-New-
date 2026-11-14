@@ -576,11 +576,6 @@
 :is(.sob-p, .sob-d)[data-sob] .page::after {
   animation: none;
 }
-:is(.sob-p, .sob-d)[data-sob] .floater {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: rgba(255, 255, 255, 0.9);
-}
 :is(.sob-p, .sob-d)[data-sob] a.glass.card,
 :is(.sob-p, .sob-d)[data-sob] .res,
 :is(.sob-p, .sob-d)[data-sob] details.glass,

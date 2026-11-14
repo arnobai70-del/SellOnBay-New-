@@ -69,11 +69,12 @@ async function signIn(browser: import('@playwright/test').Browser, email: string
   const jar: { name: string; value: string }[] = [];
   const ssr = createServerClient(SUPA, ANON, { cookies: { getAll: () => [], setAll: (c) => void jar.push(...c.map(({ name, value }) => ({ name, value }))) } });
   await ssr.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-  const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-sob-e2e': '1' }, httpCredentials: { username: AUTH_USER, password: AUTH_PASS } });
+  // nine pages stay open at once: without the band's drift (reduced motion) a software-rendered test browser keeps up; the journey checks flows, not looks
+  const ctx = await browser.newContext({ reducedMotion: 'reduce', extraHTTPHeaders: { 'x-sob-e2e': '1' }, httpCredentials: { username: AUTH_USER, password: AUTH_PASS } });
   const host = new URL(BASE).hostname;
   await ctx.addCookies(jar.map((c) => ({ ...c, domain: host, path: '/', httpOnly: false, secure: false, sameSite: 'Lax' as const })));
   const page = await ctx.newPage();
-  await page.goto(BASE + '/login');
+  await page.goto(BASE + '/login', { waitUntil: 'domcontentloaded' }); // the page only gives the calls an origin: no need to wait for a dashboard's last resource
   return { email, id: session.user.id, page, ctx };
 }
 

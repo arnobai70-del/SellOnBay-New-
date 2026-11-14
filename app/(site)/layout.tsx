@@ -22,7 +22,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <>
       <PublicFrame file="help">
-        <div style={{ paddingTop: 32 }}>
+        <div className="sob-site-body">
           <TopBlocks slots={slots} />
           {children}
         </div>

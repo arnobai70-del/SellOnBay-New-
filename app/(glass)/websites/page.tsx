@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 import { SearchBox } from '@/components/glass/SearchBox';
+import { TopBand } from '@/components/glass/TopBand';
 import { WebsitesBrowser } from '@/components/glass/WebsitesBrowser';
 import { pageCopy } from '@/lib/content/copy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
@@ -23,8 +24,7 @@ export default async function Websites({ searchParams }: { searchParams: Promise
   const domain = typeof raw.domain === 'string' ? raw.domain.replace(/[^a-z0-9.-]/gi, '').slice(0, 80) : '';
   return (
     <PublicFrame file="websites">
-      <header style={{ padding: '56px 0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <h1 style={{ fontSize: 40, fontWeight: 300 }}>{copy.t('head', 'heading', words.heading)}</h1>
+      <TopBand title={copy.t('head', 'heading', words.heading)}>
         {/* suggests while typing (SearchBox, owner 2026-11-14); a GET form without JavaScript */}
         <SearchBox
           variant="pill"
@@ -35,16 +35,16 @@ export default async function Websites({ searchParams }: { searchParams: Promise
           placeholder={tx('Search full-stack websites…')}
           hidden={typeof raw.category === 'string' && raw.category ? { category: raw.category } : {}}
         />
-        {domain && (
-          <div className="tag" role="status" style={{ margin: 0 }}>
-            <T s={'Pick a website for'} /> <b style={{ fontWeight: 500 }}>{domain}</b>
-            <T s={': you add the domain when you request it.'} />{' '}
-            <Link href="/domains">
-              <T s={'Change the domain'} />
-            </Link>
-          </div>
-        )}
-      </header>
+      </TopBand>
+      {domain && (
+        <div className="tag" role="status" style={{ margin: '0 0 18px' }}>
+          <T s={'Pick a website for'} /> <b style={{ fontWeight: 500 }}>{domain}</b>
+          <T s={': you add the domain when you request it.'} />{' '}
+          <Link href="/domains">
+            <T s={'Change the domain'} />
+          </Link>
+        </div>
+      )}
       <WebsitesBrowser raw={raw} />
       <PageExtras path="/websites" />
     </PublicFrame>

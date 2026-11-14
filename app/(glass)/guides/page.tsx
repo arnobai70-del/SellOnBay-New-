@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -31,25 +32,17 @@ export default async function Guides({ searchParams }: { searchParams: Promise<{
   const meta = (p: (typeof posts)[number]) => `${p.category || 'Guide'} · ${readingMinutes(p.bodyHtml || p.body)} min read`;
   return (
     <PublicFrame file="guides">
-      <header className="pagehead">
-        <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-          <T s={'Guides'} />
-        </span>
-        <h1>{copy.t('head', 'heading', words.heading)}</h1>
-        <p className="muted" style={{ margin: 0, maxWidth: 620, lineHeight: 1.6 }}>
-          {copy.t('head', 'intro', words.intro ?? '')}
-        </p>
-        <div className="seg" role="tablist" aria-label={tx('Topic')} style={{ alignSelf: 'flex-start' }}>
-          <Link role="tab" className={!topic ? 'on' : ''} aria-selected={!topic} href="/guides" prefetch={false}>
-            <T s={'All'} />
+      <TopBand eyebrow={<T s={'Guides'} />} title={copy.t('head', 'heading', words.heading)} intro={copy.t('head', 'intro', words.intro ?? '') || undefined} />
+      <div className="seg" role="tablist" aria-label={tx('Topic')} style={{ alignSelf: 'flex-start', margin: '0 0 24px' }}>
+        <Link role="tab" className={!topic ? 'on' : ''} aria-selected={!topic} href="/guides" prefetch={false}>
+          <T s={'All'} />
+        </Link>
+        {topics.map((t) => (
+          <Link key={t} role="tab" className={topic === t ? 'on' : ''} aria-selected={topic === t} href={`/guides?topic=${encodeURIComponent(t)}`} prefetch={false}>
+            {t}
           </Link>
-          {topics.map((t) => (
-            <Link key={t} role="tab" className={topic === t ? 'on' : ''} aria-selected={topic === t} href={`/guides?topic=${encodeURIComponent(t)}`} prefetch={false}>
-              {t}
-            </Link>
-          ))}
-        </div>
-      </header>
+        ))}
+      </div>
       {featured ? (
         <Link className="glass post" href={`/guides/${featured.slug}`} prefetch={false} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 24, padding: 18 }}>
           <div

@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -31,38 +32,15 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
   const [words, copy] = await Promise.all([pageWords('/domains'), pageCopy('domains')]);
   const heading = copy.t('head', 'heading', words.heading);
   const intro = copy.t('head', 'intro', words.intro ?? '');
-  const cut = heading.search(/\s+for\s/i);
-  const [h1a, h1b] = cut > 0 ? [heading.slice(0, cut), heading.slice(cut + 1)] : [heading, ''];
   return (
     <PublicFrame file="domains">
-      <section style={{ padding: '88px 0 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20 }}>
-        <span className="badge fade-in" style={{ animationDelay: '.2s' }}>
-          <T s={'Registered in your own name'} />
-        </span>
-        <h1 style={{ fontSize: 'clamp(38px, 5.5vw, 60px)', lineHeight: 1.08, fontWeight: 300 }}>
-          <span className="hl">
-            <span style={{ animationDelay: '.25s' }}>{h1a}</span>
-          </span>
-          {h1b && (
-            <>
-              {' '}
-              <span className="hl">
-                <span style={{ animationDelay: '.42s' }}>{h1b}</span>
-              </span>
-            </>
-          )}
-        </h1>
-        {intro && (
-          <p className="muted fade-in" style={{ margin: 0, maxWidth: 560, fontSize: 17, lineHeight: 1.6, animationDelay: '.5s' }}>
-            {intro}
-          </p>
-        )}
+      <TopBand eyebrow={<T s={'Registered in your own name'} />} title={heading} intro={intro || undefined}>
         <form
           className="glass search-glow"
           action="/domains"
           method="get"
           role="search"
-          style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 700, padding: '8px 8px 8px 22px', borderRadius: 999, boxSizing: 'border-box', marginTop: 8 }}
+          style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', maxWidth: 700, padding: '8px 8px 8px 22px', borderRadius: 999, boxSizing: 'border-box' }}
         >
           <label htmlFor="dq" className="hidden-label">
             <T s={'Search a domain'} />
@@ -81,14 +59,14 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
             <T s={'Search domains'} />
           </button>
         </form>
-        <div className="fade-in" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center', fontSize: 14, color: '#3D5563', animationDelay: '.75s' }}>
-          {TLDS.slice(0, 6).map(([t, p]) => (
-            <span key={t}>
-              {t} <b style={{ fontWeight: 500 }}>${p}</b>
-            </span>
-          ))}
-        </div>
-      </section>
+      </TopBand>
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 14, color: '#3D5563', margin: '0 0 24px' }}>
+        {TLDS.slice(0, 6).map(([t, p]) => (
+          <span key={t}>
+            {t} <b style={{ fontWeight: 500 }}>${p}</b>
+          </span>
+        ))}
+      </div>
       {name && (
         <section className="glass" style={{ padding: 6, marginBottom: 72 }} aria-label={tx('Results')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '16px 20px 6px' }}>

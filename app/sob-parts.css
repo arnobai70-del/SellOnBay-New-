@@ -2396,3 +2396,389 @@
   padding: 8px 10px;
   text-align: start;
 }
+
+/* ===================================================================================================================================
+   "Deep ocean" top band (owner, 2026-11-14, option C of the hero canvas): components/glass/TopBand.tsx, on every public page, never on a
+   dashboard (.sob-p only). The band covers the header and the page's title area; its background reaches up behind the header to the top of
+   the page (.page clips it there) and out to 24px from the window's edges (12px on phones). Pure CSS: no filter blur, the glows drift on
+   transform only (still for reduced motion), no JavaScript.
+   =================================================================================================================================== */
+.sob-p .sob-band {
+  --band-over: 520px; /* how far the background reaches up, behind the notes and the header (the page clips the rest) */
+  position: relative;
+  z-index: 0; /* its own layer: the page's drifting light glows stay behind the band instead of washing over it */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 0 24px;
+  padding: 56px 0;
+  color: #fff;
+  text-align: start;
+}
+.sob-p .sob-band[data-align='center'] {
+  align-items: center;
+  text-align: center;
+}
+.sob-p .sob-band-bg {
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * var(--band-over));
+  bottom: 0;
+  left: calc(50% - 50vw + 24px);
+  right: calc(50% - 50vw + 24px);
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 0 0 36px 36px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(150deg, #0e2a44 0%, #123e5c 40%, #0f5a5a 100%) left bottom / 100% calc(100% - var(--band-over) + 180px) no-repeat,
+    #0e2a44;
+}
+.sob-p .sob-band-g1,
+.sob-p .sob-band-g2 {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform; /* kept as a ready layer: the drift only moves it, nothing is drawn again (main thread ~0.7%, no long tasks) */
+}
+.sob-p .sob-band-g1 {
+  /* centred on the band's top-left corner: only its faded edge reaches the text, which keeps every line above 4.5:1 */
+  left: -380px;
+  top: calc(var(--band-over) - 300px);
+  width: 760px;
+  height: 600px;
+  background: radial-gradient(closest-side, rgba(70, 150, 230, 0.55), rgba(70, 150, 230, 0));
+  animation: sob-band-drift1 16s ease-in-out infinite alternate;
+}
+.sob-p .sob-band-g2 {
+  /* centred on the band's bottom-right corner */
+  right: -400px;
+  bottom: -180px;
+  width: 800px;
+  height: 360px; /* a short reach upwards: on short bands it must not get under the header's buttons */
+  background: radial-gradient(closest-side, rgba(43, 201, 160, 0.45), rgba(43, 201, 160, 0));
+  animation: sob-band-drift2 18s ease-in-out infinite alternate;
+}
+@keyframes sob-band-drift1 {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(90px, 40px, 0);
+  }
+}
+@keyframes sob-band-drift2 {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-100px, -36px, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sob-p .sob-band-g1,
+  .sob-p .sob-band-g2 {
+    animation: none;
+  }
+}
+
+/* text and controls in the band: the same tokens on every page, visible at first paint */
+.sob-p .sob-band *,
+.sob-p .sob-band .glass,
+.sob-p .sob-band .fade-in,
+.sob-p .sob-band .hl > span {
+  animation-name: none;
+}
+.sob-p .sob-band .fade-in,
+.sob-p .sob-band .hl > span {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+.sob-p .sob-band .sob-band-g1 {
+  animation-name: sob-band-drift1;
+}
+.sob-p .sob-band .sob-band-g2 {
+  animation-name: sob-band-drift2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sob-p .sob-band .sob-band-g1,
+  .sob-p .sob-band .sob-band-g2 {
+    animation-name: none;
+  }
+}
+.sob-p .sob-band-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(127, 240, 207, 0.14);
+  border: 1px solid rgba(127, 240, 207, 0.35);
+  color: #b8f9e6; /* #a8f5de of the canvas, one step lighter: 4.5:1 on every page and phone */
+  font-size: 13px;
+  line-height: 1.4;
+}
+.sob-p .sob-band .sob-band-h1 {
+  margin: 0;
+  color: #fff;
+  font-weight: 500;
+  font-size: clamp(36px, 4.2vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  max-width: 900px;
+}
+.sob-p .sob-band-home .sob-band-h1 {
+  font-size: clamp(38px, 6vw, 64px);
+  line-height: 1.06;
+}
+.sob-p .sob-band .sob-band-mint {
+  color: #7ff0cf;
+  font-style: normal;
+}
+.sob-p .sob-band .sob-band-intro {
+  margin: 0;
+  max-width: 640px;
+  color: #b9cfe2;
+  font-size: 17px;
+  line-height: 1.6;
+}
+.sob-p .sob-band .sob-band-intro .tag,
+.sob-p .sob-band .tag,
+.sob-p .sob-band .muted {
+  color: #b9cfe2;
+}
+.sob-p .sob-band-crumbs,
+.sob-p .sob-band-crumbs .tag,
+.sob-p .sob-band-crumbs a {
+  margin: 0;
+  color: #c6d9ea !important; /* #b9cfe2 one step lighter: small text, 4.5:1 everywhere */
+  font-size: 13px;
+}
+.sob-p .sob-band-crumbs a:hover {
+  color: #fff !important;
+}
+.sob-p .sob-band-crumbs [aria-current],
+.sob-p .sob-band-crumbs .sob-band-here {
+  color: #fff !important;
+}
+.sob-p .sob-band-ctl {
+  display: flex;
+  flex-direction: column;
+  align-items: inherit;
+  gap: 14px;
+  width: 100%;
+  margin-top: 6px;
+}
+.sob-p .sob-band-ctl > * {
+  max-width: 100%;
+}
+.sob-p .sob-band .draft {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #d8e8f5;
+}
+/* buttons */
+.sob-p .sob-band .btn:not(.ghost) {
+  background: #3fd3ab;
+  color: #06302a;
+  border-color: transparent;
+}
+.sob-p .sob-band .btn.ghost {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e6f1fb;
+}
+/* search fields: a light ring, a white field, the mint button */
+.sob-p .sob-band form[role='search'] {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: #d8e8f5;
+}
+.sob-p .sob-band form[role='search'] > svg {
+  display: none;
+}
+/* words beside the field (the domain search's "www.") are light on the ring */
+.sob-p .sob-band form[role='search'] > span {
+  color: #d8e8f5 !important;
+}
+.sob-p .sob-band form[role='search'] input:not([type='hidden']) {
+  min-height: 44px;
+  padding: 0 18px !important;
+  border: 0 !important;
+  border-radius: 999px;
+  background: #fff !important;
+  color: #12324a !important;
+}
+.sob-p .sob-band .sob-sx-pill form[role='search'] {
+  padding: 6px;
+}
+.sob-p .sob-band form[role='search'] input::placeholder {
+  color: #5a7186;
+}
+/* toggles and tabs */
+.sob-p .sob-band [role='tablist'] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+.sob-p .sob-band .stab,
+.sob-p .sob-band [role='tablist'] > a,
+.sob-p .sob-band [role='tablist'] > button {
+  color: #d8e8f5;
+}
+.sob-p .sob-band .stab.on,
+.sob-p .sob-band [role='tablist'] > .on {
+  background: #fff;
+  color: #12324a;
+}
+/* chips (one row that scrolls on phones) */
+.sob-p .sob-band .chip {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #d8e8f5;
+}
+.sob-p .sob-band .chip:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.sob-p .sob-band .chip.on {
+  background: #3fd3ab;
+  border-color: #3fd3ab;
+  color: #06302a;
+}
+.sob-p .sob-band .sob-band-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: inherit;
+  max-width: 100%;
+}
+.sob-p .sob-band[data-align='center'] .sob-band-chips {
+  justify-content: center;
+}
+
+/* the header while it sits on a band (it is not sticky: it leaves with the band, so the light header of the page below never meets it) */
+.sob-p .page:has(.sob-band) .nav.glass {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+.sob-p .page:has(.sob-band) .nav .logo,
+.sob-p .page:has(.sob-band) > .wrap > .logo,
+.sob-p .page:has(.sob-band) [data-auth-top] .logo {
+  color: #fff;
+}
+.sob-p .page:has(.sob-band) .nav .navlinks a {
+  color: #e6f1fb;
+}
+.sob-p .page:has(.sob-band) .nav .navlinks a:hover,
+.sob-p .page:has(.sob-band) .nav .navlinks a.cur {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.sob-p .page:has(.sob-band) .nav .sob-sx-compact .input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.sob-p .page:has(.sob-band) .nav .sob-sx-compact .input::placeholder {
+  color: #b9cfe2;
+}
+.sob-p .page:has(.sob-band) .nav .sob-navr .btn,
+.sob-p .page:has(.sob-band) .nav .sob-acct-btn .av {
+  background: rgba(43, 181, 154, 0.25);
+  border-color: transparent;
+  color: #d2f8ec; /* #bff3e3 one step lighter: 4.5:1 on the shortest bands */
+}
+.sob-p .page:has(.sob-band) .nav .sob-lang {
+  color: #e6f1fb;
+}
+.sob-p .page:has(.sob-band) .nav .sob-lang .sob-lang-select {
+  background-color: rgba(255, 255, 255, 0.08);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23E6F1FB' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #e6f1fb;
+}
+.sob-p .page:has(.sob-band) .nav .sob-burger {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.sob-p .page:has(.sob-band) .nav .sob-burger span,
+.sob-p .page:has(.sob-band) .nav .sob-burger span::before,
+.sob-p .page:has(.sob-band) .nav .sob-burger span::after {
+  background-color: #e6f1fb;
+}
+.sob-p .page:has(.sob-band) .nav .sob-burger[aria-expanded='true'] span {
+  background-color: transparent;
+}
+.sob-p .page:has(.sob-band) .nav .navlinks.open {
+  border-top-color: rgba(255, 255, 255, 0.18);
+}
+/* what comes before the band (notes, the maintenance and language notices, a guide's preview line) stays above its background */
+.sob-p .page:has(.sob-band) > :not(.wrap):not(:has(.sob-band)),
+.sob-p :has(~ .sob-band),
+.sob-p :has(~ :has(.sob-band)):not(:has(.sob-band)) {
+  position: relative;
+  z-index: 1;
+}
+/* the free-beta line at the very top sits on the band too */
+.sob-p .page:has(.sob-band) > .sob-note:not(.sob-note-warn) {
+  background: transparent;
+  color: #cfe0ee;
+}
+
+@media (max-width: 760px) {
+  .sob-p .sob-band {
+    padding: 40px 0;
+  }
+  /* smaller glows on phones, where the text spans the whole width */
+  .sob-p .sob-band-g1 {
+    left: -180px;
+    top: calc(var(--band-over) - 150px);
+    width: 360px;
+    height: 300px;
+  }
+  .sob-p .sob-band-g2 {
+    right: -130px;
+    bottom: -90px;
+    width: 260px;
+    height: 180px;
+  }
+  .sob-p .sob-band-bg {
+    left: calc(50% - 50vw + 12px);
+    right: calc(50% - 50vw + 12px);
+    border-radius: 0 0 24px 24px;
+  }
+  .sob-p .sob-band .sob-band-chips {
+    flex-wrap: nowrap;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+    width: 100%;
+  }
+  .sob-p .sob-band .sob-band-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .sob-p .sob-band .sob-band-chips > * {
+    flex: 0 0 auto;
+  }
+  /* the phone menu sheet opens inside the dark pill: its links stay light */
+  .sob-p .page:has(.sob-band) .nav .navlinks.open a {
+    color: #e6f1fb;
+  }
+}
+.sob-p .sob-band .sob-band-price {
+  color: #fff;
+  font-weight: 500;
+}
+/* the (site) pages: 32px under the header, none when the page opens with the band (the band brings its own 56px) */
+.sob-p .sob-site-body {
+  padding-top: 32px;
+}
+.sob-p .sob-site-body:has(.sob-band) {
+  padding-top: 0;
+}

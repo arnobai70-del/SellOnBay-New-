@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -48,17 +49,11 @@ export default async function Subscriptions() {
           <T s={'Preview for admins: subscriptions are switched off, so visitors do not see this page. Turn them on in Admin › Buyer subscriptions.'} />
         </p>
       )}
-      <section style={{ padding: '72px 0 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-        <span className="badge">
-          <T s={'Buyer subscriptions'} />
-        </span>
-        <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>
-          <T s={'More websites, one yearly plan'} />
-        </h1>
-        <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
-          {settings.intro || tx('Choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.')}
-        </p>
-      </section>
+      <TopBand
+        eyebrow={<T s={'Buyer subscriptions'} />}
+        title={<T s={'More websites, one yearly plan'} />}
+        intro={settings.intro || tx('Choose several full-stack websites with full source code, a usage licence and a year of free bug fixes and support.')}
+      />
 
       {plans.length ? (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 18 }} aria-label={tx('Plans')}>

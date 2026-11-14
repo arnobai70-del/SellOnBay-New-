@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import { priceDisplays } from '@/lib/prices/service';
 import Link from 'next/link';
@@ -46,12 +47,10 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
     const dv = deliveryOf(p);
     return (
       <PublicFrame file="checkout">
-        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 8px' }}>
-          <T s={'Request to buy {name}'} v={{ name: publicListing(p).name }} />
-        </h1>
-        <p className="muted" style={{ margin: '0 0 24px', lineHeight: 1.6 }}>
-          <T s={'Tell SellOnBay what you need. We check it and send you a quotation. You pay only after you accept it.'} />
-        </p>
+        <TopBand
+          title={<T s={'Request to buy {name}'} v={{ name: publicListing(p).name }} />}
+          intro={<T s={'Tell SellOnBay what you need. We check it and send you a quotation. You pay only after you accept it.'} />}
+        />
         {problem || !rp ? (
           <div className="glass" style={{ padding: 26 }}>
             <p role="note" style={{ margin: 0 }}>
@@ -93,9 +92,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
   if (!items.length)
     return (
       <PublicFrame file="checkout">
-        <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>
-          <T s={'Checkout'} />
-        </h1>
+        <TopBand title={<T s={'Checkout'} />} />
         <div className="glass" style={{ padding: 26 }}>
           <h2 style={{ fontSize: 20 }}>
             <T s={'Nothing to request yet'} />
@@ -162,9 +159,7 @@ export default async function Checkout({ searchParams }: { searchParams: Promise
   );
   return (
     <PublicFrame file="checkout">
-      <h1 style={{ fontSize: 36, fontWeight: 300, padding: '48px 0 24px' }}>
-        <T s={'Checkout'} />
-      </h1>
+      <TopBand title={<T s={'Checkout'} />} />
       <BetaForm
         ids={items.map((i) => i.id)}
         name={viewer?.name ?? ''}

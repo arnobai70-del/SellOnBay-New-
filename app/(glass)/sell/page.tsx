@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { Earnings } from './Earnings';
 import { PageExtras } from '@/components/PageExtras';
@@ -52,43 +53,19 @@ export default async function Sell() {
   const [words, social, copy] = await Promise.all([pageWords('/sell'), savedSocial(), pageCopy('sell')]);
   const heading = copy.t('head', 'heading', words.heading);
   const intro = copy.t('head', 'intro', words.intro ?? '');
-  const [first, ...rest] = heading.split(/(?<=\.)\s+/);
   return (
     <PublicFrame file="sell">
-      <section style={{ padding: '80px 0 24px', display: 'flex', gap: 40, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ flex: '1 1 440px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-            <T s={'For developers'} />
-          </span>
-          <h1 style={{ fontSize: 'clamp(38px,5vw,58px)', fontWeight: 300, lineHeight: 1.08 }}>
-            <span className="hl">
-              <span>{first}</span>
-            </span>
-            {rest.length > 0 && (
-              <>
-                {' '}
-                <span className="hl">
-                  <span style={{ animationDelay: '.15s' }}>{rest.join(' ')}</span>
-                </span>
-              </>
-            )}
-          </h1>
-          {intro && (
-            <p className="muted fade-in" style={{ margin: 0, maxWidth: 520, lineHeight: 1.6, fontSize: 17, animationDelay: '.3s' }}>
-              {intro}
-            </p>
-          )}
-          <div className="fade-in" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', animationDelay: '.4s' }}>
-            <Link className="btn" href="/signin?mode=signup" data-track="start-selling">
-              {copy.t('cta', 'start')}
-            </Link>
-            <Link className="btn ghost" href="/legal/seller-agreement" prefetch={false}>
-              {copy.t('cta', 'agreement')}
-            </Link>
-          </div>
+      <TopBand eyebrow={<T s={'For developers'} />} title={heading} intro={intro || undefined}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link className="btn" href="/signin?mode=signup" data-track="start-selling">
+            {copy.t('cta', 'start')}
+          </Link>
+          <Link className="btn ghost" href="/legal/seller-agreement" prefetch={false}>
+            {copy.t('cta', 'agreement')}
+          </Link>
         </div>
-        <Earnings />
-      </section>
+      </TopBand>
+      <Earnings />
       <section className="sec" id="how">
         <h2 style={{ fontSize: 28, marginBottom: 18 }}>
           <T s={'From upload to payout'} />

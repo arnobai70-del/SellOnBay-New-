@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 import { pageCopy } from '@/lib/content/copy';
@@ -13,27 +14,22 @@ export default async function NotFound() {
   const c = await pageCopy('not-found');
   return (
     <PublicFrame file="404">
-      <div className="grid2" style={{ paddingTop: 56 }}>
+      <TopBand eyebrow="Error 404" title={c.t('main', 'heading')} intro={c.t('main', 'text')}>
+        <form action="/search" method="get" role="search" style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 520, padding: 6, borderRadius: 999, boxSizing: 'border-box' }}>
+          <label htmlFor="s4" className="hidden-label">
+            Search
+          </label>
+          <input id="s4" name="q" className="input" style={{ flex: 1, minWidth: 0 }} placeholder={tx('Search websites or domains')} />
+          <button className="btn" type="submit">
+            Search
+          </button>
+        </form>
+      </TopBand>
+      <div className="grid2">
         <section className="glass card" style={{ padding: 44, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
-          <span className="tag" style={{ margin: 0, letterSpacing: '.08em', textTransform: 'uppercase' }}>
-            Error 404
-          </span>
           <div className="big" aria-hidden="true">
             404
           </div>
-          <h1 style={{ fontSize: 32, fontWeight: 300 }}>{c.t('main', 'heading')}</h1>
-          <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
-            {c.t('main', 'text')}
-          </p>
-          <form action="/search" method="get" role="search" style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 420 }}>
-            <label htmlFor="s4" className="hidden-label">
-              Search
-            </label>
-            <input id="s4" name="q" className="input" placeholder={tx('Search websites or domains')} />
-            <button className="btn" type="submit">
-              Search
-            </button>
-          </form>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link className="btn ghost" href="/" prefetch={false}>
               Home

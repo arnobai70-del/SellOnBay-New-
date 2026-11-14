@@ -31,7 +31,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
   const social = await signInOptions(); // providers switched on in Supabase AND by SellOnBay's flags; Apple only as a secondary link
   return (
     <PublicFrame file="signin" chrome={false}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+      <div data-auth-top style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
         <Link className="logo" href="/" style={{ padding: '18px 0' }} prefetch={false}>
           <BrandMark />
           {BRAND_NAME}

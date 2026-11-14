@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
@@ -34,20 +35,24 @@ export default async function Category({ params, searchParams }: Props) {
   const words = await pageWords(hubPath(hub));
   return (
     <PublicFrame file="websites">
-      <header style={{ padding: '56px 0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <nav className="tag" aria-label={tx('Breadcrumb')} style={{ margin: 0 }}>
-          <Link href="/websites">
-            <T s={'Websites'} />
-          </Link>{' '}
-          / {hub.name.replace(/ Websites$/, '')}
-        </nav>
-        <h1 style={{ fontSize: 40, fontWeight: 300 }}>{words.heading}</h1>
-        {(words.intro ? [words.intro] : hub.intro).map((t) => (
-          <p key={t} className="muted" style={{ margin: 0, maxWidth: 680, lineHeight: 1.6 }}>
+      <TopBand
+        crumbs={
+          <nav className="tag" aria-label={tx('Breadcrumb')}>
+            <Link href="/websites">
+              <T s={'Websites'} />
+            </Link>{' '}
+            / <span className="sob-band-here">{hub.name.replace(/ Websites$/, '')}</span>
+          </nav>
+        }
+        title={words.heading}
+        intro={words.intro || hub.intro[0]}
+      />
+      {!words.intro &&
+        hub.intro.slice(1).map((t) => (
+          <p key={t} className="muted" style={{ margin: '0 0 18px', maxWidth: 680, lineHeight: 1.6 }}>
             {t}
           </p>
         ))}
-      </header>
       <WebsitesBrowser raw={await searchParams} category={hub.slug} />
       <section className="sec">
         <div className="glass card" style={{ padding: 22 }}>

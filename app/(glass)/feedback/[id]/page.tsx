@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -18,14 +19,7 @@ export default async function Feedback({ params }: { params: Promise<{ id: strin
   const done = await betaFeedbackOf(id);
   return (
     <PublicFrame file="account-access">
-      <header className="pagehead">
-        <h1>
-          <T s={'How did it go?'} />
-        </h1>
-        <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
-          <T s={'Two minutes of your time helps us make SellOnBay better.'} />
-        </p>
-      </header>
+      <TopBand title={<T s={'How did it go?'} />} intro={<T s={'Two minutes of your time helps us make SellOnBay better.'} />} />
       <section className="glass ac" style={{ maxWidth: 640 }}>
         {done ? (
           <p role="status">

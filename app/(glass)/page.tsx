@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import Link from 'next/link';
 import { HeroSearch } from '@/components/glass/HeroSearch';
-import { PriceTag } from '@/components/glass/PriceTag';
+import { Mint, TopBand } from '@/components/glass/TopBand';
 import { PublicFrame } from '@/components/glass/PublicFrame';
 import { WebsiteCard } from '@/components/glass/WebsiteCard';
 import { JsonLd } from '@/components/JsonLd';
@@ -98,6 +98,9 @@ const TRUST = (tx: Tx) => [
 const DOT = <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7FBFA9', flex: 'none' }} />;
 const ROW = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginBottom: 20 } as const;
 
+/* The home title's key words in mint ("website", "domain"; option C of the hero canvas). Words of other languages stay white. */
+const mintWords = (text: string) => text.split(/((?:website|domain)s?)/i).map((part, i) => (i % 2 ? <Mint key={i}>{part}</Mint> : part));
+
 /* design-reference/index.html, wired to the live listings, sellers and the words an admin sets at Admin › Content › Pages › Home. */
 export default async function Home() {
   const { tx } = await getI18n(); // words in the page's language (lib/i18n/tx.ts)
@@ -107,8 +110,6 @@ export default async function Home() {
   const featured = browse(sites, readQuery({}, []), () => null).items.slice(0, 6);
   const [line1, line2] = twoLines(c.t('hero', 'title'));
   const [sell1, sell2] = twoLines(c.t('sell', 'heading'));
-  // The two floating cards show real websites, those with a screenshot first (owner, 2026-11-09).
-  const [f1, f2] = [...featured.filter((p) => p.shots?.[0]), ...featured.filter((p) => !p.shots?.[0])];
   // Each section an admin can hide or move (Admin › Content › Pages); the top banner always comes first.
   const SECTIONS: Record<string, React.ReactNode> = {
     pillars: (
@@ -355,109 +356,25 @@ export default async function Home() {
           <T s={'Preview of the saved draft. Visitors still see the published words.'} />
         </p>
       )}
-      <section style={{ position: 'relative', isolation: 'isolate', padding: '96px 0 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 22 }}>
-        {f1 && (
-          <div className="floater" aria-hidden="true" style={{ left: 0, top: 300, ['--r' as string]: '-6deg', animationDelay: '.9s, 2.3s' }}>
-            {f1.shots?.[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element -- a seller screenshot from our own route, any size
-              <img
-                src={f1.shots[0]}
-                alt=""
-                loading="eager"
-                decoding="async"
-                style={{ display: 'block', width: '100%', height: 110, objectFit: 'cover', objectPosition: 'top', borderRadius: 12, border: '1px solid #E1EBF0' }}
-              />
-            ) : (
-              <div
-                className="thumb"
-                style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 6 }}
-              >
-                <span className="tb" />
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <span className="sq m" />
-                  <span className="sq l" />
-                  <span className="sq b" />
-                </div>
-                <span className="ln" />
-                <span className="ln s" />
-              </div>
+      <TopBand
+        size="home"
+        align="center"
+        eyebrow={<T s={'Full-stack websites · Domains · Seller marketplace'} />}
+        title={
+          <>
+            {mintWords(line1)}
+            {line2 && (
+              <>
+                <br />
+                {mintWords(line2)}
+              </>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '8px 4px 0', gap: 8 }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f1.name}</span>
-              <span>
-                <PriceTag p={f1} />
-              </span>
-            </div>
-          </div>
-        )}
-        {f2 && (
-          <div className="floater" aria-hidden="true" style={{ right: 0, top: 290, ['--r' as string]: '5deg', animationDelay: '1.1s, 2.5s' }}>
-            {f2.shots?.[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element -- a seller screenshot from our own route, any size
-              <img
-                src={f2.shots[0]}
-                alt=""
-                loading="eager"
-                decoding="async"
-                style={{ display: 'block', width: '100%', height: 110, objectFit: 'cover', objectPosition: 'top', borderRadius: 12, border: '1px solid #E1EBF0' }}
-              />
-            ) : (
-              <div style={{ height: 110, background: '#F7FAFB', borderRadius: 12, border: '1px solid #E1EBF0', padding: 10, boxSizing: 'border-box', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span className="img" style={{ height: 70 }} />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <span className="mini">
-                    <T s={'Create.'} />
-                  </span>
-                  <span className="ln" />
-                  <span className="ln s" />
-                </div>
-              </div>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '8px 4px 0', gap: 8 }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f2.name}</span>
-              <span>
-                <PriceTag p={f2} />
-              </span>
-            </div>
-          </div>
-        )}
-        <div className="floater" aria-hidden="true" style={{ left: 40, top: 690, width: 170, ['--r' as string]: '4deg', animationDelay: '1.3s, 2.7s' }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: '#1A5444' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3F8F77' }} />
-            <T s={'Payment held in escrow'} />
-          </div>
-        </div>
-        <div className="floater" aria-hidden="true" style={{ right: 30, top: 690, width: 190, ['--r' as string]: '-4deg', animationDelay: '1.5s, 2.9s' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 13 }}>
-            <span style={{ fontWeight: 500 }}>
-              <T s={'yourbrand.com'} />
-            </span>
-            <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 999, background: '#E2F3EC', color: '#1A5444' }}>
-              <T s={'In your name'} />
-            </span>
-          </div>
-        </div>
-        <span className="badge fade-in" style={{ animationDelay: '.2s' }}>
-          <T s={'Full-stack websites · Domains · Seller marketplace'} />
-        </span>
-        <h1 style={{ fontSize: 'clamp(40px, 6vw, 64px)', lineHeight: 1.08, fontWeight: 300 }}>
-          <span className="hl">
-            <span style={{ animationDelay: '.25s' }}>{line1}</span>
-          </span>
-          {line2 && (
-            <>
-              {' '}
-              <span className="hl">
-                <span style={{ animationDelay: '.42s' }}>{line2}</span>
-              </span>
-            </>
-          )}
-        </h1>
-        <p className="muted fade-in" style={{ margin: 0, maxWidth: 640, fontSize: 17, lineHeight: 1.6, animationDelay: '.5s' }}>
-          {c.t('hero', 'lead')}
-        </p>
+          </>
+        }
+        intro={c.t('hero', 'lead')}
+      >
         <HeroSearch placeholder={c.t('hero', 'search')} />
-        <div className="fade-in" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', animationDelay: '.75s' }}>
+        <div className="sob-band-chips">
           <Link className="chip on" href="/websites" prefetch={false}>
             <T s={'All'} />
           </Link>
@@ -467,7 +384,7 @@ export default async function Home() {
             </Link>
           ))}
         </div>
-      </section>
+      </TopBand>
 
       {c.order.map((k) => SECTIONS[k] ?? null)}
 

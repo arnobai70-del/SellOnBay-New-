@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import { reportAbuse } from './actions';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { pageWords } from '@/lib/seo/pageWords';
@@ -12,10 +13,7 @@ export default async function ReportAbuse({ searchParams }: { searchParams: Prom
   const [{ sent, error }, w] = await Promise.all([searchParams, pageWords('/report-abuse')]);
   return (
     <div className="wrap">
-      <div className="sob-page-head">
-        <h1>{w.heading}</h1>
-        <p>{w.intro}</p>
-      </div>
+      <TopBand title={w.heading} intro={w.intro || undefined} />
       <div style={{ maxWidth: 620, paddingBottom: 88 }}>
         {sent ? (
           <div className="glass card">

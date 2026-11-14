@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -94,28 +95,30 @@ export default async function GuidePage(props: Params) {
           <T s={'Preview: this guide is {status}. Only admins can see it.'} v={{ status: p.status }} />
         </p>
       )}
-      <nav className="tag" aria-label={tx('Breadcrumb')} style={{ marginTop: 32 }}>
-        <Link href="/">
-          <T s={'Home'} />
-        </Link>{' '}
-        /{' '}
-        <Link href="/guides">
-          <T s={'Guides'} />
-        </Link>
-      </nav>
-      <article>
-        <header className="pagehead" style={{ paddingTop: 24 }}>
-          <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-            {p.category || tx('Guide')}
-          </span>
-          <h1>{p.title}</h1>
-          <p className="tag">
+      <TopBand
+        crumbs={
+          <nav className="tag" aria-label={tx('Breadcrumb')}>
+            <Link href="/">
+              <T s={'Home'} />
+            </Link>{' '}
+            /{' '}
+            <Link href="/guides">
+              <T s={'Guides'} />
+            </Link>
+          </nav>
+        }
+        eyebrow={p.category || tx('Guide')}
+        title={p.title}
+        intro={
+          <>
             <time dateTime={published.toISOString()}>{published.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
             {p.author ? ` · ${p.author}` : ''}
             {p.bodyHtml ? ` · ${readingMinutes(p.bodyHtml)} min read` : ''}
             {p.category ? ` · ${p.category}` : ''}
-          </p>
-        </header>
+          </>
+        }
+      />
+      <article>
         {p.coverUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- covers are ours (/blog/media) or any https address the admin gives
           <img src={p.coverUrl} style={{ display: 'block', width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 20, marginBottom: 20 }} alt={p.coverAlt} loading="eager" decoding="async" />

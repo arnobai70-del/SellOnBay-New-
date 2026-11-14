@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { PageExtras } from '@/components/PageExtras';
 import { PublicFrame } from '@/components/glass/PublicFrame';
@@ -44,68 +45,64 @@ export default async function Sellers({ searchParams }: { searchParams: Promise<
   };
   return (
     <PublicFrame file="sellers">
-      <header className="pagehead">
-        <h1>{copy.t('head', 'heading', words.heading)}</h1>
-        <p className="muted" style={{ margin: 0, maxWidth: 600, lineHeight: 1.6 }}>
-          {copy.t('head', 'intro', words.intro ?? '')}
-        </p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <form
-            className="glass"
-            action="/sellers"
-            method="get"
-            role="search"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px 6px 18px', borderRadius: 999, flex: '1 1 300px', maxWidth: 440 }}
-          >
-            {skill && <input type="hidden" name="skill" value={skill} />}
-            {custom === '1' && <input type="hidden" name="custom" value="1" />}
-            <label htmlFor="ss" className="hidden-label">
-              <T s={'Search sellers'} />
-            </label>
-            <input
-              id="ss"
-              name="q"
-              defaultValue={q}
-              placeholder={tx('Search by name or skill')}
-              style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 42 }}
-            />
-            <button className="btn sm" type="submit">
-              <T s={'Search'} />
-            </button>
-          </form>
-          <div className="seg" role="tablist" aria-label={tx('Skill')}>
-            <Link role="tab" className={!skill ? 'on' : ''} aria-selected={!skill} href={href({ custom })} prefetch={false}>
-              <T s={'All'} />
-            </Link>
-            {skills.map((t) => (
-              <Link key={t} role="tab" className={skill === t ? 'on' : ''} aria-selected={skill === t} href={href({ skill: t, custom })} prefetch={false}>
-                {t}
-              </Link>
-            ))}
-          </div>
-          <Link className="chk" href={href({ skill, custom: custom === '1' ? undefined : '1' })} prefetch={false} role="checkbox" aria-checked={custom === '1'} style={{ textDecoration: 'none' }}>
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 18,
-                height: 18,
-                borderRadius: 5,
-                border: '1.5px solid #7FBFA9',
-                background: custom === '1' ? '#5FA88F' : '#fff',
-                color: '#fff',
-                fontSize: 12,
-                lineHeight: 1,
-              }}
-            >
-              {custom === '1' ? '✓' : ''}
-            </span>{' '}
-            <T s={'Available for custom work'} />
+      <TopBand title={copy.t('head', 'heading', words.heading)} intro={copy.t('head', 'intro', words.intro ?? '') || undefined}>
+        <form
+          className="glass"
+          action="/sellers"
+          method="get"
+          role="search"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px 6px 18px', borderRadius: 999, maxWidth: 520, width: '100%' }}
+        >
+          {skill && <input type="hidden" name="skill" value={skill} />}
+          {custom === '1' && <input type="hidden" name="custom" value="1" />}
+          <label htmlFor="ss" className="hidden-label">
+            <T s={'Search sellers'} />
+          </label>
+          <input
+            id="ss"
+            name="q"
+            defaultValue={q}
+            placeholder={tx('Search by name or skill')}
+            style={{ flex: 1, minWidth: 0, border: 0, background: 'transparent', font: '15px var(--font-inter)', color: '#2B4250', outline: 'none', minHeight: 42 }}
+          />
+          <button className="btn sm" type="submit">
+            <T s={'Search'} />
+          </button>
+        </form>
+      </TopBand>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', margin: '0 0 24px' }}>
+        <div className="seg" role="tablist" aria-label={tx('Skill')}>
+          <Link role="tab" className={!skill ? 'on' : ''} aria-selected={!skill} href={href({ custom })} prefetch={false}>
+            <T s={'All'} />
           </Link>
+          {skills.map((t) => (
+            <Link key={t} role="tab" className={skill === t ? 'on' : ''} aria-selected={skill === t} href={href({ skill: t, custom })} prefetch={false}>
+              {t}
+            </Link>
+          ))}
         </div>
-      </header>
+        <Link className="chk" href={href({ skill, custom: custom === '1' ? undefined : '1' })} prefetch={false} role="checkbox" aria-checked={custom === '1'} style={{ textDecoration: 'none' }}>
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 18,
+              height: 18,
+              borderRadius: 5,
+              border: '1.5px solid #7FBFA9',
+              background: custom === '1' ? '#5FA88F' : '#fff',
+              color: '#fff',
+              fontSize: 12,
+              lineHeight: 1,
+            }}
+          >
+            {custom === '1' ? '✓' : ''}
+          </span>{' '}
+          <T s={'Available for custom work'} />
+        </Link>
+      </div>
       {list.length ? (
         <section className="grid3">
           {list.map((s, i) => {

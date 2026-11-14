@@ -1,3 +1,4 @@
+import { TopBand } from '@/components/glass/TopBand';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getI18n } from '@/lib/i18n/server';
@@ -44,33 +45,30 @@ export default async function AffiliatesPage() {
   const faq = s.faq.length ? s.faq.map((x) => [x.q, x.a] as [string, string]) : DEFAULT_FAQ(tx);
   return (
     <PublicFrame file="sell">
-      <section style={{ padding: '72px 0 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-        <span className="badge">{i.t('aff.badge')}</span>
-        <h1 style={{ fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 300 }}>{i.t('aff.title')}</h1>
-        <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
-          {s.intro}
-        </p>
+      <TopBand eyebrow={i.t('aff.badge')} title={i.t('aff.title')} intro={s.intro || undefined}>
         {s.enabled ? (
-          <Link className="btn" href="/dashboard/buyer/affiliate" prefetch={false}>
+          <Link className="btn" href="/dashboard/buyer/affiliate" prefetch={false} style={{ alignSelf: 'flex-start' }}>
             {i.t('aff.join')}
           </Link>
         ) : (
-          <span className="status st-draft" style={{ fontSize: 15, padding: '8px 16px' }}>
+          <span className="status st-draft" style={{ fontSize: 15, padding: '8px 16px', alignSelf: 'flex-start' }}>
             {i.t('aff.soon')}
           </span>
         )}
+      </TopBand>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 24px' }}>
         {!s.enabled && (
           <p className="muted" style={{ margin: 0, maxWidth: 560, fontSize: 14 }}>
             {i.t('aff.soonText')}
           </p>
         )}
-        <div className="tag">
+        <div className="tag" style={{ margin: 0 }}>
           <T
             s={'{v0} Earnings are not guaranteed.'}
             v={{ v0: fee === 0 ? tx('Free to join during the promotion (normally {usd}).', { usd: usd(s.feeCents) }) : tx('Registration fee {usd}, never charged automatically.', { usd: usd(fee) }) }}
           />
         </div>
-      </section>
+      </div>
 
       {s.benefits.filter((b) => b.on).length > 0 && (
         <section className="sec">

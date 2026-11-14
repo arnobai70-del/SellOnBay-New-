@@ -1,3 +1,4 @@
+import { TopBand } from './glass/TopBand';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { PageExtras } from './PageExtras';
@@ -52,16 +53,11 @@ export async function LegalPage({
     : stamp;
   return (
     <PublicFrame file="legal">
-      <header className="pagehead">
-        <span className="badge fade-in" style={{ alignSelf: 'flex-start' }}>
-          {tx('Policies')}
+      <TopBand eyebrow={tx('Policies')} title={w.heading} intro={tx('The rules for buyers, sellers and SellOnBay, in plain language.')}>
+        <span className="draft" style={{ alignSelf: 'flex-start' }}>
+          {shown}
         </span>
-        <h1>{w.heading}</h1>
-        <p className="muted" style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
-          {tx('The rules for buyers, sellers and SellOnBay, in plain language.')}
-        </p>
-        <span className="draft">{shown}</span>
-      </header>
+      </TopBand>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <nav className="glass toc" aria-label={tx('Policies')} style={{ flex: '1 1 220px', maxWidth: 260, padding: 12, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {DOCS(tx).map(([p, href, label]) => (

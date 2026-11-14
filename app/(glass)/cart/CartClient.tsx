@@ -1,4 +1,5 @@
 'use client';
+import { TopBand } from '@/components/glass/TopBand';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { addToCart, removeFromCart, useCart } from '@/lib/glass/cart';
@@ -40,16 +41,12 @@ export function CartClient({ add, reviewHours }: { add?: string; reviewHours: nu
   const total = ready.reduce((s, i) => s + i.priceCents, 0);
   return (
     <>
-      <header className="pagehead">
-        <h1>{tx('Your cart')}</h1>
-        <div className="tag">
-          {loaded
-            ? items.length === 1
-              ? tx('{n} item · checkout with escrow protection', { n: 1 })
-              : tx('{n} items · checkout with escrow protection', { n: items.length })
-            : tx('Loading your cart…')}
-        </div>
-      </header>
+      <TopBand
+        title={tx('Your cart')}
+        intro={
+          loaded ? (items.length === 1 ? tx('{n} item · checkout with escrow protection', { n: 1 }) : tx('{n} items · checkout with escrow protection', { n: items.length })) : tx('Loading your cart…')
+        }
+      />
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '999 1 520px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <section className="glass card" style={{ padding: '8px 24px' }}>

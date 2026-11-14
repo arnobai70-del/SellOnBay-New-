@@ -1,4 +1,5 @@
 'use client';
+import { TopBand } from '@/components/glass/TopBand';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -44,71 +45,69 @@ export function ResetClient() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 20px 0' }}>
-      <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 400 }}>
-          <T s={'Choose a new password'} />
-        </h1>
-        <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-          <T s={'You will be signed in right after.'} />
-        </p>
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div className="field">
-            <label htmlFor="r-pw">
-              <T s={'New password'} />
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                className="input"
-                id="r-pw"
-                type={show ? 'text' : 'password'}
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-                minLength={8}
-                required
-                autoComplete="new-password"
-                style={{ width: '100%', paddingRight: 64 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShow((v) => !v)}
-                aria-pressed={show}
-                style={{
-                  position: 'absolute',
-                  right: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 0,
-                  cursor: 'pointer',
-                  color: 'var(--mute)',
-                  fontWeight: 600,
-                  fontSize: 14,
-                }}
-              >
-                {show ? tx('Hide') : tx('Show')}
-              </button>
+    <div>
+      {/* the title and its line sit in the shared top band (owner, 2026-11-14); the form card stays on the light page under it */}
+      <TopBand title={<T s={'Choose a new password'} />} intro={<T s={'You will be signed in right after.'} />} />
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
+        <section className="glass ac" style={{ width: '100%', maxWidth: 460 }}>
+          <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="field">
+              <label htmlFor="r-pw">
+                <T s={'New password'} />
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  className="input"
+                  id="r-pw"
+                  type={show ? 'text' : 'password'}
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                  minLength={8}
+                  required
+                  autoComplete="new-password"
+                  style={{ width: '100%', paddingRight: 64 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShow((v) => !v)}
+                  aria-pressed={show}
+                  style={{
+                    position: 'absolute',
+                    right: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 0,
+                    cursor: 'pointer',
+                    color: 'var(--mute)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                  }}
+                >
+                  {show ? tx('Hide') : tx('Show')}
+                </button>
+              </div>
+              <small>
+                <T s={'At least 8 characters.'} />
+              </small>
             </div>
-            <small>
-              <T s={'At least 8 characters.'} />
-            </small>
-          </div>
-          <div className="field">
-            <label htmlFor="r-pw2">
-              <T s={'Type it again'} />
-            </label>
-            <input className="input" id="r-pw2" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} required autoComplete="new-password" />
-          </div>
-          {error && (
-            <p role="alert" style={{ color: '#7A2E24', margin: 0 }}>
-              {error}
-            </p>
-          )}
-          <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
-            {busy ? tx('Saving') : tx('Save password')}
-          </button>
-        </form>
-      </section>
+            <div className="field">
+              <label htmlFor="r-pw2">
+                <T s={'Type it again'} />
+              </label>
+              <input className="input" id="r-pw2" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} required autoComplete="new-password" />
+            </div>
+            {error && (
+              <p role="alert" style={{ color: '#7A2E24', margin: 0 }}>
+                {error}
+              </p>
+            )}
+            <button className="btn" type="submit" disabled={busy} style={{ width: '100%' }}>
+              {busy ? tx('Saving') : tx('Save password')}
+            </button>
+          </form>
+        </section>
+      </div>
     </div>
   );
 }

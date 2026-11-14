@@ -2811,6 +2811,7 @@
    "client": false,
    "files": [
     "app/(glass)/guides/[slug]/page.tsx",
+    "app/(glass)/websites/[slug]/page.tsx",
     "app/(glass)/websites/category/[category]/page.tsx"
    ]
   },
@@ -5232,13 +5233,6 @@
    "area": "public",
    "files": [
     "components/AuthClient.tsx"
-   ]
-  },
-  "Create.": {
-   "client": true,
-   "area": "public",
-   "files": [
-    "app/(glass)/page.tsx"
    ]
   },
   "Created by": {
@@ -9819,13 +9813,6 @@
    "area": "public",
    "files": [
     "components/OrderView.tsx"
-   ]
-  },
-  "In your name": {
-   "client": true,
-   "area": "public",
-   "files": [
-    "app/(glass)/page.tsx"
    ]
   },
   "In your own name": {
@@ -15565,13 +15552,6 @@
     "app/(dash)/admin/settings/page.tsx"
    ]
   },
-  "Payment held in escrow": {
-   "client": true,
-   "area": "public",
-   "files": [
-    "app/(glass)/page.tsx"
-   ]
-  },
   "Payment held in escrow until you approve": {
    "client": true,
    "area": "public",
@@ -18397,7 +18377,8 @@
    ]
   },
   "Request received": {
-   "client": false,
+   "client": true,
+   "area": "public",
    "files": [
     "app/(glass)/checkout/success/page.tsx"
    ]
@@ -19910,6 +19891,7 @@
     "app/(dash)/admin/support/page.tsx",
     "app/(dash)/admin/users/page.tsx",
     "app/(dash)/admin/users/sellers/page.tsx",
+    "app/(glass)/sellers/[username]/page.tsx",
     "app/(glass)/sellers/page.tsx",
     "components/OrderChat.tsx"
    ]
@@ -29077,8 +29059,7 @@
    "client": true,
    "area": "public",
    "files": [
-    "app/(glass)/checkout/BetaForm.tsx",
-    "app/(glass)/page.tsx"
+    "app/(glass)/checkout/BetaForm.tsx"
    ]
   },
   "yourbusiness.com": {
